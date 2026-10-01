@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "kind": "spryxel.context-lock",
+  "workOrderId": "SPRYXEL-WO-001",
+  "status": "FRESH",
+  "repository": "KayzenRoot/spryxel",
+  "authorizedBranch": "codex/spryxel-wo-001-gef-github-governance",
+  "executionBase": {
+    "branch": "main",
+    "sha": "10dca04e38cfcd2e07335faf9078cc6041766c02"
+  },
+  "sourcePackSeedCommit": "3979de55fdfcf383c0ca1cbacbb3d14da55531ce",
+  "gef": {
+    "package": "@gef-bootstrap/cli",
+    "version": "1.1.1",
+    "referenceRepository": "KayzenRoot/gef-bootstrap",
+    "referenceSha": "5a32a607ccf2055fab722f3d5d452791c6aae3e6"
+  },
+  "providerBaseline": {
+    "rulesets": [],
+    "mainProtected": false,
+    "visibility": "public",
+    "visibilityMutationAllowed": false
+  },
+  "criticalSources": [
+    {"path": ".engineering/CHECKPOINT.json", "gitBlobSha": "fa6b4f785035247ceb7957a6253489ed5ea468af"},
+    {"path": ".engineering/CHECKPOINT.md", "gitBlobSha": "fc17ec6c282694fc017dbd92077f2681a0b839ba"},
+    {"path": ".engineering/DECISIONS-LEDGER.md", "gitBlobSha": "25d77cec75bbbfe5c3c057259e0b51e71a255ee9"},
+    {"path": ".engineering/SCOPE.md", "gitBlobSha": "a75d4b57149cfc8e53d0b204e6f427cce88e5858"},
+    {"path": ".engineering/DEFINITION-OF-DONE.md", "gitBlobSha": "513c0b38f40474b67d87d14199d422d4a082fa35"},
+    {"path": ".engineering/ARCHITECTURE.md", "gitBlobSha": "b8c2161ee4e38d6004981ed1ee5eb1da41d61123"},
+    {"path": ".engineering/REQUIREMENTS.md", "gitBlobSha": "34f1ec6631bf1ceb2f937f1fc89bda12613cfbef"},
+    {"path": ".engineering/work-orders/SPRYXEL-WO-001.md", "gitBlobSha": "cb359036930e778b582c4032496221c7e7a8e973"},
+    {"path": "AGENTS.md", "gitBlobSha": "0d8c5d1ccb0ded717ed6a3e2a8e5137f53b5cebd"}
+  ],
+  "staleIf": [
+    "executionBase.sha changes before executor preflight",
+    "any criticalSources gitBlobSha changes outside this Work Order",
+    "GEF package pin changes",
+    "approved scope/DoD/architecture/decision authority changes"
+  ],
+  "stopOnStale": true
+}
