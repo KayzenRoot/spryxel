@@ -1,0 +1,77 @@
+name: Repository validation
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, codex/spryxel-wo-001-gef-github-governance]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repository-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Repository validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact PR head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Set up Node.js 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install exact lockfile dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify exact GEF CLI identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install gef --version --json > "$RUNNER_TEMP/gef-version.json"
+          node -e 'const fs=require("node:fs"); const x=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); if(x.ok!==true || x.name!=="gef" || x.version!=="1.1.1") { console.error(x); process.exit(1); }' "$RUNNER_TEMP/gef-version.json"
+      - name: Validate GEF doctor and checkpoint governance
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install gef doctor --target "$GITHUB_WORKSPACE" --json > "$RUNNER_TEMP/gef-doctor.json"
+          node -e 'const fs=require("node:fs"); const x=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); const d=x.value?.doctor; if(x.ok!==true || x.terminal!=="SUCCEEDED" || d?.governance?.present!==true || d?.governance?.readable!==true || d?.governance?.valid!==true) { console.error(x); process.exit(1); }' "$RUNNER_TEMP/gef-doctor.json"
+      - name: Verify deterministic GEF status
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --no-install gef status --target "$GITHUB_WORKSPACE" --json > "$RUNNER_TEMP/gef-status-1.json"
+          npx --no-install gef status --target "$GITHUB_WORKSPACE" --json > "$RUNNER_TEMP/gef-status-2.json"
+          cmp "$RUNNER_TEMP/gef-status-1.json" "$RUNNER_TEMP/gef-status-2.json"
+          node -e 'const fs=require("node:fs"); const x=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); const s=x.value?.status; if(x.ok!==true || x.terminal!=="SUCCEEDED" || s?.driftBaseline?.state!=="RECORDED" || typeof s?.drift?.changed!=="boolean") { console.error(x); process.exit(1); }' "$RUNNER_TEMP/gef-status-1.json"
+      - name: Validate checkpoint schema
+        run: |
+          node -e 'const fs=require("node:fs"); const x=JSON.parse(fs.readFileSync(".engineering/CHECKPOINT.json","utf8")); if(x.schemaVersion!==2 || x.v11?.gefVersion!=="1.1.1") { console.error(x); process.exit(1); }'
+      - name: Check whitespace errors
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_REF: ${{ github.ref }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            git diff --check "$PR_BASE_SHA...$PR_HEAD_SHA"
+          elif [ "$EVENT_REF" = "refs/heads/codex/spryxel-wo-001-gef-github-governance" ]; then
+            git fetch --no-tags origin main
+            base="$(git merge-base origin/main "$GITHUB_SHA")"
+            git diff --check "$base...$GITHUB_SHA"
+          elif git rev-parse "$GITHUB_SHA^" >/dev/null 2>&1; then
+            git diff --check "$GITHUB_SHA^" "$GITHUB_SHA"
+          else
+            git diff --check
+          fi

@@ -1,0 +1,38 @@
+name: Governed Work Order proposal
+description: Record a bounded governance increment for owner admission.
+title: "[WO] "
+labels: ["governed"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This proposal does not authorize implementation. Admission, an exact Context Lock, and an authorized PR branch are required before execution.
+  - type: input
+    id: work_order_id
+    attributes:
+      label: Work Order ID
+      description: Stable identifier for the proposed increment.
+      placeholder: SPRYXEL-WO-002
+    validations:
+      required: true
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective and scope
+      description: State the outcome and the smallest authorized scope.
+    validations:
+      required: true
+  - type: textarea
+    id: authority
+    attributes:
+      label: Canonical sources and Context Lock
+      description: Link the governing decisions, exact base SHA, and critical fingerprints.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance evidence and stop condition
+      description: List checks, provider read-back, risks, and the exact legal stop point.
+    validations:
+      required: true
