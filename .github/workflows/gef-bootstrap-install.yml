@@ -55,11 +55,24 @@ jobs:
           npx --no-install gef --help --json >/tmp/gef-help.json
           node -e 'const fs=require("fs"); const x=JSON.parse(fs.readFileSync("/tmp/gef-help.json","utf8")); if(x.ok!==true) { console.error(x); process.exit(1); }'
 
-      - name: Preview new-project initialization
-        run: npx --no-install gef init --target "$GITHUB_WORKSPACE" --json >/tmp/gef-init-preview.json
+      - name: Initialize governed project state when absent
+        shell: bash
+        run: |
+          if [ -f .gef/init-state.json ]; then
+            node -e 'const fs=require("fs"); const x=JSON.parse(fs.readFileSync(".gef/init-state.json","utf8")); if(x.kind!=="gef.init.state" || x.productVersion!=="1.1.1" || x.transaction?.outcome!=="APPLIED") { console.error(x); process.exit(1); }'
+          else
+            npx --no-install gef init --target "$GITHUB_WORKSPACE" --json >/tmp/gef-init-preview.json
+            npx --no-install gef init --apply --target "$GITHUB_WORKSPACE" --json >/tmp/gef-init-apply.json
+          fi
 
-      - name: Apply governed initialization
-        run: npx --no-install gef init --apply --target "$GITHUB_WORKSPACE" --json >/tmp/gef-init-apply.json
+      - name: Commit governed GEF state when created
+        shell: bash
+        run: |
+          git add .gef
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: initialize GEF Bootstrap 1.1.1"
+            git push origin "HEAD:${TARGET_BRANCH}"
+          fi
 
       - name: Validate doctor
         run: npx --no-install gef doctor --target "$GITHUB_WORKSPACE" --json >/tmp/gef-doctor.json
@@ -71,17 +84,11 @@ jobs:
           npx --no-install gef status --target "$GITHUB_WORKSPACE" --json >/tmp/gef-status-2.json
           cmp /tmp/gef-status-1.json /tmp/gef-status-2.json
 
-      - name: Commit governed GEF state
+      - name: Verify clean final head
         shell: bash
         run: |
-          git add .gef
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: initialize GEF Bootstrap 1.1.1"
-            git push origin "HEAD:${TARGET_BRANCH}"
-          fi
-
-      - name: Final verification
-        shell: bash
-        run: |
+          git status --porcelain
+          test -z "$(git status --porcelain)"
+          git rev-parse HEAD
           npx --no-install gef doctor --target "$GITHUB_WORKSPACE" --json
           npx --no-install gef status --target "$GITHUB_WORKSPACE" --json
