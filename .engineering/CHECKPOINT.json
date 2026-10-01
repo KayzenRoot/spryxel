@@ -7,11 +7,13 @@
   "nextLegalStage": "EXECUTE_SPRYXEL_WO_001",
   "v11": {
     "gefVersion": "1.1.1",
+    "gefReleaseSourceSha": "1dc030f1358eab0347043a3d54c7fc311c7c2123",
     "baseSha": "10dca04e38cfcd2e07335faf9078cc6041766c02",
     "activeWorkOrder": "SPRYXEL-WO-001",
     "trackingIssue": 2,
     "productImplementation": "NOT_STARTED",
     "productBaseline": "NOT_BASELINED",
-    "rulesetBaseline": "NONE_OBSERVED"
+    "rulesetBaseline": "NONE_OBSERVED",
+    "driftPolicy": "RECONCILE_AGAINST_AUTHORIZED_GIT_DELTA_DO_NOT_REWRITE_GEF_BASELINE"
   }
 }

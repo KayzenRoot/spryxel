@@ -17,10 +17,13 @@ Status: SOURCE_PACK_CANDIDATE
 - no force-push or history rewrite;
 - ruleset with no bypass by default;
 - no paid service required for a merge gate;
-- provider mutation captured before/after and read-back verified.
+- provider mutation captured before/after and read-back verified;
+- `.gef/init-state.json`, `.gef/adopt-state.json` and GEF receipts must never be hand-edited to suppress a drift signal.
 
 ## Failure policy
 Ambiguous permissions, missing admin capability, unknown required-check context or provider read-back mismatch is BLOCKED. Do not weaken security controls to make a PR green.
+
+A GEF v1.1.1 `drift.class=UNEXPECTED` is reconciled against the admitted Work Order and exact diff. It is a blocker if any changed surface is unadmitted, unexplained or cannot be bound to evidence. It is not a reason to rewrite the immutable GEF baseline.
 
 ## Current known gap
 Before SPRYXEL-WO-001 execution, `main` has no repository ruleset. This is the active security/governance gap being addressed.

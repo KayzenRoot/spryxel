@@ -15,6 +15,10 @@ Required local/executor proofs:
 7. `git diff --check`
 8. Gitleaks scan
 9. Trivy filesystem/config scan
+10. drift reconciliation: capture the GEF baseline ref/fingerprint and current drift projection, then prove every project delta since that baseline is contained in the admitted Work Order/PR or an already-audited predecessor; no hand-edit of GEF managed state is permitted.
+
+### GEF v1.1.1 diagnostic constraint
+The immutable v1.1.1 release source calls its status drift detector with `authorized: false`. A real post-init change therefore projects as `UNEXPECTED` even when the surrounding governance has authorized it. Acceptance depends on deterministic observation plus exact diff/evidence reconciliation, not on forcing `drift.changed=false`.
 
 Required provider proofs:
 - exact final PR head and check suite;

@@ -22,4 +22,7 @@ A Work Order/Context Lock is STALE if its base SHA changes or a critical authori
 - Repository: `KayzenRoot/spryxel`
 - Execution base for SPRYXEL-WO-001: `10dca04e38cfcd2e07335faf9078cc6041766c02`
 - GEF package: `@gef-bootstrap/cli@1.1.1`
-- GEF reference source: `KayzenRoot/gef-bootstrap@5a32a607ccf2055fab722f3d5d452791c6aae3e6`
+- GEF v1.1.1 immutable release source: `KayzenRoot/gef-bootstrap@1dc030f1358eab0347043a3d54c7fc311c7c2123`
+- GEF tag: `v1.1.1`
+
+Post-release commits in the GEF repository may be consulted only for evidence about publication/rollout. They do not redefine the installed v1.1.1 runtime contract.
