@@ -1,11 +1,11 @@
 name: GEF Bootstrap 1.1.1 Install
 
 on:
-  push:
+  pull_request:
     branches:
       - main
-    paths:
-      - .github/workflows/gef-bootstrap-install.yml
+    types:
+      - opened
   workflow_dispatch:
 
 permissions:
@@ -15,9 +15,13 @@ jobs:
   install-and-validate:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      TARGET_BRANCH: ${{ github.head_ref || github.ref_name }}
     steps:
-      - name: Checkout
+      - name: Checkout source branch
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Setup Node 22
         uses: actions/setup-node@v4
@@ -36,7 +40,7 @@ jobs:
           git add package-lock.json
           if ! git diff --cached --quiet; then
             git commit -m "chore: lock GEF Bootstrap 1.1.1"
-            git push origin HEAD:main
+            git push origin "HEAD:${TARGET_BRANCH}"
           fi
 
       - name: Install exact GEF package
@@ -71,7 +75,7 @@ jobs:
           git add .gef
           if ! git diff --cached --quiet; then
             git commit -m "chore: initialize GEF Bootstrap 1.1.1"
-            git push origin HEAD:main
+            git push origin "HEAD:${TARGET_BRANCH}"
           fi
 
       - name: Final verification
