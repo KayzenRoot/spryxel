@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 2,
+  "status": "SOURCE_PACK_CANDIDATE",
+  "phase": "GEF_GITHUB_GOVERNANCE_BOOTSTRAP",
+  "stopState": "SPRYXEL_WO_001_READY_FOR_CODEX",
+  "completedThroughModule": "GEF_BOOTSTRAP_1_1_1_INSTALLED",
+  "nextLegalStage": "EXECUTE_SPRYXEL_WO_001",
+  "v11": {
+    "gefVersion": "1.1.1",
+    "baseSha": "10dca04e38cfcd2e07335faf9078cc6041766c02",
+    "activeWorkOrder": "SPRYXEL-WO-001",
+    "trackingIssue": 2,
+    "productImplementation": "NOT_STARTED",
+    "productBaseline": "NOT_BASELINED",
+    "rulesetBaseline": "NONE_OBSERVED"
+  }
+}
