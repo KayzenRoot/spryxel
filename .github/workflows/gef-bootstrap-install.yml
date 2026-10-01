@@ -6,6 +6,7 @@ on:
       - main
     types:
       - opened
+      - reopened
   workflow_dispatch:
 
 permissions:
@@ -49,9 +50,10 @@ jobs:
       - name: Verify CLI identity
         shell: bash
         run: |
-          test "$(npx --no-install gef --version | tr -d '\r')" = "1.1.1"
-          npx --no-install gef --help >/tmp/gef-help.txt
-          test -s /tmp/gef-help.txt
+          npx --no-install gef --version --json >/tmp/gef-version.json
+          node -e 'const fs=require("fs"); const x=JSON.parse(fs.readFileSync("/tmp/gef-version.json","utf8")); if(x.ok!==true || x.name!=="gef" || x.version!=="1.1.1") { console.error(x); process.exit(1); }'
+          npx --no-install gef --help --json >/tmp/gef-help.json
+          node -e 'const fs=require("fs"); const x=JSON.parse(fs.readFileSync("/tmp/gef-help.json","utf8")); if(x.ok!==true) { console.error(x); process.exit(1); }'
 
       - name: Preview new-project initialization
         run: npx --no-install gef init --target "$GITHUB_WORKSPACE" --json >/tmp/gef-init-preview.json
