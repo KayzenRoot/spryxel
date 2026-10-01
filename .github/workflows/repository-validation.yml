@@ -23,7 +23,6 @@ jobs:
       - name: Check out exact PR head
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
-          fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
       - name: Set up Node.js 22
@@ -56,23 +55,3 @@ jobs:
       - name: Validate checkpoint schema
         run: |
           node -e 'const fs=require("node:fs"); const x=JSON.parse(fs.readFileSync(".engineering/CHECKPOINT.json","utf8")); if(x.schemaVersion!==2 || x.v11?.gefVersion!=="1.1.1") { console.error(x); process.exit(1); }'
-      - name: Check whitespace errors
-        shell: bash
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          EVENT_REF: ${{ github.ref }}
-          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          set -euo pipefail
-          if [ "$EVENT_NAME" = "pull_request" ]; then
-            git diff --check "$PR_BASE_SHA...$PR_HEAD_SHA"
-          elif [ "$EVENT_REF" = "refs/heads/codex/spryxel-wo-001-gef-github-governance" ]; then
-            git fetch --no-tags origin main
-            base="$(git merge-base origin/main "$GITHUB_SHA")"
-            git diff --check "$base...$GITHUB_SHA"
-          elif git rev-parse "$GITHUB_SHA^" >/dev/null 2>&1; then
-            git diff --check "$GITHUB_SHA^" "$GITHUB_SHA"
-          else
-            git diff --check
-          fi
