@@ -1,0 +1,81 @@
+name: GEF Bootstrap 1.1.1 Install
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/gef-bootstrap-install.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  install-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Generate reproducible npm lockfile
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+
+      - name: Commit lockfile before GEF mutation
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: lock GEF Bootstrap 1.1.1"
+            git push origin HEAD:main
+          fi
+
+      - name: Install exact GEF package
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Verify CLI identity
+        shell: bash
+        run: |
+          test "$(npx --no-install gef --version | tr -d '\r')" = "1.1.1"
+          npx --no-install gef --help >/tmp/gef-help.txt
+          test -s /tmp/gef-help.txt
+
+      - name: Preview new-project initialization
+        run: npx --no-install gef init --target "$GITHUB_WORKSPACE" --json >/tmp/gef-init-preview.json
+
+      - name: Apply governed initialization
+        run: npx --no-install gef init --apply --target "$GITHUB_WORKSPACE" --json >/tmp/gef-init-apply.json
+
+      - name: Validate doctor
+        run: npx --no-install gef doctor --target "$GITHUB_WORKSPACE" --json >/tmp/gef-doctor.json
+
+      - name: Validate repeated status
+        shell: bash
+        run: |
+          npx --no-install gef status --target "$GITHUB_WORKSPACE" --json >/tmp/gef-status-1.json
+          npx --no-install gef status --target "$GITHUB_WORKSPACE" --json >/tmp/gef-status-2.json
+          cmp /tmp/gef-status-1.json /tmp/gef-status-2.json
+
+      - name: Commit governed GEF state
+        shell: bash
+        run: |
+          git add .gef
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: initialize GEF Bootstrap 1.1.1"
+            git push origin HEAD:main
+          fi
+
+      - name: Final verification
+        shell: bash
+        run: |
+          npx --no-install gef doctor --target "$GITHUB_WORKSPACE" --json
+          npx --no-install gef status --target "$GITHUB_WORKSPACE" --json
