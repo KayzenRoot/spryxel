@@ -117,6 +117,7 @@ fixtures.each do |label, (yaml, should_fail)|
   walk.call(parsed, Pathname(".github/workflows/_policy_fixture.yml"), "", [])
   raise "Pipeline integrity self-test failed: #{label}" unless violations.any? == should_fail
 end
+violations.clear
 puts "Pipeline integrity policy self-tests passed: #{fixtures.length} cases."
 
 yaml_files.each do |path|
