@@ -5,19 +5,26 @@ Status: SOURCE_PACK_CANDIDATE
 Repository: `KayzenRoot/spryxel`  
 GEF: `@gef-bootstrap/cli@1.1.1`
 
-## Estado promovido após auditoria
-- Work Order auditada: `SPRYXEL-WO-001` / issue #2 / PR #3.
-- Veredito objetivo: `APPROVED`.
+## Estado canônico
+- `SPRYXEL-WO-001`: COMPLETE.
+- Veredito de auditoria: `APPROVED`.
 - Head de execução auditado: `db68f8aeb85beed2f8bbfba98fcc8fd562f7515b`.
-- Nenhum achado CRITICAL ou HIGH permanece conhecido neste incremento.
-- O ruleset `SPRYXEL main governance` ID `24340349` foi lido de volta e aceito como baseline ativo de `main`.
-- Os contexts obrigatórios aceitos são `Repository validation`, `Pipeline integrity`, `Gitleaks secrets` e `Trivy filesystem and configuration`.
-- O drift do GEF 1.1.1 permanece interpretado pela decisão D-0007 e foi reconciliado sem editar estado gerenciado em `.gef`.
+- Head de promoção do checkpoint: `a079442c8e0f83585ad195e8741a1f406cd8927d`.
+- PR #3 merged em `main@1d1e5f04f9bc14742af0cbdc0eb8b4710d62506c`.
+- Validação pós-merge: PASS nos quatro required checks.
+- Ruleset baseline: `SPRYXEL main governance` ID `24340349`.
+- Achados CRITICAL/HIGH pendentes deste incremento: nenhum conhecido.
 - Product implementation: NOT_STARTED.
 - Product baseline: NOT_BASELINED.
 
-## Estado da governança
-O bootstrap do GEF 1.1.1 e a camada GitHub/GEF de governança estão aprovados. A promoção deste checkpoint é uma ação do auditor posterior à STOP CONDITION do executor. O Context Lock de execução de `SPRYXEL-WO-001` deixa de ser reutilizável após esta promoção porque fontes críticas foram atualizadas de forma canônica.
+## Validação pós-merge
+Os quatro contexts obrigatórios passaram no commit real de `main` após o squash merge:
+- Repository validation: check `110668795603`;
+- Pipeline integrity: check `110668795837`;
+- Gitleaks secrets: check `110668795652`;
+- Trivy filesystem and configuration: check `110668795544`.
+
+O Context Lock de execução de `SPRYXEL-WO-001` permanece `STALE` por encerramento, porque fontes críticas foram promovidas depois da auditoria. Ele não pode ser reutilizado.
 
 ## Próxima ação legal
-Esta promoção autoriza o merge seguro da PR #3 somente após os quatro checks obrigatórios passarem novamente no commit de promoção. Depois do merge e da validação pós-merge, o próximo estágio permitido é planejamento de Product Discovery. Nenhuma implementação de produto está admitida.
+Pode ser iniciado um novo incremento de **Product Discovery planning**, com nova Work Order e novo Context Lock. Nenhuma implementação de produto está admitida ainda.
