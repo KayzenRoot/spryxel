@@ -32,4 +32,4 @@ Quality rules are resolution-aware. Anatomy, dimensions, silhouette, frame ident
 
 ## Open choices
 
-Final model/pipeline, runtime, quantization and offload policy, queue, GPU vendor, model license findings, serverless configuration, provider failover, and per-SKU quality/cost thresholds remain open pending actual benchmark and review evidence.
+Final model/pipeline runtime, quantization and offload policy, GPU vendor, model license findings, serverless configuration, provider failover and per-SKU quality/cost thresholds remain open pending actual benchmark and review evidence. SPR-PLAN-007 selects the TypeScript/Node.js 22-compatible product control-plane and worker runtime, plus Redis/BullMQ-compatible transient coordination; it does not select an inference runtime, model or GPU provider.

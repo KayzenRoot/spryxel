@@ -4,13 +4,17 @@ Spryxel is governed by **GEF Bootstrap 1.1.1**.
 
 ## Current stage
 
-`SPRYXEL-WO-003` is **COMPLETE**. `SPR-PLAN-006 — Product UX, Design System & Information Architecture` was objectively audited, checkpoint-promoted, squash-merged, and post-merge validated.
+`SPRYXEL-WO-004 / SPR-PLAN-007` is objectively approved and canonically promoted as the implementation-planning baseline.
 
-The canonical UX baseline now defines Dark/Light themes, semantic tokens, typography, glass/translucency boundaries, studio grammar, responsive companion behavior, navigation, screen inventory, flows, states, notifications/toasts, accessibility, localization and textual wireframe contracts.
+The canonical implementation plan now defines the TypeScript/Node.js 22, npm-workspace modular-monolith foundation, Next.js web boundary, Fastify API boundary, separate Node worker, PostgreSQL/Drizzle persistence, Redis/BullMQ transient coordination, S3-compatible storage with MinIO local development, typed configuration, observability and test architecture.
 
 Product implementation has **not started**.
 
-The next legal action is a separately admitted implementation-planning Work Order with a new Context Lock.
+The next legal implementation slice is:
+
+`SPRYXEL-IMP-001 — Platform Foundation Bootstrap`
+
+It is specified but **not admitted or executed** until a new Work Order and Context Lock are created.
 
 ## Canonical source order
 1. `.engineering/CHECKPOINT.json` and `.engineering/CHECKPOINT.md`
@@ -20,7 +24,5 @@ The next legal action is a separately admitted implementation-planning Work Orde
 5. `.engineering/ARCHITECTURE.md`
 6. `.engineering/REQUIREMENTS.md`
 7. Specialized Source Pack documents
-
-The Product Master v0.6.0 under `.engineering/source-seeds/` remains immutable historical migration evidence.
 
 See `.engineering/SOURCE-HIERARCHY.md` for conflict rules.

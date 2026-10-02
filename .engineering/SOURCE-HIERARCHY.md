@@ -31,3 +31,9 @@ A Work Order/Context Lock is STALE if its base SHA changes or a critical authori
 - Next legal stage after safe merge: a separately admitted implementation-planning Work Order with a new Context Lock
 
 Post-release commits in the GEF repository may be consulted only for evidence about publication/rollout. They do not redefine the installed v1.1.1 runtime contract.
+
+## SPR-PLAN-007 canonical source bindings
+
+SPRYXEL-WO-004 / SPR-PLAN-007 was objectively audited and promoted. D-123…D-153 and the implementation-planning documents are canonical; they do not supersede or edit D-001…D-122. The historical execution Context Lock is stale/closed after promotion.
+
+Within this increment, the authority order above still applies. The Decisions Ledger owns the decision IDs; `IMPLEMENTATION-ARCHITECTURE.md` integrates process/domain boundaries; `RUNTIME-STACK.md`, `REPOSITORY-TOPOLOGY.md`, `PHYSICAL-DATA-CONVENTIONS.md`, `API-FOUNDATION-CONTRACT.md`, `LOCAL-DEVELOPMENT.md`, `IMPLEMENTATION-SEQUENCE.md` and `FIRST-IMPLEMENTATION-SLICE.md` detail those decisions; the dependency/open-choice matrix captures edge rules and intentional deferrals. These files are canonical planning, not implemented state. The immutable v0.6.0 seed, GEF 1.1.1 release and `.gef` baseline remain unchanged.

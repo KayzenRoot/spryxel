@@ -36,7 +36,7 @@ Budget, authorization, policy, contract, safety, cost, provider, and QA errors m
 
 Downloads and exports are tenant-authorized with short-lived signed URLs and audit events. Every API/MCP path enforces tenant isolation, API-key scope, allowed SKU/profile, cost limits, and generation idempotency.
 
-Open: exact API paths/versioning, request/response schemas, pagination, error-code registry, OAuth scopes/resource metadata, CLI command syntax, partial-delivery semantics, and detailed MCP tool catalog. These are carried to planning; WO-002 does not close them.
+Open: exact product endpoint catalog, request/response schemas, pagination, error-code registry, OAuth scopes/resource metadata, CLI command syntax, partial-delivery semantics, and detailed MCP tool catalog. SPR-PLAN-007 sets only the foundation to JSON REST under versioned `/api/v1`, OpenAPI 3.1, Zod-compatible boundary schemas, RFC 9457-compatible errors, request correlation, UUIDv7-compatible IDs and durable idempotency requirements; it does not freeze product endpoints. See [API-FOUNDATION-CONTRACT.md](API-FOUNDATION-CONTRACT.md).
 
 ## Credential and automation UX contract — SPR-PLAN-006
 

@@ -1,6 +1,6 @@
 # Decisions Ledger
 
-Status: CANONICAL — SPRYXEL-WO-003 / SPR-PLAN-006 approved by objective audit.
+Status: CANONICAL through SPR-PLAN-007 / D-001…D-153 after objective audit of SPRYXEL-WO-004.
 
 ## D-0001 — GEF version
 Use `@gef-bootstrap/cli@1.1.1` exactly. Upgrade requires a future Work Order.
@@ -644,3 +644,162 @@ Source: SPRYXEL-WO-003, SPR-PLAN-006.
 
 SPR-PLAN-001 — APPROVED / COMPLETED IN MASTER v0.2.0; SPR-PLAN-002 — APPROVED / COMPLETED IN MASTER v0.3.0; SPR-PLAN-003 — APPROVED / COMPLETED IN MASTER v0.4.0; SPR-SPECIAL-001 — APPROVED / ADDED IN MASTER v0.4.1; SPR-SPECIAL-002 — APPROVED / COMPLETED IN MASTER v0.4.2; SPR-PLAN-004 — APPROVED / COMPLETED IN MASTER v0.5.0; SPR-PLAN-005 — APPROVED / COMPLETED IN MASTER v0.6.0.
 SPR-PLAN-006 — APPROVED / COMPLETED by SPRYXEL-WO-003 after objective audit; product implementation remains NOT_STARTED.
+
+## SPR-PLAN-007 implementation-planning decisions — canonical
+
+The following Work Order decisions define the implementation foundation only. They were objectively audited and promoted by SPRYXEL-WO-004; they do not admit implementation. Decisions D-001…D-122 above remain preserved unchanged.
+
+### D-123 — Primary implementation language/runtime
+Decision: Product control-plane, web and worker code use TypeScript on Node.js 22 LTS-compatible runtime. Python remains permitted only inside inference/model tooling where a model/runtime requires it; Python does not own product business invariants.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-124 — Package management
+Decision: Preserve npm as the repository package manager with one root lockfile and npm workspaces. Do not introduce pnpm/yarn/bun merely for preference.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-125 — Build/task orchestration
+Decision: Use Turborepo-compatible workspace task orchestration/caching for product packages/apps, while npm remains the package manager. Exact package version is pinned only during implementation preflight after compatibility verification.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-126 — Repository topology
+Decision: Planned product topology is `apps/web`, `apps/api`, `apps/worker`; shared packages are `packages/contracts`, `packages/domain`, `packages/db`, `packages/config`, `packages/observability`, `packages/ui`, and `packages/testkit`. Add packages only when a Work Order needs them; do not generate empty architecture theatre.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-127 — Web application
+Decision: Use Next.js App Router + React + TypeScript for the product web shell. Server-side product invariants remain in API/domain services; Next.js server features cannot become a second business backend.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-128 — UI implementation boundary
+Decision: Implement the canonical Spryxel design system with semantic CSS custom-property tokens, Tailwind CSS utility composition and accessible headless primitives such as Radix-compatible primitives. Third-party component templates may accelerate implementation but cannot own Spryxel visual identity or bypass D-090…D-122.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-129 — Web state model
+Decision: Remote/server state uses TanStack Query-compatible query/mutation semantics; shareable navigation/filter state prefers URL state; local complex-workspace presentation state may use Zustand-compatible stores. Do not create one global client store as a second product database.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-130 — Localization implementation
+Decision: Use a Next.js-compatible ICU/message-catalog i18n layer such as next-intl, with English canonical/default and pt-BR/Spanish catalogs. Pseudo-localization remains a validation mode.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-131 — API runtime
+Decision: Use Fastify + TypeScript as the modular-monolith HTTP control-plane runtime. Domain packages remain framework-agnostic.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-132 — API foundation contract
+Decision: Public/internal HTTP foundation is JSON REST under versioned `/api/v1` paths with OpenAPI 3.1 documentation. Exact product endpoint catalog is not frozen by this increment.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-133 — Boundary schemas
+Decision: Zod-compatible versioned schemas are the source of truth for request/response/environment boundary validation and may generate OpenAPI/type artifacts. Database models are not API schemas.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-134 — Error contract
+Decision: Use RFC 9457 Problem Details-compatible JSON errors with stable machine-readable Spryxel error codes, correlation/request ID, safe human detail and explicit retryability where applicable. Secrets, antifraud internals and raw provider errors never cross the boundary.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-135 — Mutation/idempotency baseline
+Decision: Cost-bearing and replay-sensitive mutations require an idempotency key and return/reuse the durable operation identity on replay. Exact endpoint-specific requirements are refined in their implementation Work Orders.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-136 — Identifier baseline
+Decision: New durable product identifiers use UUIDv7-compatible opaque IDs unless an external provider supplies its own immutable identifier. User-visible slugs are aliases, never authorization keys.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-137 — PostgreSQL implementation layer
+Decision: PostgreSQL remains canonical. Use Drizzle ORM/Drizzle Kit-compatible typed access plus checked-in SQL migrations. SQL/RLS/index/constraint capabilities may be authored directly when ORM abstractions are insufficient.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-138 — Migration policy
+Decision: Schema changes are forward-only, reviewable migrations; no production `db push`/schema-sync shortcut. Destructive migration requires explicit migration/recovery Work Order. Every migration has rollback/roll-forward reasoning appropriate to risk.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-139 — Physical data conventions
+Decision: Database names use snake_case; timestamps are UTC `timestamptz`; authoritative credits/money use integer/fixed-precision storage, never floating point; posted ledger facts are immutable and corrected by compensating entries; nullable/soft-delete behavior must be explicit per entity.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-140 — Tenant isolation baseline
+Decision: From the first tenant-owned business table, tenancy/project ownership is explicit and protected by application authorization plus PostgreSQL RLS where applicable. UI filtering is never authorization.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-141 — Queue choice
+Decision: Redis + BullMQ-compatible queues are the initial transient execution/coordination mechanism. PostgreSQL durable Job/Attempt records remain canonical; Redis/BullMQ state cannot become the only record of a job.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-142 — Object storage choice
+Decision: Use an S3-compatible storage abstraction. Local development uses MinIO-compatible object storage; production provider stays replaceable and unfrozen. Product records store object identity/metadata, not provider-specific public URLs.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-143 — Authentication provider boundary
+Decision: Final external auth provider is intentionally NOT FROZEN by SPR-PLAN-007. Auth is represented behind an application identity/session adapter. `SPRYXEL-IMP-001` does not implement real user authentication or production identity tables; auth/provider selection is admitted before the first identity/tenant slice.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-144 — Worker process boundary
+Decision: `apps/worker` is a separate Node process consuming transient work references and using shared domain/contracts. Workers cannot mutate billing/ledger/trust invariants except through authorized domain services/transactions.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-145 — External provider discipline
+Decision: Billing, auth, GPU and production object-storage providers remain adapters until a triggered Work Order has current terms/compatibility/economic evidence. No provider-specific SDK may leak through domain contracts.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-146 — Configuration contract
+Decision: Environment/configuration is typed and validated at process startup; commit only safe examples/schema, never secrets. Production-required variables fail closed. Provider secrets are injected externally.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-147 — Observability baseline
+Decision: Use structured JSON logging (Pino-compatible), correlation/request IDs and OpenTelemetry-compatible traces/metrics. Logs exclude bearer tokens, API secrets, raw payment data and prohibited TrustShield internals.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-148 — Local development profiles
+Decision: Core local infrastructure uses Docker Compose profiles designed for 24 GB RAM: PostgreSQL, Redis and MinIO are the minimal infrastructure profile; web/api/worker may run on host for fast HMR or in containers where required. GPU/inference services are separate optional profiles and are not started by default.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-149 — Local/cloud semantic parity
+Decision: Local and cloud adapters must preserve the same IDs, contracts, durable-job semantics, cost authorization hooks, QA/provenance shapes and error categories. Development shortcuts may not create an incompatible product model.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-150 — Product test stack
+Decision: Use Vitest-compatible unit tests; integration tests execute against real disposable PostgreSQL/Redis/S3-compatible services via a dedicated Docker test profile; Playwright-compatible browser tests cover critical web flows once UI flows exist. Financial/tenant/idempotency invariants require real integration coverage, not mocks alone.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-151 — Dependency direction
+Decision: Apps depend inward on shared packages. `domain` has no Next/Fastify/Drizzle/provider imports; `contracts` has no database/provider imports; `db` implements persistence for domain use; `ui` has no server/database imports; provider adapters sit at edges. Circular workspace dependencies are prohibited.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-152 — First implementation slice
+Decision: The first code Work Order is `SPRYXEL-IMP-001 — Platform Foundation Bootstrap`. It creates the workspace/topology, web shell scaffold wired to canonical design tokens, API health/readiness foundation, typed config, PostgreSQL migration harness, Redis and S3-compatible adapter health boundaries, structured observability, test harness and product build/lint/typecheck/test commands. It implements **no authentication, business entity, generation, billing, TrustShield scoring, credits, provider procurement or AI model path**.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-153 — Implementation sequence
+Decision: After IMP-001, the default NECESSARY sequence is: (2) Identity/Tenancy security baseline; (3) Projects + canonical product shell/Home; (4) Asset Contract + durable Job backbone; (5) Credit Ledger + CostGuard authorization foundation; (6) Spryxel DNA + Asset core; (7) bounded local inference/Generate vertical slice; (8) QA/approval/version/export vertical slice. Each is a separate Work Order and may be recompiled if dependencies/evidence change. IMPORTANT/FUTURE modules do not jump the queue automatically.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
