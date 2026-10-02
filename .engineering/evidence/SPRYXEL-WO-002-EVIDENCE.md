@@ -152,3 +152,16 @@ STOP CONDITION: SPRYXEL_WO_002_PRODUCT_MASTER_DECOMPOSED_READY_FOR_AUDIT.
 ## Promotion handoff
 
 The checkpoint/source-pack promotion occurs only after this APPROVED verdict. Because promotion updates critical canonical sources, the historical execution Context Lock becomes `STALE` by closure and must not be reused. Merge is authorized only after all four required checks pass again on the promotion head and no review thread is open.
+
+
+## Merge e validação pós-merge
+
+- PR #8 squash-merged em `main@9a28858abe48c2b3c453dc4a23ac49cc8e40b987`.
+- Pós-merge no commit real de `main`:
+  - Repository validation: PASS, check `110778887952`;
+  - Pipeline integrity: PASS, check `110778888451`;
+  - Gitleaks secrets: PASS, check `110778888871`;
+  - Trivy filesystem and configuration: PASS, check `110778889037`.
+- Ruleset `24340349` permaneceu ativo e sem bypass.
+- Resultado final do Work Order: `COMPLETE`.
+- Próximo estágio legal: `SPR-PLAN-006` sob nova Work Order/Context Lock.

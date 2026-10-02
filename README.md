@@ -4,9 +4,11 @@ Spryxel is governed by **GEF Bootstrap 1.1.1**.
 
 ## Current stage
 
-The repository governance bootstrap is complete and the pre-repository Product Master v0.6.0 has been decomposed and objectively audited into the canonical Source Pack under `SPRYXEL-WO-002`.
+`SPRYXEL-WO-002` is **COMPLETE**. Product Master v0.6.0 was decomposed into the canonical Source Pack, objectively audited, checkpoint-promoted, squash-merged, and post-merge validated.
 
-Approved product planning is preserved through `SPR-PLAN-005`. The next legal planning increment is:
+Approved planning is preserved through `SPR-PLAN-005`.
+
+The next legal planning increment is:
 
 `SPR-PLAN-006 — Product UX, Design System & Information Architecture`
 
@@ -21,7 +23,7 @@ It is **not executed yet**. Product implementation has **not started**.
 6. `.engineering/REQUIREMENTS.md`
 7. Specialized Source Pack documents
 
-The Product Master v0.6.0 under `.engineering/source-seeds/` is immutable historical migration evidence, not the current mutable authority.
+The Product Master v0.6.0 under `.engineering/source-seeds/` is immutable historical migration evidence.
 
 See `.engineering/SOURCE-HIERARCHY.md` for conflict rules.
 

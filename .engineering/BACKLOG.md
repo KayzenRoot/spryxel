@@ -14,14 +14,14 @@ Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
 | SPR-SPECIAL-002 | IMPORTANT / PRE-FINANCIAL CATALOG COMPLETION | APPROVED / COMPLETED IN MASTER v0.4.2 | Map/UI SKUs, contracts, QA, export, agent automation |
 | SPR-PLAN-004 | NECESSARY / HIGH_ASSURANCE | APPROVED / COMPLETED IN MASTER v0.5.0 | Credit economics, pricing safety, simulation |
 | SPR-PLAN-005 | NECESSARY / HIGH_ASSURANCE | APPROVED / COMPLETED IN MASTER v0.6.0 | Security, TrustShield, abuse graph, account/payment risk |
-| SPRYXEL-WO-002 | NECESSARY source migration | APPROVED; checkpoint promotion in progress | Decompose v0.6.0 seed into the canonical Source Pack |
+| SPRYXEL-WO-002 | NECESSARY source migration | COMPLETE / AUDITED / MERGED / POST-MERGE VALIDATED | Decompose v0.6.0 seed into the canonical Source Pack |
 | SPR-PLAN-006 | NECESSARY | NEXT PROPOSED; NOT EXECUTED | Product UX, Design System & Information Architecture |
 
 Historical planning rounds above are not being re-run by WO-002.
 
 ## Next planning boundary
 
-SPR-PLAN-006 is the next proposed NECESSARY increment after the approved Source Pack promotion and safe merge of SPRYXEL-WO-002. Its outputs are visual principles/brand direction, typography/tokens/themes/motion/layout, responsive strategy, global/project navigation, studio screen contracts, billing/API/MCP/admin UX, safe messaging, onboarding and state handling, accessibility/i18n layout, command palette/keyboard workflows, desktop/mobile strategy, and screen inventory.
+SPR-PLAN-006 is the next legal NECESSARY planning increment after completion of SPRYXEL-WO-002. Its outputs are visual principles/brand direction, typography/tokens/themes/motion/layout, responsive strategy, global/project navigation, studio screen contracts, billing/API/MCP/admin UX, safe messaging, onboarding and state handling, accessibility/i18n layout, command palette/keyboard workflows, desktop/mobile strategy, and screen inventory.
 
 WO-002 did not execute that increment. Its executor STOP CONDITION was READY_FOR_AUDIT; no product implementation is admitted by the audited Source Pack promotion.
 
