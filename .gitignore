@@ -1,3 +1,13 @@
 node_modules/
 .gef-private/
 npm-debug.log*
+.next/
+.turbo/
+dist/
+*.tsbuildinfo
+coverage/
+playwright-report/
+test-results/
+.env
+.env.*
+!.env.example

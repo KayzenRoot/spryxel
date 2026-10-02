@@ -1,28 +1,19 @@
-# Spryxel
+# Spryxel platform foundation
 
-Spryxel is governed by **GEF Bootstrap 1.1.1**.
+This repository contains the bounded SPRYXEL-IMP-001 platform bootstrap: a minimal web shell, health/readiness API, separate worker process, and shared technical packages. Product authentication, tenancy, billing, generation, asset workflows, AI/model execution, and production storage providers are outside this slice.
 
-## Current stage
+## Local runtime
 
-`SPRYXEL-WO-004 / SPR-PLAN-007` is **COMPLETE**. The implementation architecture baseline was objectively audited, checkpoint-promoted, squash-merged and post-merge validated.
+- Node.js `22.23.3` and npm `10.9.9` are the validated runtime/tool versions.
+- Install the single workspace graph with `npm ci --ignore-scripts`.
+- Start the local PostgreSQL, Redis, and authenticated S3-compatible SeaweedFS profile with `npm run infra:up`. It binds service ports to loopback and writes generated local credentials to the ignored `.env.local-infra` file.
+- Stop those containers with `npm run infra:down`. The local named data volumes and ignored credentials stay in place.
+- Start the web shell, API, and idle worker with `npm run dev`.
 
-The canonical implementation plan defines the TypeScript/Node.js 22, npm-workspace modular-monolith foundation, Next.js web boundary, Fastify API boundary, separate Node worker, PostgreSQL/Drizzle persistence, Redis/BullMQ transient coordination, S3-compatible storage with SeaweedFS local/test development, typed configuration, observability and test architecture.
+The API reads typed values documented in `.env.example`; secret values are not committed. The worker starts with no product job consumers. Database migrations run only through the explicit `npm run db:migrate` command against a configured database.
 
-Product implementation has **not started**.
+## Validation
 
-The next legal implementation slice is:
+Run `npm run format`, `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm run build`, `npm run architecture:check`, and `npm test`. The integration suite builds isolated, randomized Docker services, checks authenticated S3 operations and real PostgreSQL/Redis connections, then removes its containers and named volumes. The browser smoke suite uses headless Chromium.
 
-`SPRYXEL-IMP-001 — Platform Foundation Bootstrap`
-
-It is specified but **not admitted or executed** until a new Work Order and Context Lock are created.
-
-## Canonical source order
-1. `.engineering/CHECKPOINT.json` and `.engineering/CHECKPOINT.md`
-2. `.engineering/DECISIONS-LEDGER.md`
-3. `.engineering/SCOPE.md`
-4. `.engineering/DEFINITION-OF-DONE.md`
-5. `.engineering/ARCHITECTURE.md`
-6. `.engineering/REQUIREMENTS.md`
-7. Specialized Source Pack documents
-
-See `.engineering/SOURCE-HIERARCHY.md` for conflict rules.
+GEF remains pinned at `@gef-bootstrap/cli@1.1.1`; its doctor and status commands remain available as `npm run gef:doctor` and `npm run gef:status`.

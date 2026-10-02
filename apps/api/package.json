@@ -1,0 +1,21 @@
+{
+  "name": "@spryxel/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "3.1145.0",
+    "@spryxel/config": "0.0.0",
+    "@spryxel/contracts": "0.0.0",
+    "@spryxel/db": "0.0.0",
+    "@spryxel/domain": "0.0.0",
+    "@spryxel/observability": "0.0.0",
+    "fastify": "5.12.5"
+  }
+}
