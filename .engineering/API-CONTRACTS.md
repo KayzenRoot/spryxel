@@ -1,6 +1,6 @@
 # API Contracts
 
-Status: CANONICAL-CANDIDATE — SPRYXEL-WO-003 / SPR-PLAN-006; awaiting audit and checkpoint promotion.
+Status: CANONICAL — SPRYXEL-WO-003 / SPR-PLAN-006 approved by objective audit.
 
 ## Surfaces and common execution model
 

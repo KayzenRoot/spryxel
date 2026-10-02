@@ -114,3 +114,24 @@ Ver [SPRYXEL-WO-003-PROPOSED.md](../checkpoint-deltas/SPRYXEL-WO-003-PROPOSED.md
 ## Condição de parada
 
 Após commit/push, validações locais concluídas, quatro checks PASS no exact final HEAD e descrição da PR atualizada com SHA/IDs/URLs finais, parar em **SPRYXEL_WO_003_SPR_PLAN_006_UX_SYSTEM_READY_FOR_AUDIT**. Sem merge e sem promoção do checkpoint.
+
+
+## Auditoria objetiva
+
+- Veredito: `APPROVED`.
+- Head de execução auditado: `783bd5a68c00b9cc7450bd352ce96dbb98932265`.
+- D-001…D-089: preservadas sem alteração semântica.
+- D-090…D-122: 33/33 presentes uma vez e semanticamente iguais à Work Order.
+- Classificações de módulos: 37/37 preservadas.
+- Cobertura NECESSARY V1: 20/20 superfícies.
+- Required checks no head auditado: Repository validation `110821003280`, Pipeline integrity `110821002505`, Gitleaks secrets `110821002421`, Trivy filesystem and configuration `110821002989`; todos PASS.
+- Review threads não resolvidas: 0.
+- Ruleset `24340349`: ativo, main-only, sem bypass.
+- CRITICAL conhecido: 0; HIGH conhecido: 0.
+- Product implementation: `NOT_STARTED`.
+- Pricing: `NOT_FROZEN`.
+- Benchmarks/COGS: `NOT_RUN / NOT_AVAILABLE`.
+
+## Handoff de promoção
+
+A promoção do checkpoint e dos documentos UX canônicos ocorre somente depois deste veredito APPROVED. Como a promoção altera fontes críticas, o Context Lock histórico de SPRYXEL-WO-003 passa a `STALE` por encerramento e não pode ser reutilizado. O merge só é autorizado após os quatro required checks passarem novamente no head de promoção e não haver review thread aberta.

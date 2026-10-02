@@ -1,6 +1,6 @@
 # Architecture
 
-Status: CANONICAL-CANDIDATE — SPRYXEL-WO-003 / SPR-PLAN-006; awaiting audit and checkpoint promotion.
+Status: CANONICAL — SPRYXEL-WO-003 / SPR-PLAN-006 approved by objective audit.
 Product implementation is NOT_STARTED; this is approved planning architecture, not a deployment description.
 
 ## Product architecture boundary

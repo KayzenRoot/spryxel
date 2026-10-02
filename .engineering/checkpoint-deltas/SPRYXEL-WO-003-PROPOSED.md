@@ -1,6 +1,6 @@
 # Proposta de Checkpoint Delta — SPRYXEL-WO-003
 
-**Status:** PROPOSTA PENDENTE DE AUDITORIA. Não aplicada ao CHECKPOINT.json nem ao CHECKPOINT.md.
+**Status:** ACCEPTED_BY_AUDITOR; PROMOTED_IN_CANONICAL_CHECKPOINT.
 
 **Work Order:** SPRYXEL-WO-003 — SPR-PLAN-006
 
@@ -44,3 +44,16 @@ Os nomes e valores serializados finais para fase, stopState, last approved Work 
 ## Fora desta proposta
 
 Nenhuma edição dos arquivos de checkpoint, merge, alteração de .gef/GEF/ruleset/provider/seed, admissão de implementação ou promoção automática.
+
+
+## Resultado da auditoria
+
+A proposta foi aceita após auditoria objetiva `APPROVED` do head `783bd5a68c00b9cc7450bd352ce96dbb98932265`.
+
+A promoção canônica:
+- registra `SPRYXEL-WO-003` como aprovado;
+- registra `SPR-PLAN-006` como planejamento concluído;
+- torna D-090…D-122 e os documentos UX especializados parte do Source Pack canônico;
+- preserva `productImplementation=NOT_STARTED`, pricing `NOT_FROZEN` e benchmarks/COGS `NOT_RUN / NOT_AVAILABLE`;
+- encerra o Context Lock histórico como `STALE`;
+- exige nova Work Order/Context Lock antes de qualquer implementação de produto.

@@ -1,6 +1,6 @@
 # UX Wireframe Contracts
 
-Status: CANONICAL-CANDIDATE — SPRYXEL-WO-003 / SPR-PLAN-006; awaiting audit and checkpoint promotion.
+Status: CANONICAL — SPRYXEL-WO-003 / SPR-PLAN-006 approved by objective audit.
 
 These are low-fidelity textual layouts that establish hierarchy and ownership, not pixel-perfect mockups. Read each row left-to-right on desktop. Below 1024 px, complex studio layouts become companion views under the responsive contract; they do not shrink into a full editor.
 

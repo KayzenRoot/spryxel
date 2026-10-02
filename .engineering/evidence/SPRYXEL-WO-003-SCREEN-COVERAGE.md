@@ -4,7 +4,7 @@ Work Order: SPRYXEL-WO-003
 
 Incremento: SPR-PLAN-006
 
-Status: candidato à auditoria; este documento não promove o checkpoint.
+Status: APPROVED EVIDENCE — cobertura auditada em SPRYXEL-WO-003; promoção canônica realizada separadamente pelo auditor.
 
 ## Matriz NECESSARY V1
 
@@ -45,3 +45,7 @@ As 20 linhas abaixo seguem a classificação registrada em SCOPE.md. Cada módul
 ## Resultado documental
 
 20/20 módulos NECESSARY V1 mapeados a superfícies; nenhuma lacuna exige justificativa system-only. O inventário completo, incluindo módulos IMPORTANT/FUTURE e modos responsivos, está em SCREEN-INVENTORY.md.
+
+## Auditoria
+
+Cobertura 20/20 NECESSARY V1 confirmada no head `783bd5a68c00b9cc7450bd352ce96dbb98932265`; 37/37 classificações permaneceram coerentes com SCOPE.md.

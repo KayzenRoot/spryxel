@@ -1,6 +1,6 @@
 # UX Design System Contract
 
-Status: CANONICAL-CANDIDATE — SPRYXEL-WO-003 / SPR-PLAN-006; awaiting audit and checkpoint promotion.
+Status: CANONICAL — SPRYXEL-WO-003 / SPR-PLAN-006 approved by objective audit.
 
 This contract defines reusable visual and interaction rules for the product UI. It does not specify final logo/brand artwork, production CSS, component code or frozen numeric color values. Token aliases are the implementation boundary; feature screens must not invent raw feature-specific colors.
 

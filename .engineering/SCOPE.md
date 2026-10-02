@@ -1,6 +1,6 @@
 # Scope
 
-Status: CANONICAL-CANDIDATE — SPRYXEL-WO-003 / SPR-PLAN-006; awaiting audit and checkpoint promotion.
+Status: CANONICAL — SPRYXEL-WO-003 / SPR-PLAN-006 approved by objective audit.
 Scope and classifications below preserve Product Master v0.6.0; decision IDs are owned by DECISIONS-LEDGER.md.
 
 ## Product release boundary

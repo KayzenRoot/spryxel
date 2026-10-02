@@ -1,6 +1,6 @@
 # Decisions Ledger
 
-Status: CANONICAL-CANDIDATE — SPRYXEL-WO-003 / SPR-PLAN-006; awaiting audit and checkpoint promotion.
+Status: CANONICAL — SPRYXEL-WO-003 / SPR-PLAN-006 approved by objective audit.
 
 ## D-0001 — GEF version
 Use `@gef-bootstrap/cli@1.1.1` exactly. Upgrade requires a future Work Order.
@@ -643,4 +643,4 @@ Source: SPRYXEL-WO-003, SPR-PLAN-006.
 ## Planning history carried forward
 
 SPR-PLAN-001 — APPROVED / COMPLETED IN MASTER v0.2.0; SPR-PLAN-002 — APPROVED / COMPLETED IN MASTER v0.3.0; SPR-PLAN-003 — APPROVED / COMPLETED IN MASTER v0.4.0; SPR-SPECIAL-001 — APPROVED / ADDED IN MASTER v0.4.1; SPR-SPECIAL-002 — APPROVED / COMPLETED IN MASTER v0.4.2; SPR-PLAN-004 — APPROVED / COMPLETED IN MASTER v0.5.0; SPR-PLAN-005 — APPROVED / COMPLETED IN MASTER v0.6.0.
-SPR-PLAN-006 — NECESSARY, executed as a SPRYXEL-WO-003 candidate; pending objective audit and checkpoint promotion.
+SPR-PLAN-006 — APPROVED / COMPLETED by SPRYXEL-WO-003 after objective audit; product implementation remains NOT_STARTED.

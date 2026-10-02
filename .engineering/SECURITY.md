@@ -1,6 +1,6 @@
 # Security
 
-Status: CANONICAL-CANDIDATE — SPRYXEL-WO-003 / SPR-PLAN-006; awaiting audit and checkpoint promotion.
+Status: CANONICAL — SPRYXEL-WO-003 / SPR-PLAN-006 approved by objective audit.
 Planning boundary: SPR-PLAN-005 is approved/completed in master v0.6.0; implementation and validation are NOT_STARTED.
 
 ## Protected assets and existing repository controls

@@ -5,32 +5,25 @@ Status: CANONICAL
 Repository: `KayzenRoot/spryxel`  
 GEF: `@gef-bootstrap/cli@1.1.1`
 
-## Estado canônico
+## Estado promovido
 
 - `SPRYXEL-WO-001`: COMPLETE.
 - `SPRYXEL-WO-002`: COMPLETE.
-- Audited execution head: `0524677d09189b549f76c1172b0828a0f814f1a9`.
-- Checkpoint/source-pack promotion head: `c3b42e17dd252b22f6d3cf6eb05c84b435867cb2`.
-- PR #8 merged em `main@9a28858abe48c2b3c453dc4a23ac49cc8e40b987`.
-- Post-merge validation: PASS nos quatro required checks.
-- Product Source Pack: CANONICAL.
-- Product Master v0.6.0 seed: immutable historical evidence.
-- Planning aprovado preservado até `SPR-PLAN-005`.
-- Próximo incremento: `SPR-PLAN-006 — Product UX, Design System & Information Architecture`.
-- `SPR-PLAN-006`: NECESSARY / NOT EXECUTED.
+- `SPRYXEL-WO-003`: APPROVED; merge condicionado aos checks do head de promoção.
+- Audited execution head: `783bd5a68c00b9cc7450bd352ce96dbb98932265`.
+- Planning concluído através de `SPR-PLAN-006`.
+- Product UX / Design System / Information Architecture: CANONICAL.
+- D-090…D-122: aprovadas para planejamento e promovidas ao Decisions Ledger canônico.
+- 37/37 classificações de módulos preservadas.
+- 20/20 módulos NECESSARY V1 possuem superfície UX proprietária.
 - Product implementation: NOT_STARTED.
-- Benchmarks/COGS medidos: NOT_RUN / NOT_AVAILABLE.
 - Commercial pricing: NOT_FROZEN.
+- Benchmarks/COGS: NOT_RUN / NOT_AVAILABLE.
 - Ruleset baseline: `24340349`.
-- CRITICAL/HIGH pendentes deste Work Order: nenhum conhecido.
-
-## Post-merge checks
-
-- Repository validation: `110778887952` PASS.
-- Pipeline integrity: `110778888451` PASS.
-- Gitleaks secrets: `110778888871` PASS.
-- Trivy filesystem and configuration: `110778889037` PASS.
+- CRITICAL/HIGH pendentes deste incremento: nenhum conhecido.
 
 ## Próxima ação legal
 
-Pode ser admitido um novo Work Order/Context Lock para `SPR-PLAN-006`. Nenhuma implementação de produto está admitida ainda.
+O merge da PR #11 é permitido somente após os quatro required checks passarem novamente no head de promoção e não existir review thread aberta.
+
+Depois do merge e da validação pós-merge, qualquer implementação de produto exige um novo Work Order e Context Lock de planejamento de implementação. Nenhum código é admitido automaticamente.

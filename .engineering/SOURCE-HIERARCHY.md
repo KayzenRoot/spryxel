@@ -27,7 +27,7 @@ A Work Order/Context Lock is STALE if its base SHA changes or a critical authori
 - GEF package: `@gef-bootstrap/cli@1.1.1`
 - GEF v1.1.1 immutable release source: `KayzenRoot/gef-bootstrap@1dc030f1358eab0347043a3d54c7fc311c7c2123`
 - Product seed: v0.6.0 / `cbb93ec44886eba6cc9b24a072eb23e0ad5ea05a`
-- Last objectively approved Work Order: `SPRYXEL-WO-002`
-- Next legal planning stage after safe merge: `SPR-PLAN-006`
+- Last objectively approved Work Order: `SPRYXEL-WO-003`
+- Next legal stage after safe merge: a separately admitted implementation-planning Work Order with a new Context Lock
 
 Post-release commits in the GEF repository may be consulted only for evidence about publication/rollout. They do not redefine the installed v1.1.1 runtime contract.

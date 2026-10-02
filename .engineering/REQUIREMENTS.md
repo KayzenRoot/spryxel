@@ -1,6 +1,6 @@
 # Requirements
 
-Status: CANONICAL-CANDIDATE — SPRYXEL-WO-003 / SPR-PLAN-006; awaiting audit and checkpoint promotion.
+Status: CANONICAL — SPRYXEL-WO-003 / SPR-PLAN-006 approved by objective audit.
 Source: Product Master v0.6.0; stable decision ownership remains in DECISIONS-LEDGER.md.
 
 ## Governance requirements
@@ -60,7 +60,7 @@ Source: Product Master v0.6.0; stable decision ownership remains in DECISIONS-LE
 - Product benchmarks and measured production COGS: NOT AVAILABLE.
 - Commercial pricing: NOT FROZEN.
 - Model/provider choices listed as candidates remain planning candidates, not selections.
-- SPRYXEL-WO-003 records a SPR-PLAN-006 documentation candidate in this PR; until objective audit and checkpoint promotion, canonical implementation admission and product status remain unchanged.
+- SPR-PLAN-006 is approved/canonical through SPRYXEL-WO-003. Product implementation remains NOT_STARTED and still requires a separately admitted Work Order.
 
 ## UX and interaction requirements — SPR-PLAN-006
 

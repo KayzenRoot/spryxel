@@ -1,6 +1,6 @@
 # Screen Inventory
 
-Status: CANONICAL-CANDIDATE — SPRYXEL-WO-003 / SPR-PLAN-006; awaiting audit and checkpoint promotion.
+Status: CANONICAL — SPRYXEL-WO-003 / SPR-PLAN-006 approved by objective audit.
 
 Release classes below reproduce the module classifications in SCOPE.md. Implementation priority is a planning sequence only: P0 = necessary V1 surface, P1 = IMPORTANT/V1.x surface, P2 = later-delivery/FUTURE surface. It does not admit implementation or change release scope.
 
