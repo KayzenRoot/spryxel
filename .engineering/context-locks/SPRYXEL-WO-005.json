@@ -3,7 +3,7 @@
   "kind": "spryxel.context-lock",
   "workOrderId": "SPRYXEL-WO-005",
   "implementationIncrement": "SPRYXEL-IMP-001",
-  "status": "FRESH",
+  "status": "STALE",
   "repository": "KayzenRoot/spryxel",
   "authorizedBranch": "codex/spryxel-wo-005-imp-001-platform-foundation",
   "executionBase": {
@@ -33,102 +33,102 @@
   },
   "criticalBaseSources": [
     {
-        "path": ".engineering/API-FOUNDATION-CONTRACT.md",
-        "gitBlobSha": "fef70ebd35c2921dc69dc20c9d309f6739744075"
+      "path": ".engineering/API-FOUNDATION-CONTRACT.md",
+      "gitBlobSha": "fef70ebd35c2921dc69dc20c9d309f6739744075"
     },
     {
-        "path": ".engineering/ARCHITECTURE.md",
-        "gitBlobSha": "169e82b1307e162bc59c490533361a9e0d832ad4"
+      "path": ".engineering/ARCHITECTURE.md",
+      "gitBlobSha": "169e82b1307e162bc59c490533361a9e0d832ad4"
     },
     {
-        "path": ".engineering/CHECKPOINT.json",
-        "gitBlobSha": "c132bc22ac7cbc4077009fc702216d2d3ae54734"
+      "path": ".engineering/CHECKPOINT.json",
+      "gitBlobSha": "c132bc22ac7cbc4077009fc702216d2d3ae54734"
     },
     {
-        "path": ".engineering/CHECKPOINT.md",
-        "gitBlobSha": "fda919db73639e3e6ceb5f5c8f9e63eb491fe334"
+      "path": ".engineering/CHECKPOINT.md",
+      "gitBlobSha": "fda919db73639e3e6ceb5f5c8f9e63eb491fe334"
     },
     {
-        "path": ".engineering/DECISIONS-LEDGER.md",
-        "gitBlobSha": "1d520156962759e520b9c83cc71a4cdd6794f398"
+      "path": ".engineering/DECISIONS-LEDGER.md",
+      "gitBlobSha": "1d520156962759e520b9c83cc71a4cdd6794f398"
     },
     {
-        "path": ".engineering/DEFINITION-OF-DONE.md",
-        "gitBlobSha": "4d3a24b404cdd70a86168773bc0ac206dec0365d"
+      "path": ".engineering/DEFINITION-OF-DONE.md",
+      "gitBlobSha": "4d3a24b404cdd70a86168773bc0ac206dec0365d"
     },
     {
-        "path": ".engineering/DEPLOYMENT.md",
-        "gitBlobSha": "a31a52de2bb57faffeb547fb82fe948ed9c84c91"
+      "path": ".engineering/DEPLOYMENT.md",
+      "gitBlobSha": "a31a52de2bb57faffeb547fb82fe948ed9c84c91"
     },
     {
-        "path": ".engineering/FIRST-IMPLEMENTATION-SLICE.md",
-        "gitBlobSha": "52d3489a9c50f2b57b4a36892a9c173b6d9c949e"
+      "path": ".engineering/FIRST-IMPLEMENTATION-SLICE.md",
+      "gitBlobSha": "52d3489a9c50f2b57b4a36892a9c173b6d9c949e"
     },
     {
-        "path": ".engineering/IMPLEMENTATION-ARCHITECTURE.md",
-        "gitBlobSha": "51a623ef4c4d6a01c7cc06eb6c046d6db37cfe22"
+      "path": ".engineering/IMPLEMENTATION-ARCHITECTURE.md",
+      "gitBlobSha": "51a623ef4c4d6a01c7cc06eb6c046d6db37cfe22"
     },
     {
-        "path": ".engineering/IMPLEMENTATION-SEQUENCE.md",
-        "gitBlobSha": "2c94101e607e2dbf920dabaff7b596fd04117ad8"
+      "path": ".engineering/IMPLEMENTATION-SEQUENCE.md",
+      "gitBlobSha": "2c94101e607e2dbf920dabaff7b596fd04117ad8"
     },
     {
-        "path": ".engineering/LOCAL-DEVELOPMENT.md",
-        "gitBlobSha": "c35195f9068269c445d2beb43bfdfa8f042393da"
+      "path": ".engineering/LOCAL-DEVELOPMENT.md",
+      "gitBlobSha": "c35195f9068269c445d2beb43bfdfa8f042393da"
     },
     {
-        "path": ".engineering/PHYSICAL-DATA-CONVENTIONS.md",
-        "gitBlobSha": "4e65b6778f63ff6664cf6aec6985db60013eead5"
+      "path": ".engineering/PHYSICAL-DATA-CONVENTIONS.md",
+      "gitBlobSha": "4e65b6778f63ff6664cf6aec6985db60013eead5"
     },
     {
-        "path": ".engineering/REPOSITORY-TOPOLOGY.md",
-        "gitBlobSha": "cfdd561e57f3311b83effe1d2f582826ea64e445"
+      "path": ".engineering/REPOSITORY-TOPOLOGY.md",
+      "gitBlobSha": "cfdd561e57f3311b83effe1d2f582826ea64e445"
     },
     {
-        "path": ".engineering/REQUIREMENTS.md",
-        "gitBlobSha": "16dc6984bd1e64e89daee082620c56b2d12ef248"
+      "path": ".engineering/REQUIREMENTS.md",
+      "gitBlobSha": "16dc6984bd1e64e89daee082620c56b2d12ef248"
     },
     {
-        "path": ".engineering/RUNTIME-STACK.md",
-        "gitBlobSha": "6d54efd4e3e10d15727772c23bc4c69943a22c88"
+      "path": ".engineering/RUNTIME-STACK.md",
+      "gitBlobSha": "6d54efd4e3e10d15727772c23bc4c69943a22c88"
     },
     {
-        "path": ".engineering/SCOPE.md",
-        "gitBlobSha": "cca8420aa6427b9ddd2a16151f44f83a6bfd7cfe"
+      "path": ".engineering/SCOPE.md",
+      "gitBlobSha": "cca8420aa6427b9ddd2a16151f44f83a6bfd7cfe"
     },
     {
-        "path": ".engineering/SECURITY.md",
-        "gitBlobSha": "9baf78506a501d0fba40f231b895ab9ca3e401b2"
+      "path": ".engineering/SECURITY.md",
+      "gitBlobSha": "9baf78506a501d0fba40f231b895ab9ca3e401b2"
     },
     {
-        "path": ".engineering/SOURCE-HIERARCHY.md",
-        "gitBlobSha": "86576763557ca8504e8fc8b06a028e873c9dbe78"
+      "path": ".engineering/SOURCE-HIERARCHY.md",
+      "gitBlobSha": "86576763557ca8504e8fc8b06a028e873c9dbe78"
     },
     {
-        "path": ".engineering/TEST-BENCHMARK-PLAN.md",
-        "gitBlobSha": "67b8fc3388dd24921f2d209173553ecdae3805e0"
+      "path": ".engineering/TEST-BENCHMARK-PLAN.md",
+      "gitBlobSha": "67b8fc3388dd24921f2d209173553ecdae3805e0"
     },
     {
-        "path": ".engineering/UI-UX.md",
-        "gitBlobSha": "6738bf0c5f242253ceff7f7e177ac62ab841be3d"
+      "path": ".engineering/UI-UX.md",
+      "gitBlobSha": "6738bf0c5f242253ceff7f7e177ac62ab841be3d"
     },
     {
-        "path": ".engineering/UX-DESIGN-SYSTEM.md",
-        "gitBlobSha": "6ab9d7a4ddb754363e9247633e3dcace0d12991d"
+      "path": ".engineering/UX-DESIGN-SYSTEM.md",
+      "gitBlobSha": "6ab9d7a4ddb754363e9247633e3dcace0d12991d"
     },
     {
-        "path": "AGENTS.md",
-        "gitBlobSha": "4a2ba6e80e0acf80f78c954439bc72084e4a9f24"
+      "path": "AGENTS.md",
+      "gitBlobSha": "4a2ba6e80e0acf80f78c954439bc72084e4a9f24"
     },
     {
-        "path": "package-lock.json",
-        "gitBlobSha": "e63ffce8b9190e38e22c2b8602357d9c372176a4"
+      "path": "package-lock.json",
+      "gitBlobSha": "e63ffce8b9190e38e22c2b8602357d9c372176a4"
     },
     {
-        "path": "package.json",
-        "gitBlobSha": "b0360ad81c65af892bdcd1d3b172be727ea116d0"
+      "path": "package.json",
+      "gitBlobSha": "b0360ad81c65af892bdcd1d3b172be727ea116d0"
     }
-],
+  ],
   "providerBaseline": {
     "rulesetId": 24340349,
     "rulesetMutationAllowed": false,
@@ -169,5 +169,12 @@
     "GEF package pin changes",
     "ruleset/provider/required-status baseline changes unexpectedly"
   ],
-  "stopOnStale": true
+  "stopOnStale": true,
+  "blocked": {
+    "reason": "MinIO local/test dependency preflight failed current maintenance/security requirements. Canonical local S3 decision requires architect supersession before implementation can continue.",
+    "detectedAtHead": "f7dbe4698e899cfcdad0b5b81d029ca5a5a47a1d",
+    "implementationStarted": false,
+    "productDependenciesInstalled": false,
+    "nextAction": "Canonical architecture correction, merge to main, then recompile SPRYXEL-WO-005 on the new base."
+  }
 }
