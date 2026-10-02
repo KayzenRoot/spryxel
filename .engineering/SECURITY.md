@@ -128,3 +128,22 @@ The foundation runtime represents identity/session through an application adapte
 Required local/test infrastructure is subject to the same maintenance, vulnerability, license and provenance gates as product dependencies. An emulator or test service that becomes unmaintained, archived or materially unsafe must not be silently retained merely because it was named in an earlier planning decision.
 
 The MinIO community server failed this gate during SPRYXEL-WO-005 preflight. D-154/D-155 supersede only the MinIO-specific local/test clauses of D-142/D-148 and select SeaweedFS as the current local/test S3-compatible service. Recompiled IMP-001 must pin an exact maintained release plus immutable container digest, verify available image-signature/provenance evidence, and record current license/security checks. Production object-storage provider selection remains open.
+
+
+## V1 authentication provider boundary — D-156…D-161
+
+WorkOS AuthKit is the selected V1 external human authentication/session provider. Spryxel remains the authorization authority.
+
+- External WorkOS user/session/organization IDs are references, not product/tenant primary keys.
+- Canonical tenant, membership, resource ownership and product authorization remain in PostgreSQL.
+- Application authorization and PostgreSQL RLS are both required on tenant-owned records where applicable.
+- Fastify independently validates signed access tokens against trusted JWKS with explicit issuer/audience/expiry/subject checks.
+- Access/refresh tokens are not stored in browser localStorage/sessionStorage.
+- Web AuthKit integration may own PKCE/callback/session-cookie mechanics but may not become a second business backend.
+- Sensitive/high-impact actions require recent authentication/step-up; Owner/Admin MFA remains mandatory in production.
+- Session revocation, safe security-event audit and user-visible session controls are required where applicable.
+- Provider outage or ambiguous auth state fails closed for protected mutations.
+- Deterministic local JWT/JWKS fixtures and real PostgreSQL cross-tenant RLS tests are mandatory; live WorkOS staging smoke is additive when credentials exist.
+- A production configuration cannot enable a fake/local identity provider.
+
+The current provider evidence and fallback rationale are versioned in `.engineering/AUTH-PROVIDER-PREFLIGHT.md`. Exact SDK versions are pinned only by the admitted Identity/Tenancy implementation Work Order after a final current package/security/terms preflight.

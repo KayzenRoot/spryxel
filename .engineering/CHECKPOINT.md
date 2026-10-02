@@ -24,7 +24,7 @@ GEF: `@gef-bootstrap/cli@1.1.1`
 - Planning concluído através de `SPR-PLAN-007`.
 - Implementação concluída através de `SPRYXEL-IMP-001`.
 - Identity/Tenancy security baseline: NECESSARY / NOT_ADMITTED.
-- Auth provider: NOT_FROZEN.
+- Auth provider: WORKOS AUTHKIT V1 SELECTED (D-156…D-161); exact SDK pins remain implementation-preflight decisions.
 - Commercial pricing: NOT_FROZEN.
 - Benchmarks/COGS: NOT_RUN / NOT_AVAILABLE.
 - Billing/GPU-model/production-storage providers: NOT_FROZEN.
@@ -41,4 +41,4 @@ GEF: `@gef-bootstrap/cli@1.1.1`
 
 ## Próxima ação legal
 
-Pode ser admitido um novo Work Order/Context Lock para o Identity/Tenancy security baseline. Antes de implementar autenticação real, o auth provider precisa de decisão/preflight atual. Nenhum código de Identity/Tenancy está admitido por este closeout.
+Pode ser admitido um novo Work Order/Context Lock para o Identity/Tenancy security baseline. A decisão de provider está resolvida por D-156…D-161; antes de instalar dependências, o próximo Work Order ainda deve revalidar versões, segurança, termos e compatibilidade atuais. Nenhum código de Identity/Tenancy está admitido por este closeout.

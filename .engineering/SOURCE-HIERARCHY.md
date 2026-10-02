@@ -63,3 +63,12 @@ The historical SPRYXEL-WO-005 R2 Context Lock is closed/stale after promotion an
 `SPRYXEL-WO-005 / SPRYXEL-IMP-001` is COMPLETE on `main@6dbce3f1ba1e5b85a6e6ea40083e2d4418755261` after objective audit, canonical promotion and post-merge validation. The platform foundation is implemented/canonical; Identity/Tenancy remains the next legal slice and requires a new Work Order/Context Lock plus current auth-provider preflight.
 
 The historical WO-005 R2 Context Lock remains STALE/closed and must not be reused.
+
+
+## Identity/Tenancy auth-provider binding
+
+D-156…D-161 select WorkOS AuthKit as the V1 external human authentication/session provider and preserve Spryxel PostgreSQL as the canonical tenant authorization/membership/RLS authority.
+
+`.engineering/AUTH-PROVIDER-PREFLIGHT.md` is the current provider-evidence record. Exact SDK versions are not frozen by this planning decision and must be revalidated/pinned by the admitted Identity/Tenancy Work Order.
+
+If current implementation-time evidence materially invalidates the provider, execution must stop BLOCKED and return to an explicit decision update rather than silently substituting.

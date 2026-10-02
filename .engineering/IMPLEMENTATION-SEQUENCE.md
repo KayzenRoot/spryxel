@@ -20,3 +20,10 @@ This is the default NECESSARY dependency sequence approved for planning by D-153
 Identity/Tenancy is a prerequisite to tenant-owned records and operations; PostgreSQL RLS and application authorization are designed and tested before downstream product surfaces rely on them. Asset Contract/Job primitives make operation identity durable before the economic layer. Credit Ledger/CostGuard must be in place before any cost-incurring generation slice. Local inference follows only after bounded authorization, replay safety and model qualification evidence. QA/approval/version/export cannot treat raw model output as a production asset.
 
 Each Work Order may refine exact tables, routes, provider adapters, dependency versions, UI routes and rollout sequence when new evidence warrants it. Such refinement does not silently promote a FUTURE/IMPORTANT scope to V1 or skip tenant, cost, security, quality and governance gates.
+
+
+## Identity/Tenancy entry decision — 2026-10-02
+
+The provider prerequisite for sequence item 2 is now resolved for planning by D-156…D-161: WorkOS AuthKit is the V1 external human authentication/session provider, while Spryxel PostgreSQL remains canonical for tenant authorization/membership/RLS.
+
+The implementation Work Order must still run current package/security/terms preflight before dependency installation. If that current evidence invalidates AuthKit, stop BLOCKED and return to an explicit provider decision; do not silently substitute.

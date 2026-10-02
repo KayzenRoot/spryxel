@@ -37,7 +37,7 @@ The default later NECESSARY sequence is: (1) IMP-001 platform foundation; (2) id
 | Payment provider by region and payment contract | Paddle is a preferred early global MoR planning candidate; Stripe is a first-class direct alternative; no provider is contractually selected. |
 | Tax, legal, refund, chargeback, and accounting assumptions | Formulas and evidence flows are planned; rates, jurisdictional treatment, working-capital amount, and Brazilian legal/accounting review remain open. |
 | Domain and trademark clearance; final brand/logo | Open; D-001 is APPROVED FOR PLANNING and explicitly requires clearance before public launch. |
-| Product implementation versions and runtime service providers | Compatibility-level product stack is canonical through SPR-PLAN-007; exact package/image versions, auth/billing/GPU/production-storage/hosting providers and current commercial terms remain open until preflight and a triggered Work Order. |
+| Product implementation versions and runtime service providers | Compatibility-level stack is canonical. WorkOS AuthKit is selected for V1 external human authentication/session by D-156…D-161; exact auth SDK versions still require implementation preflight. Billing/GPU/production-storage/hosting providers remain open. |
 | Physical database schema and exact V1 SKU/contract inventory | Conceptual entities and SKU/QA requirements are migrated; physical schema and any remaining SKU contract details remain planning work. |
 | API v1, MCP v1 tool catalog, and CLI v1 command contract | First-class surfaces/basic CLI are approved; exact paths, schemas, errors, scopes, and commands remain open. |
 | UI information architecture, wireframes, visual system, and accessibility contracts | Completed and canonical through SPR-PLAN-006 / SPRYXEL-WO-003. |
@@ -70,3 +70,12 @@ Next legal slice: Identity/Tenancy security baseline under its own Work Order/Co
 ## SPRYXEL-WO-005 completion
 
 `SPRYXEL-WO-005 / SPRYXEL-IMP-001` is COMPLETE on `main@6dbce3f1ba1e5b85a6e6ea40083e2d4418755261` with post-merge validation PASS. The platform foundation is canonical. Identity/Tenancy is the next NECESSARY implementation slice but remains NOT_ADMITTED pending a new Work Order/Context Lock and current auth-provider preflight.
+
+
+## Identity/Tenancy provider prerequisite
+
+The auth-provider planning gate for the next NECESSARY slice is resolved by D-156…D-161:
+- WorkOS AuthKit: selected V1 external human authentication/session provider;
+- Spryxel PostgreSQL: canonical identity linkage, tenant membership, product authorization and RLS authority;
+- exact SDK pins and current terms/security remain an implementation-time preflight;
+- Identity/Tenancy code is still NOT_ADMITTED until its Work Order/Context Lock exists.

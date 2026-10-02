@@ -43,3 +43,16 @@ Each process imports the typed configuration boundary, parses environment values
 ## Local S3 implementation supersession
 
 D-154/D-155 supersede the MinIO-specific local/test choice from D-142/D-148 after SPRYXEL-WO-005 preflight found the upstream community server archived and unsuitable as a new required dependency. The S3-compatible/provider-neutral contract itself is unchanged. SeaweedFS is the current local/test implementation direction; exact release, digest, image signature and license/security evidence are pinned by the recompiled IMP-001 preflight.
+
+
+## Identity provider selection — D-156…D-161
+
+For the next Identity/Tenancy slice:
+
+- External human authentication/session provider: WorkOS AuthKit.
+- Current evidence snapshot: `@workos-inc/node@11.0.0`, Node >=22.11, MIT; `@workos-inc/authkit-nextjs@4.3.2`, MIT/App Router compatible. These are evidence snapshots, not implementation pins until the Work Order revalidates them.
+- Web auth edge may use the official AuthKit Next.js SDK for PKCE/callback/sealed-session handling.
+- Fastify API remains the authorization/control-plane boundary and independently validates provider JWTs/JWKS.
+- PostgreSQL owns internal identities, tenant memberships, product roles/permissions and RLS.
+- Provider SDKs remain edge dependencies and are forbidden from domain/contracts packages.
+- No live WorkOS credential is required for deterministic tenant/RLS CI; production/staging credentials are deployment/provider evidence.
