@@ -27,8 +27,8 @@ A Work Order/Context Lock is STALE if its base SHA changes or a critical authori
 - GEF package: `@gef-bootstrap/cli@1.1.1`
 - GEF v1.1.1 immutable release source: `KayzenRoot/gef-bootstrap@1dc030f1358eab0347043a3d54c7fc311c7c2123`
 - Product seed: v0.6.0 / `cbb93ec44886eba6cc9b24a072eb23e0ad5ea05a`
-- Last objectively approved Work Order: `SPRYXEL-WO-005`
-- Next legal stage: Identity/Tenancy security baseline under a new admitted Work Order and Context Lock
+- Last objectively approved Work Order: `SPRYXEL-WO-004`
+- Next legal stage: `SPRYXEL-IMP-001 — Platform Foundation Bootstrap` under a new admitted Work Order and Context Lock
 
 Post-release commits in the GEF repository may be consulted only for evidence about publication/rollout. They do not redefine the installed v1.1.1 runtime contract.
 
@@ -49,10 +49,3 @@ For current implementation work:
 - production object-storage provider remains NOT FROZEN;
 - exact SeaweedFS release/image digest/provenance must be revalidated and pinned by the recompiled IMP-001 preflight;
 - the stale WO-005 Context Lock must not be reused.
-
-
-## SPRYXEL-WO-005 canonical implementation binding
-
-SPRYXEL-IMP-001 is objectively approved as the bounded platform foundation. Git/code/tests now prove the technical workspace, runtime boundaries, local infrastructure, migration harness, observability and test architecture described by the planning sources. D-001…D-155 remain normative and unchanged.
-
-The historical SPRYXEL-WO-005 R2 Context Lock is closed/stale after promotion and must not be reused. Identity/Tenancy requires a new Work Order/Context Lock and a current auth-provider decision/preflight before code.

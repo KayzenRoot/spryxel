@@ -17,8 +17,3 @@ The API reads typed values documented in `.env.example`; secret values are not c
 Run `npm run format`, `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm run build`, `npm run architecture:check`, and `npm test`. The integration suite builds isolated, randomized Docker services, checks authenticated S3 operations and real PostgreSQL/Redis connections, then removes its containers and named volumes. The browser smoke suite uses headless Chromium.
 
 GEF remains pinned at `@gef-bootstrap/cli@1.1.1`; its doctor and status commands remain available as `npm run gef:doctor` and `npm run gef:status`.
-
-
-## Canonical implementation status
-
-SPRYXEL-IMP-001 has been objectively audited APPROVED under SPRYXEL-WO-005. This repository now contains the canonical platform foundation only. Identity/Tenancy and later product capabilities are not yet admitted.

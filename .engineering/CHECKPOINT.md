@@ -5,38 +5,34 @@ Status: CANONICAL
 Repository: `KayzenRoot/spryxel`  
 GEF: `@gef-bootstrap/cli@1.1.1`
 
-## Estado promovido
+## Estado canônico
 
 - `SPRYXEL-WO-001`: COMPLETE.
 - `SPRYXEL-WO-002`: COMPLETE.
 - `SPRYXEL-WO-003`: COMPLETE.
 - `SPRYXEL-WO-004`: COMPLETE.
-- `SPRYXEL-WO-005 / SPRYXEL-IMP-001`: APPROVED; merge condicionado aos checks do head de promoção.
-- Audited final head: `ace62ffdb53bd5f602e23d1e9572955f2a5dc820`.
-- Correction Delta 01: SATISFIED.
-- Platform Foundation Bootstrap: CANONICAL.
-- Product implementation: PLATFORM_FOUNDATION_COMPLETE.
-- Product business features: NOT_STARTED.
+- Audited execution head: `3a2c7015a90321ad6adc053c3984a3ee2461a770`.
+- Promotion head: `7d030277775898596ed3da840dff83d55d1e01b4`.
+- PR #14 merged em `main@b3226fdff9a53ba5dbe1b7e30b1783cbc897b60a`.
+- Post-merge validation: PASS nos quatro required checks.
 - Planning concluído através de `SPR-PLAN-007`.
-- Implementação concluída através de `SPRYXEL-IMP-001`.
-- Identity/Tenancy security baseline: NOT_ADMITTED.
-- Auth provider: NOT_FROZEN.
+- Implementation architecture baseline: CANONICAL.
+- D-123…D-153: canônicas.
+- `SPRYXEL-IMP-001 — Platform Foundation Bootstrap`: NECESSARY / SPECIFIED / NOT_ADMITTED / NOT_EXECUTED.
+- Product implementation: NOT_STARTED.
 - Commercial pricing: NOT_FROZEN.
 - Benchmarks/COGS: NOT_RUN / NOT_AVAILABLE.
-- Billing/GPU-model/production-storage providers: NOT_FROZEN.
-- Local/test S3 implementation: SeaweedFS S3-compatible.
+- Auth/billing/GPU-model/production-storage providers: NOT_FROZEN.
 - Ruleset baseline: `24340349`.
-- CRITICAL/HIGH pendentes deste incremento: nenhum conhecido.
+- CRITICAL/HIGH pendentes deste Work Order: nenhum conhecido.
 
-## Required checks no head auditado
+## Post-merge checks
 
-- Repository validation: `110976525179` PASS.
-- Pipeline integrity: `110976525538` PASS.
-- Gitleaks secrets: `110976524235` PASS.
-- Trivy filesystem and configuration: `110976524045` PASS.
+- Repository validation: `110856008793` PASS.
+- Pipeline integrity: `110856008855` PASS.
+- Gitleaks secrets: `110856008008` PASS.
+- Trivy filesystem and configuration: `110856008293` PASS.
 
 ## Próxima ação legal
 
-O merge da PR #20 é permitido somente após os quatro required checks passarem novamente no head de promoção e não existir review thread aberta.
-
-Depois do merge e da validação pós-merge, o próximo incremento pode ser o Identity/Tenancy security baseline sob novo Work Order/Context Lock. Antes de implementar identidade real, o auth provider precisa de decisão/preflight atual.
+Pode ser admitido um novo Work Order/Context Lock para `SPRYXEL-IMP-001`. Nenhum código de produto está admitido ainda.
