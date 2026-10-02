@@ -155,9 +155,9 @@ The source snapshot is immutable migration evidence. Do not rewrite it.
 9. Product implementation stays NOT_STARTED.
 10. `SPR-PLAN-006` is the next proposed NECESSARY planning increment; it is not executed.
 11. GEF doctor/status/checkpoint validation remains healthy under the documented v1.1.1 drift policy.
-12. Four existing required GitHub checks pass on the exact final PR head.
+12. Four existing required GitHub checks pass on the exact final PR head. After push, the PR description is authoritative for that final HEAD SHA, timestamps, check-run IDs/URLs, and conclusions; the versioned Evidence Bundle records pre-push evidence and references the PR description for those post-push details. `READY_FOR_AUDIT` is allowed only after all four checks PASS on the exact final PR HEAD; never reuse earlier-SHA results.
 13. No unresolved CRITICAL/HIGH finding.
-14. Evidence Bundle includes source fingerprint proof, migration coverage matrix, changed paths, tests/checks, known gaps and proposed Checkpoint Delta.
+14. Evidence Bundle includes source fingerprint proof, migration coverage matrix, changed paths, local/pre-push tests and evidence, known gaps, and proposed Checkpoint Delta; it references the PR description as the authoritative post-push record of exact-HEAD check evidence.
 
 ## TESTS
 - SHA-256/size verification of imported seed.

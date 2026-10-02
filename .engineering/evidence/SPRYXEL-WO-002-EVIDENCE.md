@@ -86,6 +86,18 @@ Nenhum código de produto, workflow, package/package-lock, CHECKPOINT.json, CHEC
 - Workflows YAML não foram alterados; a interpretação e execução dos workflows pelo GitHub é evidenciada pelos quatro checks exatos associados à PR.
 - Gitleaks e Trivy locais não estão instalados neste host; seus checks obrigatórios são executados no GitHub e devem constar como PASS no exact head da PR.
 
+## Correction Delta — validação pré-push
+
+- Fidelidade financeira: Product Master v0.6.0, seção 136, define RED como `0% < margin < 35%` e BLACK como `margin <= 0%`; D-070 (seção 174) exige hard stop para margem não positiva. `.engineering/BILLING-ECONOMICS.md` agora mantém as faixas mutuamente exclusivas e o hard stop — PASS.
+- Contrato realizável sem relaxar gates: DoD e Work Order tornam a descrição da PR autoridade para evidência pós-push; este bundle versionado preserva evidência determinística/local pré-push e aponta para a descrição da PR para o exact-head final. READY_FOR_AUDIT continua condicionado aos quatro required checks PASS no exact final PR HEAD — PASS.
+- O seed permanece idêntico ao fingerprint validado: SHA-256 `1c2bf605cb4851300e7f1cc64071b1eaa4cf6d814187dcc95ebe7366d5ec2a8e`, Git blob `cbb93ec44886eba6cc9b24a072eb23e0ad5ea05a`, 238278 bytes / 12447 linhas — PASS.
+- Regressão da matriz: 89/89 IDs em ordem com título/decisão/status e proprietário canônico iguais ao Ledger; 239/239 seções; 37/37 módulos; 19 decisões abertas; SPR-PLAN-006 `executed=false` — PASS.
+- `npm ci --ignore-scripts --no-audit --no-fund` e dependência exata `@gef-bootstrap/cli@1.1.1` — PASS.
+- `gef doctor --target . --json`: `ok=true`, terminal `SUCCEEDED`, governança legível/válida — PASS. Duas saídas brutas de `gef status --target . --json` foram idênticas, 5343 bytes — PASS.
+- Estrutura: 5 arquivos JSON válidos e 26 Markdown com fences equilibrados; guardas de pricing NOT FROZEN, implementação NOT_STARTED e SPR-PLAN-006 não executado — PASS.
+- `git diff --check`; escopo limitado aos quatro arquivos desta correção; padrões de segredo nas linhas adicionadas: 0 — PASS.
+- Os quatro checks remotos ainda serão executados depois do push. Seus IDs, URLs, conclusões, horário e SHA exato final serão publicados somente na descrição da PR #8, conforme o contrato acima; não há resultado pós-push alegado neste bundle.
+
 ## Reconciliação de drift GEF conforme D-0007
 
 gef doctor permaneceu read-only e bem-sucedido. gef status observou repositório DIRTY durante a execução, operator.stale=true e drift.changed=true/class=UNEXPECTED. Conforme o comportamento imutável do GEF 1.1.1, esse rótulo não decide autorização.
@@ -117,6 +129,6 @@ O checkpoint canônico não foi alterado nem promovido.
 
 ## HEAD e checks remotos
 
-O SHA exato final, horário, conclusão e URLs dos quatro runs pertencentes a esse mesmo SHA são registrados na descrição da PR #8 após push e conclusão dos checks. Não reutilizar resultados de um SHA anterior. O veredito READY_FOR_AUDIT só se aplica se os quatro checks estiverem PASS nesse HEAD exato.
+Este Evidence Bundle versionado registra evidências determinísticas e locais disponíveis antes do push e referencia a descrição da PR #8 para os detalhes pós-push. A descrição da PR é o registro autoritativo complementar do SHA exato final, horários, IDs/URLs e conclusões dos quatro check-runs pertencentes a esse mesmo SHA. Não reutilizar resultados de um SHA anterior. O veredito READY_FOR_AUDIT só se aplica depois que os quatro checks estiverem PASS no exact final PR HEAD.
 
 STOP CONDITION: SPRYXEL_WO_002_PRODUCT_MASTER_DECOMPOSED_READY_FOR_AUDIT.

@@ -71,7 +71,7 @@ Global controls: GLOBAL_DAILY_GPU_USD, GLOBAL_MONTHLY_GPU_USD, FREE_DAILY_GPU_US
 
 At a hard limit, no new cost-incurring job is authorized; owner/admin is alerted and running jobs follow safe cancellation/completion policy. Rolling COGS +10% warns; +20% reviews routing; projected Orange margin restricts promotion; Red blocks new affected jobs.
 
-Financial guardrail bands: GREEN >=70%; YELLOW 50–<70% investigate with no free-use expansion; ORANGE 35–<50% may stop promotions/discounts or select an already-qualified cheaper route; RED 0–<35% blocks new promotion; BLACK <=0% hard-stops new affected jobs.
+Financial guardrail bands: GREEN >=70%; YELLOW 50–<70% investigate with no free-use expansion; ORANGE 35–<50% may stop promotions/discounts or select an already-qualified cheaper route; RED 0% < margin < 35% blocks new promotion; BLACK margin <= 0% is a hard economic stop for new affected jobs.
 
 Owner dashboard covers gross/net-of-tax revenue, fees/refunds/disputes, paid/promotional credit liabilities, GPU/model/QA/repair/storage COGS, margin by SKU/pack/cohort/country/provider, cooling-off/refund/fraud exposure, prepaid balance, reserve, payout, and generation runway. Runway = available cloud generation cash / p95 daily cloud COGS; planning alerts at <14, <7, and <3 days.
 
