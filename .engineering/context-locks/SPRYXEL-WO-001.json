@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "kind": "spryxel.context-lock",
   "workOrderId": "SPRYXEL-WO-001",
-  "status": "FRESH",
+  "status": "STALE",
   "repository": "KayzenRoot/spryxel",
   "authorizedBranch": "codex/spryxel-wo-001-gef-github-governance",
   "executionBase": {
@@ -14,6 +14,12 @@
     "previousContextLockHead": "f90733f3014e64f7f33c391a7dfa4e5b6d09126f",
     "reason": "Recompiled after exact v1.1.1 release-source verification of immutable baseline drift semantics.",
     "executionBaseUnchanged": true
+  },
+  "closure": {
+    "reason": "Canonical checkpoint promotion after objective APPROVED audit changed critical governance sources. Execution is complete and this Context Lock must not be reused.",
+    "auditedExecutionHeadSha": "db68f8aeb85beed2f8bbfba98fcc8fd562f7515b",
+    "auditVerdict": "APPROVED",
+    "furtherExecutorActionAuthorized": false
   },
   "gef": {
     "package": "@gef-bootstrap/cli",

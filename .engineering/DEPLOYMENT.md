@@ -6,11 +6,10 @@ Status: SOURCE_PACK_CANDIDATE
 Not defined. No product artifact exists.
 
 ## Governance/provider rollout
-SPRYXEL-WO-001 changes repository-local files through the PR branch first. Provider-side GitHub ruleset/settings are applied only after intended required checks have been observed successful on the exact PR head.
+`SPRYXEL-WO-001` completed the provider rollout and was objectively approved before merge authorization. The accepted provider baseline includes active ruleset ID `24340349`, immutable-action enforcement, the required governance/security contexts, and the `gef-managed` / `governed` labels.
 
 ## Rollback / recovery
-- Capture pre-change repository/ruleset state.
-- Ruleset currently has no existing object to overwrite; creation must be read-back verified.
-- If the new ruleset causes a deadlock or mismatched context, restore/remove only the WO-created provider object using the captured ID/snapshot.
+- Preserve the before/after provider snapshots in the Evidence Bundle.
+- If ruleset ID `24340349` creates a verified deadlock or context mismatch, modify or remove only the Work Order-created provider object using the captured evidence and a separately authorized recovery action.
 - Do not rewrite Git history during recovery.
-- If permissions are insufficient, stop BLOCKED without partial weakening.
+- Do not weaken required security/governance checks as an ad hoc workaround.

@@ -3,25 +3,21 @@
 Status: SOURCE_PACK_CANDIDATE
 
 Repository: `KayzenRoot/spryxel`  
-Promoted main base observed for this pack: `10dca04e38cfcd2e07335faf9078cc6041766c02`  
 GEF: `@gef-bootstrap/cli@1.1.1`
 
-## Proven state
-PR #1 installed/initialized GEF 1.1.1 and was squash-merged. Bootstrap exact-head validation passed npm installation, CLI identity, init state, doctor, deterministic repeated status and clean final head. At that bootstrap head, `drift.changed=false`.
+## Estado promovido após auditoria
+- Work Order auditada: `SPRYXEL-WO-001` / issue #2 / PR #3.
+- Veredito objetivo: `APPROVED`.
+- Head de execução auditado: `db68f8aeb85beed2f8bbfba98fcc8fd562f7515b`.
+- Nenhum achado CRITICAL ou HIGH permanece conhecido neste incremento.
+- O ruleset `SPRYXEL main governance` ID `24340349` foi lido de volta e aceito como baseline ativo de `main`.
+- Os contexts obrigatórios aceitos são `Repository validation`, `Pipeline integrity`, `Gitleaks secrets` e `Trivy filesystem and configuration`.
+- O drift do GEF 1.1.1 permanece interpretado pela decisão D-0007 e foi reconciliado sem editar estado gerenciado em `.gef`.
+- Product implementation: NOT_STARTED.
+- Product baseline: NOT_BASELINED.
 
-## Current governance state at compilation
-- Product implementation: NOT_STARTED
-- Product definition: NOT_BASELINED
-- Active Work Order: `SPRYXEL-WO-001` / issue #2
-- Work Order state: ADMITTED_FOR_EXECUTION by explicit owner request
-- Rulesets observed before WO execution: none
-- `main` protection before WO execution: absent
-- Known HIGH/CRITICAL blocker: none observed in bootstrap evidence
-- Provider admin capability for Codex: must be proven during preflight
-- Source Pack candidate was intentionally created after the immutable GEF init baseline, so v1.1.1 currently reports real project drift relative to that baseline.
+## Estado da governança
+O bootstrap do GEF 1.1.1 e a camada GitHub/GEF de governança estão aprovados. A promoção deste checkpoint é uma ação do auditor posterior à STOP CONDITION do executor. O Context Lock de execução de `SPRYXEL-WO-001` deixa de ser reutilizável após esta promoção porque fontes críticas foram atualizadas de forma canônica.
 
-## GEF v1.1.1 drift note
-The exact v1.1.1 release source hard-codes `authorized: false` in the CLI status drift comparison. Therefore the current Source Pack delta is projected as `drift.changed=true / class=UNEXPECTED` even though it is the admitted governance setup. This is a known diagnostic limitation, not permission to ignore drift. SPRYXEL-WO-001 must reconcile every changed path to authorized Git evidence and must not rewrite `.gef` state to hide the signal.
-
-## Next legal action
-Codex may execute only SPRYXEL-WO-001 from its bound base/Context Lock, reconcile observed drift against the authorized delta, then stop at `SPRYXEL_WO_001_EXACT_HEAD_AND_PROVIDER_STATE_READY_FOR_AUDIT`. No merge or checkpoint promotion by executor.
+## Próxima ação legal
+Esta promoção autoriza o merge seguro da PR #3 somente após os quatro checks obrigatórios passarem novamente no commit de promoção. Depois do merge e da validação pós-merge, o próximo estágio permitido é planejamento de Product Discovery. Nenhuma implementação de produto está admitida.

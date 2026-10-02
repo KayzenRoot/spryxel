@@ -25,5 +25,5 @@ Ambiguous permissions, missing admin capability, unknown required-check context 
 
 A GEF v1.1.1 `drift.class=UNEXPECTED` is reconciled against the admitted Work Order and exact diff. It is a blocker if any changed surface is unadmitted, unexplained or cannot be bound to evidence. It is not a reason to rewrite the immutable GEF baseline.
 
-## Current known gap
-Before SPRYXEL-WO-001 execution, `main` has no repository ruleset. This is the active security/governance gap being addressed.
+## Approved governance baseline
+`SPRYXEL-WO-001` resolved the initial unprotected-`main` gap. Ruleset `SPRYXEL main governance` ID `24340349` is active for `refs/heads/main`, has no bypass actors, blocks deletion/non-fast-forward and requires PR integration, resolved review threads, and the four proven security/governance checks.

@@ -3,7 +3,7 @@
 Spryxel is governed by **GEF Bootstrap 1.1.1**.
 
 ## Current stage
-The GEF CLI is installed from npm, pinned exactly to `@gef-bootstrap/cli@1.1.1`, and initialized under `.gef/`. Product definition and implementation have **not** started. The current admitted increment is repository/GitHub governance only: `SPRYXEL-WO-001` (issue #2).
+The GEF CLI is installed from npm and pinned exactly to `@gef-bootstrap/cli@1.1.1`. The repository/GitHub governance increment `SPRYXEL-WO-001` was objectively audited `APPROVED`; its checkpoint promotion is included in PR #3 and merge remains conditional on final required checks. Product definition and implementation have **not** started.
 
 ## Canonical source order
 1. `.engineering/CHECKPOINT.json` and `.engineering/CHECKPOINT.md`
@@ -17,4 +17,4 @@ The GEF CLI is installed from npm, pinned exactly to `@gef-bootstrap/cli@1.1.1`,
 See `.engineering/SOURCE-HIERARCHY.md` for conflict rules.
 
 ## Development handoff
-ChatGPT owns architecture/specification/audit and compiles Work Orders. Codex is the implementation/CI executor. GitHub is the task/evidence transport. No product work is admitted until the Source Pack and its relevant Work Order permit it.
+ChatGPT owns architecture/specification/audit and compiles Work Orders. Codex is the implementation/CI executor. GitHub is the task/evidence transport. No product implementation is admitted until Product Discovery and the relevant Source Pack/Work Order explicitly permit it.
