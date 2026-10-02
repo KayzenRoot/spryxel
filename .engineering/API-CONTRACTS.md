@@ -1,6 +1,6 @@
 # API Contracts
 
-Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
+Status: CANONICAL-CANDIDATE — SPRYXEL-WO-003 / SPR-PLAN-006; awaiting audit and checkpoint promotion.
 
 ## Surfaces and common execution model
 
@@ -37,3 +37,9 @@ Budget, authorization, policy, contract, safety, cost, provider, and QA errors m
 Downloads and exports are tenant-authorized with short-lived signed URLs and audit events. Every API/MCP path enforces tenant isolation, API-key scope, allowed SKU/profile, cost limits, and generation idempotency.
 
 Open: exact API paths/versioning, request/response schemas, pagination, error-code registry, OAuth scopes/resource metadata, CLI command syntax, partial-delivery semantics, and detailed MCP tool catalog. These are carried to planning; WO-002 does not close them.
+
+## Credential and automation UX contract — SPR-PLAN-006
+
+Before enabling API/MCP/CLI credentials or cost-incurring automation, the developer surface presents credential scope, global/project binding, expiry, last use, allowed SKUs/profiles, bounded credit/job/candidate/repair/retry/time limits, risk class, revocation and one-time secret reveal. Interactive remote MCP remains OAuth-first. Workflow budgets are inherited by child operations, and idempotency is explained so retries do not reserve or generate twice.
+
+The UI surfaces machine-readable budget, authorization, policy, contract, safety, cost, provider and QA outcomes as safe actionable states. It never returns a secret after its one-time reveal and never includes raw payment data, internal TrustShield thresholds, linked-account identities or device hashes in client-visible errors. This UX clarification freezes no paths, schemas, tool catalog or provider.

@@ -1,6 +1,6 @@
 # Backlog
 
-Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
+Status: CANONICAL-CANDIDATE — SPRYXEL-WO-003 / SPR-PLAN-006; awaiting audit and checkpoint promotion.
 
 ## Historical planning and scope
 
@@ -15,15 +15,15 @@ Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
 | SPR-PLAN-004 | NECESSARY / HIGH_ASSURANCE | APPROVED / COMPLETED IN MASTER v0.5.0 | Credit economics, pricing safety, simulation |
 | SPR-PLAN-005 | NECESSARY / HIGH_ASSURANCE | APPROVED / COMPLETED IN MASTER v0.6.0 | Security, TrustShield, abuse graph, account/payment risk |
 | SPRYXEL-WO-002 | NECESSARY source migration | COMPLETE / AUDITED / MERGED / POST-MERGE VALIDATED | Decompose v0.6.0 seed into the canonical Source Pack |
-| SPR-PLAN-006 | NECESSARY | NEXT PROPOSED; NOT EXECUTED | Product UX, Design System & Information Architecture |
+| SPR-PLAN-006 | NECESSARY | EXECUTED AS PR #11 CANDIDATE; PENDING AUDIT/PROMOTION | Product UX, Design System & Information Architecture |
 
 Historical planning rounds above are not being re-run by WO-002.
 
 ## Next planning boundary
 
-SPR-PLAN-006 is the next legal NECESSARY planning increment after completion of SPRYXEL-WO-002. Its outputs are visual principles/brand direction, typography/tokens/themes/motion/layout, responsive strategy, global/project navigation, studio screen contracts, billing/API/MCP/admin UX, safe messaging, onboarding and state handling, accessibility/i18n layout, command palette/keyboard workflows, desktop/mobile strategy, and screen inventory.
+SPRYXEL-WO-003 carries the SPR-PLAN-006 documentation candidate on PR #11. It covers visual principles/brand direction, typography/tokens/themes/motion/layout, responsive strategy, global/project navigation, studio screen contracts, billing/API/MCP/admin UX, safe messaging, onboarding and state handling, accessibility/i18n layout, command palette/keyboard workflows, desktop/mobile strategy, and screen inventory.
 
-WO-002 did not execute that increment. Its executor STOP CONDITION was READY_FOR_AUDIT; no product implementation is admitted by the audited Source Pack promotion.
+The canonical checkpoint remains at the post-WO-002 state until objective audit and authorized promotion. Completing this candidate does not admit product implementation or component work; a later implementation-planning increment requires its own admitted Work Order and Context Lock.
 
 ## Open release/planning items
 
@@ -38,7 +38,7 @@ WO-002 did not execute that increment. Its executor STOP CONDITION was READY_FOR
 | Final stack details: runtime, queue, object storage, GPU provider, and any database adjunct | Architecture boundaries are approved; final technology choices remain open where not explicitly resolved in the master. |
 | Physical database schema and exact V1 SKU/contract inventory | Conceptual entities and SKU/QA requirements are migrated; physical schema and any remaining SKU contract details remain planning work. |
 | API v1, MCP v1 tool catalog, and CLI v1 command contract | First-class surfaces/basic CLI are approved; exact paths, schemas, errors, scopes, and commands remain open. |
-| UI information architecture, wireframes, visual system, and accessibility contracts | Not executed; carried to SPR-PLAN-006. |
+| UI information architecture, wireframes, visual system, and accessibility contracts | Candidate docs are in SPRYXEL-WO-003 PR #11; canonical status awaits objective audit and checkpoint promotion. |
 | Product-specific formal Definition of Done and later implementation gates | This candidate defines source-pack audit and high-level production gates; finer product increments remain to be planned without implementing product code. |
 | Security/privacy implementation, validation, retention periods, and TrustShield calibration | Architecture approved for planning; implementation/validation NOT_STARTED, retention periods and live thresholds require legal/operational review and data. |
 | Product implementation Work Orders | Not admitted until Source Pack audit/promotion and the relevant implementation Definition of Done. |

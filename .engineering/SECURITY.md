@@ -1,6 +1,6 @@
 # Security
 
-Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
+Status: CANONICAL-CANDIDATE — SPRYXEL-WO-003 / SPR-PLAN-006; awaiting audit and checkpoint promotion.
 Planning boundary: SPR-PLAN-005 is approved/completed in master v0.6.0; implementation and validation are NOT_STARTED.
 
 ## Protected assets and existing repository controls
@@ -109,3 +109,11 @@ Before public promotional GPU generation, the master requires server-verified Tu
 SPR-PLAN-005 verdict in master v0.6.0: threat model, multi-account, trial abuse, payment risk, account takeover, and API/MCP security APPROVED; privacy/LGPD APPROVED FOR PLANNING / LEGAL REVIEW REQUIRED BEFORE LAUNCH; Turnstile preferred V1 candidate; TrustShield ML DEFERRED; implementation NOT STARTED.
 
 No public free generation, referral rewards, or high-value first purchases until TrustShield v1 requirements and privacy/security controls are represented in the Source Pack and tested.
+
+## UX exposure and high-impact interaction contract — SPR-PLAN-006
+
+Member-facing policy, trial and risk outcomes retain the approved safe-message posture. Do not expose device hashes, linked-account identifiers, graph edges, risk thresholds, internal rule names, exploitable antifraud detail, internal margins or operator-only evidence. A safe result may provide an eligible next step or support/appeal path without disclosing why an internal risk signal fired.
+
+Owner/Admin security and economics surfaces are separated from creative navigation and protected by role checks. Production owner/admin requires MFA; sensitive and high-impact actions surface reauthentication/step-up, affected scope, audit implications and explicit confirmation as applicable. Bulk actions preview scope. Silent impersonation remains prohibited. Hiding a UI control never replaces server-side authorization, tenant isolation or audit.
+
+API/MCP credential setup must disclose scope, project binding, expiry, last use, bounded budgets, allowed SKUs/profiles, risk class, one-time secret reveal and revocation before enabling credentials or cost-incurring automation. The screen contract does not establish endpoint details or change stored security signals, retention, rules or provider decisions.
