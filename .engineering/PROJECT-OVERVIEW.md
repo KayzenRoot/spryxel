@@ -63,7 +63,7 @@ Completed in the seed:
 - SPR-PLAN-004 — Credit Economics, Pricing Safety & Financial Simulation — APPROVED / COMPLETED IN MASTER v0.5.0.
 - SPR-PLAN-005 — Security, TrustShield, Abuse Graph & Account/Payment Risk Architecture — APPROVED / COMPLETED IN MASTER v0.6.0.
 
-SPR-PLAN-006 and SPR-PLAN-007 are complete and canonical. SPRYXEL-IMP-001 — Platform Foundation Bootstrap — is objectively APPROVED under SPRYXEL-WO-005; only the bounded technical foundation is implemented. Product business features remain NOT_STARTED.
+SPR-PLAN-006 and SPR-PLAN-007 are complete and canonical. SPRYXEL-IMP-001 — Platform Foundation Bootstrap — is COMPLETE under SPRYXEL-WO-005; only the bounded technical foundation is implemented. Product business features remain NOT_STARTED.
 
 ## Open decisions and release gates
 
@@ -100,3 +100,10 @@ SPRYXEL-WO-004 completed implementation-architecture planning. D-123…D-153 and
 SPRYXEL-WO-005 objectively approved the first implementation slice on head `a81ca67894265da3679d817db737a9af3aee9a79` after Correction Delta 01 and Correction Delta 02 closed all audit findings. The implemented surface is technical foundation only: workspace/toolchain, web shell, API/worker process boundaries, shared technical packages, PostgreSQL/Redis/S3-compatible local infrastructure, observability, architecture checks and test harnesses.
 
 Identity/Tenancy and every downstream business slice remain NOT_ADMITTED.
+
+
+## WO-005 completion
+
+`SPRYXEL-WO-005 / SPRYXEL-IMP-001` is COMPLETE: objectively audited, canonically promoted, squash-merged and post-merge validated on `main@6dbce3f1ba1e5b85a6e6ea40083e2d4418755261`.
+
+The canonical implemented surface remains the technical platform foundation only. Identity/Tenancy and all downstream product/business slices remain NOT_ADMITTED.
