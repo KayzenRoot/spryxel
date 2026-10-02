@@ -1,8 +1,6 @@
-import { parseRuntimeConfig } from '@spryxel/config';
+import { parseMigrationDatabaseUrl } from '@spryxel/config';
 import { getMigrationStatus } from '@spryxel/db';
 
-const config = parseRuntimeConfig(process.env, 'api');
-if (!config.databaseUrl) throw new Error('DATABASE_URL is required for migration status');
-
-const status = await getMigrationStatus(config.databaseUrl);
+const migrationDatabaseUrl = parseMigrationDatabaseUrl(process.env);
+const status = await getMigrationStatus(migrationDatabaseUrl);
 process.stdout.write(`${JSON.stringify({ migrations: status })}\n`);

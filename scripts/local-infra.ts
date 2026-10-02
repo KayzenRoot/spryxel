@@ -12,13 +12,15 @@ if (action !== 'up' && action !== 'down')
   throw new Error('Use `npm run infra:up` or `npm run infra:down`');
 
 if (action === 'up') {
+  let existingEnv: string | undefined;
   try {
-    await readFile(envPath, 'utf8');
+    existingEnv = await readFile(envPath, 'utf8');
   } catch {
     const values = {
       POSTGRES_DB: 'spryxel_local',
       POSTGRES_USER: 'spryxel',
       POSTGRES_PASSWORD: randomBytes(24).toString('hex'),
+      DATABASE_APP_PASSWORD: randomBytes(24).toString('hex'),
       REDIS_PASSWORD: randomBytes(24).toString('hex'),
       S3_ACCESS_KEY_ID: randomBytes(16).toString('hex'),
       S3_SECRET_ACCESS_KEY: randomBytes(32).toString('hex'),
@@ -29,6 +31,14 @@ if (action === 'up') {
         .map(([key, value]) => `${key}=${value}`)
         .join('\n')}\n`,
       { mode: 0o600, flag: 'wx' },
+    );
+    await chmod(envPath, 0o600);
+  }
+  if (existingEnv && !/^DATABASE_APP_PASSWORD=/m.test(existingEnv)) {
+    await writeFile(
+      envPath,
+      `${existingEnv.replace(/\s*$/, '')}\nDATABASE_APP_PASSWORD=${randomBytes(24).toString('hex')}\n`,
+      { mode: 0o600 },
     );
     await chmod(envPath, 0o600);
   }

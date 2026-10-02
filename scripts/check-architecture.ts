@@ -44,12 +44,14 @@ const allowedInternalDependencies: Record<string, string[]> = {
     '@spryxel/contracts',
     '@spryxel/db',
     '@spryxel/domain',
+    '@spryxel/identity',
     '@spryxel/observability',
   ],
   '@spryxel/config': ['@spryxel/contracts'],
   '@spryxel/contracts': [],
-  '@spryxel/db': ['@spryxel/domain'],
+  '@spryxel/db': ['@spryxel/domain', '@spryxel/identity'],
   '@spryxel/domain': [],
+  '@spryxel/identity': [],
   '@spryxel/observability': [],
   '@spryxel/testkit': [],
   '@spryxel/ui': [],
@@ -100,6 +102,11 @@ const forbiddenByWorkspace: Record<string, RegExp[]> = {
     /from\s+['"]@spryxel\/(?:api|config|db|observability|ui|web|worker)(?:\/|['"])/,
     /from\s+['"]node:process['"]|process\.env/,
   ],
+  '@spryxel/identity': [
+    /from\s+['"](?:next|fastify|drizzle-orm|pg|bullmq|ioredis)(?:\/|['"])/,
+    /from\s+['"]@workos-inc\//,
+    /from\s+['"]@spryxel\/(?:api|config|contracts|db|domain|observability|ui|web|worker)(?:\/|['"])/,
+  ],
   '@spryxel/contracts': [
     /from\s+['"](?:drizzle-orm|pg|bullmq|ioredis|fastify)(?:\/|['"])/,
     /from\s+['"]@aws-sdk\//,
@@ -137,11 +144,29 @@ const migrationFiles = await sourceFiles(resolve(root, 'packages/db/src/migratio
 for (const file of migrationFiles.filter((path) => extname(path) === '.sql')) {
   const sql = await readFile(file, 'utf8');
   if (
-    /create\s+table\s+[^;]*(users?|tenants?|projects?|assets?|jobs?|wallet|credits?|ledger|trustshield)/i.test(
+    /create\s+table\s+[^;]*(users?|projects?|assets?|jobs?|wallet|credits?|ledger|trustshield)/i.test(
       sql,
     )
   ) {
     violations.push(`${file.slice(root.length + 1)} contains an out-of-scope product table`);
+  }
+}
+
+const providerImport = /from\s+['"]@workos-inc\//;
+const approvedProviderEdges = new Set([
+  'apps/api/src/adapters/workos-auth.ts',
+  'apps/web/proxy.ts',
+  'apps/web/app/auth/callback/route.ts',
+  'apps/web/app/sign-in/route.ts',
+  'apps/web/app/sign-out/route.ts',
+  'apps/web/app/account/page.tsx',
+]);
+for (const files of sourceFilesByWorkspace.values()) {
+  for (const file of files) {
+    const relative = file.slice(root.length + 1).replaceAll('\\', '/');
+    if (providerImport.test(await readFile(file, 'utf8')) && !approvedProviderEdges.has(relative)) {
+      violations.push(`${relative} imports WorkOS outside an authorized authentication edge`);
+    }
   }
 }
 

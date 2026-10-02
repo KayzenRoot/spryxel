@@ -5,6 +5,12 @@ import { fileURLToPath } from 'node:url';
 import { sql } from 'drizzle-orm';
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Pool, type PoolConfig } from 'pg';
+import { v7 as uuidv7 } from 'uuid';
+import type {
+  AuthenticatedPrincipal,
+  IdentityBootstrapResult,
+  TenantMembership,
+} from '@spryxel/identity';
 
 const migrationTable = 'public._spryxel_schema_migrations';
 
@@ -33,10 +39,230 @@ export function createDatabase(databaseUrl: string, options: PoolConfig = {}): D
 export async function probePostgres(databaseUrl: string): Promise<void> {
   const database = createDatabase(databaseUrl, { max: 1, idleTimeoutMillis: 1_000 });
   try {
+    const role = await database.pool.query<{ rolsuper: boolean; rolbypassrls: boolean }>(
+      `SELECT role.rolsuper, role.rolbypassrls
+       FROM pg_catalog.pg_roles role
+       WHERE role.rolname = current_user`,
+    );
+    if (!role.rows[0] || role.rows[0].rolsuper || role.rows[0].rolbypassrls) {
+      throw new Error('Application database role must not be superuser or bypass RLS');
+    }
     await database.orm.execute(sql`select 1`);
   } finally {
     await database.close();
   }
+}
+
+export async function bootstrapIdentity(
+  databaseUrl: string,
+  principal: AuthenticatedPrincipal,
+  requestId: string,
+): Promise<IdentityBootstrapResult> {
+  const pool = new Pool({
+    connectionString: databaseUrl,
+    connectionTimeoutMillis: 2_000,
+    idleTimeoutMillis: 5_000,
+    max: 1,
+    statement_timeout: 5_000,
+  });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [
+      `${principal.externalSubject.provider}:${principal.externalSubject.subject}`,
+    ]);
+    await setExternalIdentityContext(
+      client,
+      principal.externalSubject.provider,
+      principal.externalSubject.subject,
+    );
+
+    let subjectId: string;
+    const mapping = await client.query<{ subject_id: string }>(
+      `SELECT subject_id
+       FROM platform.external_auth_identity
+       WHERE provider = $1 AND external_subject = $2`,
+      [principal.externalSubject.provider, principal.externalSubject.subject],
+    );
+    if (mapping.rows[0]) {
+      subjectId = mapping.rows[0].subject_id;
+      await setSecurityContext(client, subjectId, undefined);
+      const subject = await client.query<{ status: string }>(
+        `SELECT status FROM platform.identity_subject WHERE id = $1`,
+        [subjectId],
+      );
+      if (subject.rows[0]?.status !== 'active') {
+        throw new IdentityRepositoryError('identity_suspended');
+      }
+    } else {
+      subjectId = uuidv7();
+      await setSecurityContext(client, subjectId, undefined);
+      await client.query('INSERT INTO platform.identity_subject (id) VALUES ($1)', [subjectId]);
+      await client.query(
+        `INSERT INTO platform.external_auth_identity (provider, external_subject, subject_id)
+         VALUES ($1, $2, $3)`,
+        [principal.externalSubject.provider, principal.externalSubject.subject, subjectId],
+      );
+    }
+
+    await setSecurityContext(client, subjectId, undefined);
+    const memberships = await client.query<{
+      tenant_id: string;
+      role: TenantMembership['role'];
+      status: string;
+    }>(
+      `SELECT tenant_id, role, status
+       FROM platform.tenant_membership
+       WHERE subject_id = $1 AND status = 'active'
+       ORDER BY created_at, tenant_id
+       LIMIT 1`,
+      [subjectId],
+    );
+
+    let tenantId: string;
+    let role: TenantMembership['role'];
+    let created = false;
+    if (memberships.rows[0]) {
+      tenantId = memberships.rows[0].tenant_id;
+      role = memberships.rows[0].role;
+    } else {
+      tenantId = uuidv7();
+      role = 'OWNER';
+      created = true;
+      await setSecurityContext(client, subjectId, tenantId);
+      await client.query(
+        `INSERT INTO platform.tenant (id, display_name, created_by_subject_id)
+         VALUES ($1, 'Personal workspace', $2)`,
+        [tenantId, subjectId],
+      );
+      await client.query(
+        `INSERT INTO platform.tenant_membership (tenant_id, subject_id, role)
+         VALUES ($1, $2, 'OWNER')`,
+        [tenantId, subjectId],
+      );
+      await client.query(
+        `INSERT INTO platform.security_event
+          (id, subject_id, tenant_id, event_type, external_session_ref, request_id)
+         VALUES ($1, $2, $3, 'identity.bootstrap', $4, $5)`,
+        [uuidv7(), subjectId, tenantId, principal.externalSession.session, requestId],
+      );
+    }
+
+    await setSecurityContext(client, subjectId, tenantId);
+    await client.query('COMMIT');
+    return { subjectId, tenantId, role, created };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+    await pool.end();
+  }
+}
+
+export async function listIdentityMemberships(
+  databaseUrl: string,
+  subjectId: string,
+): Promise<TenantMembership[]> {
+  const pool = new Pool({
+    connectionString: databaseUrl,
+    connectionTimeoutMillis: 2_000,
+    idleTimeoutMillis: 5_000,
+    max: 1,
+    statement_timeout: 3_000,
+  });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN READ ONLY');
+    await setSecurityContext(client, subjectId, undefined);
+    const result = await client.query<{
+      tenant_id: string;
+      subject_id: string;
+      role: TenantMembership['role'];
+      status: string;
+    }>(
+      `SELECT tenant_id, subject_id, role, status
+       FROM platform.tenant_membership
+       WHERE subject_id = $1 AND status = 'active'
+       ORDER BY created_at, tenant_id`,
+      [subjectId],
+    );
+    await client.query('COMMIT');
+    return result.rows.map((row) => ({
+      subjectId: row.subject_id,
+      tenantId: row.tenant_id,
+      role: row.role,
+      active: row.status === 'active',
+    }));
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+    await pool.end();
+  }
+}
+
+export async function recordSessionRevocation(
+  databaseUrl: string,
+  input: { subjectId: string; tenantId: string; sessionId: string; requestId: string },
+): Promise<void> {
+  const pool = new Pool({
+    connectionString: databaseUrl,
+    connectionTimeoutMillis: 2_000,
+    idleTimeoutMillis: 5_000,
+    max: 1,
+    statement_timeout: 3_000,
+  });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await setSecurityContext(client, input.subjectId, input.tenantId);
+    const membership = await client.query(
+      `SELECT 1 FROM platform.tenant_membership
+       WHERE subject_id = $1 AND tenant_id = $2 AND status = 'active'`,
+      [input.subjectId, input.tenantId],
+    );
+    if (!membership.rowCount) throw new IdentityRepositoryError('membership_required');
+    await client.query(
+      `INSERT INTO platform.security_event
+        (id, subject_id, tenant_id, event_type, external_session_ref, request_id)
+       VALUES ($1, $2, $3, 'session.revoked', $4, $5)`,
+      [uuidv7(), input.subjectId, input.tenantId, input.sessionId, input.requestId],
+    );
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+    await pool.end();
+  }
+}
+
+export class IdentityRepositoryError extends Error {
+  constructor(readonly code: 'identity_suspended' | 'membership_required') {
+    super('Identity repository operation was denied');
+    this.name = 'IdentityRepositoryError';
+  }
+}
+
+async function setSecurityContext(
+  client: import('pg').PoolClient,
+  subjectId: string,
+  tenantId: string | undefined,
+): Promise<void> {
+  await client.query("SELECT set_config('spryxel.subject_id', $1, true)", [subjectId]);
+  await client.query("SELECT set_config('spryxel.tenant_id', $1, true)", [tenantId ?? '']);
+}
+
+async function setExternalIdentityContext(
+  client: import('pg').PoolClient,
+  provider: string,
+  externalSubject: string,
+): Promise<void> {
+  await client.query("SELECT set_config('spryxel.external_provider', $1, true)", [provider]);
+  await client.query("SELECT set_config('spryxel.external_subject', $1, true)", [externalSubject]);
 }
 
 export type MigrationStatus = {

@@ -14,6 +14,9 @@ export default function HomePage() {
               <span className="hidden text-sm text-text-secondary sm:inline">
                 Platform foundation
               </span>
+              <a className="rounded-control border border-border px-3 py-2 text-sm" href="/sign-in">
+                Sign in
+              </a>
               <ThemeToggle />
             </div>
           </div>

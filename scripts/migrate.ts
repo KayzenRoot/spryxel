@@ -1,11 +1,8 @@
-import { parseRuntimeConfig } from '@spryxel/config';
+import { parseMigrationDatabaseUrl } from '@spryxel/config';
 import { runMigrations } from '@spryxel/db';
 
-const config = parseRuntimeConfig(process.env, 'api');
-if (!config.databaseUrl)
-  throw new Error('DATABASE_URL is required for the explicit migration command');
-
-const status = await runMigrations(config.databaseUrl);
+const migrationDatabaseUrl = parseMigrationDatabaseUrl(process.env);
+const status = await runMigrations(migrationDatabaseUrl);
 process.stdout.write(
   `${JSON.stringify({ applied: status.map(({ id }) => id), count: status.length })}\n`,
 );
