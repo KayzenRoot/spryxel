@@ -26,7 +26,7 @@
     "nextImplementationIncrementStatus": "NOT_ADMITTED",
     "commercialPricing": "NOT_FROZEN",
     "benchmarksAndMeasuredCogs": "NOT_RUN_NOT_AVAILABLE",
-    "authProvider": "NOT_FROZEN",
+    "authProvider": "WORKOS_AUTHKIT_V1_SELECTED",
     "billingProvider": "NOT_FROZEN",
     "productionGpuModelProvider": "NOT_FROZEN",
     "productionObjectStorageProvider": "NOT_FROZEN",
@@ -38,6 +38,8 @@
       "Gitleaks secrets",
       "Trivy filesystem and configuration"
     ],
-    "driftPolicy": "RECONCILE_AGAINST_AUTHORIZED_GIT_DELTA_DO_NOT_REWRITE_GEF_BASELINE"
+    "driftPolicy": "RECONCILE_AGAINST_AUTHORIZED_GIT_DELTA_DO_NOT_REWRITE_GEF_BASELINE",
+    "authProviderDecisionRange": "D-156..D-161",
+    "authProviderPreflightDate": "2026-10-02"
   }
 }
