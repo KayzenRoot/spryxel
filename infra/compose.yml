@@ -1,0 +1,108 @@
+name: spryxel-platform
+
+services:
+  postgres:
+    profiles: [infra, test]
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
+    image: spryxel/postgres-test:18.6-alpine3.24
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+      PGDATA: /var/lib/postgresql/18/docker
+    ports:
+      - 127.0.0.1:${PG_PORT:-55432}:5432
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 2s
+      timeout: 2s
+      retries: 30
+      start_period: 5s
+    mem_limit: 512m
+    cpus: 1.0
+    pids_limit: 100
+    stop_grace_period: 10s
+
+  redis:
+    profiles: [infra, test]
+    image: redis:8.10.2-alpine@sha256:3811787313eba226a2ef38658c6ccb91cd5e110edc89c37767de373120a0e5a0
+    environment:
+      REDISCLI_AUTH: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+    command:
+      - redis-server
+      - --save
+      - ''
+      - --appendonly
+      - 'no'
+      - --requirepass
+      - ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      - --maxmemory
+      - 128mb
+      - --maxmemory-policy
+      - noeviction
+    ports:
+      - 127.0.0.1:${REDIS_PORT:-56379}:6379
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: [CMD-SHELL, 'redis-cli --no-auth-warning ping | grep -q PONG']
+      interval: 2s
+      timeout: 2s
+      retries: 30
+      start_period: 2s
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 64
+    stop_grace_period: 5s
+
+  seaweedfs:
+    profiles: [infra, test]
+    image: chrislusf/seaweedfs:4.48@sha256:4e61d15fd35994cb1e43e1e553dff106794841fd9a99ade2fc8c8bfce4d7872d
+    entrypoint: [/bin/sh, /run/spryxel/start.sh]
+    command:
+      - server
+      - -s3
+      - -filer
+      - -s3.config=/tmp/spryxel-s3-identities.json
+      - -s3.port=8333
+      - -s3.port.grpc=0
+      - -s3.port.https=0
+      - -s3.port.iceberg=0
+      - -s3.iam=false
+      - -s3.port.lance=0
+      - -volume.max=4
+      - -master.volumeSizeLimitMB=256
+      - -ip=seaweedfs
+    environment:
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:?S3_ACCESS_KEY_ID is required}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:?S3_SECRET_ACCESS_KEY is required}
+      HOME: /tmp
+    ports:
+      - 127.0.0.1:${S3_PORT:-58333}:8333
+    volumes:
+      - seaweed-data:/data
+      - ./seaweedfs/start.sh:/run/spryxel/start.sh:ro
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 768m
+    cpus: 1.0
+    pids_limit: 100
+    stop_grace_period: 10s
+
+volumes:
+  postgres-data:
+  redis-data:
+  seaweed-data:
+
+networks:
+  default:
+    driver: bridge

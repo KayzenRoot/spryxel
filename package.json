@@ -2,16 +2,48 @@
   "name": "spryxel",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "description": "Spryxel project governed by GEF Bootstrap 1.1.1",
+  "packageManager": "npm@10.9.9",
   "engines": {
     "node": ">=22"
   },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "gef": "gef",
     "gef:doctor": "gef doctor --target . --json",
-    "gef:status": "gef status --target . --json"
+    "gef:status": "gef status --target . --json",
+    "dev": "turbo run dev --parallel",
+    "format": "biome format package.json package-lock.json tsconfig.json turbo.json biome.json vitest.config.ts playwright.config.ts README.md apps packages scripts infra --write",
+    "format:check": "biome format package.json package-lock.json tsconfig.json turbo.json biome.json vitest.config.ts playwright.config.ts README.md apps packages scripts infra",
+    "lint": "biome lint package.json package-lock.json tsconfig.json turbo.json biome.json vitest.config.ts playwright.config.ts apps packages scripts infra",
+    "typecheck": "turbo run typecheck",
+    "build": "turbo run build",
+    "test": "npm run test:unit && npm run test:worker && npm run test:integration && npm run test:browser",
+    "test:unit": "npm run build && vitest run",
+    "test:integration": "npm run build && tsx scripts/run-integration.ts",
+    "test:browser": "npm run build && playwright test",
+    "test:worker": "npm run build && tsx scripts/run-worker-smoke.ts",
+    "architecture:check": "tsx scripts/check-architecture.ts",
+    "db:migrate": "npm run build && tsx scripts/migrate.ts",
+    "db:migrate:status": "npm run build && tsx scripts/migrate-status.ts",
+    "infra:up": "tsx scripts/local-infra.ts up",
+    "infra:down": "tsx scripts/local-infra.ts down"
   },
   "devDependencies": {
-    "@gef-bootstrap/cli": "1.1.1"
+    "@biomejs/biome": "2.5.15",
+    "@gef-bootstrap/cli": "1.1.1",
+    "@playwright/test": "1.63.0",
+    "@types/node": "22.20.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "tsx": "4.23.15",
+    "turbo": "2.11.6",
+    "typescript": "6.0.3",
+    "vite": "8.3.2",
+    "vitest": "5.0.3"
   }
 }

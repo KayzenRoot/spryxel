@@ -63,7 +63,7 @@ Completed in the seed:
 - SPR-PLAN-004 — Credit Economics, Pricing Safety & Financial Simulation — APPROVED / COMPLETED IN MASTER v0.5.0.
 - SPR-PLAN-005 — Security, TrustShield, Abuse Graph & Account/Payment Risk Architecture — APPROVED / COMPLETED IN MASTER v0.6.0.
 
-SPR-PLAN-006 — Product UX, Design System & Information Architecture — is complete and canonical through SPRYXEL-WO-003. SPR-PLAN-007 — Implementation Architecture & Bootstrap Sequence — is objectively approved and canonical through SPRYXEL-WO-004. Product implementation remains NOT_STARTED.
+SPR-PLAN-006 and SPR-PLAN-007 are complete and canonical. SPRYXEL-IMP-001 — Platform Foundation Bootstrap — is objectively APPROVED under SPRYXEL-WO-005; only the bounded technical foundation is implemented. Product business features remain NOT_STARTED.
 
 ## Open decisions and release gates
 
@@ -93,3 +93,10 @@ SPRYXEL-WO-004 completed implementation-architecture planning. D-123…D-153 and
 ## WO-004 completion
 
 `SPRYXEL-WO-004 / SPR-PLAN-007` is COMPLETE: the implementation-planning baseline was objectively audited, promoted, squash-merged and post-merge validated on `main@b3226fdff9a53ba5dbe1b7e30b1783cbc897b60a`. Product implementation remains NOT_STARTED. The next legal implementation slice is `SPRYXEL-IMP-001` under a new Work Order/Context Lock.
+
+
+## WO-005 / IMP-001 approval
+
+SPRYXEL-WO-005 objectively approved the first implementation slice on head `a81ca67894265da3679d817db737a9af3aee9a79` after Correction Delta 01 and Correction Delta 02 closed all audit findings. The implemented surface is technical foundation only: workspace/toolchain, web shell, API/worker process boundaries, shared technical packages, PostgreSQL/Redis/S3-compatible local infrastructure, observability, architecture checks and test harnesses.
+
+Identity/Tenancy and every downstream business slice remain NOT_ADMITTED.
