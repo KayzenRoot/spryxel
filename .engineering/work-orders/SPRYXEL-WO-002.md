@@ -4,7 +4,7 @@ Tracking issue: #7
 
 # SPRYXEL-WO-002 — Import Product Master v0.6.0 & Canonical Source Pack Decomposition
 
-**Status:** APPROVED  
+**Status:** COMPLETE  
 **Risk:** ELEVATED  
 **Repository:** `KayzenRoot/spryxel`  
 **Execution base:** `main@0a90e1c93d81f6f0ac861847a5434030d96f0307`  
@@ -212,3 +212,13 @@ Do not merge. Do not promote the checkpoint. Do not execute SPR-PLAN-006.
 - Checkpoint/source-pack promotion is performed by the auditor after approval.
 - No further executor action is authorized under this Work Order after promotion.
 - `SPR-PLAN-006` remains NOT EXECUTED and requires a separate Work Order/Context Lock.
+
+
+## POST-MERGE CLOSURE
+
+- PR #8 squash-merged to `main@9a28858abe48c2b3c453dc4a23ac49cc8e40b987`.
+- Post-merge required checks: Repository validation `110778887952`, Pipeline integrity `110778888451`, Gitleaks secrets `110778888871`, Trivy filesystem and configuration `110778889037`; all PASS.
+- Ruleset `24340349` remained active, main-only and without bypass.
+- Work Order status: `COMPLETE`.
+- Product implementation: `NOT_STARTED`.
+- Next legal stage: `SPR-PLAN-006` under a new Work Order/Context Lock.
