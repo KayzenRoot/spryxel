@@ -1,6 +1,6 @@
 # Architecture
 
-Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
+Status: CANONICAL — SPRYXEL-WO-003 / SPR-PLAN-006 approved by objective audit.
 Product implementation is NOT_STARTED; this is approved planning architecture, not a deployment description.
 
 ## Product architecture boundary
@@ -68,3 +68,11 @@ No specific final database adjunct, queue, GPU vendor, object store, model, or c
 ## Governance control plane
 
 The repository governance path remains the established GEF 1.1.1 / GitHub control plane: canonical source and checkpoint → bounded Work Order + Context Lock → executor diff and local evidence → exact-head GitHub checks → objective audit → authorized checkpoint promotion. SPRYXEL-WO-002 completed the product Source Pack migration and its audited promotion; no product implementation is admitted by that promotion.
+
+## UX shell and workspace boundary — SPR-PLAN-006
+
+The UI is a client of the existing authorization, job, contract, cost/ledger, asset, QA and export planes. One global shell owns Home, Projects, notifications, developer, billing and account. A selected project owns DNA, Generate/eligible Studios, Library/Graph, QA and Export. Owner/Admin and economics/operations surfaces remain separate and permission-gated.
+
+Production studios share a resizable browser/navigation, central work area, contextual inspector and optional durable job/timeline/output tray. Persisted panel state is presentation preference, not product state. Project/DNA version, asset family and profile remain inspectable. Asset Library, Graph and QA are linked views of canonical assets/lineage/evidence; jobs and exports link to their originating contracts and versions.
+
+The UI may request or display operations but cannot authorize by itself, bypass tenant checks, change ledger invariants, override CostGuard or promote a hard-gate failure. Cost, progress and policy states reflect durable backend records. Below 1024 px the complex studio surface becomes a limited companion, with full editing kept to the desktop target. These are planning constraints; implementation remains NOT_STARTED and needs separate admission.

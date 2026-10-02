@@ -1,6 +1,6 @@
 # Definition of Done
 
-Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
+Status: CANONICAL — SPRYXEL-WO-003 / SPR-PLAN-006 approved by objective audit.
 
 ## SPRYXEL-WO-001 governance completion
 
@@ -26,6 +26,12 @@ SPRYXEL-WO-002 was objectively audited APPROVED after all of the following were 
 - The PR description is the authoritative post-push record of exact base/final HEAD SHAs, timestamps, changed paths, command results, known gaps, proposed Checkpoint Delta, and the IDs, URLs, and conclusions of the four required check runs for that same final HEAD. The versioned Evidence Bundle records deterministic and local evidence available before push and explicitly references the PR description for post-push exact-HEAD evidence. `READY_FOR_AUDIT` is permitted only after all four required checks pass on the exact final PR HEAD; results from an earlier SHA do not qualify.
 
 The executor stopped at SPRYXEL_WO_002_PRODUCT_MASTER_DECOMPOSED_READY_FOR_AUDIT. Audit is complete; checkpoint promotion is an auditor action, merge remains gated by exact-head checks, and product implementation remains a separate future admission.
+
+## SPRYXEL-WO-003 UX planning approval
+
+SPRYXEL-WO-003 was objectively audited APPROVED after the exact Work Order/Context Lock base and fingerprints remain valid; D-001…D-089 are preserved and D-090…D-122 appear once with full meaning; scope classes and product/economic/security status remain unchanged; and the UX overview, design system, information architecture, screen inventory, flows, state contracts, textual wireframes and 20-module V1 coverage evidence agree.
+
+The approved evidence demonstrated both themes and semantic tokens; shared shell/studio/job grammar; safe cost, TrustShield, developer and Admin/Owner contracts; WCAG 2.2 AA, EN/pt-BR/ES and expansion support; the desktop/companion boundary; no product/runtime/component code; unchanged .gef/GEF 1.1.1/provider/ruleset/seed; all required local validations and four exact-final-head checks; no unresolved CRITICAL/HIGH findings; a proposed Checkpoint Delta; and a PT-BR Evidence Bundle plus exact-head PR record. The executor left CHECKPOINT.json and CHECKPOINT.md unpromoted; canonical promotion is an auditor action after APPROVED. Product implementation or components still require a separate admitted Work Order.
 
 ## Future production-asset release gate
 

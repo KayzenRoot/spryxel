@@ -1,6 +1,6 @@
 # Requirements
 
-Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
+Status: CANONICAL — SPRYXEL-WO-003 / SPR-PLAN-006 approved by objective audit.
 Source: Product Master v0.6.0; stable decision ownership remains in DECISIONS-LEDGER.md.
 
 ## Governance requirements
@@ -60,4 +60,17 @@ Source: Product Master v0.6.0; stable decision ownership remains in DECISIONS-LE
 - Product benchmarks and measured production COGS: NOT AVAILABLE.
 - Commercial pricing: NOT FROZEN.
 - Model/provider choices listed as candidates remain planning candidates, not selections.
-- SPR-PLAN-006 is the next proposed NECESSARY planning increment; this Work Order does not execute it.
+- SPR-PLAN-006 is approved/canonical through SPRYXEL-WO-003. Product implementation remains NOT_STARTED and still requires a separately admitted Work Order.
+
+## UX and interaction requirements — SPR-PLAN-006
+
+- REQ-UX-001: Use one shared global/project shell and reusable studio grammar; preserve project/DNA context and link jobs, assets, graph, QA and export to canonical records.
+- REQ-UX-002: Production studios target desktop/laptop at 1024 px and above; below that, complex studios provide only the defined companion capabilities, not full complex editing.
+- REQ-UX-003: Provide first-class Dark and Light themes, semantic theme-specific tokens, tokenized typography/space/density and the documented translucency/motion boundaries.
+- REQ-UX-004: Major screens and operations define applicable loading, empty, queued, progress, offline/degraded, recoverable/terminal error, permission, budget/policy block, success and partial-success states.
+- REQ-UX-005: Cost-incurring operations expose bounded credit estimate/reservation before execution and relevant charged/released credits after; preserve NOT_FROZEN pricing and CostGuard hard-stop/no-fallback behavior.
+- REQ-UX-006: Jobs, critical errors, approvals, security events and cost outcomes remain discoverable through durable records; a toast alone is insufficient.
+- REQ-UX-007: Target WCAG 2.2 AA; support keyboard operation, visible focus, semantic/non-color-only status, reduced motion, EN/pt-BR/ES and 35–40% text expansion.
+- REQ-UX-008: Member-facing policy/risk messages preserve approved safe copy and never disclose internal TrustShield signals or antifraud rules.
+- REQ-UX-009: Developer UX explains credential scopes, project binding, expiry, budgets, allowed SKU/profile, risk class, one-time secret reveal and revocation before activation.
+- REQ-UX-010: Owner/Admin surfaces remain permission-gated and separate; high-impact paths show scope, MFA/reauth and audit implications, with no silent impersonation.

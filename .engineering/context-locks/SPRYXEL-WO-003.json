@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "kind": "spryxel.context-lock",
+  "workOrderId": "SPRYXEL-WO-003",
+  "planningIncrement": "SPR-PLAN-006",
+  "status": "STALE",
+  "repository": "KayzenRoot/spryxel",
+  "authorizedBranch": "codex/spryxel-wo-003-spr-plan-006-ux",
+  "executionBase": {
+    "branch": "main",
+    "sha": "914aa4e7a1e4f2090523696e858e203b8e866d09"
+  },
+  "trackingIssue": 10,
+  "gef": {
+    "package": "@gef-bootstrap/cli",
+    "version": "1.1.1",
+    "releaseSourceSha": "1dc030f1358eab0347043a3d54c7fc311c7c2123"
+  },
+  "workOrderSource": {
+    "path": ".engineering/work-orders/SPRYXEL-WO-003.md",
+    "gitBlobSha": "a889e0dd0b6eb5ca2cd8857914c4d054d5581e13"
+  },
+  "decisionBaseline": {
+    "ledgerBlobSha": "b2a25d55e7b30260da9e41d6537e070db4588984",
+    "protectedExistingDecisionRange": "D-001..D-089",
+    "newDecisionRange": "D-090..D-122"
+  },
+  "productState": {
+    "productImplementation": "NOT_STARTED",
+    "commercialPricing": "NOT_FROZEN",
+    "benchmarksAndMeasuredCogs": "NOT_RUN_NOT_AVAILABLE",
+    "planningCompletedThrough": "SPR-PLAN-005",
+    "nextPlanningIncrement": "SPR-PLAN-006"
+  },
+  "criticalBaseSources": [
+    {
+      "path": ".engineering/CHECKPOINT.json",
+      "gitBlobSha": "cd04115ed3664e4f6c318056c269c94ac81a212f"
+    },
+    {
+      "path": ".engineering/CHECKPOINT.md",
+      "gitBlobSha": "fdf2819db8c3d6e45117b220300da96a2f3d25f0"
+    },
+    {
+      "path": ".engineering/SOURCE-HIERARCHY.md",
+      "gitBlobSha": "a2066b226ff19c62a6841b31fa096ff907eb0319"
+    },
+    {
+      "path": ".engineering/DECISIONS-LEDGER.md",
+      "gitBlobSha": "b2a25d55e7b30260da9e41d6537e070db4588984"
+    },
+    {
+      "path": ".engineering/PROJECT-OVERVIEW.md",
+      "gitBlobSha": "569d20d74a1e7bb251d6509f4857cf85c3bfcbaa"
+    },
+    {
+      "path": ".engineering/SCOPE.md",
+      "gitBlobSha": "169334950839508cf8fa1d3e854084d8cdd2255c"
+    },
+    {
+      "path": ".engineering/DEFINITION-OF-DONE.md",
+      "gitBlobSha": "360c3281ca7d5f3005655c915981adb394c03113"
+    },
+    {
+      "path": ".engineering/ARCHITECTURE.md",
+      "gitBlobSha": "2d895796ece52b2363e68eb1459b1cb7bda0e897"
+    },
+    {
+      "path": ".engineering/REQUIREMENTS.md",
+      "gitBlobSha": "fb81b032c1ac89dbb56ced10c9a4ab0a60238c90"
+    },
+    {
+      "path": ".engineering/UI-UX.md",
+      "gitBlobSha": "6eee3e673181ad8b012e7d3a591e4652dda0ec93"
+    },
+    {
+      "path": ".engineering/SECURITY.md",
+      "gitBlobSha": "928e7e1f2fb0f19ef131e9531efb04b9f7b8c07b"
+    },
+    {
+      "path": ".engineering/BILLING-ECONOMICS.md",
+      "gitBlobSha": "d4a052e7346b6c6fec396905776672409565cd48"
+    },
+    {
+      "path": ".engineering/API-CONTRACTS.md",
+      "gitBlobSha": "663e47379af484179c2e667c029c6eae43f6ce8c"
+    },
+    {
+      "path": ".engineering/DATA-MODEL.md",
+      "gitBlobSha": "592cee7c615a0130794fd7b92e5db450e86d9feb"
+    },
+    {
+      "path": ".engineering/INTEGRATION-CONTRACTS.md",
+      "gitBlobSha": "a4f3b552b74e2d65e6ecf9e4640bdcd4f903fedb"
+    },
+    {
+      "path": ".engineering/TEST-BENCHMARK-PLAN.md",
+      "gitBlobSha": "6ad35cc1e13f91bc0d2d4ab1821bef6644e09d85"
+    },
+    {
+      "path": ".engineering/BACKLOG.md",
+      "gitBlobSha": "18b91f98616915cda4a5e9b4e772af43e6c2110e"
+    },
+    {
+      "path": "AGENTS.md",
+      "gitBlobSha": "00b8be5b394594835af83a9f034a58b5b9496fdf"
+    }
+  ],
+  "providerBaseline": {
+    "rulesetId": 24340349,
+    "rulesetMutationAllowed": false,
+    "providerMutationAllowed": false
+  },
+  "constraints": {
+    "productCodeAllowed": false,
+    "gefMutationAllowed": false,
+    "sourceSeedMutationAllowed": false,
+    "checkpointPromotionByExecutorAllowed": false,
+    "executeBeyondSprPlan006": false
+  },
+  "staleIf": [
+    "executionBase.sha changes before executor preflight",
+    "workOrderSource gitBlobSha changes outside an audited correction",
+    "any criticalBaseSources gitBlobSha changes outside this Work Order",
+    "GEF package pin changes",
+    "ruleset/provider baseline changes unexpectedly"
+  ],
+  "stopOnStale": true,
+  "closure": {
+    "reason": "Canonical SPR-PLAN-006 UX checkpoint/document promotion after objective APPROVED audit changed critical sources. Execution is complete and this Context Lock must not be reused.",
+    "auditedExecutionHeadSha": "783bd5a68c00b9cc7450bd352ce96dbb98932265",
+    "auditVerdict": "APPROVED",
+    "furtherExecutorActionAuthorized": false
+  }
+}

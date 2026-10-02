@@ -1,6 +1,6 @@
 # Scope
 
-Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
+Status: CANONICAL — SPRYXEL-WO-003 / SPR-PLAN-006 approved by objective audit.
 Scope and classifications below preserve Product Master v0.6.0; decision IDs are owned by DECISIONS-LEDGER.md.
 
 ## Product release boundary
@@ -146,3 +146,7 @@ TrustShield, RevenueShield, observability, audit, security, and localization aff
 - AI/model benchmark execution or production-model selection.
 - GEF 1.1.1, .gef, ruleset, provider, or checkpoint mutation/promotion.
 - Any scope not supported by the immutable v0.6.0 seed or admitted Work Order.
+
+## UX inventory boundary
+
+SPR-PLAN-006 supplies screen ownership and responsive behavior for the classifications above; it does not reclassify a module. M-09 through M-13, M-16 and M-28 through M-37 remain IMPORTANT (with M-13 marked later delivery), M-27 remains FUTURE, and the NECESSARY V1 boundary remains unchanged. UI/HUD and map domains remain first-class but do not become V1 solely because their planning flows or wireframe contracts are documented. See SCREEN-INVENTORY.md and evidence/SPRYXEL-WO-003-SCREEN-COVERAGE.md.
