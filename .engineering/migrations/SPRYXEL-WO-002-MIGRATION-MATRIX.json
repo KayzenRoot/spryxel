@@ -1,0 +1,4229 @@
+{
+  "schemaVersion": 1,
+  "workOrderId": "SPRYXEL-WO-002",
+  "repository": "KayzenRoot/spryxel",
+  "executionBaseSha": "0a90e1c93d81f6f0ac861847a5434030d96f0307",
+  "branch": "codex/spryxel-wo-002-product-master-decomposition",
+  "seed": {
+    "path": ".engineering/source-seeds/SPRYXEL-PRODUCT-MASTER-v0.6.0.md",
+    "version": "0.6.0",
+    "sha256": "1c2bf605cb4851300e7f1cc64071b1eaa4cf6d814187dcc95ebe7366d5ec2a8e",
+    "gitBlobSha1": "cbb93ec44886eba6cc9b24a072eb23e0ad5ea05a",
+    "sizeBytes": 238278,
+    "lineCount": 12447
+  },
+  "inventoryBuiltBeforeCanonicalMutation": true,
+  "decisionPolicy": "Each pre-repository decision ID D-001 through D-089 has exactly one canonical owner in DECISIONS-LEDGER.md; supportingReferences are non-owning trace links.",
+  "decisions": [
+    {
+      "id": "D-001",
+      "title": "Product Name",
+      "decision": "SPRYXEL",
+      "status": "APPROVED FOR PLANNING",
+      "sourceSection": 22,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/PROJECT-OVERVIEW.md",
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/SCOPE.md"
+      ],
+      "notes": [
+        "Formal trademark/domain clearance required before public launch."
+      ]
+    },
+    {
+      "id": "D-002",
+      "title": "Product Category",
+      "decision": "AI Game Asset Platform, not generic AI image generator.",
+      "status": "APPROVED",
+      "sourceSection": 22,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/PROJECT-OVERVIEW.md",
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/SCOPE.md"
+      ]
+    },
+    {
+      "id": "D-003",
+      "title": "Target Audience",
+      "decision": "Indie developers, solo developers, vibe coders and AI-native game builders.",
+      "status": "APPROVED",
+      "sourceSection": 22,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/PROJECT-OVERVIEW.md",
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/SCOPE.md"
+      ]
+    },
+    {
+      "id": "D-004",
+      "title": "Asset Scope",
+      "decision": "Architecture must support pixel, 2D, 2.5D and 3D. Delivery will be incremental.",
+      "status": "APPROVED",
+      "sourceSection": 22,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/PROJECT-OVERVIEW.md",
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/SCOPE.md"
+      ]
+    },
+    {
+      "id": "D-005",
+      "title": "Developer Interfaces",
+      "decision": "API and MCP are first-class product surfaces; CLI is planned.",
+      "status": "APPROVED",
+      "sourceSection": 22,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/PROJECT-OVERVIEW.md",
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/SCOPE.md"
+      ]
+    },
+    {
+      "id": "D-006",
+      "title": "Languages",
+      "decision": "English canonical/default; PT-BR and Spanish localized UI.",
+      "status": "APPROVED",
+      "sourceSection": 22,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/PROJECT-OVERVIEW.md",
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/SCOPE.md"
+      ]
+    },
+    {
+      "id": "D-007",
+      "title": "Development Environment",
+      "decision": "Local-first Docker with RTX 5050 as primary development inference hardware.",
+      "status": "APPROVED",
+      "sourceSection": 22,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/PROJECT-OVERVIEW.md",
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/SCOPE.md"
+      ]
+    },
+    {
+      "id": "D-008",
+      "title": "Initial Infrastructure",
+      "decision": "Use free tiers wherever commercially permitted; external GPU is pay-per-use/serverless until scale justifies dedicated capacity.",
+      "status": "APPROVED",
+      "sourceSection": 22,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/PROJECT-OVERVIEW.md",
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/SCOPE.md"
+      ]
+    },
+    {
+      "id": "D-009",
+      "title": "Credit Economics",
+      "decision": "Ledger-based credits with pre-generation reservation and CostGuard.",
+      "status": "APPROVED",
+      "sourceSection": 22,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/PROJECT-OVERVIEW.md",
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/SCOPE.md"
+      ]
+    },
+    {
+      "id": "D-010",
+      "title": "Anti-Abuse",
+      "decision": "TrustShield risk graph; no single-signal multi-account bans.",
+      "status": "APPROVED",
+      "sourceSection": 22,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/PROJECT-OVERVIEW.md",
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/SCOPE.md"
+      ]
+    },
+    {
+      "id": "D-011",
+      "title": "Refund Strategy",
+      "decision": "Do not obstruct statutory rights. Protect the company using trial design, new-account exposure caps, reserves, evidence, antifraud, cost pricing and hard limits.",
+      "status": "APPROVED",
+      "sourceSection": 22,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/PROJECT-OVERVIEW.md",
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/SCOPE.md"
+      ]
+    },
+    {
+      "id": "D-012",
+      "title": "Commercial Safety",
+      "decision": "No generation without bounded cost authorization.",
+      "status": "APPROVED",
+      "sourceSection": 22,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/PROJECT-OVERVIEW.md",
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/SCOPE.md"
+      ]
+    },
+    {
+      "id": "D-013",
+      "title": "Product Navigation Model",
+      "decision": "Organize SPRYXEL by game-production job, not AI model/provider.",
+      "status": "APPROVED",
+      "sourceSection": 26,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md"
+      ]
+    },
+    {
+      "id": "D-014",
+      "title": "Canonical Asset Model",
+      "decision": "Assets are versioned entities with metadata, lineage, DNA and provenance, not mere files.",
+      "status": "APPROVED",
+      "sourceSection": 26,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md"
+      ]
+    },
+    {
+      "id": "D-015",
+      "title": "Asset Families",
+      "decision": "SPRYXEL supports coherent asset families/packs as a first-class concept.",
+      "status": "APPROVED",
+      "sourceSection": 26,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md"
+      ]
+    },
+    {
+      "id": "D-016",
+      "title": "V1 Asset Focus",
+      "decision": "V1 focuses on Pixel + 2D while platform architecture remains ready for 2.5D and 3D.",
+      "status": "APPROVED",
+      "sourceSection": 26,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md"
+      ]
+    },
+    {
+      "id": "D-017",
+      "title": "Model Abstraction",
+      "decision": "Model/provider selection is hidden behind the Model Router and Generation SKU contracts.",
+      "status": "APPROVED",
+      "sourceSection": 26,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md"
+      ]
+    },
+    {
+      "id": "D-018",
+      "title": "Agent Budgeting",
+      "decision": "MCP/API calls must support bounded spend/retries and machine-readable budget errors.",
+      "status": "APPROVED",
+      "sourceSection": 26,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md"
+      ]
+    },
+    {
+      "id": "D-019",
+      "title": "Economic Benchmark Metric",
+      "decision": "Optimize for cost per accepted production asset, not merely cost per inference attempt.",
+      "status": "APPROVED",
+      "sourceSection": 26,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md"
+      ]
+    },
+    {
+      "id": "D-020",
+      "title": "Repair Strategy",
+      "decision": "Prefer targeted repair over full regeneration when quality and economics justify it.",
+      "status": "APPROVED",
+      "sourceSection": 26,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md"
+      ]
+    },
+    {
+      "id": "D-021",
+      "title": "Production Asset Gate",
+      "decision": "Raw AI output cannot become an approved asset without required QA gates.",
+      "status": "APPROVED",
+      "sourceSection": 44,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-022",
+      "title": "Anatomy Quality",
+      "decision": "Anatomy/topology validation is mandatory for applicable character/creature SKUs.",
+      "status": "APPROVED",
+      "sourceSection": 44,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-023",
+      "title": "Resolution-Aware Anatomy",
+      "decision": "Anatomy validation must respect pixel resolution; tiny sprites are validated semantically/silhouette-wise rather than requiring impossible photorealistic finger detail.",
+      "status": "APPROVED",
+      "sourceSection": 44,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-024",
+      "title": "Asset Contract",
+      "decision": "Every generation compiles to an explicit Asset Contract before inference.",
+      "status": "APPROVED",
+      "sourceSection": 44,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-025",
+      "title": "Multi-Signal QA",
+      "decision": "No single probabilistic vision model may be the sole production approval mechanism for anatomy-sensitive assets.",
+      "status": "APPROVED",
+      "sourceSection": 44,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-026",
+      "title": "Targeted Repair",
+      "decision": "Localized repair is preferred to full regeneration when it is cheaper and expected to meet quality.",
+      "status": "APPROVED",
+      "sourceSection": 44,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-027",
+      "title": "Model Eligibility",
+      "decision": "Production models require verified commercial eligibility, quality benchmark and known economics.",
+      "status": "APPROVED",
+      "sourceSection": 44,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-028",
+      "title": "Qwen-Image-2.1",
+      "decision": "Benchmark/research candidate only under current Qwen Research License; not a commercial SPRYXEL production dependency at this stage.",
+      "status": "APPROVED",
+      "sourceSection": 44,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-029",
+      "title": "Initial Commercial-Friendly Model Shortlist",
+      "decision": "Prioritize benchmarking Z-Image, FLUX.1-schnell and HiDream-O1-Image because current published licenses are commercially friendlier (Apache-2.0 / MIT), subject to final license review.",
+      "status": "APPROVED",
+      "sourceSection": 44,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-030",
+      "title": "ComfyUI Boundary",
+      "decision": "ComfyUI is an inference/workflow adapter and R&D environment, not the owner of billing/business invariants.",
+      "status": "APPROVED",
+      "sourceSection": 44,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-031",
+      "title": "Control Plane Architecture",
+      "decision": "Start with a modular-monolith control plane and independently scalable AI workers; no premature microservice split.",
+      "status": "APPROVED",
+      "sourceSection": 44,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-032",
+      "title": "PostgreSQL Canonical State",
+      "decision": "PostgreSQL is canonical for users/projects/assets/jobs/ledger state; transient provider/queue state cannot replace it.",
+      "status": "APPROVED",
+      "sourceSection": 44,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-033",
+      "title": "Local Profiles",
+      "decision": "Docker development uses profiles so 24 GB RAM / 8 GB VRAM are not overwhelmed by unnecessary simultaneous services.",
+      "status": "APPROVED",
+      "sourceSection": 44,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-034",
+      "title": "Benchmark Metric",
+      "decision": "Track explicit anatomy defect rates and cost per accepted asset, not generic image quality alone.",
+      "status": "APPROVED",
+      "sourceSection": 44,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-035",
+      "title": "Dual Quality Layer",
+      "decision": "Integrity Gate is binary and independent from Production Score.",
+      "status": "APPROVED",
+      "sourceSection": 79,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-036",
+      "title": "Critical Defect Supremacy",
+      "decision": "Aesthetic quality can never override a critical structural failure.",
+      "status": "APPROVED",
+      "sourceSection": 79,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-037",
+      "title": "Resolution Profiles",
+      "decision": "Pixel QA/anatomy rules vary by target resolution.",
+      "status": "APPROVED",
+      "sourceSection": 79,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-038",
+      "title": "V1 SKU Contracts",
+      "decision": "V1 generation operations are versioned SKUs with explicit asset contracts and bounded retries.",
+      "status": "APPROVED",
+      "sourceSection": 79,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-039",
+      "title": "Four-Direction Identity",
+      "decision": "A four-direction character set is accepted only if all directions preserve one character identity.",
+      "status": "APPROVED",
+      "sourceSection": 79,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-040",
+      "title": "Baseline / Scale Control",
+      "decision": "Character families use explicit baseline and scale-drift rules.",
+      "status": "APPROVED",
+      "sourceSection": 79,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-041",
+      "title": "Benchmark Promotion",
+      "decision": "No model/pipeline reaches paid production from subjective review alone.",
+      "status": "APPROVED",
+      "sourceSection": 79,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-042",
+      "title": "Golden Asset Suite",
+      "decision": "Generation changes require versioned regression benchmarks.",
+      "status": "APPROVED",
+      "sourceSection": 79,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-043",
+      "title": "Failed Quality Billing",
+      "decision": "Hard-gate-invalid generation is not treated as a valid delivered production asset for full-charge purposes.",
+      "status": "APPROVED",
+      "sourceSection": 79,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-044",
+      "title": "Cost Attribution",
+      "decision": "Credit economics use the entire attempt/retry/QA/repair cost, not the winning inference only.",
+      "status": "APPROVED",
+      "sourceSection": 79,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-045",
+      "title": "Maps as First-Class System",
+      "decision": "map creation is a dedicated SPRYXEL product domain, not a side feature.",
+      "status": "APPROVED",
+      "sourceSection": 97,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/UI-UX.md"
+      ]
+    },
+    {
+      "id": "D-046",
+      "title": "Multi-Layer Map Scope",
+      "decision": "SPRYXEL must support world, region, local, dungeon/interior and minimap layers conceptually.",
+      "status": "APPROVED",
+      "sourceSection": 97,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/UI-UX.md"
+      ]
+    },
+    {
+      "id": "D-047",
+      "title": "Hybrid Map Direction",
+      "decision": "SPRYXEL should pursue hybrid structured/procedural + AI-assisted map workflows where useful.",
+      "status": "APPROVED",
+      "sourceSection": 97,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/UI-UX.md"
+      ]
+    },
+    {
+      "id": "D-048",
+      "title": "UI/HUD as First-Class Asset Family",
+      "decision": "menus, HUD, inventory/backpack and screen systems are first-class product surfaces.",
+      "status": "APPROVED",
+      "sourceSection": 97,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/UI-UX.md"
+      ]
+    },
+    {
+      "id": "D-049",
+      "title": "Maps and UI Share Project DNA",
+      "decision": "maps, minimaps, markers and UI assets must participate in the same project style system.",
+      "status": "APPROVED",
+      "sourceSection": 97,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/UI-UX.md"
+      ]
+    },
+    {
+      "id": "D-050",
+      "title": "Combined Workflow Packs",
+      "decision": "map/UI bundles such as world navigation packs and backpack UI packs are valid workflow-level outputs.",
+      "status": "APPROVED",
+      "sourceSection": 97,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/UI-UX.md"
+      ]
+    },
+    {
+      "id": "D-051",
+      "title": "Map SKUs",
+      "decision": "map production is represented by explicit versioned SKUs, not generic image generation.",
+      "status": "APPROVED",
+      "sourceSection": 117,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/UI-UX.md"
+      ]
+    },
+    {
+      "id": "D-052",
+      "title": "Structured Dungeon First",
+      "decision": "dungeon generation should support structure-first graph generation before visual rendering.",
+      "status": "APPROVED",
+      "sourceSection": 117,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/UI-UX.md"
+      ]
+    },
+    {
+      "id": "D-053",
+      "title": "Map Layer Contract",
+      "decision": "structured map layers must be dimension-aligned and machine-addressable.",
+      "status": "APPROVED",
+      "sourceSection": 117,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/UI-UX.md"
+      ]
+    },
+    {
+      "id": "D-054",
+      "title": "UI Pack SKUs",
+      "decision": "HUD, backpack, menus and screen systems are packaged as coherent multi-component SKUs.",
+      "status": "APPROVED",
+      "sourceSection": 117,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/UI-UX.md"
+      ]
+    },
+    {
+      "id": "D-055",
+      "title": "Localization-Safe UI",
+      "decision": "UI generation must be localization-safe for English, PT-BR and Spanish.",
+      "status": "APPROVED",
+      "sourceSection": 117,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/UI-UX.md"
+      ]
+    },
+    {
+      "id": "D-056",
+      "title": "Engine-Agnostic Canonical Export",
+      "decision": "canonical assets remain engine-independent; EngineBridge performs Godot/Unity adaptation.",
+      "status": "APPROVED",
+      "sourceSection": 117,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/UI-UX.md"
+      ]
+    },
+    {
+      "id": "D-057",
+      "title": "Agent Map/UI APIs",
+      "decision": "maps and UI receive first-class MCP/API operations with bounded budgets and idempotency.",
+      "status": "APPROVED",
+      "sourceSection": 117,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/UI-UX.md"
+      ]
+    },
+    {
+      "id": "D-058",
+      "title": "Non-Destructive World Evolution",
+      "decision": "map versioning should preserve stable region/POI identities when feasible.",
+      "status": "APPROVED",
+      "sourceSection": 117,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/UI-UX.md"
+      ]
+    },
+    {
+      "id": "D-059",
+      "title": "Canonical Cost Currency",
+      "decision": "USD is canonical internal cost currency; BRL is secondary owner-reporting currency.",
+      "status": "APPROVED",
+      "sourceSection": 174,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "id": "D-060",
+      "title": "Abstract Credits",
+      "decision": "Spryxel Credits are abstract non-cash usage units with no permanently fixed currency value.",
+      "status": "APPROVED",
+      "sourceSection": 174,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "id": "D-061",
+      "title": "Full Redemption Safety",
+      "decision": "paid packs must remain profitable assuming 100% credit redemption.",
+      "status": "APPROVED",
+      "sourceSection": 174,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "id": "D-062",
+      "title": "Trial Entitlements",
+      "decision": "free trial defaults to restricted SKU entitlements instead of generic free SC.",
+      "status": "APPROVED",
+      "sourceSection": 174,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "id": "D-063",
+      "title": "Zero Public Free Cloud Budget",
+      "decision": "default public free-cloud budget is zero until explicitly funded by the owner/campaign.",
+      "status": "APPROVED",
+      "sourceSection": 174,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "id": "D-064",
+      "title": "Credit-Pack First Launch",
+      "decision": "initial commercial model prioritizes prepaid credit packs; subscriptions are deferred until usage/retention data exists.",
+      "status": "APPROVED",
+      "sourceSection": 174,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "id": "D-065",
+      "title": "Billing Abstraction",
+      "decision": "payment-provider semantics live behind a BillingProvider adapter.",
+      "status": "APPROVED",
+      "sourceSection": 174,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "id": "D-066",
+      "title": "Early Global MoR Candidate",
+      "decision": "Paddle is the preferred early global Merchant-of-Record candidate for further validation; Stripe remains a first-class direct-payment alternative.",
+      "status": "APPROVED FOR PLANNING, NOT PROCUREMENT",
+      "sourceSection": 174,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "id": "D-067",
+      "title": "Small-Pack Guard",
+      "decision": "avoid tiny paid packs that are disproportionately consumed by fixed transaction fees; $10 is an initial simulation floor, not a final price.",
+      "status": "APPROVED",
+      "sourceSection": 174,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "id": "D-068",
+      "title": "Working Capital Gate",
+      "decision": "public paid cloud inference requires a working-capital reserve independent of booked revenue.",
+      "status": "APPROVED",
+      "sourceSection": 174,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "id": "D-069",
+      "title": "Margin Guardrails",
+      "decision": "target >=70% base contribution margin; launch models must also remain >=60% in conservative and >=30% in approved severe stress simulations.",
+      "status": "APPROVED",
+      "sourceSection": 174,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "id": "D-070",
+      "title": "Hard Negative-Margin Stop",
+      "decision": "CostGuard prevents new affected jobs when predicted contribution margin is non-positive.",
+      "status": "APPROVED",
+      "sourceSection": 174,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "id": "D-071",
+      "title": "Stress Simulation",
+      "decision": "every pack/SKU is tested against GPU, FX, quality-regression, refund, chargeback, fraud, free-farming, heavy-user and worst-mix scenarios.",
+      "status": "APPROVED",
+      "sourceSection": 174,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "id": "D-072",
+      "title": "No Cross-Subsidized Hidden Loss",
+      "decision": "no normal paid SKU may knowingly lose money and depend on low usage to hide the loss.",
+      "status": "APPROVED",
+      "sourceSection": 174,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "id": "D-073",
+      "title": "Pricing Freeze",
+      "decision": "public prices remain simulation-only until measured benchmark COGS and legal/accounting/payment inputs are available.",
+      "status": "APPROVED",
+      "sourceSection": 174,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "id": "D-074",
+      "title": "Graph-Based TrustShield",
+      "decision": "Multi-account/fraud uses graph + multiple signals, never IP-only.",
+      "status": "APPROVED",
+      "sourceSection": 236,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-075",
+      "title": "Promotional Eligibility Separation",
+      "decision": "Account and free-value eligibility are independent.",
+      "status": "APPROVED",
+      "sourceSection": 236,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-076",
+      "title": "Privacy-Preserving Device Signal",
+      "decision": "First-party pseudonymous token; invasive fingerprinting is not a V1 dependency.",
+      "status": "APPROVED",
+      "sourceSection": 236,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-077",
+      "title": "Turnstile V1",
+      "decision": "Cloudflare Turnstile preferred for V1 bot verification with server validation.",
+      "status": "APPROVED FOR PLANNING",
+      "sourceSection": 236,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-078",
+      "title": "Ephemeral IDs",
+      "decision": "Optional future Enterprise enhancement only.",
+      "status": "APPROVED",
+      "sourceSection": 236,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-079",
+      "title": "Rules Before ML",
+      "decision": "TrustShield v1 uses rules/graph/provider signals.",
+      "status": "APPROVED",
+      "sourceSection": 236,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-080",
+      "title": "No Auto-Delete by Score",
+      "decision": "Automated risk score alone cannot permanently delete account.",
+      "status": "APPROVED",
+      "sourceSection": 236,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-081",
+      "title": "Trial Cluster Rule",
+      "decision": "Strong-linked accounts may share one promotional eligibility.",
+      "status": "APPROVED",
+      "sourceSection": 236,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-082",
+      "title": "Payment Tokenization",
+      "decision": "No raw card storage; provider identifiers only.",
+      "status": "APPROVED",
+      "sourceSection": 236,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-083",
+      "title": "Admin MFA",
+      "decision": "Production owner/admin requires MFA.",
+      "status": "APPROVED",
+      "sourceSection": 236,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-084",
+      "title": "Agent Budget Inheritance",
+      "decision": "Nested agent calls consume one bounded workflow budget.",
+      "status": "APPROVED",
+      "sourceSection": 236,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-085",
+      "title": "OAuth-First Remote MCP",
+      "decision": "Interactive remote MCP prefers OAuth.",
+      "status": "APPROVED",
+      "sourceSection": 236,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-086",
+      "title": "Scoped API Keys",
+      "decision": "Keys are one-time revealed, hashed, scoped, budgeted and revocable.",
+      "status": "APPROVED",
+      "sourceSection": 236,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-087",
+      "title": "False Positive Recovery",
+      "decision": "Review/appeal plus false-positive metrics required.",
+      "status": "APPROVED",
+      "sourceSection": 236,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-088",
+      "title": "Security Kill Switches",
+      "decision": "Independent shutdown controls for signups, trials, referrals, agent mutations, purchases and generation.",
+      "status": "APPROVED",
+      "sourceSection": 236,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "id": "D-089",
+      "title": "Security Data Minimization",
+      "decision": "Each security signal requires purpose, necessity, access and retention documentation.",
+      "status": "APPROVED",
+      "sourceSection": 236,
+      "canonicalOwner": ".engineering/DECISIONS-LEDGER.md",
+      "supportingReferences": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    }
+  ],
+  "planningIncrements": [
+    {
+      "executed": true,
+      "canonicalDestinations": [
+        ".engineering/PROJECT-OVERVIEW.md",
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/SCOPE.md",
+        ".engineering/BACKLOG.md"
+      ],
+      "sourceSection": "26-28",
+      "id": "SPR-PLAN-001",
+      "title": "Product Modules & Asset Taxonomy",
+      "status": "APPROVED / COMPLETED IN MASTER v0.2.0",
+      "classification": "NECESSARY"
+    },
+    {
+      "executed": true,
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ],
+      "sourceSection": "29-48",
+      "id": "SPR-PLAN-002",
+      "title": "Technical Architecture & Local AI Benchmark Strategy",
+      "status": "APPROVED / COMPLETED IN MASTER v0.3.0",
+      "classification": "NECESSARY"
+    },
+    {
+      "executed": true,
+      "canonicalDestinations": [
+        ".engineering/REQUIREMENTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ],
+      "sourceSection": "49-82",
+      "id": "SPR-PLAN-003",
+      "title": "Quality System, Benchmark Protocol & Generation SKU Specification",
+      "status": "APPROVED / COMPLETED IN MASTER v0.4.0",
+      "classification": "NECESSARY"
+    },
+    {
+      "executed": true,
+      "canonicalDestinations": [
+        ".engineering/PROJECT-OVERVIEW.md",
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/UI-UX.md"
+      ],
+      "sourceSection": "83-99",
+      "id": "SPR-SPECIAL-001",
+      "title": "Maps, Worldbuilding & Game UI/HUD",
+      "status": "APPROVED / ADDED IN MASTER v0.4.1",
+      "classification": "IMPORTANT WITH STRONG DIFFERENTIATION POTENTIAL"
+    },
+    {
+      "executed": true,
+      "canonicalDestinations": [
+        ".engineering/SCOPE.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ],
+      "sourceSection": "100-119",
+      "id": "SPR-SPECIAL-002",
+      "title": "Map/UI SKU, Contracts, Export & Agent Automation",
+      "status": "APPROVED / COMPLETED IN MASTER v0.4.2",
+      "classification": "IMPORTANT / PRE-FINANCIAL CATALOG COMPLETION"
+    },
+    {
+      "executed": true,
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ],
+      "sourceSection": "120-178",
+      "id": "SPR-PLAN-004",
+      "title": "Credit Economics, Pricing Safety & Financial Simulation",
+      "status": "APPROVED / COMPLETED IN MASTER v0.5.0",
+      "classification": "NECESSARY / HIGH_ASSURANCE"
+    },
+    {
+      "executed": true,
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ],
+      "sourceSection": "179-237",
+      "id": "SPR-PLAN-005",
+      "title": "Security, TrustShield, Abuse Graph & Account/Payment Risk Architecture",
+      "status": "APPROVED / COMPLETED IN MASTER v0.6.0",
+      "classification": "NECESSARY / HIGH_ASSURANCE"
+    },
+    {
+      "executed": false,
+      "canonicalDestinations": [
+        ".engineering/BACKLOG.md",
+        ".engineering/UI-UX.md"
+      ],
+      "sourceSection": "238-239",
+      "id": "SPR-PLAN-006",
+      "title": "Product UX, Design System & Information Architecture",
+      "status": "NEXT PROPOSED; NOT EXECUTED",
+      "classification": "NECESSARY"
+    }
+  ],
+  "sections": [
+    {
+      "section": 1,
+      "title": "Product Identity",
+      "canonicalDestinations": [
+        ".engineering/PROJECT-OVERVIEW.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 2,
+      "title": "Product Vision",
+      "canonicalDestinations": [
+        ".engineering/PROJECT-OVERVIEW.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 3,
+      "title": "Long-Term Asset Coverage",
+      "canonicalDestinations": [
+        ".engineering/SCOPE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md"
+      ]
+    },
+    {
+      "section": 4,
+      "title": "Core Differentiators",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 5,
+      "title": "Developer and Agent Platform",
+      "canonicalDestinations": [
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md"
+      ]
+    },
+    {
+      "section": 6,
+      "title": "Game Engine Integrations",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md"
+      ]
+    },
+    {
+      "section": 7,
+      "title": "Credit Economy",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md"
+      ]
+    },
+    {
+      "section": 8,
+      "title": "Anti-Multi-Account and Abuse System",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md"
+      ]
+    },
+    {
+      "section": 9,
+      "title": "Refund, Chargeback and Friendly-Fraud Protection",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/SECURITY.md"
+      ]
+    },
+    {
+      "section": 10,
+      "title": "LGPD / Privacy Requirements for TrustShield",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md"
+      ]
+    },
+    {
+      "section": 11,
+      "title": "Local-First Development Architecture",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/DEPLOYMENT.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md"
+      ]
+    },
+    {
+      "section": 12,
+      "title": "Initial Production Infrastructure Strategy",
+      "canonicalDestinations": [
+        ".engineering/DEPLOYMENT.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md"
+      ]
+    },
+    {
+      "section": 13,
+      "title": "UI/UX Direction",
+      "canonicalDestinations": [
+        ".engineering/UI-UX.md"
+      ]
+    },
+    {
+      "section": 14,
+      "title": "Internationalization",
+      "canonicalDestinations": [
+        ".engineering/PROJECT-OVERVIEW.md",
+        ".engineering/UI-UX.md"
+      ]
+    },
+    {
+      "section": 15,
+      "title": "Security Baseline",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md"
+      ]
+    },
+    {
+      "section": 16,
+      "title": "Architecture Principles",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md"
+      ]
+    },
+    {
+      "section": 17,
+      "title": "Proposed Delivery Strategy",
+      "canonicalDestinations": [
+        ".engineering/BACKLOG.md",
+        ".engineering/SCOPE.md"
+      ]
+    },
+    {
+      "section": 18,
+      "title": "Metrics Required From Day One",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 19,
+      "title": "Suggested Proprietary Systems",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md"
+      ]
+    },
+    {
+      "section": 20,
+      "title": "Important Business Rule: No-Loss-by-Design",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md"
+      ]
+    },
+    {
+      "section": 21,
+      "title": "Open Decisions for Next Planning Rounds",
+      "canonicalDestinations": [
+        ".engineering/BACKLOG.md",
+        ".engineering/UI-UX.md"
+      ]
+    },
+    {
+      "section": 22,
+      "title": "Decisions Ledger — Pre-Repository",
+      "canonicalDestinations": [
+        ".engineering/DECISIONS-LEDGER.md"
+      ]
+    },
+    {
+      "section": 23,
+      "title": "Legal / Compliance Research Notes",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/BILLING-ECONOMICS.md"
+      ]
+    },
+    {
+      "section": 24,
+      "title": "Research Sources — Initial",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md"
+      ]
+    },
+    {
+      "section": 25,
+      "title": "Planning Increment Status",
+      "canonicalDestinations": [
+        ".engineering/BACKLOG.md"
+      ]
+    },
+    {
+      "section": 26,
+      "title": "SPR-PLAN-001 — Product Modules & Asset Taxonomy",
+      "canonicalDestinations": [
+        ".engineering/PROJECT-OVERVIEW.md",
+        ".engineering/SCOPE.md",
+        ".engineering/BACKLOG.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 27,
+      "title": "Updated Open Decisions",
+      "canonicalDestinations": [
+        ".engineering/PROJECT-OVERVIEW.md",
+        ".engineering/SCOPE.md",
+        ".engineering/BACKLOG.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 28,
+      "title": "Next Recommended Planning Increment",
+      "canonicalDestinations": [
+        ".engineering/PROJECT-OVERVIEW.md",
+        ".engineering/SCOPE.md",
+        ".engineering/BACKLOG.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 29,
+      "title": "SPR-PLAN-002 — Technical Architecture & Local AI Benchmark Strategy",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 30,
+      "title": "Technical Architecture",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 31,
+      "title": "Initial Model Benchmark Shortlist",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 32,
+      "title": "RTX 5050 Benchmark Matrix",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 33,
+      "title": "Inference Gateway Architecture",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 34,
+      "title": "Job State Machine",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 35,
+      "title": "Storage Architecture",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 36,
+      "title": "Production Free-Tier Architecture",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 37,
+      "title": "Local-to-Cloud Parity",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 38,
+      "title": "Resource Budget for Development Machine",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 39,
+      "title": "Quality Benchmark Scoring",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 40,
+      "title": "Golden Asset Suite",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 41,
+      "title": "Defect Corpus",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 42,
+      "title": "Data / Training Principle",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 43,
+      "title": "Security Boundaries",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 44,
+      "title": "New Architecture Decisions",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 45,
+      "title": "Research References Added in SPR-PLAN-002",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 46,
+      "title": "SPR-PLAN-002 Evidence / Planning Verdict",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 47,
+      "title": "Next Recommended Planning Increment",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 48,
+      "title": "Updated Checkpoint",
+      "canonicalDestinations": [
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 49,
+      "title": "SPR-PLAN-003 — Quality System, Benchmark Protocol & Generation SKU Specification",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 50,
+      "title": "Resolution Profiles",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 51,
+      "title": "V1 Generation SKU Inventory",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 52,
+      "title": "Asset Contract Schemas",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 53,
+      "title": "Humanoid Anatomy Specification",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 54,
+      "title": "Creature Topology Specification",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 55,
+      "title": "DimensionLock Rules",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 56,
+      "title": "AnatomyGuard Rule Matrix",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 57,
+      "title": "SilhouetteGuard Rules",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 58,
+      "title": "Pixel QA Rule Matrix",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 59,
+      "title": "FrameLock Rules",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 60,
+      "title": "Candidate Selection Policy",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 61,
+      "title": "Repair Policy",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 62,
+      "title": "Quality Failure Code Catalog v1",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 63,
+      "title": "Production Score v1",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 64,
+      "title": "Human Review Rubric",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 65,
+      "title": "Acceptance Thresholds",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 66,
+      "title": "Benchmark Protocol",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 67,
+      "title": "Golden Asset Suite v1",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 68,
+      "title": "Benchmark Prompt Structure",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 69,
+      "title": "Cost Capture Schema",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 70,
+      "title": "Cost Attribution Rules",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 71,
+      "title": "Benchmark Result Schema",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 72,
+      "title": "Production Model Promotion Checklist",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 73,
+      "title": "Regression Policy",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 74,
+      "title": "Quality Release Gate",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 75,
+      "title": "QA Observability Fields",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 76,
+      "title": "Quality Feedback Loop",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 77,
+      "title": "User-Facing Quality Transparency",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 78,
+      "title": "Refund / Quality Interaction",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 79,
+      "title": "New Decisions",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 80,
+      "title": "SPR-PLAN-003 Verdict",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 81,
+      "title": "Next Recommended Planning Increment",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 82,
+      "title": "Updated Checkpoint",
+      "canonicalDestinations": [
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/MODEL-INFERENCE-STRATEGY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/DEFINITION-OF-DONE.md"
+      ]
+    },
+    {
+      "section": 83,
+      "title": "SPR-SPECIAL-001 — Maps, Worldbuilding & Game UI/HUD",
+      "canonicalDestinations": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/UI-UX.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 84,
+      "title": "Map Systems",
+      "canonicalDestinations": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/UI-UX.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 85,
+      "title": "Map Taxonomy",
+      "canonicalDestinations": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/UI-UX.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 86,
+      "title": "Map Asset Contract",
+      "canonicalDestinations": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/UI-UX.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 87,
+      "title": "Map Quality Principles",
+      "canonicalDestinations": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/UI-UX.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 88,
+      "title": "Map QA Subsystems",
+      "canonicalDestinations": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/UI-UX.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 89,
+      "title": "Map Output Modes",
+      "canonicalDestinations": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/UI-UX.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 90,
+      "title": "Worldbuilding Synergy",
+      "canonicalDestinations": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/UI-UX.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 91,
+      "title": "Procedural + AI Hybrid Direction",
+      "canonicalDestinations": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/UI-UX.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 92,
+      "title": "Game UI / HUD Systems",
+      "canonicalDestinations": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/UI-UX.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 93,
+      "title": "UI Asset Taxonomy",
+      "canonicalDestinations": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/UI-UX.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 94,
+      "title": "UI Contract & QA",
+      "canonicalDestinations": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/UI-UX.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 95,
+      "title": "Maps + UI Combined Workflows",
+      "canonicalDestinations": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/UI-UX.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 96,
+      "title": "V1 / V1.x / Later Scope for Maps & UI",
+      "canonicalDestinations": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/UI-UX.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 97,
+      "title": "New Decisions",
+      "canonicalDestinations": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/UI-UX.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 98,
+      "title": "Updated Strategic Note Before SPR-PLAN-004",
+      "canonicalDestinations": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/UI-UX.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 99,
+      "title": "Updated Checkpoint Addendum",
+      "canonicalDestinations": [
+        ".engineering/SCOPE.md",
+        ".engineering/ARCHITECTURE.md",
+        ".engineering/UI-UX.md",
+        ".engineering/REQUIREMENTS.md"
+      ]
+    },
+    {
+      "section": 100,
+      "title": "SPR-SPECIAL-002 — Map/UI SKU, Contracts, Export & Agent Automation",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 101,
+      "title": "Map Generation SKUs",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 102,
+      "title": "Game UI / HUD SKUs",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 103,
+      "title": "Map Contracts",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 104,
+      "title": "Game UI Contracts",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 105,
+      "title": "Map QA Failure Codes",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 106,
+      "title": "UI QA Failure Codes",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 107,
+      "title": "Map QA Benchmark Suite",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 108,
+      "title": "UI QA Benchmark Suite",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 109,
+      "title": "Engine Export Direction",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 110,
+      "title": "AgentBridge Map Tools — Proposed MCP Surface",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 111,
+      "title": "AgentBridge UI Tools — Proposed MCP Surface",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 112,
+      "title": "Agent Budgeting for Packs",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 113,
+      "title": "Map + UI Provenance",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 114,
+      "title": "Map Evolution / Regeneration",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 115,
+      "title": "UI Theme Evolution",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 116,
+      "title": "Map/UI Product Differentiation",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 117,
+      "title": "New Decisions",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 118,
+      "title": "SPR-SPECIAL-002 Verdict",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 119,
+      "title": "Updated Checkpoint",
+      "canonicalDestinations": [
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 120,
+      "title": "SPR-PLAN-004 — Credit Economics, Pricing Safety & Financial Simulation",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 121,
+      "title": "Financial Doctrine",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 122,
+      "title": "Canonical Economic Currency",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 123,
+      "title": "Spryxel Credit Definition",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 124,
+      "title": "Credit Lot Accounting",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 125,
+      "title": "Free Tier Strategy",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 126,
+      "title": "Commercial Launch Model",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 127,
+      "title": "Payment Provider Architecture",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 128,
+      "title": "Current Payment Provider Planning Facts",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 129,
+      "title": "Fixed Fee Dilution",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 130,
+      "title": "Stripe Effective-Fee Comparison Snapshot",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 131,
+      "title": "GPU Price Reference",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 132,
+      "title": "True SKU COGS",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 133,
+      "title": "Cost Per Accepted Asset",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 134,
+      "title": "Revenue Waterfall",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 135,
+      "title": "Contribution Margin",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 136,
+      "title": "Financial Guardrail Bands",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 137,
+      "title": "Launch Margin Requirements",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 138,
+      "title": "SKU Price Floor Formula",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 139,
+      "title": "Credit Price Safety",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 140,
+      "title": "Versioned Credit Pricing",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 141,
+      "title": "Pricing Grandfathering",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 142,
+      "title": "Refund Reserve",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 143,
+      "title": "Brazil Cooling-Off Exposure",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 144,
+      "title": "Refund Request Flow",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 145,
+      "title": "Chargeback Reserve",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 146,
+      "title": "Fraud Reserve",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 147,
+      "title": "New Account Exposure Tiers",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 148,
+      "title": "Working Capital Gate",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 149,
+      "title": "Zero-Resource Development vs Commercial Launch",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 150,
+      "title": "Stress Scenario Matrix",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 151,
+      "title": "Economic Simulation Dimensions",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 152,
+      "title": "Plan Safety Test",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 153,
+      "title": "Payment Basket Simulation",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 154,
+      "title": "Trial Economics",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 155,
+      "title": "Referral Economics",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 156,
+      "title": "Compensation Credits",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 157,
+      "title": "Payment Failure / Reconciliation",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 158,
+      "title": "Credit Reservation",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 159,
+      "title": "Composite Workflow Reservation",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 160,
+      "title": "Economic Kill Switches",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 161,
+      "title": "Automatic Margin Protection",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 162,
+      "title": "SKU Cross-Subsidy Rule",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 163,
+      "title": "Quality Profile Economics",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 164,
+      "title": "Admin Economics Dashboard",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 165,
+      "title": "Generation Runway",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 166,
+      "title": "Financial Data Invariants",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 167,
+      "title": "Accounting Boundary",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 168,
+      "title": "Merchant-of-Record vs Direct Processor Decision Matrix",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 169,
+      "title": "Current Cash-Flow Warning: Paddle",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 170,
+      "title": "Public Pricing Freeze Rule",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 171,
+      "title": "Initial Financial Simulator Outputs",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 172,
+      "title": "Economic Proof Obligations",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 173,
+      "title": "Current Recommended Economic Launch Shape",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 174,
+      "title": "New Decisions",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 175,
+      "title": "Current External Economic References",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 176,
+      "title": "SPR-PLAN-004 Verdict",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 177,
+      "title": "Next Recommended Planning Increment",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 178,
+      "title": "Updated Checkpoint",
+      "canonicalDestinations": [
+        ".engineering/BILLING-ECONOMICS.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/SECURITY.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md",
+        ".engineering/DEPLOYMENT.md"
+      ]
+    },
+    {
+      "section": 179,
+      "title": "SPR-PLAN-005 — Security, TrustShield, Abuse Graph & Account/Payment Risk Architecture",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 180,
+      "title": "Threat Model",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 181,
+      "title": "TrustShield Principles",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 182,
+      "title": "TrustShield Architecture",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 183,
+      "title": "Trust Graph",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 184,
+      "title": "Signal Strength",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 185,
+      "title": "Privacy-Preserving Device Strategy",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 186,
+      "title": "Bot / Human Verification",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 187,
+      "title": "Signup Pipeline",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 188,
+      "title": "Email Risk Signals",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 189,
+      "title": "Network Signals",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 190,
+      "title": "Payment Signals",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 191,
+      "title": "Trust Level and Dynamic Risk",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 192,
+      "title": "Risk Reason Codes",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 193,
+      "title": "Policy Actions",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 194,
+      "title": "Trial Eligibility",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 195,
+      "title": "Multi-Account Patterns",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 196,
+      "title": "False-Positive Strategy",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 197,
+      "title": "Purchase Exposure Tiers",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 198,
+      "title": "Account-Takeover Protection",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 199,
+      "title": "MFA Architecture",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 200,
+      "title": "Session Security",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 201,
+      "title": "Layered Rate Limiting",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 202,
+      "title": "Cost-Aware Abuse Limits",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 203,
+      "title": "API Key Architecture",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 204,
+      "title": "API Scopes",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 205,
+      "title": "API Key Budgets",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 206,
+      "title": "Remote MCP Authorization",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 207,
+      "title": "MCP Risk Classes",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 208,
+      "title": "Agent Runaway Protection",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 209,
+      "title": "API/MCP Idempotency",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 210,
+      "title": "Referral and Promotion Abuse",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 211,
+      "title": "Storage / Download Abuse",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 212,
+      "title": "Tenant Isolation",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 213,
+      "title": "Payment Webhook Security",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 214,
+      "title": "Security Evidence Bundle",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 215,
+      "title": "Chargeback Evidence Bundle",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 216,
+      "title": "Security Events",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 217,
+      "title": "TrustShield Versioning",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 218,
+      "title": "Rules Before ML",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 219,
+      "title": "Privacy / LGPD Data Inventory",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 220,
+      "title": "Data-Minimization Gate",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 221,
+      "title": "Fraud / Legitimate-Interest Review",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 222,
+      "title": "Retention Architecture",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 223,
+      "title": "Secret Management",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 224,
+      "title": "Admin Security",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 225,
+      "title": "Admin Risk Console",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 226,
+      "title": "User-Facing Security Messaging",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 227,
+      "title": "Review / Appeal",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 228,
+      "title": "Kill Switches",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 229,
+      "title": "Incident Modes",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 230,
+      "title": "Rate-Limit Matrix",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 231,
+      "title": "TrustShield Observability",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 232,
+      "title": "TrustShield Test Plan",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 233,
+      "title": "Golden Security Scenarios",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 234,
+      "title": "TrustShield v1 Acceptance Criteria",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 235,
+      "title": "Current External Security Notes — 2026-10-01",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 236,
+      "title": "Decisions Ledger Additions",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 237,
+      "title": "SPR-PLAN-005 Verdict",
+      "canonicalDestinations": [
+        ".engineering/SECURITY.md",
+        ".engineering/DATA-MODEL.md",
+        ".engineering/API-CONTRACTS.md",
+        ".engineering/INTEGRATION-CONTRACTS.md",
+        ".engineering/TEST-BENCHMARK-PLAN.md"
+      ]
+    },
+    {
+      "section": 238,
+      "title": "Next Recommended Planning Increment",
+      "canonicalDestinations": [
+        ".engineering/BACKLOG.md",
+        ".engineering/UI-UX.md",
+        ".engineering/PROJECT-OVERVIEW.md"
+      ]
+    },
+    {
+      "section": 239,
+      "title": "Updated Checkpoint",
+      "canonicalDestinations": [
+        ".engineering/BACKLOG.md",
+        ".engineering/UI-UX.md",
+        ".engineering/PROJECT-OVERVIEW.md"
+      ]
+    }
+  ],
+  "moduleInventory": [
+    {
+      "id": "M-01",
+      "title": "Home / Command Center",
+      "classification": "NECESSARY",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-02",
+      "title": "Projects",
+      "classification": "NECESSARY",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-03",
+      "title": "Spryxel DNA Studio",
+      "classification": "NECESSARY",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-04",
+      "title": "Generate Studio",
+      "classification": "NECESSARY",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-05",
+      "title": "Character Studio",
+      "classification": "NECESSARY",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-06",
+      "title": "World Studio",
+      "classification": "NECESSARY",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-07",
+      "title": "Tileset Studio",
+      "classification": "NECESSARY",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-08",
+      "title": "Items & Props Studio",
+      "classification": "NECESSARY",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-09",
+      "title": "UI / HUD Studio",
+      "classification": "IMPORTANT",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-10",
+      "title": "Animation Studio",
+      "classification": "IMPORTANT",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-11",
+      "title": "VFX Studio",
+      "classification": "IMPORTANT",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-12",
+      "title": "2.5D / Isometric Studio",
+      "classification": "IMPORTANT",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-13",
+      "title": "3D Studio",
+      "classification": "IMPORTANT / LATER DELIVERY",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-14",
+      "title": "Asset Library",
+      "classification": "NECESSARY",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-15",
+      "title": "Asset Graph",
+      "classification": "NECESSARY",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-16",
+      "title": "Workflow / Recipe Studio",
+      "classification": "IMPORTANT",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-17",
+      "title": "QA Center",
+      "classification": "NECESSARY",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-18",
+      "title": "Export Center / EngineBridge",
+      "classification": "NECESSARY",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-19",
+      "title": "Developer Platform / AgentBridge",
+      "classification": "NECESSARY",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-20",
+      "title": "Jobs / Queue Center",
+      "classification": "NECESSARY",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-21",
+      "title": "Credits / Billing",
+      "classification": "NECESSARY",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-22",
+      "title": "CostGuard",
+      "classification": "NECESSARY",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-23",
+      "title": "TrustShield",
+      "classification": "NECESSARY",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-24",
+      "title": "RevenueShield",
+      "classification": "NECESSARY",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-25",
+      "title": "Admin / Owner Console",
+      "classification": "NECESSARY",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-26",
+      "title": "Observability & Economics",
+      "classification": "NECESSARY",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-27",
+      "title": "Team / Collaboration",
+      "classification": "FUTURE",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-28",
+      "title": "World Map Studio",
+      "classification": "IMPORTANT",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-29",
+      "title": "Region / Zone Map Studio",
+      "classification": "IMPORTANT",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-30",
+      "title": "Local Area / Battle Map Studio",
+      "classification": "IMPORTANT",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-31",
+      "title": "Dungeon / Interior Map Studio",
+      "classification": "IMPORTANT",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-32",
+      "title": "Minimap / Navigation Map Studio",
+      "classification": "IMPORTANT",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-33",
+      "title": "Map Export & Layer Studio",
+      "classification": "IMPORTANT",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-34",
+      "title": "UI / HUD Builder",
+      "classification": "IMPORTANT",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-35",
+      "title": "Inventory / Backpack UI Studio",
+      "classification": "IMPORTANT",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-36",
+      "title": "Menu & Screen Builder",
+      "classification": "IMPORTANT",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    },
+    {
+      "id": "M-37",
+      "title": "UI Export & Theme Studio",
+      "classification": "IMPORTANT",
+      "canonicalOwner": ".engineering/SCOPE.md"
+    }
+  ],
+  "masterScopeClassifications": {
+    "NECESSARY": [
+      "Home",
+      "Projects",
+      "Spryxel DNA",
+      "Generate Studio",
+      "Character Studio",
+      "World Studio",
+      "Tileset Studio",
+      "Items/Props",
+      "Asset Library",
+      "Asset Graph",
+      "QA Center",
+      "Export Center",
+      "API",
+      "MCP",
+      "basic CLI",
+      "Jobs",
+      "Credits/Billing",
+      "CostGuard",
+      "TrustShield",
+      "RevenueShield",
+      "Admin",
+      "Observability",
+      "localization",
+      "local Docker",
+      "local RTX inference",
+      "serverless inference abstraction"
+    ],
+    "IMPORTANT": [
+      "Animation Studio",
+      "advanced tilesets",
+      "UI/HUD Studio",
+      "VFX",
+      "Workflow/Recipe Studio",
+      "advanced 2.5D",
+      "advanced engine plugins",
+      "SDKs"
+    ],
+    "FUTURE": [
+      "team collaboration",
+      "enterprise",
+      "advanced private models",
+      "full 3D production stack if not yet validated",
+      "marketplace",
+      "community asset sharing",
+      "public Style Capsule marketplace"
+    ],
+    "OUT_OF_SCOPE_FOR_V1": [
+      "video generation",
+      "music generation",
+      "voice generation",
+      "general-purpose graphic design",
+      "full game engine",
+      "game hosting",
+      "game publishing marketplace"
+    ]
+  },
+  "openDecisionInventory": [
+    {
+      "details": "Module and taxonomy records are in SCOPE.md; implementation remains unstarted.",
+      "item": "Exact asset taxonomy and generator workflows",
+      "source": "21",
+      "status": "DECOMPOSED IN SPR-PLAN-001"
+    },
+    {
+      "item": "Initial open-source models to benchmark on RTX 5050",
+      "source": "21,27",
+      "status": "SHORTLIST RECORDED; BENCHMARK NOT RUN"
+    },
+    {
+      "item": "2D/pixel quality benchmark suite",
+      "source": "21,26,49-82",
+      "status": "PROTOCOL RECORDED; BENCHMARK NOT RUN"
+    },
+    {
+      "item": "3D provider/model shortlist",
+      "source": "21",
+      "status": "OPEN"
+    },
+    {
+      "item": "Initial credit denomination",
+      "source": "21,27",
+      "status": "SC ABSTRACT; EXACT DENOMINATION OPEN"
+    },
+    {
+      "item": "Trial credit/entitlement quantities",
+      "source": "21,27",
+      "status": "OPEN"
+    },
+    {
+      "item": "Maximum financial exposure per new account",
+      "source": "21,27",
+      "status": "CONFIGURABLE; NUMERIC CAPS OPEN"
+    },
+    {
+      "item": "Target plans and credit-pack ladder",
+      "source": "21,27,120-178",
+      "status": "CREDIT-PACK-FIRST APPROVED; PACK DETAILS OPEN"
+    },
+    {
+      "item": "Payment providers by region and contract",
+      "source": "21,27,120-178",
+      "status": "PADDLE PREFERRED CANDIDATE; STRIPE ALTERNATIVE; NOT SELECTED"
+    },
+    {
+      "item": "Brazilian legal/tax/accounting review",
+      "source": "21,27,120-178,179-239",
+      "status": "REQUIRED BEFORE COMMERCIAL LAUNCH; NOT COMPLETE"
+    },
+    {
+      "item": "Domain acquisition and formal trademark clearance",
+      "source": "21,27",
+      "status": "OPEN; REQUIRED BEFORE PUBLIC LAUNCH"
+    },
+    {
+      "item": "Final brand/logo system",
+      "source": "21,27",
+      "status": "OPEN; SPR-PLAN-006"
+    },
+    {
+      "item": "Final technology stack, queue, local runtime, cloud GPU adapter, object storage",
+      "source": "27,29-48",
+      "status": "BOUNDARIES APPROVED; FINAL CHOICES OPEN WHERE NOT RESOLVED"
+    },
+    {
+      "item": "Database/data model",
+      "source": "21,27,26.4,29-48",
+      "status": "POSTGRESQL CANONICAL STATE APPROVED; PHYSICAL SCHEMA OPEN"
+    },
+    {
+      "item": "Exact V1 SKU contracts and final credit values",
+      "source": "27,49-82,100-119",
+      "status": "SKU CATALOG APPROVED FOR PLANNING; PRICES/VALUES NOT FROZEN"
+    },
+    {
+      "item": "API v1, MCP v1, CLI v1 contracts",
+      "source": "21,27",
+      "status": "SURFACES APPROVED; EXACT CONTRACTS OPEN"
+    },
+    {
+      "item": "UI information architecture and wireframes",
+      "source": "21,27,238-239",
+      "status": "OPEN; NEXT PROPOSED SPR-PLAN-006 NOT EXECUTED"
+    },
+    {
+      "item": "First product Definition of Done",
+      "source": "21,27",
+      "status": "OPEN FOR A LATER PRODUCT IMPLEMENTATION INCREMENT"
+    },
+    {
+      "item": "Refund/chargeback/fraud rates, working-capital amount, and TrustShield calibration",
+      "source": "120-178,179-239",
+      "status": "FORMULAS/ARCHITECTURE APPROVED; RATES/AMOUNTS/CALIBRATION OPEN"
+    }
+  ]
+}
