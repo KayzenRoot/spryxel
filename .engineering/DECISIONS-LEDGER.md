@@ -818,3 +818,36 @@ Source: SPRYXEL-WO-005 preflight correction A, 2026-10-02. Supersedes only the M
 Decision: The minimal local/test infrastructure profile is PostgreSQL, Redis and SeaweedFS S3-compatible storage. GPU/inference remains separate optional/off-by-default. Local infrastructure images must be exact-version/digest pinned, use current maintained upstreams, and verify available image-signature/provenance evidence during implementation preflight. A future local emulator replacement requires an explicit audited correction rather than silent substitution.
 Status: APPROVED FOR PLANNING
 Source: SPRYXEL-WO-005 preflight correction A, 2026-10-02. Supersedes only the MinIO-specific local-service clause of D-148.
+
+
+## Identity/Tenancy provider decisions — pre-implementation canonical candidate
+
+### D-156 — V1 external authentication/session provider
+Decision: WorkOS AuthKit is the selected V1 external authentication/session provider, behind the application identity/session adapter. This selection applies to human authentication and external session lifecycle only. Exact SDK versions remain implementation-preflight pins. A later provider migration requires a new explicit decision/preflight.
+Status: APPROVED FOR PLANNING
+Source: Auth provider preflight, 2026-10-02.
+
+### D-157 — Spryxel owns tenant authorization
+Decision: Spryxel PostgreSQL is canonical for internal identity linkage, tenant, tenant membership, product roles/permissions, resource ownership and authorization state. WorkOS organization/role claims, if used, are external assertions that must map to local canonical records and never bypass application authorization or PostgreSQL RLS.
+Status: APPROVED FOR PLANNING
+Source: Auth provider preflight, 2026-10-02.
+
+### D-158 — Provider-neutral identity mapping
+Decision: Durable internal identities use Spryxel-owned UUIDv7-compatible IDs. WorkOS user/session/organization identifiers are external provider references only and cannot serve as tenant/business primary authorization keys. Provider replacement must be possible by remapping external subjects without changing tenant/business identifiers.
+Status: APPROVED FOR PLANNING
+Source: Auth provider preflight, 2026-10-02.
+
+### D-159 — Authentication token/session validation
+Decision: The Fastify API independently validates authentication tokens using trusted JWKS plus explicit issuer, audience, expiry and subject checks. Browser UI state is never authorization. Access/refresh/bearer credentials are never stored in localStorage/sessionStorage. Protected mutations fail closed on uncertain authentication state.
+Status: APPROVED FOR PLANNING
+Source: Auth provider preflight, 2026-10-02.
+
+### D-160 — Session and step-up security
+Decision: Sessions must support bounded lifetime, explicit revocation, sign-out invalidation and user-visible security/session management where applicable. Sensitive/high-impact actions require recent authentication or equivalent step-up. Production Owner/Admin continues to require MFA under D-083. Passkeys and TOTP-capable MFA are preferred provider capabilities; exact end-user method policy is refined by the Identity/Tenancy Work Order.
+Status: APPROVED FOR PLANNING
+Source: Auth provider preflight, 2026-10-02.
+
+### D-161 — Identity/Tenancy test and provider-failure boundary
+Decision: Tenant authorization/RLS correctness must be provable in deterministic local/CI tests without requiring live provider credentials. Tests include local JWT/JWKS contract fixtures, invalid signature/issuer/audience/expiry cases and real PostgreSQL cross-tenant RLS evidence. Optional provider staging smoke is additive when credentials exist. No fake/local identity adapter may be enabled in production configuration.
+Status: APPROVED FOR PLANNING
+Source: Auth provider preflight, 2026-10-02.
