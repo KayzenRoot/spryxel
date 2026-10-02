@@ -50,7 +50,7 @@ The complete open-decision inventory remains in the seed and specialized documen
 
 ## SPRYXEL-WO-004 completion
 
-SPRYXEL-WO-004 / SPR-PLAN-007 is COMPLETE. `SPRYXEL-IMP-001 — Platform Foundation Bootstrap` is objectively APPROVED under SPRYXEL-WO-005; canonical promotion is complete on the PR branch and merge/pós-merge validation remain the final closeout gates. Identity/Tenancy is the next NECESSARY slice and remains NOT_ADMITTED.
+SPRYXEL-WO-004 / SPR-PLAN-007 is COMPLETE. `SPRYXEL-IMP-001 — Platform Foundation Bootstrap` is COMPLETE under SPRYXEL-WO-005: objectively audited, canonically promoted, squash-merged and post-merge validated. Identity/Tenancy is the next NECESSARY slice and remains NOT_ADMITTED.
 
 
 ## SPRYXEL-WO-005 preflight blocker
@@ -65,3 +65,8 @@ The first SPRYXEL-IMP-001 admission stopped BLOCKED before product dependency in
 No identity/tenancy, project, billing/credits, TrustShield, generation/assets, AI/model/GPU or production-provider implementation was admitted.
 
 Next legal slice: Identity/Tenancy security baseline under its own Work Order/Context Lock, with a current auth-provider decision/preflight before implementation.
+
+
+## SPRYXEL-WO-005 completion
+
+`SPRYXEL-WO-005 / SPRYXEL-IMP-001` is COMPLETE on `main@6dbce3f1ba1e5b85a6e6ea40083e2d4418755261` with post-merge validation PASS. The platform foundation is canonical. Identity/Tenancy is the next NECESSARY implementation slice but remains NOT_ADMITTED pending a new Work Order/Context Lock and current auth-provider preflight.

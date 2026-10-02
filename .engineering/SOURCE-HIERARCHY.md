@@ -56,3 +56,10 @@ For current implementation work:
 SPRYXEL-IMP-001 is objectively approved as the bounded platform foundation. Git/code/tests now prove the technical workspace, runtime boundaries, local infrastructure, migration harness, observability and test architecture described by the planning sources. D-001…D-155 remain normative and unchanged.
 
 The historical SPRYXEL-WO-005 R2 Context Lock is closed/stale after promotion and must not be reused. Identity/Tenancy requires a new Work Order/Context Lock and a current auth-provider decision/preflight before code.
+
+
+## SPRYXEL-WO-005 completion binding
+
+`SPRYXEL-WO-005 / SPRYXEL-IMP-001` is COMPLETE on `main@6dbce3f1ba1e5b85a6e6ea40083e2d4418755261` after objective audit, canonical promotion and post-merge validation. The platform foundation is implemented/canonical; Identity/Tenancy remains the next legal slice and requires a new Work Order/Context Lock plus current auth-provider preflight.
+
+The historical WO-005 R2 Context Lock remains STALE/closed and must not be reused.

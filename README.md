@@ -21,4 +21,4 @@ GEF remains pinned at `@gef-bootstrap/cli@1.1.1`; its doctor and status commands
 
 ## Canonical implementation status
 
-SPRYXEL-IMP-001 has been objectively audited APPROVED under SPRYXEL-WO-005. This repository now contains the canonical platform foundation only. Identity/Tenancy and later product capabilities are not yet admitted.
+SPRYXEL-IMP-001 is COMPLETE under SPRYXEL-WO-005 after objective audit, canonical promotion, squash merge and post-merge validation. This repository contains the canonical platform foundation only. Identity/Tenancy and later product capabilities are not yet admitted.
