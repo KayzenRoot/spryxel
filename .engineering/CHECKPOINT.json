@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 2,
+  "status": "SOURCE_PACK_CANDIDATE",
+  "phase": "GEF_GITHUB_GOVERNANCE_APPROVED",
+  "stopState": "SPRYXEL_WO_001_APPROVED",
+  "completedThroughModule": "GEF_GITHUB_GOVERNANCE_APPROVED",
+  "nextLegalStage": "SPRYXEL_PRODUCT_DISCOVERY_PLANNING_AFTER_MERGE",
+  "v11": {
+    "gefVersion": "1.1.1",
+    "gefReleaseSourceSha": "1dc030f1358eab0347043a3d54c7fc311c7c2123",
+    "baseSha": "10dca04e38cfcd2e07335faf9078cc6041766c02",
+    "lastApprovedWorkOrder": "SPRYXEL-WO-001",
+    "trackingIssue": 2,
+    "pullRequest": 3,
+    "auditedExecutionHeadSha": "db68f8aeb85beed2f8bbfba98fcc8fd562f7515b",
+    "auditVerdict": "APPROVED",
+    "productImplementation": "NOT_STARTED",
+    "productBaseline": "NOT_BASELINED",
+    "rulesetBaseline": "ACTIVE_MAIN_RULESET_24340349",
+    "requiredChecks": [
+      "Repository validation",
+      "Pipeline integrity",
+      "Gitleaks secrets",
+      "Trivy filesystem and configuration"
+    ],
+    "driftPolicy": "RECONCILE_AGAINST_AUTHORIZED_GIT_DELTA_DO_NOT_REWRITE_GEF_BASELINE"
+  }
+}

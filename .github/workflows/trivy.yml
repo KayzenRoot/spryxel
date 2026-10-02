@@ -1,0 +1,50 @@
+name: Trivy filesystem and configuration
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, codex/spryxel-wo-001-gef-github-governance]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: trivy-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    name: Trivy filesystem and configuration
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out exact PR head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Prepare empty Trivy policy outside the candidate checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          policy_dir="$RUNNER_TEMP/trivy-policy"
+          mkdir -p "$policy_dir"
+          printf '{}\n' > "$policy_dir/trivy.yaml"
+          : > "$policy_dir/.trivyignore"
+          if [ -e "$GITHUB_WORKSPACE/trivyignores" ] || [ -L "$GITHUB_WORKSPACE/trivyignores" ]; then
+            echo "::error::Candidate contains reserved Trivy ignore path"
+            exit 1
+          fi
+      - name: Scan filesystem vulnerabilities and configuration
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,misconfig
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          trivy-config: ${{ runner.temp }}/trivy-policy/trivy.yaml
+          trivyignores: ${{ runner.temp }}/trivy-policy/.trivyignore

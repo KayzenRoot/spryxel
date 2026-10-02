@@ -1,0 +1,29 @@
+name: Pipeline integrity
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, codex/spryxel-wo-001-gef-github-governance]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pipeline-integrity-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integrity:
+    name: Pipeline integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out exact PR head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Enforce immutable Actions and least privilege
+        run: ruby .github/scripts/pipeline-integrity.rb
