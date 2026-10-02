@@ -1,6 +1,6 @@
 # SPRYXEL-WO-005 — Correction Delta 01
 
-Status: CORRECTION REQUIRED  
+Status: SATISFIED / APPROVED  
 Work Order: `SPRYXEL-WO-005 R2`  
 Increment: `SPRYXEL-IMP-001`  
 Audited head: `210e7a453a48637ea1b558d571fedd8d10ca1c42`  
@@ -158,3 +158,10 @@ Use the original Work Order stop condition only after all corrections pass:
 `SPRYXEL_IMP_001_PLATFORM_FOUNDATION_BOOTSTRAP_READY_FOR_AUDIT`
 
 Do not merge. Do not promote checkpoint.
+
+
+## RE-AUDIT CLOSURE
+
+C-01…C-08 were verified corrected and remain satisfied on final audit head `a81ca67894265da3679d817db737a9af3aee9a79`.
+
+Final status: `SATISFIED`.
