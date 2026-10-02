@@ -9,12 +9,9 @@ The Product Master v0.6.0 in `.engineering/source-seeds/` is immutable historica
 Codex is the implementation/test/CI executor. Execute only an explicitly admitted Work Order and its current Context Lock. Inspect the exact base before mutation. Do not invent missing product decisions.
 
 ## Current execution
-`SPRYXEL-WO-003` is objectively APPROVED and its historical Context Lock is closed/stale after canonical promotion. No further executor action is authorized under it.
+`SPRYXEL-WO-003` is COMPLETE and its historical Context Lock is stale/closed. No product implementation Work Order is active.
 
 The next legal action is a separate implementation-planning Work Order with a new Context Lock. Product implementation is not currently admitted.
 
 ## Safety
 No force-push, history rewrite, destructive GitHub mutation, visibility change or checkpoint self-promotion. Critical source/base drift makes an execution Context Lock STALE. Missing required permissions means BLOCKED, not weakened controls.
-
-## Completion
-Executors must commit/push bounded changes, run required tests, update the PR with an Evidence Bundle and stop at the Work Order STOP CONDITION for ChatGPT audit. Checkpoint promotion is performed only after objective approval.

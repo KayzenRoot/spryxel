@@ -135,3 +135,16 @@ Após commit/push, validações locais concluídas, quatro checks PASS no exact 
 ## Handoff de promoção
 
 A promoção do checkpoint e dos documentos UX canônicos ocorre somente depois deste veredito APPROVED. Como a promoção altera fontes críticas, o Context Lock histórico de SPRYXEL-WO-003 passa a `STALE` por encerramento e não pode ser reutilizado. O merge só é autorizado após os quatro required checks passarem novamente no head de promoção e não haver review thread aberta.
+
+
+## Merge e validação pós-merge
+
+- PR #11 squash-merged em `main@5614aabe4ac115dc94465ae477032256e8018219`.
+- Pós-merge no commit real de `main`:
+  - Repository validation: PASS, check `110826024969`;
+  - Pipeline integrity: PASS, check `110826025634`;
+  - Gitleaks secrets: PASS, check `110826025064`;
+  - Trivy filesystem and configuration: PASS, check `110826026129`.
+- Ruleset `24340349` permaneceu ativo, main-only e sem bypass.
+- Resultado final do Work Order: `COMPLETE`.
+- Próximo estágio legal: novo Work Order/Context Lock de planejamento de implementação.

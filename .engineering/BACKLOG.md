@@ -15,7 +15,7 @@ Status: CANONICAL — SPRYXEL-WO-003 / SPR-PLAN-006 approved by objective audit.
 | SPR-PLAN-004 | NECESSARY / HIGH_ASSURANCE | APPROVED / COMPLETED IN MASTER v0.5.0 | Credit economics, pricing safety, simulation |
 | SPR-PLAN-005 | NECESSARY / HIGH_ASSURANCE | APPROVED / COMPLETED IN MASTER v0.6.0 | Security, TrustShield, abuse graph, account/payment risk |
 | SPRYXEL-WO-002 | NECESSARY source migration | COMPLETE / AUDITED / MERGED / POST-MERGE VALIDATED | Decompose v0.6.0 seed into the canonical Source Pack |
-| SPR-PLAN-006 | NECESSARY | APPROVED / COMPLETED BY SPRYXEL-WO-003; MERGE PENDING | Product UX, Design System & Information Architecture |
+| SPR-PLAN-006 | NECESSARY | COMPLETE / AUDITED / MERGED / POST-MERGE VALIDATED | Product UX, Design System & Information Architecture |
 
 Historical planning rounds above are not being re-run by WO-002.
 
