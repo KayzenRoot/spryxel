@@ -1,7 +1,7 @@
 # SPRYXEL-WO-005 — SPRYXEL-IMP-001 Platform Foundation Bootstrap
 
 Tracking issue: #17
-Status: APPROVED — R2
+Status: COMPLETE — R2
 Risk: ELEVATED
 Execution base: main@31e6aec13bcc427ec8449d68da1a420979488b06
 GEF: @gef-bootstrap/cli@1.1.1
@@ -127,3 +127,17 @@ Do not merge. Do not promote checkpoint. Do not start Identity/Tenancy.
 - Known CRITICAL/HIGH findings: 0.
 - Product foundation only; Identity/Tenancy remains NOT_ADMITTED.
 - Canonical promotion is an auditor action after this approval.
+
+
+## POST-MERGE CLOSURE
+
+- PR #20 squash-merged to `main@6dbce3f1ba1e5b85a6e6ea40083e2d4418755261`.
+- Post-merge required checks:
+  - Repository validation `110999157035` PASS.
+  - Pipeline integrity `110999158238` PASS.
+  - Gitleaks secrets `110999157676` PASS.
+  - Trivy filesystem and configuration `110999158922` PASS.
+- Ruleset `24340349` remained active, main-only and without bypass.
+- Work Order status: `COMPLETE`.
+- Platform foundation: `COMPLETE`.
+- Identity/Tenancy: `NOT_ADMITTED`.
