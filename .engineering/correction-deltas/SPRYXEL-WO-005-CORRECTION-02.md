@@ -1,6 +1,6 @@
 # SPRYXEL-WO-005 — Correction Delta 02
 
-Status: CORRECTION REQUIRED  
+Status: SATISFIED / APPROVED  
 Work Order: `SPRYXEL-WO-005 R2`  
 Increment: `SPRYXEL-IMP-001`  
 Previously approved code head: `ace62ffdb53bd5f602e23d1e9572955f2a5dc820`  
@@ -71,3 +71,12 @@ Run:
 `SPRYXEL_IMP_001_PLATFORM_FOUNDATION_BOOTSTRAP_READY_FOR_AUDIT`
 
 Do not merge. Do not promote checkpoint.
+
+## RE-AUDIT CLOSURE
+
+C-09 and C-10 were objectively verified on final audit head `a81ca67894265da3679d817db737a9af3aee9a79`.
+
+- C-09: Redis KEYS removed; namespace-scoped incremental SCAN regression and real repeated probe evidence PASS.
+- C-10: post-push wording corrected while retaining exact-head evidence rules.
+
+Final status: `SATISFIED`.
