@@ -4,6 +4,36 @@
 
 **Data:** 2026-10-02
 
+## Correction Delta 02 — C-09/C-10
+
+Esta correção partiu exatamente de `10fb53aa62974e877f358287eb2ac577e5e8c451`, na PR #20/branch R2, com Context Lock `FRESH`, base `main@31e6aec13bcc427ec8449d68da1a420979488b06` e 24/24 fingerprints críticos correspondentes. O Work Order blob e o ledger D-001…D-155 continuam iguais às fontes fixadas; nenhuma decisão, checkpoint, `.gef`, dependência, workflow, ruleset/provider, SeaweedFS ou source seed foi alterado por este delta.
+
+- **C-09:** verificação pós-cleanup agora usa `SCAN` com cursor, `MATCH bull:${name}:*` e `COUNT 100`. Avança página a página, para no primeiro resultado e preserva a ordem de cleanup, wrapper best-effort, deadline global e erro existente. A regressão focada prova o escopo do padrão, parada no primeiro resíduo, duas páginas no máximo e zero chamadas a `KEYS`. A integração executada contra Redis real repetiu o probe duas vezes; ambas terminaram sem chaves no namespace descartável.
+- **C-10:** o wording do registro pós-push foi corrigido para presente. Ele continua apontando a descrição da PR como o registro pós-push de HEAD/checks/threads e declara que checks de SHAs anteriores não são reutilizados. IDs/URLs permanecem na descrição da PR; não são duplicados aqui.
+
+### Revalidação da Correction Delta 02
+
+Runtime local: Node `24.19.0` / npm `11.17.0`; nenhuma dependência foi instalada ou alterada. Resultados no código desta correção:
+
+| Comando | Resultado observado |
+| --- | --- |
+| Regressão focada `vitest run apps/worker/src/queue-probe.test.ts` | PASS, 1 arquivo / 2 testes; nenhum `KEYS`, parada no primeiro resíduo |
+| `npm run format:check` | PASS, 71 arquivos |
+| `npm run lint` | PASS, 71 arquivos, nenhum finding |
+| `npm run typecheck` | PASS, 16/16 tarefas Turbo |
+| `npm run build` | PASS, 10/10 workspaces; Next build e prerender PASS |
+| `npm run architecture:check` | PASS, 10 workspaces/11 arestas; varreu 4 arquivos em `apps/web/app` |
+| `npm run test:unit` | PASS, 12 arquivos / 23 testes |
+| `npm run test:worker` | PASS, processo separado e zero product consumers |
+| `npm run test:integration` | PASS com PostgreSQL, Redis e SeaweedFS reais; duas probes BullMQ repetidas sem chaves residuais e teardown descartável concluído |
+| `npm run test:browser` | PASS, 4/4. Uma primeira tentativa expirou aguardando readiness Next em 120 s; sem mudar código/configuração, o servidor local respondeu HTTP 200 e a repetição no comando configurado passou. |
+| `npm test` | PASS agregado: unit 23/23, worker, integração real e browser 4/4 |
+| `npm audit --audit-level=high` | PASS, 0 vulnerabilidades |
+| `git diff --check` | PASS |
+| GEF 1.1.1 `doctor` / `status` | Ambos PASS read-only, `effect=NONE`; observações atuais abaixo. Nenhuma escrita em `.gef` ou checkpoint. |
+
+O `doctor` reportou toolchain/repositório saudáveis, proveniência de dependências e GitHub `REVIEW`. O `status` reportou árvore `DIRTY`, `operator.stale=true` e drift `UNEXPECTED` face ao checkpoint ainda em WO-004. Conforme D-0007, isso permanece diagnóstico bruto; o delta está delimitado por Work Order, Context Lock, diff e Evidence Bundle, sem reescrever GEF baseline. Nenhuma reconciliação foi gravada.
+
 ## Correction Delta 01 — reauditoria
 
 Esta seção atualiza e, para C-01, **substitui explicitamente** a afirmação anterior de que `architecture:check` já cobria o App Router. A correção começou no HEAD exato `a3dd49d720a18e5e415eaa51c1ff686f8df7d76d`; base mantida em `main@31e6aec13bcc427ec8449d68da1a420979488b06`. Context Lock R2 permaneceu `FRESH`; os 24 fingerprints críticos e D-001…D-155 foram reconferidos. O diff limita-se aos oito findings C-01…C-08, regressions, harness de integração e esta evidência. Nenhuma alteração foi feita em decisões, checkpoint, `.gef`, GEF, dependências/manifests, workflows, ruleset/provider ou source seed.
@@ -39,7 +69,7 @@ A admissão/preflight anterior à instalação permanece conforme a seção acim
 | `git diff --check` | PASS, sem erro de whitespace |
 | GEF 1.1.1 `doctor` / `status` | Leitura `effect=NONE`; estado pós-diff documentado abaixo. `.gef` e checkpoint não foram reconciliados nem escritos. |
 
-O `architecture:check` antigo do HEAD auditado está supersedido: a evidência atual prova a fixture de falha sob `apps/web/app` e a varredura real de quatro arquivos. O HEAD final, IDs/URLs dos quatro required checks no SHA exato e estado das review threads serão registrados na descrição atualizada da PR #20 após publicação; checks de SHAs anteriores não serão reutilizados.
+O `architecture:check` antigo do HEAD auditado está supersedido: a evidência atual prova a fixture de falha sob `apps/web/app` e a varredura real de quatro arquivos. O HEAD final, IDs/URLs dos quatro required checks no SHA exato e estado das review threads estão registrados na descrição atualizada da PR #20; checks de SHAs anteriores não são reutilizados.
 
 ### Estado GEF observado na revalidação
 
