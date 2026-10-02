@@ -1,6 +1,6 @@
 # SPRYXEL-WO-005 — Proposed Checkpoint Delta
 
-**Status:** PROPOSTA DO EXECUTOR; não aprovada, não promovida e não aplicada.
+**Status:** ACCEPTED_BY_AUDITOR; PROMOTED_IN_CANONICAL_CHECKPOINT.
 
 ## Preconditions
 
@@ -24,3 +24,18 @@
 - Não modificar `.gef`, GEF, workflows, ruleset/provider, source seed, decisões canônicas, preço ou estado de produção.
 
 O checkpoint atual permanece a autoridade até aprovação objetiva e promoção separada baseada em evidência pós-merge. O executor para em `SPRYXEL_IMP_001_PLATFORM_FOUNDATION_BOOTSTRAP_READY_FOR_AUDIT`.
+
+
+## Resultado da auditoria
+
+A proposta foi aceita após auditoria objetiva `APPROVED` do head `a81ca67894265da3679d817db737a9af3aee9a79`.
+
+A promoção registra:
+- `SPRYXEL-IMP-001` como platform foundation concluída/aprovada;
+- Correction Delta 01 e 02 como SATISFIED;
+- product implementation = `PLATFORM_FOUNDATION_COMPLETE`;
+- business-feature implementation ainda não iniciada;
+- Identity/Tenancy como próximo incremento NECESSARY porém NOT_ADMITTED;
+- pricing, benchmarks/COGS e providers de produção permanecem não congelados;
+- auth provider permanece NOT_FROZEN;
+- o Context Lock R2 passa a STALE por encerramento.
