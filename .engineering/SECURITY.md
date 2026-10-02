@@ -121,3 +121,10 @@ API/MCP credential setup must disclose scope, project binding, expiry, last use,
 ## Implementation identity boundary — SPR-PLAN-007 canonical
 
 The foundation runtime represents identity/session through an application adapter only. Auth provider selection, production auth/session implementation and identity/tenant tables are intentionally deferred to the separate Identity/Tenancy security Work Order. IMP-001 health endpoints do not fabricate authenticated users or imply tenant data exists. On the first tenant-owned table, application authorization and PostgreSQL RLS are both required where applicable; cross-tenant integration tests are required before downstream product slices depend on the boundary. This planning note does not change Security decisions, providers or implementation status.
+
+
+## Local infrastructure supply-chain gate — SPRYXEL-WO-005 correction
+
+Required local/test infrastructure is subject to the same maintenance, vulnerability, license and provenance gates as product dependencies. An emulator or test service that becomes unmaintained, archived or materially unsafe must not be silently retained merely because it was named in an earlier planning decision.
+
+The MinIO community server failed this gate during SPRYXEL-WO-005 preflight. D-154/D-155 supersede only the MinIO-specific local/test clauses of D-142/D-148 and select SeaweedFS as the current local/test S3-compatible service. Recompiled IMP-001 must pin an exact maintained release plus immutable container digest, verify available image-signature/provenance evidence, and record current license/security checks. Production object-storage provider selection remains open.

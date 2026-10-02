@@ -18,7 +18,7 @@ This is the compatibility-level stack contract. Exact package versions and regis
 | API description | JSON REST `/api/v1`, OpenAPI 3.1 | Stable documented HTTP boundary for UI and integrations | `apps/api` + contracts | Endpoint catalog and generated artifact policy remain later endpoint decisions |
 | Persistence | PostgreSQL + Drizzle ORM/Drizzle Kit-compatible access and SQL migrations | Typed repository access with explicit SQL/RLS escape hatch | `packages/db` | PostgreSQL target compatibility is checked in preflight; no schema is implemented here |
 | Transient queue | Redis + BullMQ-compatible work coordination | Familiar Node worker coordination while durable job truth remains PostgreSQL | Adapter edge used by `apps/worker` | Redis deployment/provider and exact library versions are preflight choices |
-| Object storage | S3-compatible private-object adapter; MinIO-compatible local service | Keep stored object identity independent from production vendor | Storage adapter edge and local profile | Production vendor not selected; exact SDK is preflight choice |
+| Object storage | S3-compatible private-object adapter; SeaweedFS S3-compatible local/test service | Keep stored object identity independent from production vendor | Storage adapter edge and local profile | Production vendor not selected; exact SDK is preflight choice |
 | Configuration | Typed schema validated on process startup | Fail closed on missing/invalid production configuration | `packages/config` and each process entrypoint | No secrets or live environment values committed |
 | Logging | Structured JSON, Pino-compatible | Consistent machine-readable operational events | `packages/observability` | Compatible version pinned during preflight |
 | Telemetry | OpenTelemetry-compatible traces and metrics; correlation/request IDs | Connect requests, durable jobs and adapter operations | `packages/observability`, adapters | Exporter/backend/provider remains open |
@@ -38,3 +38,8 @@ This is the compatibility-level stack contract. Exact package versions and regis
 ## Configuration and safe startup
 
 Each process imports the typed configuration boundary, parses environment values before binding or processing work, rejects malformed/missing required values, and emits only a redacted configuration summary. `.env.example` may contain names and harmless local defaults only. Production-required secrets arrive from the deployment secret manager and never appear in logs, examples, tests, CI output or committed files.
+
+
+## Local S3 implementation supersession
+
+D-154/D-155 supersede the MinIO-specific local/test choice from D-142/D-148 after SPRYXEL-WO-005 preflight found the upstream community server archived and unsuitable as a new required dependency. The S3-compatible/provider-neutral contract itself is unchanged. SeaweedFS is the current local/test implementation direction; exact release, digest, image signature and license/security evidence are pinned by the recompiled IMP-001 preflight.

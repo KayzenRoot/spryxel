@@ -803,3 +803,18 @@ Source: SPRYXEL-WO-004, SPR-PLAN-007.
 Decision: After IMP-001, the default NECESSARY sequence is: (2) Identity/Tenancy security baseline; (3) Projects + canonical product shell/Home; (4) Asset Contract + durable Job backbone; (5) Credit Ledger + CostGuard authorization foundation; (6) Spryxel DNA + Asset core; (7) bounded local inference/Generate vertical slice; (8) QA/approval/version/export vertical slice. Each is a separate Work Order and may be recompiled if dependencies/evidence change. IMPORTANT/FUTURE modules do not jump the queue automatically.
 Status: APPROVED FOR PLANNING
 Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+
+## SPRYXEL-WO-005 preflight security supersession
+
+The following decisions respond to current external maintenance/security evidence discovered before any IMP-001 product dependency installation. They supersede only the named local/test implementation clauses. D-142 and D-148 remain preserved as historical approved planning records and are not rewritten.
+
+### D-154 — Local S3 development implementation supersession
+Decision: Preserve the private S3-compatible/provider-neutral storage abstraction, but do not use the archived MinIO community server as a new required Spryxel local/test dependency. SeaweedFS becomes the current local/test S3-compatible implementation direction. Recompiled SPRYXEL-IMP-001 must pin an exact maintained SeaweedFS release and immutable container digest after current registry, license, security and provenance preflight. Production object-storage provider remains replaceable and NOT FROZEN.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-005 preflight correction A, 2026-10-02. Supersedes only the MinIO-specific local/test clause of D-142.
+
+### D-155 — Local infrastructure profile security supersession
+Decision: The minimal local/test infrastructure profile is PostgreSQL, Redis and SeaweedFS S3-compatible storage. GPU/inference remains separate optional/off-by-default. Local infrastructure images must be exact-version/digest pinned, use current maintained upstreams, and verify available image-signature/provenance evidence during implementation preflight. A future local emulator replacement requires an explicit audited correction rather than silent substitution.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-005 preflight correction A, 2026-10-02. Supersedes only the MinIO-specific local-service clause of D-148.
