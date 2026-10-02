@@ -3,7 +3,7 @@
 Status: SOURCE_PACK_CANDIDATE
 
 ## Completed governance baseline
-`SPRYXEL-WO-001` is `APPROVED` and established:
+`SPRYXEL-WO-001` is `COMPLETE` and established:
 - Source Pack and executor navigation;
 - durable GEF validation on GitHub;
 - repository validation and pipeline-integrity CI;
@@ -11,7 +11,7 @@ Status: SOURCE_PACK_CANDIDATE
 - GitHub labels/templates/ownership/dependency-update configuration;
 - safe repository settings;
 - active `main` ruleset with only proven required contexts;
-- Evidence Bundle and audited checkpoint promotion.
+- Evidence Bundle, objective audit, canonical checkpoint promotion and post-merge validation.
 
 ## OUT OF SCOPE now
 - any Spryxel product feature or product architecture;
@@ -22,4 +22,4 @@ Status: SOURCE_PACK_CANDIDATE
 - history rewrite, force-push, destructive branch/tag/release operations.
 
 ## Next planning classification
-Product discovery/planning remains `IMPORTANT` and `NOT_ADMITTED` until the approved governance PR is merged, post-merge state is validated, and a new Work Order/Context Lock explicitly admits it.
+Product discovery/planning remains `IMPORTANT` and `NOT_ADMITTED`. It may now be compiled as a new bounded planning Work Order. Product implementation remains `FUTURE` until the relevant product Source Pack and Definition of Done admit it.

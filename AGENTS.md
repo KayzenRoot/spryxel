@@ -7,7 +7,7 @@ Read in order: `.engineering/CHECKPOINT.json`, Decisions Ledger/ADRs, Scope, Def
 Codex is the implementation/test/CI executor. Execute only an explicitly admitted Work Order and its current Context Lock. Inspect the exact base before mutation. Do not invent missing product decisions.
 
 ## Current execution
-`SPRYXEL-WO-001` is approved and has no remaining executor implementation. No product implementation Work Order is currently admitted. Product Discovery planning may be admitted only after the approved governance PR is merged and validated.
+`SPRYXEL-WO-001` is COMPLETE. No implementation Work Order is currently admitted. The next legal stage is Product Discovery planning, which requires a new Work Order and Context Lock.
 
 ## Safety
 No force-push, history rewrite, destructive GitHub mutation, visibility change or checkpoint self-promotion. Critical source/base drift makes an execution Context Lock STALE. Missing required permissions means BLOCKED, not weakened controls.

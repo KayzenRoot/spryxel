@@ -3,7 +3,9 @@
 Spryxel is governed by **GEF Bootstrap 1.1.1**.
 
 ## Current stage
-The GEF CLI is installed from npm and pinned exactly to `@gef-bootstrap/cli@1.1.1`. The repository/GitHub governance increment `SPRYXEL-WO-001` was objectively audited `APPROVED`; its checkpoint promotion is included in PR #3 and merge remains conditional on final required checks. Product definition and implementation have **not** started.
+The repository/GitHub governance bootstrap `SPRYXEL-WO-001` is **COMPLETE**. PR #3 was objectively audited, checkpoint-promoted, squash-merged to `main`, and all four required governance/security checks passed after merge. Product definition and implementation have **not** started.
+
+The next legal stage is Product Discovery planning under a new bounded Work Order and Context Lock.
 
 ## Canonical source order
 1. `.engineering/CHECKPOINT.json` and `.engineering/CHECKPOINT.md`

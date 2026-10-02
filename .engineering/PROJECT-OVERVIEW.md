@@ -9,14 +9,16 @@ Project name: **Spryxel**.
 The product mission, users, business model, feature set and product architecture are **TBD by owner decision**. They are intentionally not inferred from the governance bootstrap.
 
 ## Current objective
-Preserve the approved GEF Bootstrap 1.1.1 and GitHub governance baseline while preparing a separate Product Discovery planning increment.
+Begin bounded Product Discovery planning on top of the completed GEF Bootstrap 1.1.1 and GitHub governance baseline. Product implementation remains unadmitted.
 
 ## Current evidence
 - npm package is pinned to `@gef-bootstrap/cli@1.1.1`.
 - `.gef/init-state.json` records `productVersion: 1.1.1` and transaction outcome `APPLIED`.
-- `SPRYXEL-WO-001` was objectively audited `APPROVED` on execution head `db68f8aeb85beed2f8bbfba98fcc8fd562f7515b`.
+- `SPRYXEL-WO-001` is COMPLETE and was objectively audited `APPROVED`.
+- PR #3 merged as `main@1d1e5f04f9bc14742af0cbdc0eb8b4710d62506c`.
+- All four required governance/security checks passed after merge.
 - Ruleset `SPRYXEL main governance` ID `24340349` is the accepted `main` governance baseline.
 - No product implementation has been admitted.
 
 ## Increment state
-`SPRYXEL-WO-001` is approved. After its PR is safely merged and post-merge checks are validated, Product Discovery planning may be admitted as a new bounded increment.
+No implementation Work Order is active. Product Discovery planning is the next legal stage and requires a new bounded Work Order/Context Lock before execution.
