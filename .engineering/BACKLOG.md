@@ -46,3 +46,8 @@ The default later NECESSARY sequence is: (1) IMP-001 platform foundation; (2) id
 | Product implementation Work Orders | Not admitted until Source Pack audit/promotion and the relevant implementation Definition of Done. |
 
 The complete open-decision inventory remains in the seed and specialized documents. Do not close an open item by inference.
+
+
+## SPRYXEL-WO-004 completion
+
+SPRYXEL-WO-004 / SPR-PLAN-007 is COMPLETE: objectively audited, checkpoint-promoted, squash-merged and post-merge validated. `SPRYXEL-IMP-001 — Platform Foundation Bootstrap` is the next NECESSARY implementation slice but remains NOT_ADMITTED / NOT_EXECUTED until a new Work Order and Context Lock are created.

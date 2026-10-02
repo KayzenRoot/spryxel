@@ -7,7 +7,7 @@ Read in order: `.engineering/CHECKPOINT.json`, Decisions Ledger/ADRs, Scope, Def
 Codex executes only an explicitly admitted Work Order and its current Context Lock. Inspect the exact base before mutation. Do not invent missing product decisions or provider selections.
 
 ## Current execution
-`SPRYXEL-WO-004` is objectively APPROVED and its historical Context Lock is stale/closed after canonical promotion. No further executor action is authorized under it.
+`SPRYXEL-WO-004` is COMPLETE and its historical Context Lock is stale/closed.
 
 `SPRYXEL-IMP-001 — Platform Foundation Bootstrap` is the next legal implementation slice, but it is NOT_ADMITTED and NOT_EXECUTED until a new Work Order and Context Lock are created.
 
