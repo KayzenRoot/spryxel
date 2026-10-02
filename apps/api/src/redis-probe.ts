@@ -20,7 +20,8 @@ export async function probeRedis(redisUrl: string, timeoutMs = 2_000): Promise<v
 
   await new Promise<void>((resolve, reject) => {
     let settled = false;
-    let received = '';
+    let receiveBuffer = '';
+    const completedReplies: string[] = [];
     const socket: Socket = secure
       ? connectTls({ host: url.hostname, port, servername: url.hostname })
       : connectTcp({ host: url.hostname, port });
@@ -40,14 +41,19 @@ export async function probeRedis(redisUrl: string, timeoutMs = 2_000): Promise<v
       socket.write(commands.map(encodeCommand).join(''));
     });
     socket.on('data', (chunk) => {
-      received += chunk.toString('utf8');
-      const lines = received.split('\r\n').filter(Boolean);
-      if (lines.some((line) => line.startsWith('-'))) {
+      receiveBuffer += chunk.toString('utf8');
+      let lineEnd = receiveBuffer.indexOf('\r\n');
+      while (lineEnd !== -1) {
+        completedReplies.push(receiveBuffer.slice(0, lineEnd));
+        receiveBuffer = receiveBuffer.slice(lineEnd + 2);
+        lineEnd = receiveBuffer.indexOf('\r\n');
+      }
+      if (completedReplies.some((line) => line.startsWith('-'))) {
         finish(new Error('Redis readiness probe failed'));
         return;
       }
-      if (lines.length >= commands.length) {
-        const pingReply = lines[commands.length - 1];
+      if (completedReplies.length >= commands.length) {
+        const pingReply = completedReplies[commands.length - 1];
         finish(pingReply === '+PONG' ? undefined : new Error('Redis readiness probe failed'));
       }
     });

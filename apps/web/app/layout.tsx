@@ -8,7 +8,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" data-theme="dark">
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
+      <head>
+        <script id="spryxel-theme-bootstrap" src="/theme-bootstrap.js" />
+      </head>
       <body>{children}</body>
     </html>
   );

@@ -108,13 +108,25 @@ export async function getMigrationStatus(databaseUrl: string): Promise<Migration
   });
   try {
     const migrations = await loadMigrations();
+    const tableCheck = await pool.query<{ table_exists: boolean }>(
+      'SELECT to_regclass($1) IS NOT NULL AS table_exists',
+      [migrationTable],
+    );
+    if (!tableCheck.rows[0]?.table_exists) {
+      return migrations.map((migration) => ({
+        id: migration.id,
+        checksum: migration.checksum,
+        applied: false,
+      }));
+    }
+
     const result = await pool.query<{ id: string; checksum: string }>(
       `SELECT id, checksum FROM ${migrationTable}`,
     );
     const applied = new Map(result.rows.map((row) => [row.id, row.checksum]));
     return migrations.map((migration) => {
       const checksum = applied.get(migration.id);
-      if (checksum && checksum !== migration.checksum) {
+      if (checksum !== undefined && checksum !== migration.checksum) {
         throw new Error(`Migration checksum mismatch: ${migration.id}`);
       }
       return { id: migration.id, checksum: migration.checksum, applied: Boolean(checksum) };

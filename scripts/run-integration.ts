@@ -94,6 +94,14 @@ try {
     }),
   ]);
 
+  const pristineMigrationStatus = await getMigrationStatus(databaseUrl);
+  if (
+    pristineMigrationStatus.length !== 1 ||
+    pristineMigrationStatus.some((migration) => migration.applied)
+  ) {
+    throw new Error('Pristine PostgreSQL did not report all migrations as unapplied');
+  }
+
   const migrationStatus = await runMigrations(databaseUrl);
   if (migrationStatus.length !== 1 || !migrationStatus[0]?.applied) {
     throw new Error('Disposable PostgreSQL migration did not apply the single technical migration');
@@ -142,7 +150,9 @@ try {
   }
   await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
 
-  await new BullMqTechnicalQueueProbe(redisUrl).ping();
+  const queueProbe = new BullMqTechnicalQueueProbe(redisUrl);
+  await queueProbe.ping();
+  await queueProbe.ping();
 
   const apiPort = await availablePort();
   const api = await startApi(apiPort);
@@ -196,6 +206,9 @@ try {
 if (primaryError) throw new Error(redact(String(primaryError), allSecrets));
 process.stdout.write(
   'Real-service integration: PASS (Drizzle/PostgreSQL migration + idempotency, authenticated Redis/BullMQ round-trip, authenticated SeaweedFS S3 put/get/delete and anonymous denial, API health/readiness).\n',
+);
+process.stdout.write(
+  'Migration/queue regressions: PASS (pristine PostgreSQL reports unapplied; two BullMQ probes leave no disposable queue keys).\n',
 );
 process.stdout.write('Disposable Compose teardown: PASS (containers and named volumes removed).\n');
 

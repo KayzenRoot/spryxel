@@ -4,8 +4,28 @@ import { extname, join, resolve } from 'node:path';
 
 const root = process.cwd();
 const packageDirectories = ['apps', 'packages'];
+const generatedDirectoryNames = new Set([
+  '.cache',
+  '.git',
+  '.next',
+  '.output',
+  '.turbo',
+  '.vercel',
+  'blob-report',
+  'build',
+  'coverage',
+  'dist',
+  'generated',
+  'node_modules',
+  'out',
+  'playwright-report',
+  'storybook-static',
+  'test-results',
+  'vendor',
+]);
 const workspaces = new Map<string, { path: string; manifest: Record<string, unknown> }>();
 const violations: string[] = [];
+const sourceFilesByWorkspace = new Map<string, string[]>();
 
 for (const directory of packageDirectories) {
   for (const entry of await readdir(resolve(root, directory), { withFileTypes: true })) {
@@ -99,7 +119,9 @@ const forbiddenByWorkspace: Record<string, RegExp[]> = {
 
 for (const [name, workspace] of workspaces) {
   const patterns = forbiddenByWorkspace[name] ?? [];
-  for (const file of await sourceFiles(resolve(root, workspace.path, 'src'))) {
+  const files = await sourceFiles(resolve(root, workspace.path));
+  sourceFilesByWorkspace.set(name, files);
+  for (const file of files) {
     const source = await readFile(file, 'utf8');
     const relative = file.slice(root.length + 1).replaceAll('\\', '/');
     if (/['"]@spryxel\/[^'"]+\/(?:src|dist)\//.test(source)) {
@@ -167,6 +189,13 @@ if (violations.length > 0) {
   process.stderr.write(`${violations.map((item) => `- ${item}`).join('\n')}\n`);
   process.exitCode = 1;
 } else {
+  const webAppSources = (sourceFilesByWorkspace.get('@spryxel/web') ?? []).filter((file) =>
+    file
+      .slice(root.length + 1)
+      .replaceAll('\\', '/')
+      .startsWith('apps/web/app/'),
+  );
+  process.stdout.write(`Scanned @spryxel/web app source files: ${webAppSources.length}.\n`);
   process.stdout.write(
     `Architecture boundaries: PASS (${workspaces.size} workspaces, ${[...graph.values()].flat().length} internal edges, no cycles, private deep imports, forbidden persistence/provider imports, or product migrations).\n`,
   );
@@ -181,9 +210,10 @@ async function sourceFiles(directory: string): Promise<string[]> {
   }
   const files: string[] = [];
   for (const entry of entries) {
+    if (entry.isDirectory() && generatedDirectoryNames.has(entry.name)) continue;
     const path = join(directory, entry.name);
     if (entry.isDirectory()) files.push(...(await sourceFiles(path)));
-    else if (/\.(?:ts|tsx|js|mjs|sql)$/.test(entry.name)) files.push(path);
+    else if (/\.(?:[cm]?[jt]sx?|sql)$/.test(entry.name)) files.push(path);
   }
   return files;
 }

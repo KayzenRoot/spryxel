@@ -4,6 +4,47 @@
 
 **Data:** 2026-10-02
 
+## Correction Delta 01 — reauditoria
+
+Esta seção atualiza e, para C-01, **substitui explicitamente** a afirmação anterior de que `architecture:check` já cobria o App Router. A correção começou no HEAD exato `a3dd49d720a18e5e415eaa51c1ff686f8df7d76d`; base mantida em `main@31e6aec13bcc427ec8449d68da1a420979488b06`. Context Lock R2 permaneceu `FRESH`; os 24 fingerprints críticos e D-001…D-155 foram reconferidos. O diff limita-se aos oito findings C-01…C-08, regressions, harness de integração e esta evidência. Nenhuma alteração foi feita em decisões, checkpoint, `.gef`, GEF, dependências/manifests, workflows, ruleset/provider ou source seed.
+
+### Findings e regressions
+
+- **C-01:** o architecture checker percorre a árvore fonte inteira de cada workspace e exclui diretórios gerados/vendor. `scripts/check-architecture.test.ts` injeta import proibido em `apps/web/app/page.tsx` e confirma a falha; a execução real reportou `Scanned @spryxel/web app source files: 4` e PASS para 10 workspaces/11 arestas, sem ciclos.
+- **C-02:** o parser RESP separa linhas completas do fragmento TCP pendente. `apps/api/src/redis-probe.test.ts` fragmenta respostas autenticadas `+OK`/`+PONG` entre eventos e confirma o round-trip.
+- **C-03:** o probe BullMQ aplica um deadline único a readiness, add, conclusão e limpeza; o timeout força a desconexão dos clientes Redis/BullMQ próprios. `apps/worker/src/queue-probe.test.ts` prova retorno dentro do limite e fechamento dos sockets contra um servidor Redis que nunca responde.
+- **C-04:** a limpeza encerra Worker e QueueEvents, executa `obliterate({force:true})` com a conexão da Queue disponível e verifica ausência de chaves antes de fechar Queue/conexões; falhas de limpeza não escondem a falha original. A integração repete o probe duas vezes contra Redis real e termina sem chaves do namespace técnico.
+- **C-05:** `getMigrationStatus` reconhece a ausência da tabela e retorna migrations não aplicadas, mantendo a comparação de checksum quando a tabela existe. A integração PostgreSQL consulta o banco descartável pristine antes da primeira migration e verifica `applied=false`.
+- **C-06:** o tema salvo/preferido é aplicado por um script estático local, síncrono e sem código inline, colocado no `<head>` antes do primeiro quadro. Playwright verifica tema persistido após reload, fallback `prefers-color-scheme` no primeiro frame e ausência de warnings de hidratação.
+- **C-07:** leituras/escritas de localStorage são protegidas; DOM e estado React atualizam mesmo se o browser lança `SecurityError`. Playwright confirma que o toggle continua funcional sem persistência.
+- **C-08:** o fechamento da API captura rejeição, registra somente erro estruturado sanitizado e retorna exit code não zero. `apps/api/src/shutdown.test.ts` cobre falha, ausência de vazamento da mensagem e fechamento normal.
+
+### Suíte e ambiente da correção
+
+A admissão/preflight anterior à instalação permanece conforme a seção acima (Node 22/npm 10). A execução local desta revalidação ocorreu no runtime disponível do host, Node `24.19.0` / npm `11.17.0`; não houve instalação ou alteração de dependências nesta correção. O candidato foi validado assim:
+
+| Comando | Resultado observado |
+| --- | --- |
+| `npm run format:check` | PASS, 71 arquivos |
+| `npm run lint` | PASS, 71 arquivos, nenhum finding |
+| `npm run typecheck` | PASS, 16/16 tarefas Turbo |
+| `npm run build` | PASS, 10/10 workspaces; Next build e prerender PASS |
+| `npm run architecture:check` | PASS; inclui 4 arquivos `apps/web/app`, 10 workspaces e 11 arestas internas |
+| `npm run test:unit` | PASS, 12 arquivos e 22 testes |
+| `npm run test:worker` | PASS em processo Node separado; zero product consumers |
+| `npm run test:integration` | PASS com PostgreSQL/Redis/SeaweedFS reais em Compose descartável; pristine migration status, migration/idempotência, S3 autenticado e anônimo negado, dois probes BullMQ sem chaves, API health/readiness e teardown |
+| `npm run test:browser` | PASS, 4/4; primeiro frame, reload, preferência do sistema, sem warnings de hidratação, storage bloqueado e shell/teclado |
+| `npm test` | PASS agregado: unit, worker, integração e browser |
+| `npm audit --audit-level=high` | PASS, `found 0 vulnerabilities` |
+| `git diff --check` | PASS, sem erro de whitespace |
+| GEF 1.1.1 `doctor` / `status` | Leitura `effect=NONE`; estado pós-diff documentado abaixo. `.gef` e checkpoint não foram reconciliados nem escritos. |
+
+O `architecture:check` antigo do HEAD auditado está supersedido: a evidência atual prova a fixture de falha sob `apps/web/app` e a varredura real de quatro arquivos. O HEAD final, IDs/URLs dos quatro required checks no SHA exato e estado das review threads serão registrados na descrição atualizada da PR #20 após publicação; checks de SHAs anteriores não serão reutilizados.
+
+### Estado GEF observado na revalidação
+
+`gef doctor` terminou com sucesso read-only e toolchain/repositório observáveis saudáveis; proveniência de dependências/GitHub continua em `REVIEW`, sem remediação. `gef status` terminou como leitura e reportou árvore `DIRTY`, `operator.stale=true` e drift `UNEXPECTED`, compatíveis com execução ainda não incorporada/promovida contra checkpoint de WO-004. Isso supersede a classificação `BLOCKED/MISSING_HEAD` registrada no relato histórico abaixo. Nenhuma linha de base `.gef` ou checkpoint foi alterada.
+
 ## Identificação e autoridade
 
 - Repositório: `KayzenRoot/spryxel`.

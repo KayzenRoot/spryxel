@@ -1,4 +1,5 @@
 import { buildApiServer, readApiConfig } from './server.js';
+import { closeApiSafely } from './shutdown.js';
 
 const config = readApiConfig();
 const app = buildApiServer(config);
@@ -11,8 +12,12 @@ try {
 }
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
-  process.once(signal, async () => {
-    await app.close();
-    process.exitCode = 0;
+  process.once(signal, () => {
+    void closeApiSafely(
+      () => app.close(),
+      (fields, message) => app.log.error(fields, message),
+    ).then((exitCode) => {
+      process.exitCode = exitCode;
+    });
   });
 }
