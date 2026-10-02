@@ -3,6 +3,8 @@
 Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
 These are planning entities and invariants, not implemented database tables or a frozen physical schema.
 
+SPR-PLAN-007 records physical conventions only: PostgreSQL + Drizzle-compatible access with checked-in SQL migrations, snake_case names, UTC `timestamptz`, UUIDv7-compatible durable IDs, integer/fixed-precision authoritative amounts, explicit null/soft-delete semantics, immutable posted ledger entries and application authorization plus RLS where applicable. See [PHYSICAL-DATA-CONVENTIONS.md](PHYSICAL-DATA-CONVENTIONS.md). Table inventory, field catalog and per-domain physical schema remain open; this plan creates no product tables or migrations.
+
 ## Canonical durable state
 
 PostgreSQL is canonical for users, projects, assets, jobs, and ledger state. Queue/provider state is transient. RLS plus application authorization protects tenant boundaries. Object storage is private and addressable only through authorized project access and short-lived signed URLs.

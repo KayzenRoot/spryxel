@@ -93,3 +93,11 @@ Before public promotional GPU generation, test every SPR-PLAN-005 acceptance ite
 This Work Order requires seed fingerprint verification, deterministic decision extraction/duplicate detection, exact-one primary decision ownership with supporting cross-references, JSON/YAML/Markdown structure checks, V1 scope consistency, pricing-freeze and implementation-claim guards, npm/GEF/doctor/deterministic-status checks, git diff --check, and all four required GitHub checks on the exact final PR head.
 
 No benchmark was run under WO-002. Required checks for the final candidate are Repository validation, Pipeline integrity, Gitleaks secrets, and Trivy filesystem and configuration.
+
+## Product foundation test contract — SPR-PLAN-007 candidate
+
+The planned TypeScript/Node.js 22-compatible npm-workspace test stack separates Vitest-compatible unit tests, disposable real-service integration tests and Playwright-compatible browser tests when critical Next.js/React flows exist. Fastify/API tests cover health/readiness and safe boundary behavior. Integration tests use real isolated PostgreSQL through Drizzle-compatible migrations, Redis/BullMQ-compatible coordination and S3-compatible storage via a MinIO-compatible service through a dedicated Docker test profile. Pino-compatible redacted JSON logs and OpenTelemetry-compatible correlation/telemetry are checked at process boundaries. Financial, tenant-isolation, migration and idempotency invariants cannot be qualified by mocks alone. Provider/test-service versions are pinned during implementation preflight; this Work Order runs no product test suite or benchmark.
+
+The first implementation slice must cover workspace graph/cycle and forbidden-import rules; typed-config startup fail-closed and redaction; API health/readiness; migration application against disposable PostgreSQL without startup auto-migration; real service health/cleanup; structured logging/correlation; and web-shell smoke/accessibility. Later Work Orders add invariant-specific integration and browser coverage as flows exist. The full IMP-001 executor-ready acceptance and evidence list is in [FIRST-IMPLEMENTATION-SLICE.md](FIRST-IMPLEMENTATION-SLICE.md).
+
+No AI/model benchmark, production COGS measurement, quality qualification or performance claim is established by this planning increment. Status remains NOT_RUN / NOT_AVAILABLE.

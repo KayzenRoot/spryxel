@@ -26,3 +26,9 @@ Keep deployment adapters replaceable. Candidate providers, current planning pric
 SPRYXEL-WO-001 established active main ruleset ID 24340349 and the existing four required checks. WO-002 performs read-only validation only; it does not mutate provider settings, ruleset, visibility, GEF, or .gef.
 
 For future provider changes, preserve before/after snapshots and read-back evidence. Recover only under a separately authorized action. Do not rewrite Git history or weaken required security/governance checks as an ad hoc workaround.
+
+## Product runtime planning — SPR-PLAN-007 candidate
+
+The planned product processes use TypeScript on Node.js 22 LTS-compatible runtime: Next.js web presentation, Fastify control-plane API and a separate Node worker. Core local infrastructure is a bounded Docker Compose `infra` profile for PostgreSQL, Redis and MinIO-compatible storage. Web/API/worker may run on the host for fast HMR or in containers when parity is required. A separate `test` profile uses disposable real services; GPU/inference is an optional profile, off by default. The resource baseline remains 24 GB RAM / 8 GB VRAM.
+
+This is a development plan, not a deployment manifest or provider procurement. No Compose/runtime file is created by SPRYXEL-WO-004. Production hosting, PostgreSQL/Redis service, S3 provider, telemetry exporter, auth/billing/GPU providers and exact image/package versions remain open for compatibility, security, terms and cost preflight. See [LOCAL-DEVELOPMENT.md](LOCAL-DEVELOPMENT.md).
