@@ -88,3 +88,8 @@ SPRYXEL-WO-003 objectively approved the product UX, design-system and informatio
 ## SPR-PLAN-007 completion
 
 SPRYXEL-WO-004 completed implementation-architecture planning. D-123…D-153 and the SPRYXEL-IMP-001 specification are canonical planning after objective audit; IMP-001 was not executed. Pricing stays NOT_FROZEN; benchmarks/COGS stay NOT_RUN / NOT_AVAILABLE.
+
+
+## WO-004 completion
+
+`SPRYXEL-WO-004 / SPR-PLAN-007` is COMPLETE: the implementation-planning baseline was objectively audited, promoted, squash-merged and post-merge validated on `main@b3226fdff9a53ba5dbe1b7e30b1783cbc897b60a`. Product implementation remains NOT_STARTED. The next legal implementation slice is `SPRYXEL-IMP-001` under a new Work Order/Context Lock.

@@ -91,3 +91,16 @@ STOP CONDITION do executor: `SPRYXEL_WO_004_IMPLEMENTATION_ARCHITECTURE_READY_FO
 ## Handoff de promoção
 
 A promoção do checkpoint e dos documentos canônicos ocorre depois deste veredito APPROVED. Como fontes críticas mudam por ação autorizada do auditor, o Context Lock histórico de SPRYXEL-WO-004 passa a `STALE` por encerramento e não pode ser reutilizado. Merge permanece condicionado aos quatro required checks no head de promoção e zero review thread aberta.
+
+
+## Merge e validação pós-merge
+
+- PR #14 squash-merged em `main@b3226fdff9a53ba5dbe1b7e30b1783cbc897b60a`.
+- Pós-merge no commit real de `main`:
+  - Repository validation: PASS, check `110856008793`;
+  - Pipeline integrity: PASS, check `110856008855`;
+  - Gitleaks secrets: PASS, check `110856008008`;
+  - Trivy filesystem and configuration: PASS, check `110856008293`.
+- Ruleset `24340349` permaneceu ativo, main-only e sem bypass.
+- Resultado final do Work Order: `COMPLETE`.
+- Próximo incremento legal: novo Work Order/Context Lock para `SPRYXEL-IMP-001`.
