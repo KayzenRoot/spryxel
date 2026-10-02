@@ -63,7 +63,7 @@ Completed in the seed:
 - SPR-PLAN-004 — Credit Economics, Pricing Safety & Financial Simulation — APPROVED / COMPLETED IN MASTER v0.5.0.
 - SPR-PLAN-005 — Security, TrustShield, Abuse Graph & Account/Payment Risk Architecture — APPROVED / COMPLETED IN MASTER v0.6.0.
 
-SPR-PLAN-006 — Product UX, Design System & Information Architecture — is complete and canonical through SPRYXEL-WO-003. SPR-PLAN-007 — Implementation Architecture & Bootstrap Sequence — is the admitted planning increment under SPRYXEL-WO-004 and remains a candidate pending audit/promotion. Product implementation remains NOT_STARTED.
+SPR-PLAN-006 — Product UX, Design System & Information Architecture — is complete and canonical through SPRYXEL-WO-003. SPR-PLAN-007 — Implementation Architecture & Bootstrap Sequence — is objectively approved and canonical through SPRYXEL-WO-004. Product implementation remains NOT_STARTED.
 
 ## Open decisions and release gates
 
@@ -85,6 +85,6 @@ SPRYXEL-WO-003 objectively approved the product UX, design-system and informatio
 
 `SPRYXEL-WO-003` is COMPLETE: SPR-PLAN-006 was objectively audited, promoted, squash-merged, and post-merge validated on `main@5614aabe4ac115dc94465ae477032256e8018219`. Product implementation remains NOT_STARTED; the next legal action is a separate implementation-planning Work Order.
 
-## SPR-PLAN-007 candidate
+## SPR-PLAN-007 completion
 
-SPRYXEL-WO-004 admits implementation-architecture planning only. The candidate records D-123…D-153 and specifies SPRYXEL-IMP-001 without executing it. Until objective audit and authorized checkpoint promotion, this candidate does not change canonical checkpoint state or admit product code. Pricing stays NOT_FROZEN; benchmarks/COGS stay NOT_RUN / NOT_AVAILABLE.
+SPRYXEL-WO-004 completed implementation-architecture planning. D-123…D-153 and the SPRYXEL-IMP-001 specification are canonical planning after objective audit; IMP-001 was not executed. Pricing stays NOT_FROZEN; benchmarks/COGS stay NOT_RUN / NOT_AVAILABLE.

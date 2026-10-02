@@ -94,7 +94,7 @@ This Work Order requires seed fingerprint verification, deterministic decision e
 
 No benchmark was run under WO-002. Required checks for the final candidate are Repository validation, Pipeline integrity, Gitleaks secrets, and Trivy filesystem and configuration.
 
-## Product foundation test contract — SPR-PLAN-007 candidate
+## Product foundation test contract — SPR-PLAN-007 canonical
 
 The planned TypeScript/Node.js 22-compatible npm-workspace test stack separates Vitest-compatible unit tests, disposable real-service integration tests and Playwright-compatible browser tests when critical Next.js/React flows exist. Fastify/API tests cover health/readiness and safe boundary behavior. Integration tests use real isolated PostgreSQL through Drizzle-compatible migrations, Redis/BullMQ-compatible coordination and S3-compatible storage via a MinIO-compatible service through a dedicated Docker test profile. Pino-compatible redacted JSON logs and OpenTelemetry-compatible correlation/telemetry are checked at process boundaries. Financial, tenant-isolation, migration and idempotency invariants cannot be qualified by mocks alone. Provider/test-service versions are pinned during implementation preflight; this Work Order runs no product test suite or benchmark.
 

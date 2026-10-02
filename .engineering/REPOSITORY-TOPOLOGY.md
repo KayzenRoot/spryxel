@@ -1,6 +1,6 @@
 # Repository Topology
 
-Status: CANDIDATE — SPRYXEL-WO-004 / SPR-PLAN-007; pending objective audit and checkpoint promotion.
+Status: CANONICAL — SPRYXEL-WO-004 / SPR-PLAN-007 approved by objective audit.
 
 This tree is a future product layout contract, not a set of directories created by SPRYXEL-WO-004. The repository remains governance/documentation-only until a separate implementation Work Order.
 

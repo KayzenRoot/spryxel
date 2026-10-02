@@ -1,6 +1,6 @@
 # Implementation Sequence
 
-Status: CANDIDATE — SPRYXEL-WO-004 / SPR-PLAN-007; pending objective audit and checkpoint promotion.
+Status: CANONICAL — SPRYXEL-WO-004 / SPR-PLAN-007 approved by objective audit.
 
 This is the default NECESSARY dependency sequence approved for planning by D-153. Each numbered increment remains its own Work Order with a current Context Lock, exact base and acceptance/evidence contract. Recompile the order if source evidence or dependencies change. IMPORTANT/FUTURE modules do not jump this queue automatically.
 

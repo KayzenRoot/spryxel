@@ -1,6 +1,6 @@
 # SPRYXEL-WO-004 — Proposed Checkpoint Delta
 
-Status: PROPOSTA — não aplicar pelo executor. A auditoria objetiva e a promoção autorizada são pré-condições.
+Status: ACCEPTED_BY_AUDITOR; PROMOTED_IN_CANONICAL_CHECKPOINT.
 
 ## Preconditions
 
@@ -24,3 +24,16 @@ Status: PROPOSTA — não aplicar pelo executor. A auditoria objetiva e a promo�
 - Não editar o histórico de aceitação de versões congeladas.
 
 O checkpoint atual continua sendo a autoridade até que uma promoção separada, aprovada e baseada em evidência pós-merge seja feita.
+
+
+## Resultado da auditoria
+
+A proposta foi aceita após auditoria objetiva `APPROVED` do head `3a2c7015a90321ad6adc053c3984a3ee2461a770`.
+
+A promoção canônica:
+- registra planejamento concluído através de `SPR-PLAN-007`;
+- torna D-123…D-153 e os documentos de implementation architecture parte do Source Pack canônico;
+- mantém `productImplementation=NOT_STARTED`, pricing `NOT_FROZEN` e benchmarks/COGS `NOT_RUN / NOT_AVAILABLE`;
+- registra `SPRYXEL-IMP-001 — Platform Foundation Bootstrap` como próximo incremento de implementação NECESSARY, especificado porém NOT ADMITTED/NOT EXECUTED;
+- mantém auth/billing/GPU/model/produção-storage providers e versões exatas deliberadamente abertos até preflight do incremento que os exigir;
+- encerra o Context Lock histórico como `STALE` por promoção.

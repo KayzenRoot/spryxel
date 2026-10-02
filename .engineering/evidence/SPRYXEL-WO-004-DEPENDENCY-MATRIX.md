@@ -1,6 +1,6 @@
 # SPRYXEL-WO-004 — Matriz de dependências e escolhas em aberto
 
-Status: CANDIDATE — SPR-PLAN-007; documento de planejamento, pendente de auditoria objetiva.
+Status: CANONICAL PLANNING EVIDENCE — SPR-PLAN-007 approved by objective audit.
 
 ## Matriz de fronteiras
 
@@ -65,3 +65,7 @@ Regras executáveis no futuro workspace: sem ciclos; imports proibidos conforme 
 - Catálogo de endpoint, OAuth scopes/metadata, CLI/MCP catalog, IDs específicos de domínio, paginação, retenção, schema físico e política por endpoint.
 
 Nenhuma escolha aberta é resolvida por inferência, disponibilidade de pacote, recomendação de fornecedor ou necessidade de check verde.
+
+## Auditoria
+
+Matriz de fronteiras, grafo acíclico planejado e escolhas deliberadamente abertas foram confirmados no head `3a2c7015a90321ad6adc053c3984a3ee2461a770`.

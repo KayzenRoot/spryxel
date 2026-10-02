@@ -1,6 +1,6 @@
 # Decisions Ledger
 
-Status: CANONICAL through SPR-PLAN-006 / D-001…D-122; SPR-PLAN-007 D-123…D-153 are a candidate pending objective audit and checkpoint promotion.
+Status: CANONICAL through SPR-PLAN-007 / D-001…D-153 after objective audit of SPRYXEL-WO-004.
 
 ## D-0001 — GEF version
 Use `@gef-bootstrap/cli@1.1.1` exactly. Upgrade requires a future Work Order.
@@ -645,9 +645,9 @@ Source: SPRYXEL-WO-003, SPR-PLAN-006.
 SPR-PLAN-001 — APPROVED / COMPLETED IN MASTER v0.2.0; SPR-PLAN-002 — APPROVED / COMPLETED IN MASTER v0.3.0; SPR-PLAN-003 — APPROVED / COMPLETED IN MASTER v0.4.0; SPR-SPECIAL-001 — APPROVED / ADDED IN MASTER v0.4.1; SPR-SPECIAL-002 — APPROVED / COMPLETED IN MASTER v0.4.2; SPR-PLAN-004 — APPROVED / COMPLETED IN MASTER v0.5.0; SPR-PLAN-005 — APPROVED / COMPLETED IN MASTER v0.6.0.
 SPR-PLAN-006 — APPROVED / COMPLETED by SPRYXEL-WO-003 after objective audit; product implementation remains NOT_STARTED.
 
-## SPR-PLAN-007 implementation-planning decisions — candidate for audit
+## SPR-PLAN-007 implementation-planning decisions — canonical
 
-The following Work Order decisions define the implementation foundation only. They are recorded for the SPRYXEL-WO-004 audit candidate; they do not admit implementation. Decisions D-001…D-122 above are preserved unchanged.
+The following Work Order decisions define the implementation foundation only. They were objectively audited and promoted by SPRYXEL-WO-004; they do not admit implementation. Decisions D-001…D-122 above remain preserved unchanged.
 
 ### D-123 — Primary implementation language/runtime
 Decision: Product control-plane, web and worker code use TypeScript on Node.js 22 LTS-compatible runtime. Python remains permitted only inside inference/model tooling where a model/runtime requires it; Python does not own product business invariants.

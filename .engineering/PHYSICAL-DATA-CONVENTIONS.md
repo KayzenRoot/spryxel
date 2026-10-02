@@ -1,6 +1,6 @@
 # Physical Data Conventions
 
-Status: CANDIDATE — SPRYXEL-WO-004 / SPR-PLAN-007; pending objective audit and checkpoint promotion.
+Status: CANONICAL — SPRYXEL-WO-004 / SPR-PLAN-007 approved by objective audit.
 
 These conventions govern later physical schemas; they do not define or create product tables. The conceptual entities and financial/security invariants in [DATA-MODEL.md](DATA-MODEL.md), [BILLING-ECONOMICS.md](BILLING-ECONOMICS.md) and [SECURITY.md](SECURITY.md) remain authoritative. Exact table inventory and per-entity nullable/retention/deletion semantics require implementation-specific review.
 

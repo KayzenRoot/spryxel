@@ -1,6 +1,6 @@
 # API Foundation Contract
 
-Status: CANDIDATE — SPRYXEL-WO-004 / SPR-PLAN-007; pending objective audit and checkpoint promotion.
+Status: CANONICAL — SPRYXEL-WO-004 / SPR-PLAN-007 approved by objective audit.
 
 This contract defines the transport and boundary rules needed for the initial platform foundation. It does not freeze the product endpoint catalog or implement endpoints. Existing [API-CONTRACTS.md](API-CONTRACTS.md) remains the owner of product-surface authorization, budgets, MCP/API principles and safety behavior.
 

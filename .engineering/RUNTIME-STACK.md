@@ -1,6 +1,6 @@
 # Runtime Stack
 
-Status: CANDIDATE — SPRYXEL-WO-004 / SPR-PLAN-007; pending objective audit and checkpoint promotion.
+Status: CANONICAL — SPRYXEL-WO-004 / SPR-PLAN-007 approved by objective audit.
 
 This is the compatibility-level stack contract. Exact package versions and registry availability are intentionally established by implementation preflight, not guessed here. No dependency was installed for this plan.
 

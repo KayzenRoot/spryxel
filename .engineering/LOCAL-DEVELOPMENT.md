@@ -1,6 +1,6 @@
 # Local Development Contract
 
-Status: CANDIDATE — SPRYXEL-WO-004 / SPR-PLAN-007; pending objective audit and checkpoint promotion.
+Status: CANONICAL — SPRYXEL-WO-004 / SPR-PLAN-007 approved by objective audit.
 
 This document plans local infrastructure profiles; no Docker/Compose runtime file is created by SPRYXEL-WO-004. The resource baseline is 24 GB system RAM and RTX 5050 with 8 GB VRAM. Core control-plane work must not require a GPU or a paid external service.
 

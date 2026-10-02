@@ -118,6 +118,6 @@ Owner/Admin security and economics surfaces are separated from creative navigati
 
 API/MCP credential setup must disclose scope, project binding, expiry, last use, bounded budgets, allowed SKUs/profiles, risk class, one-time secret reveal and revocation before enabling credentials or cost-incurring automation. The screen contract does not establish endpoint details or change stored security signals, retention, rules or provider decisions.
 
-## Implementation identity boundary — SPR-PLAN-007 candidate
+## Implementation identity boundary — SPR-PLAN-007 canonical
 
 The foundation runtime represents identity/session through an application adapter only. Auth provider selection, production auth/session implementation and identity/tenant tables are intentionally deferred to the separate Identity/Tenancy security Work Order. IMP-001 health endpoints do not fabricate authenticated users or imply tenant data exists. On the first tenant-owned table, application authorization and PostgreSQL RLS are both required where applicable; cross-tenant integration tests are required before downstream product slices depend on the boundary. This planning note does not change Security decisions, providers or implementation status.

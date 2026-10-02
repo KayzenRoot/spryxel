@@ -3,7 +3,7 @@
   "kind": "spryxel.context-lock",
   "workOrderId": "SPRYXEL-WO-004",
   "planningIncrement": "SPR-PLAN-007",
-  "status": "FRESH",
+  "status": "STALE",
   "repository": "KayzenRoot/spryxel",
   "authorizedBranch": "codex/spryxel-wo-004-implementation-planning",
   "executionBase": {
@@ -34,110 +34,110 @@
   },
   "criticalBaseSources": [
     {
-        "path": ".engineering/API-CONTRACTS.md",
-        "gitBlobSha": "fe77b017f73ef4389e9d0d5c9b5454d1251c2564"
+      "path": ".engineering/API-CONTRACTS.md",
+      "gitBlobSha": "fe77b017f73ef4389e9d0d5c9b5454d1251c2564"
     },
     {
-        "path": ".engineering/ARCHITECTURE.md",
-        "gitBlobSha": "4f3be272c300a3ab0842e00a355c0af5c9664ae8"
+      "path": ".engineering/ARCHITECTURE.md",
+      "gitBlobSha": "4f3be272c300a3ab0842e00a355c0af5c9664ae8"
     },
     {
-        "path": ".engineering/BACKLOG.md",
-        "gitBlobSha": "687d34e7b471e9f9982754877cfa3a7f3e2a3794"
+      "path": ".engineering/BACKLOG.md",
+      "gitBlobSha": "687d34e7b471e9f9982754877cfa3a7f3e2a3794"
     },
     {
-        "path": ".engineering/BILLING-ECONOMICS.md",
-        "gitBlobSha": "d4a052e7346b6c6fec396905776672409565cd48"
+      "path": ".engineering/BILLING-ECONOMICS.md",
+      "gitBlobSha": "d4a052e7346b6c6fec396905776672409565cd48"
     },
     {
-        "path": ".engineering/CHECKPOINT.json",
-        "gitBlobSha": "c7c4e4f13928eda831780fd009fab1da6c881752"
+      "path": ".engineering/CHECKPOINT.json",
+      "gitBlobSha": "c7c4e4f13928eda831780fd009fab1da6c881752"
     },
     {
-        "path": ".engineering/CHECKPOINT.md",
-        "gitBlobSha": "b45877ded2f6e29f44ad32387cd578eca5291e85"
+      "path": ".engineering/CHECKPOINT.md",
+      "gitBlobSha": "b45877ded2f6e29f44ad32387cd578eca5291e85"
     },
     {
-        "path": ".engineering/DATA-MODEL.md",
-        "gitBlobSha": "592cee7c615a0130794fd7b92e5db450e86d9feb"
+      "path": ".engineering/DATA-MODEL.md",
+      "gitBlobSha": "592cee7c615a0130794fd7b92e5db450e86d9feb"
     },
     {
-        "path": ".engineering/DECISIONS-LEDGER.md",
-        "gitBlobSha": "5a54ec65a6ad4a57ad95b8c514996dcda9749e48"
+      "path": ".engineering/DECISIONS-LEDGER.md",
+      "gitBlobSha": "5a54ec65a6ad4a57ad95b8c514996dcda9749e48"
     },
     {
-        "path": ".engineering/DEFINITION-OF-DONE.md",
-        "gitBlobSha": "c34671657f847fbc2816bb048b3b1afbce72c0fb"
+      "path": ".engineering/DEFINITION-OF-DONE.md",
+      "gitBlobSha": "c34671657f847fbc2816bb048b3b1afbce72c0fb"
     },
     {
-        "path": ".engineering/DEPLOYMENT.md",
-        "gitBlobSha": "6d446333353de9c609ba2db83b6a10d10788e3ff"
+      "path": ".engineering/DEPLOYMENT.md",
+      "gitBlobSha": "6d446333353de9c609ba2db83b6a10d10788e3ff"
     },
     {
-        "path": ".engineering/INFORMATION-ARCHITECTURE.md",
-        "gitBlobSha": "46910820cec93d14ccd0a2f072cc7a8720efc5a6"
+      "path": ".engineering/INFORMATION-ARCHITECTURE.md",
+      "gitBlobSha": "46910820cec93d14ccd0a2f072cc7a8720efc5a6"
     },
     {
-        "path": ".engineering/INTEGRATION-CONTRACTS.md",
-        "gitBlobSha": "a4f3b552b74e2d65e6ecf9e4640bdcd4f903fedb"
+      "path": ".engineering/INTEGRATION-CONTRACTS.md",
+      "gitBlobSha": "a4f3b552b74e2d65e6ecf9e4640bdcd4f903fedb"
     },
     {
-        "path": ".engineering/MODEL-INFERENCE-STRATEGY.md",
-        "gitBlobSha": "f38178b87f7941506e6e1cd4dca9b06aed36f2d0"
+      "path": ".engineering/MODEL-INFERENCE-STRATEGY.md",
+      "gitBlobSha": "f38178b87f7941506e6e1cd4dca9b06aed36f2d0"
     },
     {
-        "path": ".engineering/PROJECT-OVERVIEW.md",
-        "gitBlobSha": "e605755d11075b3fc93aefe4ed4ffeaeba3e9b18"
+      "path": ".engineering/PROJECT-OVERVIEW.md",
+      "gitBlobSha": "e605755d11075b3fc93aefe4ed4ffeaeba3e9b18"
     },
     {
-        "path": ".engineering/REQUIREMENTS.md",
-        "gitBlobSha": "8f513481065b263a18818e10551c6d381c0e23a4"
+      "path": ".engineering/REQUIREMENTS.md",
+      "gitBlobSha": "8f513481065b263a18818e10551c6d381c0e23a4"
     },
     {
-        "path": ".engineering/SCOPE.md",
-        "gitBlobSha": "cca8420aa6427b9ddd2a16151f44f83a6bfd7cfe"
+      "path": ".engineering/SCOPE.md",
+      "gitBlobSha": "cca8420aa6427b9ddd2a16151f44f83a6bfd7cfe"
     },
     {
-        "path": ".engineering/SCREEN-INVENTORY.md",
-        "gitBlobSha": "6c44c9055208d7d2bc35d2bae1ffb565cab7ae52"
+      "path": ".engineering/SCREEN-INVENTORY.md",
+      "gitBlobSha": "6c44c9055208d7d2bc35d2bae1ffb565cab7ae52"
     },
     {
-        "path": ".engineering/SECURITY.md",
-        "gitBlobSha": "381494f54ebffee6b4cc2eb4394d6439767f655c"
+      "path": ".engineering/SECURITY.md",
+      "gitBlobSha": "381494f54ebffee6b4cc2eb4394d6439767f655c"
     },
     {
-        "path": ".engineering/SOURCE-HIERARCHY.md",
-        "gitBlobSha": "bc19f9fc60706a3925a1b17bf7e0dbd274a3648e"
+      "path": ".engineering/SOURCE-HIERARCHY.md",
+      "gitBlobSha": "bc19f9fc60706a3925a1b17bf7e0dbd274a3648e"
     },
     {
-        "path": ".engineering/TEST-BENCHMARK-PLAN.md",
-        "gitBlobSha": "6ad35cc1e13f91bc0d2d4ab1821bef6644e09d85"
+      "path": ".engineering/TEST-BENCHMARK-PLAN.md",
+      "gitBlobSha": "6ad35cc1e13f91bc0d2d4ab1821bef6644e09d85"
     },
     {
-        "path": ".engineering/UI-UX.md",
-        "gitBlobSha": "6738bf0c5f242253ceff7f7e177ac62ab841be3d"
+      "path": ".engineering/UI-UX.md",
+      "gitBlobSha": "6738bf0c5f242253ceff7f7e177ac62ab841be3d"
     },
     {
-        "path": ".engineering/UX-DESIGN-SYSTEM.md",
-        "gitBlobSha": "6ab9d7a4ddb754363e9247633e3dcace0d12991d"
+      "path": ".engineering/UX-DESIGN-SYSTEM.md",
+      "gitBlobSha": "6ab9d7a4ddb754363e9247633e3dcace0d12991d"
     },
     {
-        "path": ".engineering/UX-STATE-CONTRACTS.md",
-        "gitBlobSha": "81598e52a8f00ce83cab4669522fe9d8000d501b"
+      "path": ".engineering/UX-STATE-CONTRACTS.md",
+      "gitBlobSha": "81598e52a8f00ce83cab4669522fe9d8000d501b"
     },
     {
-        "path": "package.json",
-        "gitBlobSha": "b0360ad81c65af892bdcd1d3b172be727ea116d0"
+      "path": "package.json",
+      "gitBlobSha": "b0360ad81c65af892bdcd1d3b172be727ea116d0"
     },
     {
-        "path": "package-lock.json",
-        "gitBlobSha": "e63ffce8b9190e38e22c2b8602357d9c372176a4"
+      "path": "package-lock.json",
+      "gitBlobSha": "e63ffce8b9190e38e22c2b8602357d9c372176a4"
     },
     {
-        "path": "AGENTS.md",
-        "gitBlobSha": "a249db410336929c5162dad878a48762cf3aa752"
+      "path": "AGENTS.md",
+      "gitBlobSha": "a249db410336929c5162dad878a48762cf3aa752"
     }
-],
+  ],
   "providerBaseline": {
     "rulesetId": 24340349,
     "rulesetMutationAllowed": false,
@@ -159,5 +159,11 @@
     "GEF package pin changes",
     "ruleset/provider baseline changes unexpectedly"
   ],
-  "stopOnStale": true
+  "stopOnStale": true,
+  "closure": {
+    "reason": "Canonical SPR-PLAN-007 implementation-architecture promotion after objective APPROVED audit changed critical sources. Execution is complete and this Context Lock must not be reused.",
+    "auditedExecutionHeadSha": "3a2c7015a90321ad6adc053c3984a3ee2461a770",
+    "auditVerdict": "APPROVED",
+    "furtherExecutorActionAuthorized": false
+  }
 }

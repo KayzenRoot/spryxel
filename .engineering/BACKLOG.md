@@ -23,7 +23,7 @@ Historical planning rounds above are not being re-run by WO-002.
 
 SPRYXEL-WO-003 completed and objectively approved SPR-PLAN-006. The canonical UX contract now covers visual principles/brand direction, typography/tokens/themes/motion/layout, responsive strategy, global/project navigation, studio screen contracts, billing/API/MCP/admin UX, safe messaging, onboarding/state handling, accessibility/i18n layout, command palette/keyboard workflows, desktop/mobile strategy, and screen inventory.
 
-SPRYXEL-WO-004 admits SPR-PLAN-007 implementation architecture planning. This candidate records the runtime/workspace/topology/data/API/local-dev/test boundaries and specifies `SPRYXEL-IMP-001 — Platform Foundation Bootstrap`; it does not execute implementation or promote the checkpoint. Product implementation remains NOT_STARTED until a distinct code Work Order is admitted.
+SPRYXEL-WO-004 completed and objectively approved SPR-PLAN-007 implementation architecture planning. The canonical plan records the runtime/workspace/topology/data/API/local-dev/test boundaries and specifies `SPRYXEL-IMP-001 — Platform Foundation Bootstrap`; it does not execute implementation. Product implementation remains NOT_STARTED until a distinct code Work Order is admitted.
 
 The default later NECESSARY sequence is: (1) IMP-001 platform foundation; (2) identity/tenancy security baseline; (3) Projects + canonical shell/Home; (4) Asset Contract + durable Job backbone; (5) Credit Ledger + CostGuard; (6) Spryxel DNA + Asset core; (7) bounded local inference/Generate; (8) QA/approval/version/export. Each step has a separate Work Order and may be recompiled if evidence/dependencies change. IMPORTANT/FUTURE modules do not jump the queue automatically.
 
@@ -37,7 +37,7 @@ The default later NECESSARY sequence is: (1) IMP-001 platform foundation; (2) id
 | Payment provider by region and payment contract | Paddle is a preferred early global MoR planning candidate; Stripe is a first-class direct alternative; no provider is contractually selected. |
 | Tax, legal, refund, chargeback, and accounting assumptions | Formulas and evidence flows are planned; rates, jurisdictional treatment, working-capital amount, and Brazilian legal/accounting review remain open. |
 | Domain and trademark clearance; final brand/logo | Open; D-001 is APPROVED FOR PLANNING and explicitly requires clearance before public launch. |
-| Product implementation versions and runtime service providers | Compatibility-level product stack is a SPR-PLAN-007 candidate; exact package/image versions, auth/billing/GPU/production-storage/hosting providers and current commercial terms remain open until preflight and a triggered Work Order. |
+| Product implementation versions and runtime service providers | Compatibility-level product stack is canonical through SPR-PLAN-007; exact package/image versions, auth/billing/GPU/production-storage/hosting providers and current commercial terms remain open until preflight and a triggered Work Order. |
 | Physical database schema and exact V1 SKU/contract inventory | Conceptual entities and SKU/QA requirements are migrated; physical schema and any remaining SKU contract details remain planning work. |
 | API v1, MCP v1 tool catalog, and CLI v1 command contract | First-class surfaces/basic CLI are approved; exact paths, schemas, errors, scopes, and commands remain open. |
 | UI information architecture, wireframes, visual system, and accessibility contracts | Completed and canonical through SPR-PLAN-006 / SPRYXEL-WO-003. |

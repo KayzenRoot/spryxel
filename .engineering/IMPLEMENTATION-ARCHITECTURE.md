@@ -1,6 +1,6 @@
 # Implementation Architecture
 
-Status: CANDIDATE — SPRYXEL-WO-004 / SPR-PLAN-007; pending objective audit and checkpoint promotion.
+Status: CANONICAL — SPRYXEL-WO-004 / SPR-PLAN-007 approved by objective audit.
 
 This document binds the implementation decisions needed to admit a small platform foundation. It is a planning contract: product implementation remains `NOT_STARTED`, and nothing in this file authorizes work beyond a separately admitted Work Order.
 

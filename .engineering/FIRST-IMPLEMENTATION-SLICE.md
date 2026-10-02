@@ -1,6 +1,6 @@
 # FIRST IMPLEMENTATION SLICE — SPRYXEL-IMP-001
 
-Status: CANDIDATE — SPRYXEL-WO-004 / SPR-PLAN-007; executor-ready planning specification only. A new implementation Work Order and Context Lock must admit any code.
+Status: CANONICAL PLANNING SPECIFICATION — SPRYXEL-WO-004 / SPR-PLAN-007 approved by objective audit. A new implementation Work Order and Context Lock must admit any code.
 
 ## Identity and objective
 

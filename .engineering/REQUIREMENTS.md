@@ -62,7 +62,7 @@ Source: Product Master v0.6.0; stable decision ownership remains in DECISIONS-LE
 - Model/provider choices listed as candidates remain planning candidates, not selections.
 - SPR-PLAN-006 is approved/canonical through SPRYXEL-WO-003. Product implementation remains NOT_STARTED and still requires a separately admitted Work Order.
 
-## Implementation foundation constraints — SPR-PLAN-007 candidate
+## Implementation foundation constraints — SPR-PLAN-007 canonical
 
 - Preserve TypeScript/Node.js 22 compatibility, npm workspaces and one root lockfile while retaining the existing GEF root identity; exact package versions require implementation preflight.
 - Keep Next.js/React as presentation, Fastify as the single HTTP control plane and the Node worker as a separate process; domain and contracts remain framework/provider-free.
@@ -72,7 +72,7 @@ Source: Product Master v0.6.0; stable decision ownership remains in DECISIONS-LE
 - Local core profile is PostgreSQL + Redis + MinIO-compatible storage within the 24 GB RAM baseline; GPU/inference remains optional and off by default.
 - IMP-001 is a future, separately admitted bootstrap slice and includes no real authentication, identity/business entity, generation, billing, TrustShield scoring, credits, provider procurement or AI model path.
 
-These are candidate planning constraints under SPRYXEL-WO-004. They do not change the checkpoint or authorize implementation; the full decisions are D-123…D-153 and the executor specification is [FIRST-IMPLEMENTATION-SLICE.md](FIRST-IMPLEMENTATION-SLICE.md).
+These are canonical planning constraints approved under SPRYXEL-WO-004. They do not authorize implementation; the full decisions are D-123…D-153 and the executor specification is [FIRST-IMPLEMENTATION-SLICE.md](FIRST-IMPLEMENTATION-SLICE.md).
 
 ## UX and interaction requirements — SPR-PLAN-006
 
