@@ -1,22 +1,63 @@
 # Requirements
 
-Status: SOURCE_PACK_CANDIDATE
+Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
+Source: Product Master v0.6.0; stable decision ownership remains in DECISIONS-LEDGER.md.
 
 ## Governance requirements
-- REQ-GOV-001: GEF Bootstrap CLI remains pinned exactly to version 1.1.1 until a separately admitted upgrade.
-- REQ-GOV-002: GitHub is the durable task/evidence transport; canonical decisions remain versioned in this repository.
-- REQ-GOV-003: Every implementation increment uses a stable Work Order and Context Lock.
-- REQ-GOV-004: Codex is the implementation/test/CI executor; ChatGPT specifies and audits.
-- REQ-GOV-005: Required checks must be proven to exist and pass before a ruleset requires them.
-- REQ-GOV-006: `main` must reject deletion and non-fast-forward changes and require PR-based integration.
-- REQ-GOV-007: No bypass actor is introduced by default.
-- REQ-GOV-008: Provider-side changes require read-back evidence.
 
-## Assurance requirements
-- REQ-ASSURE-001: `npm ci`, GEF version identity, `gef doctor`, deterministic repeated `gef status` and repository cleanliness are baseline proofs.
-- REQ-ASSURE-002: Governance CI includes repository validation, pipeline integrity, Gitleaks and Trivy using free/native or open-source tooling.
-- REQ-ASSURE-003: Third-party Actions are pinned to immutable commit SHAs and receive least-privilege permissions.
-- REQ-ASSURE-004: HIGH/CRITICAL findings block advancement.
+- REQ-GOV-001: Keep GEF Bootstrap CLI pinned exactly to 1.1.1 until a separately admitted upgrade.
+- REQ-GOV-002: Use GitHub for durable task and evidence transport; keep canonical decisions versioned in this repository.
+- REQ-GOV-003: Bound each implementation increment with a stable Work Order and Context Lock.
+- REQ-GOV-004: Codex executes implementation, tests, and CI; ChatGPT specifies and audits.
+- REQ-GOV-005: Prove exact check contexts exist and pass before requiring them in a ruleset.
+- REQ-GOV-006: Protect main against deletion and non-fast-forward updates and require PR integration.
+- REQ-GOV-007: Introduce no bypass actor by default.
+- REQ-GOV-008: Read back provider-side changes as evidence.
+- REQ-ASSURE-001: Preserve the established npm/GEF identity, doctor, deterministic status, checkpoint-schema, and repository-cleanliness proofs.
+- REQ-ASSURE-002: Keep repository validation, pipeline integrity, Gitleaks, and Trivy in the governance CI profile.
+- REQ-ASSURE-003: Pin third-party Actions immutably and use least-privilege permissions.
+- REQ-ASSURE-004: Unresolved HIGH or CRITICAL findings block advancement.
 
 ## Product requirements
-No product requirements are approved yet.
+
+- PRD-001: SPRYXEL is an AI Game Asset Platform, not a generic image generator.
+- PRD-002: The game project and its visual universe are the primary context for assets, style, workflows, and collaboration.
+- PRD-003: Support coherent projects, Spryxel DNA, versioned asset families, Asset Graph relationships, provenance, and generation replay.
+- PRD-004: Organize the product around production jobs, assets, and workflows rather than provider or model catalogs.
+- PRD-005: V1 prioritizes Pixel + 2D; the architecture remains ready for 2.5D/3D without promising those production capabilities in V1.
+- PRD-006: Compile every generation request into a versioned Asset Contract and Generation SKU before inference.
+- PRD-007: Keep raw generations separate from accepted production assets. Apply required integrity and quality gates before promotion.
+- PRD-008: Track all attempts, retries, QA, repairs, storage, and variable costs; optimize cost per accepted production asset.
+- PRD-009: Reserve credits and authorize a bounded maximum internal cost before any cost-incurring execution.
+- PRD-010: Expose first-class API and MCP surfaces and a basic CLI, all with bounded budgets, scopes, idempotency, and machine-readable errors.
+- PRD-011: Keep canonical assets independent of engine; initial export targets are Godot and Unity.
+- PRD-012: Make maps/worldbuilding and game UI/HUD first-class product domains with structured, versioned SKUs and project-style consistency.
+- PRD-013: Provide English as the default/canonical UI language with pt-BR and Spanish localization.
+- PRD-014: Provide TrustShield and RevenueShield controls for account, promotion, payment, API/MCP, and cost exposure.
+- PRD-015: Keep owner-visible economics, risk, quality, and operational observability.
+
+## Quality, safety, and economic requirements
+
+- REQ-QUAL-001: Integrity Gate is binary and independent of Production Score; critical structural defects always fail.
+- REQ-QUAL-002: Character/creature anatomy, dimensions, silhouette, pixel geometry, frame identity, seams, map structure, and UI layout are checked by applicable versioned rules.
+- REQ-QUAL-003: No single probabilistic vision model is the sole production approver for anatomy-sensitive assets.
+- REQ-QUAL-004: Candidate selection and localized repair are bounded; full regeneration is not the default when a targeted repair is economical and sufficient.
+- REQ-QUAL-005: Model/pipeline promotion requires license eligibility, benchmark evidence, known economics, and regression evidence; subjective review alone is insufficient.
+- REQ-ECON-001: No request may execute without a bounded cost authorization and passing global/SKU/account controls.
+- REQ-ECON-002: Paid-pack launch simulations assume 100% credit redemption and worst-valid-SKU mix.
+- REQ-ECON-003: Base contribution-margin target is at least 70%; conservative and approved severe stress floors are 60% and 30%.
+- REQ-ECON-004: Predicted non-positive contribution is a hard stop for new affected jobs.
+- REQ-ECON-005: No normal paid SKU may hide predictable per-use losses through expected low usage or cross-subsidy.
+- REQ-ECON-006: Public prices remain unfrozen until benchmarks and financial/legal inputs listed in BILLING-ECONOMICS.md are available.
+- REQ-TRUST-001: Account existence and promotional eligibility are separate; IP or any single signal cannot prove identity or trigger an automatic permanent ban.
+- REQ-TRUST-002: Risk decisions are explainable, versioned, auditable, and have false-positive review/recovery paths.
+- REQ-TRUST-003: Security signal collection is purpose-bound, minimized, access-controlled, and assigned a retention class.
+- REQ-TRUST-004: TrustShield never writes wallet balances directly; credit changes use the auditable ledger.
+
+## Product status constraints
+
+- Product implementation: NOT_STARTED.
+- Product benchmarks and measured production COGS: NOT AVAILABLE.
+- Commercial pricing: NOT FROZEN.
+- Model/provider choices listed as candidates remain planning candidates, not selections.
+- SPR-PLAN-006 is the next proposed NECESSARY planning increment; this Work Order does not execute it.
