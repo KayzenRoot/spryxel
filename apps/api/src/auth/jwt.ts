@@ -1,6 +1,16 @@
 import { jwtVerify, type JWTPayload, type JWTVerifyGetKey, type JWTVerifyOptions } from 'jose';
 import type { AuthenticatedPrincipal } from '@spryxel/identity';
 
+const invalidCredentialCodes = new Set([
+  'ERR_JOSE_ALG_NOT_ALLOWED',
+  'ERR_JWT_CLAIM_VALIDATION_FAILED',
+  'ERR_JWT_EXPIRED',
+  'ERR_JWT_INVALID',
+  'ERR_JWS_INVALID',
+  'ERR_JWS_SIGNATURE_VERIFICATION_FAILED',
+  'ERR_JWKS_NO_MATCHING_KEY',
+]);
+
 export class InvalidAccessTokenError extends Error {
   constructor() {
     super('Access token is invalid');
@@ -36,8 +46,10 @@ export async function verifyWorkOSAccessToken(
   } catch (error) {
     const code =
       typeof error === 'object' && error !== null && 'code' in error ? error.code : undefined;
-    if (code === 'ERR_JWKS_TIMEOUT') throw error;
-    throw new InvalidAccessTokenError();
+    if (typeof code === 'string' && invalidCredentialCodes.has(code)) {
+      throw new InvalidAccessTokenError();
+    }
+    throw error;
   }
 }
 
@@ -46,7 +58,6 @@ function mapWorkOSClaims(payload: JWTPayload, now: Date): AuthenticatedPrincipal
   const sessionId = nonEmptyString(payload.sid);
   const authTime = payload.auth_time;
   const subjectProfile = payload.sub_profile;
-  const methods = payload.amr;
 
   if (
     !subject ||
@@ -56,9 +67,7 @@ function mapWorkOSClaims(payload: JWTPayload, now: Date): AuthenticatedPrincipal
     authTime > Math.floor(now.getTime() / 1000) + 5 ||
     (subjectProfile !== undefined && subjectProfile !== 'user') ||
     payload.act !== undefined ||
-    payload.impersonator !== undefined ||
-    (methods !== undefined &&
-      (!Array.isArray(methods) || methods.some((method) => typeof method !== 'string')))
+    payload.impersonator !== undefined
   ) {
     throw new InvalidAccessTokenError();
   }
@@ -67,7 +76,7 @@ function mapWorkOSClaims(payload: JWTPayload, now: Date): AuthenticatedPrincipal
     externalSubject: { provider: 'workos', subject },
     externalSession: { provider: 'workos', session: sessionId },
     authTimeSeconds: authTime,
-    verifiedAuthenticationMethods: (methods as string[] | undefined) ?? [],
+    verifiedAuthenticationMethods: [],
     impersonated: false,
   };
 }

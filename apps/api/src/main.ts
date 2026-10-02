@@ -5,9 +5,16 @@ const config = readApiConfig();
 const app = buildApiServer(config);
 
 try {
+  await app.ready();
   await app.listen({ host: config.host, port: config.port });
 } catch (error) {
-  app.log.error({ err: error }, 'api startup failed');
+  const errorName = error instanceof Error ? error.name : 'Error';
+  const errorType = /^[A-Za-z][A-Za-z0-9]{0,63}$/.test(errorName) ? errorName : 'Error';
+  app.log.error({ event: 'api.startup_failed', errorType }, 'api startup failed');
+  await closeApiSafely(
+    () => app.close(),
+    (fields, message) => app.log.error(fields, message),
+  );
   process.exitCode = 1;
 }
 

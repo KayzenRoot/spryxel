@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT } from 'jose';
+import { evaluateSensitiveAction } from '@spryxel/identity';
+import { InvalidAccessTokenError } from './jwt.js';
 import { verifyWorkOSAccessToken } from './jwt.js';
 
 const now = new Date('2026-10-02T12:00:00.000Z');
@@ -111,7 +113,6 @@ describe('WorkOS access token verification', () => {
       { sub_profile: 'ai_agent' },
       { act: { sub: 'admin_fixture' } },
       { impersonator: { email: 'actor@example.test' } },
-      { amr: 'mfa' },
     ];
 
     for (const claims of invalidClaims) {
@@ -125,7 +126,7 @@ describe('WorkOS access token verification', () => {
     }
   });
 
-  it('preserves verified MFA evidence without trusting organization role claims', async () => {
+  it('ignores undocumented amr claims and retains only documented auth_time evidence', async () => {
     const keys = await fixture();
     const principal = await verifyWorkOSAccessToken(
       await keys.token({ amr: ['pwd', 'mfa'], org_id: 'org_external', role: 'admin' }),
@@ -133,7 +134,49 @@ describe('WorkOS access token verification', () => {
       { issuer, audience, currentDate: now },
     );
 
-    expect(principal.verifiedAuthenticationMethods).toEqual(['pwd', 'mfa']);
+    expect(principal.verifiedAuthenticationMethods).toEqual([]);
+    expect(principal.authTimeSeconds).toBe(Math.floor(now.getTime() / 1000) - 45);
     expect(principal).not.toHaveProperty('role');
+    expect(
+      evaluateSensitiveAction({
+        role: 'OWNER',
+        authTimeSeconds: principal.authTimeSeconds,
+        verifiedAuthenticationMethods: principal.verifiedAuthenticationMethods,
+        nowSeconds: Math.floor(now.getTime() / 1000),
+        maxAgeSeconds: 300,
+      }),
+    ).toEqual({ allowed: false, reason: 'strong_auth_required' });
+  });
+
+  it('maps a missing matching signing key to invalid credentials', async () => {
+    const keys = await fixture();
+    const noKeys = createLocalJWKSet({ keys: [] });
+    await expect(
+      verifyWorkOSAccessToken(await keys.token(), noKeys, { issuer, audience, currentDate: now }),
+    ).rejects.toBeInstanceOf(InvalidAccessTokenError);
+  });
+
+  it('propagates resolver and malformed-JWKS infrastructure errors', async () => {
+    const keys = await fixture();
+    const token = await keys.token();
+    const resolverFailure = new Error('private provider endpoint detail');
+    const malformedJwksFailure = Object.assign(new Error('private JWKS response detail'), {
+      code: 'ERR_JWKS_INVALID',
+    });
+
+    await expect(
+      verifyWorkOSAccessToken(token, async () => Promise.reject(resolverFailure), {
+        issuer,
+        audience,
+        currentDate: now,
+      }),
+    ).rejects.toBe(resolverFailure);
+    await expect(
+      verifyWorkOSAccessToken(token, async () => Promise.reject(malformedJwksFailure), {
+        issuer,
+        audience,
+        currentDate: now,
+      }),
+    ).rejects.toBe(malformedJwksFailure);
   });
 });

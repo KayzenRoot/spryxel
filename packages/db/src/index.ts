@@ -17,6 +17,8 @@ const migrationTable = 'public._spryxel_schema_migrations';
 export type Database = {
   pool: Pool;
   orm: NodePgDatabase;
+  validateRuntimeRole(): Promise<void>;
+  ping(): Promise<void>;
   close(): Promise<void>;
 };
 
@@ -29,10 +31,22 @@ export function createDatabase(databaseUrl: string, options: PoolConfig = {}): D
     statement_timeout: 3_000,
     ...options,
   });
+  let roleValidation: Promise<void> | undefined;
+  let closePromise: Promise<void> | undefined;
   return {
     pool,
     orm: drizzle(pool),
-    close: () => pool.end(),
+    validateRuntimeRole: () => {
+      roleValidation ??= validateRuntimePoolRole(pool);
+      return roleValidation;
+    },
+    ping: async () => {
+      await pool.query('SELECT 1');
+    },
+    close: () => {
+      closePromise ??= pool.end();
+      return closePromise;
+    },
   };
 }
 
@@ -54,18 +68,12 @@ export async function probePostgres(databaseUrl: string): Promise<void> {
 }
 
 export async function bootstrapIdentity(
-  databaseUrl: string,
+  database: Database,
   principal: AuthenticatedPrincipal,
   requestId: string,
 ): Promise<IdentityBootstrapResult> {
-  const pool = new Pool({
-    connectionString: databaseUrl,
-    connectionTimeoutMillis: 2_000,
-    idleTimeoutMillis: 5_000,
-    max: 1,
-    statement_timeout: 5_000,
-  });
-  const client = await pool.connect();
+  await database.validateRuntimeRole();
+  const client = await database.pool.connect();
   try {
     await client.query('BEGIN');
     await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [
@@ -156,22 +164,15 @@ export async function bootstrapIdentity(
     throw error;
   } finally {
     client.release();
-    await pool.end();
   }
 }
 
 export async function listIdentityMemberships(
-  databaseUrl: string,
+  database: Database,
   subjectId: string,
 ): Promise<TenantMembership[]> {
-  const pool = new Pool({
-    connectionString: databaseUrl,
-    connectionTimeoutMillis: 2_000,
-    idleTimeoutMillis: 5_000,
-    max: 1,
-    statement_timeout: 3_000,
-  });
-  const client = await pool.connect();
+  await database.validateRuntimeRole();
+  const client = await database.pool.connect();
   try {
     await client.query('BEGIN READ ONLY');
     await setSecurityContext(client, subjectId, undefined);
@@ -199,22 +200,15 @@ export async function listIdentityMemberships(
     throw error;
   } finally {
     client.release();
-    await pool.end();
   }
 }
 
 export async function recordSessionRevocation(
-  databaseUrl: string,
+  database: Database,
   input: { subjectId: string; tenantId: string; sessionId: string; requestId: string },
 ): Promise<void> {
-  const pool = new Pool({
-    connectionString: databaseUrl,
-    connectionTimeoutMillis: 2_000,
-    idleTimeoutMillis: 5_000,
-    max: 1,
-    statement_timeout: 3_000,
-  });
-  const client = await pool.connect();
+  await database.validateRuntimeRole();
+  const client = await database.pool.connect();
   try {
     await client.query('BEGIN');
     await setSecurityContext(client, input.subjectId, input.tenantId);
@@ -236,7 +230,115 @@ export async function recordSessionRevocation(
     throw error;
   } finally {
     client.release();
-    await pool.end();
+  }
+}
+
+export class RuntimeDatabaseRoleError extends Error {
+  constructor() {
+    super('DATABASE_URL must use the restricted Spryxel runtime role');
+    this.name = 'RuntimeDatabaseRoleError';
+  }
+}
+
+async function validateRuntimePoolRole(pool: Pool): Promise<void> {
+  const result = await pool.query<{
+    is_runtime_role: boolean;
+    privileged: boolean;
+    has_memberships: boolean;
+    owns_migration_or_identity_objects: boolean;
+    has_runtime_capabilities: boolean;
+  }>(`
+    WITH runtime_role AS (
+      SELECT role.* FROM pg_catalog.pg_roles role WHERE role.rolname = current_user
+    )
+    SELECT
+      role.rolname = 'spryxel_app' AS is_runtime_role,
+      (role.rolsuper OR role.rolbypassrls OR role.rolcreatedb OR role.rolcreaterole OR role.rolreplication) AS privileged,
+      EXISTS (
+        SELECT 1 FROM pg_catalog.pg_auth_members membership
+        WHERE membership.member = role.oid
+      ) AS has_memberships,
+      (
+        EXISTS (
+          SELECT 1
+          FROM pg_catalog.pg_class relation
+          JOIN pg_catalog.pg_namespace namespace ON namespace.oid = relation.relnamespace
+          WHERE relation.relowner = role.oid
+            AND ((namespace.nspname = 'public' AND relation.relname = '_spryxel_schema_migrations')
+              OR namespace.nspname = 'platform')
+        )
+        OR EXISTS (
+          SELECT 1 FROM pg_catalog.pg_namespace namespace
+          WHERE namespace.nspname = 'platform' AND namespace.nspowner = role.oid
+        )
+      ) AS owns_migration_or_identity_objects,
+      COALESCE(pg_catalog.has_schema_privilege(role.oid, pg_catalog.to_regnamespace('platform'), 'USAGE'), false)
+      AND NOT COALESCE(pg_catalog.has_schema_privilege(role.oid, pg_catalog.to_regnamespace('platform'), 'CREATE'), false)
+      AND (
+        SELECT count(*) = 5 AND bool_and(
+          relation.relrowsecurity AND relation.relforcerowsecurity AND
+          CASE relation.relname
+            WHEN 'identity_subject' THEN
+              pg_catalog.has_table_privilege(role.oid, relation.oid, 'SELECT') AND
+              pg_catalog.has_table_privilege(role.oid, relation.oid, 'INSERT') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'UPDATE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'DELETE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRUNCATE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'REFERENCES') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRIGGER')
+            WHEN 'external_auth_identity' THEN
+              pg_catalog.has_table_privilege(role.oid, relation.oid, 'SELECT') AND
+              pg_catalog.has_table_privilege(role.oid, relation.oid, 'INSERT') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'UPDATE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'DELETE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRUNCATE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'REFERENCES') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRIGGER')
+            WHEN 'tenant' THEN
+              pg_catalog.has_table_privilege(role.oid, relation.oid, 'SELECT') AND
+              pg_catalog.has_table_privilege(role.oid, relation.oid, 'INSERT') AND
+              pg_catalog.has_table_privilege(role.oid, relation.oid, 'UPDATE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'DELETE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRUNCATE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'REFERENCES') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRIGGER')
+            WHEN 'tenant_membership' THEN
+              pg_catalog.has_table_privilege(role.oid, relation.oid, 'SELECT') AND
+              pg_catalog.has_table_privilege(role.oid, relation.oid, 'INSERT') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'UPDATE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'DELETE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRUNCATE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'REFERENCES') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRIGGER')
+            WHEN 'security_event' THEN
+              pg_catalog.has_table_privilege(role.oid, relation.oid, 'SELECT') AND
+              pg_catalog.has_table_privilege(role.oid, relation.oid, 'INSERT') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'UPDATE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'DELETE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRUNCATE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'REFERENCES') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRIGGER')
+            ELSE false
+          END
+        )
+        FROM pg_catalog.pg_class relation
+        JOIN pg_catalog.pg_namespace namespace ON namespace.oid = relation.relnamespace
+        WHERE namespace.nspname = 'platform'
+          AND relation.relname IN (
+            'identity_subject', 'external_auth_identity', 'tenant', 'tenant_membership', 'security_event'
+          )
+      ) AS has_runtime_capabilities
+    FROM runtime_role role
+  `);
+  const role = result.rows[0];
+  if (
+    !role?.is_runtime_role ||
+    role.privileged ||
+    role.has_memberships ||
+    role.owns_migration_or_identity_objects ||
+    !role.has_runtime_capabilities
+  ) {
+    throw new RuntimeDatabaseRoleError();
   }
 }
 

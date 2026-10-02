@@ -70,12 +70,23 @@ const s3 = new S3Client({
   credentials: { accessKeyId: secrets.accessKey, secretAccessKey: secrets.secretKey },
 });
 let primaryError: unknown;
+let runtimeDatabase: ReturnType<typeof createDatabase> | undefined;
 
 try {
   await writeFile(envPath, `${envContent}\n`, { mode: 0o600, flag: 'wx' });
   await chmodBestEffort(envPath);
   await runCompose(['config', '--quiet']);
-  await runCompose(['up', '--detach', '--build', '--wait', '--wait-timeout', '90']);
+  await runCompose(['up', '--detach', '--build', '--wait', '--wait-timeout', '90', 'postgres']);
+  await runCompose([
+    'up',
+    '--detach',
+    '--build',
+    '--wait',
+    '--wait-timeout',
+    '90',
+    'redis',
+    'seaweedfs',
+  ]);
 
   let lastS3ProbeFailure = 'no S3 error details captured';
   await Promise.all([
@@ -153,26 +164,25 @@ try {
     await database.close();
   }
 
-  const runtimeDatabase = createDatabase(appDatabaseUrl, { max: 2 });
-  try {
-    const runtimeRole = await runtimeDatabase.pool.query<{
-      current_user: string;
-      rolsuper: boolean;
-      rolbypassrls: boolean;
-    }>(
-      `SELECT current_user, role.rolsuper, role.rolbypassrls
-       FROM pg_catalog.pg_roles role WHERE role.rolname = current_user`,
-    );
-    if (
-      runtimeRole.rows[0]?.current_user !== 'spryxel_app' ||
-      runtimeRole.rows[0].rolsuper ||
-      runtimeRole.rows[0].rolbypassrls
-    ) {
-      throw new Error('Normal API connection did not use the restricted NOBYPASSRLS role');
-    }
-  } finally {
-    await runtimeDatabase.close();
+  runtimeDatabase = createDatabase(appDatabaseUrl, { max: 2 });
+  const appRuntimeDatabase = runtimeDatabase;
+  await appRuntimeDatabase.validateRuntimeRole();
+  const runtimeRole = await appRuntimeDatabase.pool.query<{
+    current_user: string;
+    rolsuper: boolean;
+    rolbypassrls: boolean;
+  }>(
+    `SELECT current_user, role.rolsuper, role.rolbypassrls
+     FROM pg_catalog.pg_roles role WHERE role.rolname = current_user`,
+  );
+  if (
+    runtimeRole.rows[0]?.current_user !== 'spryxel_app' ||
+    runtimeRole.rows[0].rolsuper ||
+    runtimeRole.rows[0].rolbypassrls
+  ) {
+    throw new Error('Normal API connection did not use the restricted NOBYPASSRLS role');
   }
+  await assertApiStartupRejected(await availablePort());
 
   const principalA: AuthenticatedPrincipal = {
     externalSubject: { provider: 'workos', subject: 'user_integration_a' },
@@ -190,12 +200,12 @@ try {
   };
   const concurrent = await Promise.all(
     Array.from({ length: 8 }, () =>
-      bootstrapIdentity(appDatabaseUrl, principalA, 'integration-bootstrap'),
+      bootstrapIdentity(appRuntimeDatabase, principalA, 'integration-bootstrap'),
     ),
   );
   const [identityA, identityB] = await Promise.all([
-    bootstrapIdentity(appDatabaseUrl, principalA, 'integration-bootstrap'),
-    bootstrapIdentity(appDatabaseUrl, principalB, 'integration-bootstrap'),
+    bootstrapIdentity(appRuntimeDatabase, principalA, 'integration-bootstrap'),
+    bootstrapIdentity(appRuntimeDatabase, principalB, 'integration-bootstrap'),
   ]);
   if (
     new Set(concurrent.map((result) => result.subjectId)).size !== 1 ||
@@ -214,8 +224,8 @@ try {
       'Concurrent/replayed identity bootstrap did not resolve stable isolated identities',
     );
   }
-  const membershipsA = await listIdentityMemberships(appDatabaseUrl, identityA.subjectId);
-  const membershipsB = await listIdentityMemberships(appDatabaseUrl, identityB.subjectId);
+  const membershipsA = await listIdentityMemberships(appRuntimeDatabase, identityA.subjectId);
+  const membershipsB = await listIdentityMemberships(appRuntimeDatabase, identityB.subjectId);
   if (
     membershipsA.length !== 1 ||
     membershipsA[0]?.tenantId !== identityA.tenantId ||
@@ -283,7 +293,7 @@ try {
     await identityRlsDatabase.close();
   }
 
-  await recordSessionRevocation(appDatabaseUrl, {
+  await recordSessionRevocation(appRuntimeDatabase, {
     subjectId: identityA.subjectId,
     tenantId: identityA.tenantId,
     sessionId: 'session_revoked_integration_a',
@@ -415,6 +425,40 @@ try {
   if (!missingContextDenied)
     throw new Error('Missing RLS identity/tenant context did not fail closed');
 
+  const pooledClient = await appRuntimeDatabase.pool.connect();
+  try {
+    await pooledClient.query('BEGIN');
+    await pooledClient.query(
+      "SELECT set_config('spryxel.subject_id', $1, true), set_config('spryxel.tenant_id', $2, true)",
+      [identityA.subjectId, identityA.tenantId],
+    );
+    await pooledClient.query('COMMIT');
+    const clearedContext = await pooledClient.query<{
+      subject_id: string | null;
+      tenant_id: string | null;
+    }>(
+      `SELECT NULLIF(current_setting('spryxel.subject_id', true), '') AS subject_id,
+              NULLIF(current_setting('spryxel.tenant_id', true), '') AS tenant_id`,
+    );
+    if (clearedContext.rows[0]?.subject_id || clearedContext.rows[0]?.tenant_id) {
+      throw new Error(
+        'Transaction-scoped RLS context leaked when the pooled connection was reused',
+      );
+    }
+    await pooledClient.query('BEGIN');
+    await pooledClient.query("SELECT set_config('spryxel.subject_id', '', true)");
+    const unscopedTenant = await pooledClient.query('SELECT id FROM platform.tenant');
+    await pooledClient.query('COMMIT');
+    if (unscopedTenant.rowCount !== 0) {
+      throw new Error('A reused pooled connection retained tenant context between transactions');
+    }
+  } catch (error) {
+    await pooledClient.query('ROLLBACK');
+    throw error;
+  } finally {
+    pooledClient.release();
+  }
+
   const signedBuckets = await s3.send(new ListBucketsCommand({}));
   if (!Array.isArray(signedBuckets.Buckets))
     throw new Error('Signed S3 ListBuckets handshake failed');
@@ -474,6 +518,7 @@ try {
 } catch (error) {
   primaryError = error;
 } finally {
+  await runtimeDatabase?.close();
   s3.destroy();
   try {
     await runCompose(['down', '--volumes', '--remove-orphans']);
@@ -485,7 +530,7 @@ try {
 
 if (primaryError) throw new Error(redact(String(primaryError), allSecrets));
 process.stdout.write(
-  'Real-service integration: PASS (PostgreSQL migrations/idempotency, NOBYPASSRLS app role, concurrent identity bootstrap, identity/membership RLS context isolation, safe bootstrap/revocation events without credential fields, missing-context deny, cross-tenant RLS read/write deny, authenticated Redis/BullMQ round-trip, authenticated SeaweedFS S3 put/get/delete and anonymous denial, API health/readiness).\n',
+  'Real-service integration: PASS (PostgreSQL migrations/idempotency, privileged API startup refused before bind, spryxel_app NOBYPASSRLS API startup allowed, shared API runtime pool with transaction-scoped RLS context isolation, concurrent identity bootstrap, cross-tenant RLS boundaries, safe bootstrap/revocation events, authenticated Redis/BullMQ, authenticated SeaweedFS S3 and API health/readiness).\n',
 );
 process.stdout.write(
   'Migration/queue regressions: PASS (pristine PostgreSQL reports unapplied; two BullMQ probes leave no disposable queue keys).\n',
@@ -579,6 +624,64 @@ async function availablePort(): Promise<number> {
     server.close((error) => (error ? reject(error) : resolveClose())),
   );
   return port;
+}
+
+async function assertApiStartupRejected(port: number): Promise<void> {
+  const child = spawn(process.execPath, [resolve(root, 'apps/api/dist/main.js')], {
+    cwd: root,
+    windowsHide: true,
+    env: {
+      NODE_ENV: 'test',
+      HOST: '127.0.0.1',
+      PORT: String(port),
+      LOG_LEVEL: 'error',
+      DATABASE_URL: databaseUrl,
+      PATH: process.env.PATH ?? '',
+    },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  let output = '';
+  child.stdout.setEncoding('utf8').on('data', (chunk: string) => (output += chunk));
+  child.stderr.setEncoding('utf8').on('data', (chunk: string) => (output += chunk));
+
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const exitCode = await Promise.race([
+    new Promise<number | null>((resolveExit, rejectExit) => {
+      child.once('error', rejectExit);
+      child.once('close', resolveExit);
+    }),
+    new Promise<never>((_resolve, reject) => {
+      timer = setTimeout(
+        () => reject(new Error('Privileged API startup did not fail promptly')),
+        10_000,
+      );
+    }),
+  ])
+    .finally(() => {
+      if (timer) clearTimeout(timer);
+    })
+    .catch(async (error: unknown) => {
+      child.kill();
+      throw error;
+    });
+
+  if (exitCode !== 1) {
+    throw new Error(`Privileged DATABASE_URL API startup returned exit code ${String(exitCode)}`);
+  }
+  if (!output.includes('RuntimeDatabaseRoleError')) {
+    throw new Error('Privileged DATABASE_URL startup did not fail on the runtime-role proof');
+  }
+  let served = false;
+  try {
+    await fetch(`http://127.0.0.1:${port}/healthz`);
+    served = true;
+  } catch {
+    served = false;
+  }
+  if (served) throw new Error('API served health requests with a privileged DATABASE_URL');
+  if (allSecrets.some((secret) => output.includes(secret))) {
+    throw new Error('Privileged startup diagnostics exposed a database credential');
+  }
 }
 
 async function startApi(port: number): Promise<{ stop(): Promise<void> }> {

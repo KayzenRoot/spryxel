@@ -1,6 +1,8 @@
 import { parseRuntimeConfig, type RuntimeConfig } from '@spryxel/config';
 import {
   bootstrapIdentity,
+  createDatabase,
+  type Database,
   IdentityRepositoryError,
   listIdentityMemberships,
   recordSessionRevocation,
@@ -23,7 +25,9 @@ import { S3CompatibleStorageProbe } from './adapters/s3-storage.js';
 
 export type ApiServerDependencies = {
   authenticateToken?: ((token: string) => Promise<AuthenticatedPrincipal>) | undefined;
+  database?: Database | undefined;
   identityRepository?: IdentityRepositoryPort | undefined;
+  logger?: import('fastify').FastifyBaseLogger | undefined;
   sessionProvider?: IdentitySessionProviderPort | undefined;
 };
 
@@ -36,7 +40,7 @@ declare module 'fastify' {
 export function buildApiServer(config: RuntimeConfig, dependencies: ApiServerDependencies = {}) {
   const logger = createLogger({ level: config.logLevel, name: 'spryxel-api' });
   const app = Fastify({
-    loggerInstance: logger,
+    loggerInstance: dependencies.logger ?? logger,
     genReqId: (request) => {
       const supplied = request.headers['x-request-id'];
       return typeof supplied === 'string' && requestIdPattern.test(supplied)
@@ -46,21 +50,27 @@ export function buildApiServer(config: RuntimeConfig, dependencies: ApiServerDep
   });
   app.decorateRequest('spryxelPrincipal', null);
 
+  const database =
+    dependencies.database ?? (config.databaseUrl ? createDatabase(config.databaseUrl) : undefined);
+  if (database) {
+    app.addHook('onReady', async () => database.validateRuntimeRole());
+    app.addHook('onClose', async () => database.close());
+  }
+
   const authenticateToken = dependencies.authenticateToken ?? createWorkOSAuthenticator(config);
   const identityRepository =
     dependencies.identityRepository ??
-    (config.databaseUrl
+    (database
       ? {
           bootstrap: (principal: AuthenticatedPrincipal, requestId: string) =>
-            bootstrapIdentity(config.databaseUrl as string, principal, requestId),
-          listMemberships: (subjectId: string) =>
-            listIdentityMemberships(config.databaseUrl as string, subjectId),
+            bootstrapIdentity(database, principal, requestId),
+          listMemberships: (subjectId: string) => listIdentityMemberships(database, subjectId),
           recordSessionRevocation: (input: {
             subjectId: string;
             tenantId: string;
             sessionId: string;
             requestId: string;
-          }) => recordSessionRevocation(config.databaseUrl as string, input),
+          }) => recordSessionRevocation(database, input),
         }
       : undefined);
   const sessionProvider =
@@ -85,7 +95,8 @@ export function buildApiServer(config: RuntimeConfig, dependencies: ApiServerDep
     const dependencyResults = await Promise.all([
       runProbe('postgres', databaseUrl, () => {
         if (!databaseUrl) return Promise.resolve();
-        return new DrizzlePostgresReadinessProbe(databaseUrl).ping();
+        if (!database) return Promise.reject(new Error('Database is unavailable'));
+        return new DrizzlePostgresReadinessProbe(database).ping();
       }),
       runProbe('redis', redisUrl, () => {
         if (!redisUrl) return Promise.resolve();
@@ -185,24 +196,49 @@ export function buildApiServer(config: RuntimeConfig, dependencies: ApiServerDep
       if (!sessionId || sessionId.length > 255) {
         return notFoundProblem(reply, request.id);
       }
+      let identity: Awaited<ReturnType<IdentityRepositoryPort['bootstrap']>>;
+      try {
+        identity = await identityRepository.bootstrap(principal, request.id);
+      } catch (error) {
+        if (error instanceof IdentityRepositoryError && error.code === 'identity_suspended') {
+          return forbiddenProblem(reply, request.id, 'identity_suspended');
+        }
+        request.log.error(
+          { event: 'session.revocation_identity_validation_failed', requestId: request.id },
+          'session revocation identity validation failed',
+        );
+        return unavailableProblem(reply, request.id, 'session_management_unavailable');
+      }
       try {
         const revoked = await sessionProvider.revokeSession(principal.externalSubject, sessionId);
         if (!revoked) return notFoundProblem(reply, request.id);
-        const identity = await identityRepository.bootstrap(principal, request.id);
+      } catch {
+        return unavailableProblem(reply, request.id, 'session_management_unavailable');
+      }
+      try {
         await identityRepository.recordSessionRevocation({
           subjectId: identity.subjectId,
           tenantId: identity.tenantId,
           sessionId,
           requestId: request.id,
         });
-        request.log.info(
-          { event: 'session.revoked', subjectId: identity.subjectId, tenantId: identity.tenantId },
-          'provider session revoked',
+      } catch (error) {
+        request.log.error(
+          {
+            event: 'session.revocation_audit_reconciliation_required',
+            requestId: request.id,
+            subjectId: identity.subjectId,
+            tenantId: identity.tenantId,
+            errorType: safeErrorType(error),
+          },
+          'provider session revoked but security event projection failed',
         );
-        return reply.code(204).send();
-      } catch {
-        return unavailableProblem(reply, request.id, 'session_management_unavailable');
       }
+      request.log.info(
+        { event: 'session.revoked', subjectId: identity.subjectId, tenantId: identity.tenantId },
+        'provider session revoked',
+      );
+      return reply.code(204).send();
     },
   );
 
@@ -226,16 +262,6 @@ export function buildApiServer(config: RuntimeConfig, dependencies: ApiServerDep
     } catch (error) {
       if (error instanceof InvalidAccessTokenError) {
         return unauthorizedProblem(reply, request.id, 'invalid_access_token');
-      }
-      const code =
-        typeof error === 'object' && error !== null && 'code' in error ? error.code : undefined;
-      if (
-        typeof code === 'string' &&
-        (code.startsWith('ERR_JWKS_') || code.startsWith('ERR_JWT_'))
-      ) {
-        if (code === 'ERR_JWKS_NO_MATCHING_KEY') {
-          return unauthorizedProblem(reply, request.id, 'invalid_access_token');
-        }
       }
       return unavailableProblem(reply, request.id, 'authentication_unavailable');
     }
@@ -280,6 +306,11 @@ function extractBearerToken(header: string | string[] | undefined): string | und
   if (typeof header !== 'string' || header.length > 16_400) return undefined;
   const match = /^Bearer ([A-Za-z0-9._~-]{1,16384})$/i.exec(header);
   return match?.[1];
+}
+
+function safeErrorType(error: unknown): string {
+  const name = error instanceof Error ? error.name : 'Error';
+  return /^[A-Za-z][A-Za-z0-9]{0,63}$/.test(name) ? name : 'Error';
 }
 
 function unauthorizedProblem(
