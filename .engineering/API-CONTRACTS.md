@@ -1,6 +1,6 @@
 # API Contracts
 
-Status: SOURCE_PACK_CANDIDATE — planning contracts only; detailed API v1/MCP v1/CLI contracts remain open for later planning. No endpoints or code are implemented by WO-002.
+Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
 
 ## Surfaces and common execution model
 

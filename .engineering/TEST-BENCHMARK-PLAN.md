@@ -1,6 +1,6 @@
 # Test and Benchmark Plan
 
-Status: SOURCE_PACK_CANDIDATE — pending objective audit and checkpoint promotion.
+Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
 Product benchmark execution has NOT_STARTED; all targets below are planning/qualification targets from the immutable v0.6.0 seed, not measured results.
 
 ## SPRYXEL-WO-001 governance profile

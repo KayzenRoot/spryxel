@@ -1,6 +1,6 @@
 # Deployment
 
-Status: SOURCE_PACK_CANDIDATE — pending objective audit and checkpoint promotion.
+Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
 No Spryxel product has been deployed or implemented.
 
 ## Development

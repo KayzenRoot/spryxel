@@ -1,6 +1,6 @@
 # Security
 
-Status: SOURCE_PACK_CANDIDATE — pending objective audit and checkpoint promotion.
+Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
 Planning boundary: SPR-PLAN-005 is approved/completed in master v0.6.0; implementation and validation are NOT_STARTED.
 
 ## Protected assets and existing repository controls

@@ -1,6 +1,6 @@
 # Decisions Ledger
 
-Status: SOURCE_PACK_CANDIDATE
+Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
 
 ## D-0001 — GEF version
 Use `@gef-bootstrap/cli@1.1.1` exactly. Upgrade requires a future Work Order.
@@ -11,7 +11,7 @@ Adopt the GEF ADR-0008 operating model for this project: ChatGPT specifies/audit
 ## D-0003 — Product definition deferred
 Historical decision for the SPRYXEL-WO-001 governance-bootstrap stage: no product mission, feature, or architecture was inferred during bootstrap; product truth was TBD until owner planning.
 
-Current-state reconciliation: the owner-approved pre-repository Product Master v0.6.0 records product decisions D-001 through D-089. SPRYXEL-WO-002 migrates them into this candidate Source Pack. Until audit and authorized checkpoint promotion, the seed remains historical authority and the repository docs remain a candidate.
+Current-state reconciliation: the owner-approved pre-repository Product Master v0.6.0 records product decisions D-001 through D-089. SPRYXEL-WO-002 migrated and objectively audited them into the repository Source Pack. After authorized checkpoint promotion, this ledger is the canonical owner of those stable decision IDs; the seed remains immutable historical evidence.
 
 ## D-0004 — Safe main protection
 The target ruleset for `main` requires PR integration, resolved threads, deletion/non-fast-forward protection and no bypass. Required status checks are added only after their exact contexts have succeeded in Spryxel.
@@ -27,7 +27,7 @@ The installed v1.1.1 baseline is immutable evidence and is not rewritten merely 
 
 ## Pre-repository product decision namespace (seed D-001 through D-089)
 
-These stable IDs are distinct from repository governance decisions D-0001 through D-0007. Each entry below has its sole canonical ownership in this ledger. The migration matrix provides source sections and non-owning cross-references. Exact wording and status are extracted from immutable Product Master v0.6.0.
+These stable IDs are distinct from repository governance decisions D-0001 through D-0007. Each entry below has its sole canonical ownership in this ledger. The migration matrix provides source sections and non-owning cross-references. Exact wording and status were extracted from immutable Product Master v0.6.0 and approved by the SPRYXEL-WO-002 audit.
 
 ### D-001 — Product Name
 Decision: SPRYXEL

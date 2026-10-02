@@ -1,7 +1,7 @@
 # SPRYXEL-WO-002 — Evidence Bundle
 
 Idioma: Português brasileiro.
-Veredito candidato: READY_FOR_AUDIT, condicionado aos quatro checks obrigatórios PASS no exact head publicados no bloco “Verificação exata do HEAD” da descrição da PR #8.
+Veredito objetivo: APPROVED no audited execution head `0524677d09189b549f76c1172b0828a0f814f1a9`. A promoção canônica posterior é ação do auditor e exige nova passagem dos quatro checks antes do merge.
 
 ## Identidade e Context Lock
 
@@ -132,3 +132,23 @@ O checkpoint canônico não foi alterado nem promovido.
 Este Evidence Bundle versionado registra evidências determinísticas e locais disponíveis antes do push e referencia a descrição da PR #8 para os detalhes pós-push. A descrição da PR é o registro autoritativo complementar do SHA exato final, horários, IDs/URLs e conclusões dos quatro check-runs pertencentes a esse mesmo SHA. Não reutilizar resultados de um SHA anterior. O veredito READY_FOR_AUDIT só se aplica depois que os quatro checks estiverem PASS no exact final PR HEAD.
 
 STOP CONDITION: SPRYXEL_WO_002_PRODUCT_MASTER_DECOMPOSED_READY_FOR_AUDIT.
+
+
+## Auditoria objetiva
+
+- Audited execution head: `0524677d09189b549f76c1172b0828a0f814f1a9`.
+- Verdict: `APPROVED`.
+- Seed Git blob: `cbb93ec44886eba6cc9b24a072eb23e0ad5ea05a`; SHA-256: `1c2bf605cb4851300e7f1cc64071b1eaa4cf6d814187dcc95ebe7366d5ec2a8e`.
+- Migration matrix audit: 89/89 decisions, 239/239 sections, 37/37 modules, 19 open decisions; no missing/extra/duplicate decision IDs.
+- Financial correction verified against the immutable master: RED `0% < margin < 35%`; BLACK `margin <= 0%`.
+- Exact-head evidence contract is feasible: versioned bundle records deterministic/pre-push evidence; PR description is complementary authority for post-push exact-head check IDs/URLs/timestamps/conclusions.
+- Required checks on audited head: Repository validation `110691655307`; Pipeline integrity `110691654807`; Gitleaks secrets `110691656331`; Trivy filesystem and configuration `110691655164`; all PASS.
+- Review threads unresolved at audit: 0.
+- Ruleset `24340349`: active on `refs/heads/main`, no bypass.
+- CRITICAL known: 0; HIGH known: 0.
+- Product implementation remains `NOT_STARTED`.
+- `SPR-PLAN-006` remains `NOT EXECUTED`.
+
+## Promotion handoff
+
+The checkpoint/source-pack promotion occurs only after this APPROVED verdict. Because promotion updates critical canonical sources, the historical execution Context Lock becomes `STALE` by closure and must not be reused. Merge is authorized only after all four required checks pass again on the promotion head and no review thread is open.

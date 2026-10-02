@@ -1,6 +1,6 @@
 # UI/UX
 
-Status: SOURCE_PACK_CANDIDATE — approved product-area concepts only. SPR-PLAN-006 has NOT been executed.
+Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
 
 ## Existing approved direction
 

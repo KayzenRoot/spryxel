@@ -1,6 +1,6 @@
 # Requirements
 
-Status: SOURCE_PACK_CANDIDATE — pending objective audit and checkpoint promotion.
+Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
 Source: Product Master v0.6.0; stable decision ownership remains in DECISIONS-LEDGER.md.
 
 ## Governance requirements

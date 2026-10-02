@@ -1,6 +1,6 @@
 # Integration Contracts
 
-Status: SOURCE_PACK_CANDIDATE — candidates and boundaries only. Procurement, provider configuration, and product implementation are NOT_STARTED.
+Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
 
 ## Game engines and export
 

@@ -1,13 +1,17 @@
 # Spryxel Agent Contract
 
 ## Authority
-Read in order: `.engineering/CHECKPOINT.json`, Decisions Ledger/ADRs, Scope, Definition of Done, Architecture, Requirements, then supporting sources. Git/code/tests/provider evidence govern descriptive state.
+Read in order: `.engineering/CHECKPOINT.json`, Decisions Ledger/ADRs, Scope, Definition of Done, Architecture, Requirements, then specialized canonical sources. Git/code/tests/provider evidence govern descriptive state.
+
+The Product Master v0.6.0 in `.engineering/source-seeds/` is immutable historical migration evidence. It must not be edited and does not supersede the promoted repository Source Pack.
 
 ## Executor boundary
 Codex is the implementation/test/CI executor. Execute only an explicitly admitted Work Order and its current Context Lock. Inspect the exact base before mutation. Do not invent missing product decisions.
 
 ## Current execution
-`SPRYXEL-WO-001` is COMPLETE. No implementation Work Order is currently admitted. The next legal stage is Product Discovery planning, which requires a new Work Order and Context Lock.
+`SPRYXEL-WO-002` is objectively APPROVED and its historical Context Lock is closed/stale after canonical promotion. No further executor action is authorized under that Work Order.
+
+The next legal planning increment after safe merge/post-merge validation is `SPR-PLAN-006`. It requires a new Work Order and Context Lock. Product implementation is not currently admitted.
 
 ## Safety
 No force-push, history rewrite, destructive GitHub mutation, visibility change or checkpoint self-promotion. Critical source/base drift makes an execution Context Lock STALE. Missing required permissions means BLOCKED, not weakened controls.

@@ -1,6 +1,6 @@
 # Project Overview
 
-Status: SOURCE_PACK_CANDIDATE — pending objective audit and checkpoint promotion.
+Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
 Source: immutable SPRYXEL Product Master v0.6.0, migrated by SPRYXEL-WO-002.
 
 ## Identity and product definition
@@ -51,7 +51,7 @@ The complete V1, V1.x, later-release, and module classifications are in SCOPE.md
 
 ## Planning history and current state
 
-The immutable seed records approved planning through SPR-PLAN-005. The repository Source Pack is the decomposed candidate for audit; it becomes canonical only after an objective audit and authorized checkpoint promotion. The seed remains immutable historical migration evidence.
+The immutable seed records approved planning through SPR-PLAN-005. The decomposed repository Source Pack was objectively audited and promoted by SPRYXEL-WO-002 and is now the canonical product authority. The seed remains immutable historical migration evidence and traceability source.
 
 Completed in the seed:
 

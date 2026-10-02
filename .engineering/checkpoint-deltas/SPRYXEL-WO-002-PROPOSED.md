@@ -1,6 +1,6 @@
 # SPRYXEL-WO-002 — Checkpoint Delta proposto
 
-Estado: PROPOSTA; não aplicado.
+Estado: ACCEPTED_BY_AUDITOR; PROMOTED_IN_CANONICAL_CHECKPOINT.
 Autoridade atual preservada: checkpoint v2 em main@0a90e1c93d81f6f0ac861847a5434030d96f0307.
 Checkpoint.json blob na base: baebc5902ee8192e5ad15ccf6f1b61c3153f2ab3.
 Checkpoint.md blob na base: df9862906e3d186949b2f74f3a2b47b214030a49.
@@ -27,3 +27,16 @@ Checkpoint.md blob na base: df9862906e3d186949b2f74f3a2b47b214030a49.
 ## Limite de aplicação
 
 Esta proposta não altera CHECKPOINT.json ou CHECKPOINT.md, não muda o GEF checkpoint/receipts, não promove estado e não autoriza merge ou implementação. A promoção exige auditoria objetiva posterior e ação autorizada separada.
+
+
+## Resultado da auditoria
+
+A proposta foi aceita após auditoria objetiva `APPROVED` do head `0524677d09189b549f76c1172b0828a0f814f1a9`.
+
+A promoção canônica:
+- torna o Source Pack decomposto a autoridade atual do produto;
+- mantém o seed v0.6.0 como evidência histórica imutável;
+- registra planejamento aprovado através de `SPR-PLAN-005`;
+- mantém `SPR-PLAN-006` como próximo incremento NECESSARY e não executado;
+- mantém implementação `NOT_STARTED`, benchmarks/COGS não executados e pricing `NOT FROZEN`;
+- encerra o Context Lock de SPRYXEL-WO-002 como `STALE` após promoção.

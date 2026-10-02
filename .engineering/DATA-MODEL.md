@@ -1,6 +1,6 @@
 # Data Model
 
-Status: SOURCE_PACK_CANDIDATE — pending objective audit and checkpoint promotion.
+Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
 These are planning entities and invariants, not implemented database tables or a frozen physical schema.
 
 ## Canonical durable state

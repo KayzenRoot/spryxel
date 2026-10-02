@@ -1,30 +1,40 @@
 # Checkpoint
 
-Status: SOURCE_PACK_CANDIDATE
+Status: CANONICAL
 
 Repository: `KayzenRoot/spryxel`  
 GEF: `@gef-bootstrap/cli@1.1.1`
 
-## Estado canônico
+## Estado promovido
+
 - `SPRYXEL-WO-001`: COMPLETE.
-- Veredito de auditoria: `APPROVED`.
-- Head de execução auditado: `db68f8aeb85beed2f8bbfba98fcc8fd562f7515b`.
-- Head de promoção do checkpoint: `a079442c8e0f83585ad195e8741a1f406cd8927d`.
-- PR #3 merged em `main@1d1e5f04f9bc14742af0cbdc0eb8b4710d62506c`.
-- Validação pós-merge: PASS nos quatro required checks.
-- Ruleset baseline: `SPRYXEL main governance` ID `24340349`.
-- Achados CRITICAL/HIGH pendentes deste incremento: nenhum conhecido.
+- `SPRYXEL-WO-002`: APPROVED; source-pack/checkpoint promotion applied by the auditor, merge still gated by promotion-head checks.
+- Audited execution head: `0524677d09189b549f76c1172b0828a0f814f1a9`.
+- Product Master seed v0.6.0: immutable historical evidence.
+- Product Source Pack: CANONICAL after decomposition/audit.
+- Approved planning preserved through `SPR-PLAN-005`.
+- Next planning increment: `SPR-PLAN-006 — Product UX, Design System & Information Architecture`, NECESSARY and NOT EXECUTED.
 - Product implementation: NOT_STARTED.
-- Product baseline: NOT_BASELINED.
+- Benchmarks / measured production COGS: NOT_RUN / NOT_AVAILABLE.
+- Commercial pricing and credit quantities: NOT_FROZEN.
+- Ruleset baseline: `SPRYXEL main governance` ID `24340349`.
+- CRITICAL/HIGH findings pending from SPRYXEL-WO-002 audit: none known.
 
-## Validação pós-merge
-Os quatro contexts obrigatórios passaram no commit real de `main` após o squash merge:
-- Repository validation: check `110668795603`;
-- Pipeline integrity: check `110668795837`;
-- Gitleaks secrets: check `110668795652`;
-- Trivy filesystem and configuration: check `110668795544`.
+## Migration evidence
 
-O Context Lock de execução de `SPRYXEL-WO-001` permanece `STALE` por encerramento, porque fontes críticas foram promovidas depois da auditoria. Ele não pode ser reutilizado.
+Seed identity:
+- SHA-256: `1c2bf605cb4851300e7f1cc64071b1eaa4cf6d814187dcc95ebe7366d5ec2a8e`;
+- Git blob: `cbb93ec44886eba6cc9b24a072eb23e0ad5ea05a`;
+- 238278 bytes / 12447 lines.
+
+Migration coverage:
+- 89/89 decisions D-001…D-089;
+- 239/239 numbered sections;
+- 37/37 modules;
+- 19 open decisions preserved.
+
+The historical `SPRYXEL-WO-002` Context Lock is `STALE` after this promotion because critical canonical sources changed by authorized audit promotion. It must not be reused.
 
 ## Próxima ação legal
-Pode ser iniciado um novo incremento de **Product Discovery planning**, com nova Work Order e novo Context Lock. Nenhuma implementação de produto está admitida ainda.
+
+Merge PR #8 only after the four required checks pass again on the promotion head and no review thread is open. After safe merge/post-merge validation, a new Work Order/Context Lock may admit `SPR-PLAN-006`. Product implementation is not admitted.

@@ -1,6 +1,6 @@
 # Billing and Economics
 
-Status: SOURCE_PACK_CANDIDATE — pending objective audit and checkpoint promotion.
+Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
 Planning source: SPR-PLAN-004 APPROVED / COMPLETED IN MASTER v0.5.0 and SPR-PLAN-005 risk controls. Implementation, benchmark COGS, provider procurement, public pricing, and launch are NOT_STARTED.
 
 ## Economic doctrine and approved thresholds

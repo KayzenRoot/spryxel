@@ -1,6 +1,6 @@
 # Scope
 
-Status: SOURCE_PACK_CANDIDATE — pending objective audit and checkpoint promotion.
+Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
 Scope and classifications below preserve Product Master v0.6.0; decision IDs are owned by DECISIONS-LEDGER.md.
 
 ## Product release boundary

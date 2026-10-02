@@ -1,6 +1,6 @@
 # Model and Inference Strategy
 
-Status: SOURCE_PACK_CANDIDATE — planning and benchmark contracts only; no model or GPU provider has been benchmarked or selected for paid production by WO-002.
+Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
 
 ## Hardware and local-first path
 

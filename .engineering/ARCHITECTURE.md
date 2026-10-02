@@ -1,6 +1,6 @@
 # Architecture
 
-Status: SOURCE_PACK_CANDIDATE — pending objective audit and checkpoint promotion.
+Status: CANONICAL — approved by objective audit of SPRYXEL-WO-002.
 Product implementation is NOT_STARTED; this is approved planning architecture, not a deployment description.
 
 ## Product architecture boundary
@@ -67,4 +67,4 @@ No specific final database adjunct, queue, GPU vendor, object store, model, or c
 
 ## Governance control plane
 
-The repository governance path remains the established GEF 1.1.1 / GitHub control plane: canonical source and checkpoint → bounded Work Order + Context Lock → executor diff and local evidence → exact-head GitHub checks → objective audit → authorized checkpoint promotion. WO-002 proposes the Source Pack only; CHECKPOINT.json and CHECKPOINT.md remain unchanged until audit/promotion.
+The repository governance path remains the established GEF 1.1.1 / GitHub control plane: canonical source and checkpoint → bounded Work Order + Context Lock → executor diff and local evidence → exact-head GitHub checks → objective audit → authorized checkpoint promotion. SPRYXEL-WO-002 completed the product Source Pack migration and its audited promotion; no product implementation is admitted by that promotion.
