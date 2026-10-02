@@ -11,6 +11,19 @@ export class BullMqTechnicalQueueProbe implements TransientQueueProbe {
   }
 }
 
+export async function assertQueueNamespaceEmpty(redis: Redis, queueName: string): Promise<void> {
+  const match = `bull:${queueName}:*`;
+  let cursor = '0';
+
+  do {
+    const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', match, 'COUNT', 100);
+    if (keys.length > 0) {
+      throw new Error('Technical queue probe left disposable Redis keys');
+    }
+    cursor = nextCursor;
+  } while (cursor !== '0');
+}
+
 export async function runTechnicalQueueProbe(
   redisUrl: string,
   timeoutMs = 10_000,
@@ -153,12 +166,7 @@ export async function runTechnicalQueueProbe(
     await attempt(() => worker.close());
     await attempt(() => events.close());
     await attempt(() => queue.obliterate({ force: true }));
-    await attempt(async () => {
-      const remainingKeys = await queueConnection.keys(`bull:${name}:*`);
-      if (remainingKeys.length > 0) {
-        throw new Error('Technical queue probe left disposable Redis keys');
-      }
-    });
+    await attempt(() => assertQueueNamespaceEmpty(queueConnection, name));
     await attempt(() => queue.close());
     for (const connection of connections) {
       if (connection.status === 'end') continue;

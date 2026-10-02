@@ -1,8 +1,28 @@
 import { createServer, type Socket } from 'node:net';
-import { describe, expect, it } from 'vitest';
-import { runTechnicalQueueProbe } from './queue-probe.js';
+import { describe, expect, it, vi } from 'vitest';
+import { assertQueueNamespaceEmpty, runTechnicalQueueProbe } from './queue-probe.js';
 
 describe('BullMQ technical queue probe', () => {
+  it('uses namespace-scoped incremental SCAN, stops on the first residue, and never calls KEYS', async () => {
+    const queueName = 'platform-probe-test';
+    const scan = vi
+      .fn()
+      .mockResolvedValueOnce(['14', []])
+      .mockResolvedValueOnce(['23', [`bull:${queueName}:meta`]])
+      .mockResolvedValueOnce(['0', []]);
+    const keys = vi.fn();
+    const redis = { scan, keys } as unknown as Parameters<typeof assertQueueNamespaceEmpty>[0];
+
+    await expect(assertQueueNamespaceEmpty(redis, queueName)).rejects.toThrow(
+      'Technical queue probe left disposable Redis keys',
+    );
+
+    expect(scan).toHaveBeenNthCalledWith(1, '0', 'MATCH', `bull:${queueName}:*`, 'COUNT', 100);
+    expect(scan).toHaveBeenNthCalledWith(2, '14', 'MATCH', `bull:${queueName}:*`, 'COUNT', 100);
+    expect(scan).toHaveBeenCalledTimes(2);
+    expect(keys).not.toHaveBeenCalled();
+  });
+
   it('terminates an unresponsive Redis target within its overall deadline', async () => {
     const sockets = new Set<Socket>();
     let acceptedConnections = 0;
