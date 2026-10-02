@@ -32,7 +32,7 @@ Runtime local: Node `24.19.0` / npm `11.17.0`; nenhuma dependência foi instalad
 | `git diff --check` | PASS |
 | GEF 1.1.1 `doctor` / `status` | Ambos PASS read-only, `effect=NONE`; observações atuais abaixo. Nenhuma escrita em `.gef` ou checkpoint. |
 
-O `doctor` reportou toolchain/repositório saudáveis, proveniência de dependências e GitHub `REVIEW`. O `status` reportou árvore `DIRTY`, `operator.stale=true` e drift `UNEXPECTED` face ao checkpoint ainda em WO-004. Conforme D-0007, isso permanece diagnóstico bruto; o delta está delimitado por Work Order, Context Lock, diff e Evidence Bundle, sem reescrever GEF baseline. Nenhuma reconciliação foi gravada.
+O `doctor` reportou toolchain/repositório saudáveis, proveniência de dependências e GitHub `REVIEW`. A leitura `status` durante a edição reportou árvore `DIRTY`; a leitura pós-commit reportou `CLEAN`. Em ambas, `operator.stale=true` e drift `UNEXPECTED` face ao checkpoint ainda em WO-004. Conforme D-0007, isso permanece diagnóstico bruto; o delta está delimitado por Work Order, Context Lock, diff e Evidence Bundle, sem reescrever GEF baseline. Nenhuma reconciliação foi gravada.
 
 ## Correction Delta 01 — reauditoria
 
