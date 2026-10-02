@@ -6,7 +6,7 @@ Spryxel is governed by **GEF Bootstrap 1.1.1**.
 
 `SPRYXEL-WO-004 / SPR-PLAN-007` is **COMPLETE**. The implementation architecture baseline was objectively audited, checkpoint-promoted, squash-merged and post-merge validated.
 
-The canonical implementation plan defines the TypeScript/Node.js 22, npm-workspace modular-monolith foundation, Next.js web boundary, Fastify API boundary, separate Node worker, PostgreSQL/Drizzle persistence, Redis/BullMQ transient coordination, S3-compatible storage with MinIO local development, typed configuration, observability and test architecture.
+The canonical implementation plan defines the TypeScript/Node.js 22, npm-workspace modular-monolith foundation, Next.js web boundary, Fastify API boundary, separate Node worker, PostgreSQL/Drizzle persistence, Redis/BullMQ transient coordination, S3-compatible storage with SeaweedFS local/test development, typed configuration, observability and test architecture.
 
 Product implementation has **not started**.
 

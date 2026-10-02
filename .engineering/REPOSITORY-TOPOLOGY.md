@@ -6,7 +6,7 @@ This tree is a future product layout contract, not a set of directories created 
 
 All three processes and shared code use TypeScript on a Node.js 22 LTS-compatible runtime. npm workspaces and the one root npm lockfile own dependency resolution; Turborepo-compatible tasks may orchestrate product builds without replacing npm. Exact package versions are deferred to implementation preflight.
 
-The shared service boundaries are PostgreSQL/Drizzle for canonical state, Redis/BullMQ-compatible transient work coordination, and private S3-compatible object storage with MinIO-compatible local development. Pino-compatible structured logging and OpenTelemetry-compatible telemetry are cross-process concerns owned by `packages/observability`, not mandatory vendor services.
+The shared service boundaries are PostgreSQL/Drizzle for canonical state, Redis/BullMQ-compatible transient work coordination, and private S3-compatible object storage with SeaweedFS S3-compatible local/test development. Pino-compatible structured logging and OpenTelemetry-compatible telemetry are cross-process concerns owned by `packages/observability`, not mandatory vendor services.
 
 ```text
 /

@@ -51,3 +51,8 @@ The complete open-decision inventory remains in the seed and specialized documen
 ## SPRYXEL-WO-004 completion
 
 SPRYXEL-WO-004 / SPR-PLAN-007 is COMPLETE: objectively audited, checkpoint-promoted, squash-merged and post-merge validated. `SPRYXEL-IMP-001 — Platform Foundation Bootstrap` is the next NECESSARY implementation slice but remains NOT_ADMITTED / NOT_EXECUTED until a new Work Order and Context Lock are created.
+
+
+## SPRYXEL-WO-005 preflight blocker
+
+The first SPRYXEL-IMP-001 admission stopped BLOCKED before product dependency installation because the planned MinIO community server had become archived/unmaintained and failed the Work Order maintenance/security gate. D-154/D-155 supersede only the local/test service choice with SeaweedFS while preserving the S3-compatible/provider-neutral contract. No product code was implemented. SPRYXEL-WO-005 must be recompiled on the corrected main base before execution resumes.

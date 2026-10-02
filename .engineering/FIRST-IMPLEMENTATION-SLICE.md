@@ -18,11 +18,11 @@ The exact base, source fingerprints, Node/npm compatibility, package versions, r
 4. Build a Fastify API process with safe liveness/readiness endpoints, correlation/request ID, redacted structured logging and typed startup config. Readiness names bounded technical dependency categories and handles disabled optional adapters safely.
 5. Build a separate Node worker process boundary with startup config, structured lifecycle events and a no-op/health path. It consumes no product jobs until a later Work Order defines them.
 6. Add a PostgreSQL/Drizzle-compatible connection and checked-in SQL migration harness with an initial technical-only infrastructure migration if required by the harness. Do not create user, tenant, project, asset, job, wallet or ledger product tables. No automatic schema mutation on application startup.
-7. Add Redis/BullMQ-compatible and S3-compatible adapter interfaces and bounded health/readiness probes. MinIO is the local test/development implementation. PostgreSQL remains the sole canonical persistence plane; the adapter probes do not create business records or public object access.
+7. Add Redis/BullMQ-compatible and S3-compatible adapter interfaces and bounded health/readiness probes. SeaweedFS is the local/test S3-compatible implementation. PostgreSQL remains the sole canonical persistence plane; the adapter probes do not create business records or public object access.
 8. Add shared typed configuration with startup validation and safe redaction; provide examples/schema only, never secret values.
 9. Add Pino-compatible JSON logging, request/correlation ID propagation and OpenTelemetry-compatible interfaces/export hooks without requiring a paid telemetry service.
 10. Add Vitest-compatible unit tests, disposable real PostgreSQL/Redis/S3-compatible integration profile and an initial Playwright-compatible web-shell smoke harness. Add consistent root build/lint/typecheck/test tasks and Turborepo-compatible task graph with exact version from preflight.
-11. Add bounded local `infra` and `test` Compose profiles for PostgreSQL, Redis and MinIO-compatible services if required by the selected real-infrastructure test harness. GPU/inference remains a separate opt-in profile, off by default. Profile resource defaults fit the 24 GB planning baseline.
+11. Add bounded local `infra` and `test` Compose profiles for PostgreSQL, Redis and SeaweedFS S3-compatible services if required by the selected real-infrastructure test harness. GPU/inference remains a separate opt-in profile, off by default. Profile resource defaults fit the 24 GB planning baseline.
 
 ## Planned file ownership (no files are created here)
 

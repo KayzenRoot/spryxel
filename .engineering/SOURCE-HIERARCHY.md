@@ -37,3 +37,15 @@ Post-release commits in the GEF repository may be consulted only for evidence ab
 SPRYXEL-WO-004 / SPR-PLAN-007 was objectively audited and promoted. D-123…D-153 and the implementation-planning documents are canonical; they do not supersede or edit D-001…D-122. The historical execution Context Lock is stale/closed after promotion.
 
 Within this increment, the authority order above still applies. The Decisions Ledger owns the decision IDs; `IMPLEMENTATION-ARCHITECTURE.md` integrates process/domain boundaries; `RUNTIME-STACK.md`, `REPOSITORY-TOPOLOGY.md`, `PHYSICAL-DATA-CONVENTIONS.md`, `API-FOUNDATION-CONTRACT.md`, `LOCAL-DEVELOPMENT.md`, `IMPLEMENTATION-SEQUENCE.md` and `FIRST-IMPLEMENTATION-SLICE.md` detail those decisions; the dependency/open-choice matrix captures edge rules and intentional deferrals. These files are canonical planning, not implemented state. The immutable v0.6.0 seed, GEF 1.1.1 release and `.gef` baseline remain unchanged.
+
+
+## SPRYXEL-WO-005 preflight supersession binding
+
+Current external maintenance/security evidence discovered during the first IMP-001 preflight invalidated the MinIO-specific local/test implementation named by D-142/D-148. D-154/D-155 preserve those historical decisions and explicitly supersede only their MinIO-specific local-service clauses.
+
+For current implementation work:
+- private S3-compatible/provider-neutral storage remains the architectural contract;
+- SeaweedFS is the current local/test S3-compatible implementation direction;
+- production object-storage provider remains NOT FROZEN;
+- exact SeaweedFS release/image digest/provenance must be revalidated and pinned by the recompiled IMP-001 preflight;
+- the stale WO-005 Context Lock must not be reused.
