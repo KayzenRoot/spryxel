@@ -50,9 +50,18 @@ The complete open-decision inventory remains in the seed and specialized documen
 
 ## SPRYXEL-WO-004 completion
 
-SPRYXEL-WO-004 / SPR-PLAN-007 is COMPLETE: objectively audited, checkpoint-promoted, squash-merged and post-merge validated. `SPRYXEL-IMP-001 — Platform Foundation Bootstrap` is the next NECESSARY implementation slice but remains NOT_ADMITTED / NOT_EXECUTED until a new Work Order and Context Lock are created.
+SPRYXEL-WO-004 / SPR-PLAN-007 is COMPLETE. `SPRYXEL-IMP-001 — Platform Foundation Bootstrap` has now been objectively audited APPROVED under SPRYXEL-WO-005; merge/promotion closeout is pending on this PR. Identity/Tenancy remains the next NECESSARY slice and is NOT_ADMITTED.
 
 
 ## SPRYXEL-WO-005 preflight blocker
 
 The first SPRYXEL-IMP-001 admission stopped BLOCKED before product dependency installation because the planned MinIO community server had become archived/unmaintained and failed the Work Order maintenance/security gate. D-154/D-155 supersede only the local/test service choice with SeaweedFS while preserving the S3-compatible/provider-neutral contract. No product code was implemented. SPRYXEL-WO-005 must be recompiled on the corrected main base before execution resumes.
+
+
+## SPRYXEL-WO-005 / IMP-001 approval
+
+`SPRYXEL-IMP-001 — Platform Foundation Bootstrap` is APPROVED after Correction Delta 01. The foundation now proves the npm workspace, Next.js web shell, Fastify API, separate worker, typed config/observability, PostgreSQL migration harness, Redis/BullMQ technical boundary, SeaweedFS S3-compatible local/test boundary, Docker profiles, architecture enforcement and unit/integration/browser test harnesses.
+
+No identity/tenancy, project, billing/credits, TrustShield, generation/assets, AI/model/GPU or production-provider implementation was admitted.
+
+Next legal slice: Identity/Tenancy security baseline under its own Work Order/Context Lock, with a current auth-provider decision/preflight before implementation.

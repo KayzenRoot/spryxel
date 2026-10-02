@@ -1,6 +1,6 @@
 # SPRYXEL-WO-005 — Correction Delta 01
 
-Status: CORRECTION REQUIRED  
+Status: SATISFIED / APPROVED  
 Work Order: `SPRYXEL-WO-005 R2`  
 Increment: `SPRYXEL-IMP-001`  
 Audited head: `210e7a453a48637ea1b558d571fedd8d10ca1c42`  
@@ -158,3 +158,12 @@ Use the original Work Order stop condition only after all corrections pass:
 `SPRYXEL_IMP_001_PLATFORM_FOUNDATION_BOOTSTRAP_READY_FOR_AUDIT`
 
 Do not merge. Do not promote checkpoint.
+
+
+## RE-AUDIT CLOSURE
+
+Re-audit head: `ace62ffdb53bd5f602e23d1e9572955f2a5dc820`.
+
+C-01…C-08 were verified corrected with focused regressions and full-suite revalidation. The former HIGH architecture-check finding is closed: the checker scans the real Next.js `apps/web/app` source and a fixture proves forbidden imports fail. No CRITICAL/HIGH finding remains.
+
+Final verdict for this Correction Delta: `SATISFIED`.

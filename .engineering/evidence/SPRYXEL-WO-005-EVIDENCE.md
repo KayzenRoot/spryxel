@@ -1,6 +1,6 @@
 # SPRYXEL-WO-005 R2 — Evidence Bundle
 
-**Estado:** candidato para auditoria objetiva; executor não aprova nem promove o checkpoint.
+**Estado:** APPROVED BY OBJECTIVE AUDIT; canonical promotion is an auditor action.
 
 **Data:** 2026-10-02
 
@@ -152,3 +152,20 @@ O SHA candidato final, os IDs/URLs e estados dos quatro required checks após o 
 - PR #20 permanece aberta para auditoria. O HEAD exato/checks/URLs estão na descrição da PR, que é a evidência pós-push para o commit versionado.
 
 **STOP CONDITION:** `SPRYXEL_IMP_001_PLATFORM_FOUNDATION_BOOTSTRAP_READY_FOR_AUDIT`.
+
+
+## Auditoria objetiva final
+
+- Veredito: `APPROVED`.
+- Head final auditado: `ace62ffdb53bd5f602e23d1e9572955f2a5dc820`.
+- Correction Delta 01: C-01…C-08 satisfeitos com regressões objetivas.
+- D-001…D-155 preservados.
+- Checkpoint canônico preservado pelo executor.
+- Manifests/lockfile não mudaram durante o Correction Delta.
+- Required checks no exact head: Repository validation `110976525179`, Pipeline integrity `110976525538`, Gitleaks secrets `110976524235`, Trivy filesystem and configuration `110976524045`; todos PASS.
+- Review threads não resolvidas: 0.
+- CRITICAL conhecido: 0; HIGH conhecido: 0.
+- Product foundation bootstrap: aprovado para promoção/merge.
+- Identity/Tenancy: NOT_ADMITTED.
+
+A promoção canônica altera fontes críticas e encerra o Context Lock histórico como `STALE`. Merge continua condicionado a quatro required checks PASS no head de promoção.
