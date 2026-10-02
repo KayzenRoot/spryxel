@@ -200,3 +200,17 @@ O SHA candidato final, os IDs/URLs e estados dos quatro required checks após o 
 - Identity/Tenancy: NOT_ADMITTED.
 
 A promoção canônica encerra o Context Lock R2 como `STALE`. Merge permanece condicionado aos quatro required checks no head de promoção e zero review thread aberta.
+
+
+## Merge e validação pós-merge
+
+- PR #20 squash-merged em `main@6dbce3f1ba1e5b85a6e6ea40083e2d4418755261`.
+- Required checks no commit real de `main`:
+  - Repository validation: PASS, check `110999157035`;
+  - Pipeline integrity: PASS, check `110999158238`;
+  - Gitleaks secrets: PASS, check `110999157676`;
+  - Trivy filesystem and configuration: PASS, check `110999158922`.
+- Ruleset `24340349` permaneceu ativo, main-only e sem bypass.
+- Resultado final do Work Order: `COMPLETE`.
+- Próximo incremento legal: Identity/Tenancy security baseline sob novo Work Order/Context Lock.
+- Auth provider permanece `NOT_FROZEN`; Identity/Tenancy não foi admitido nem implementado.
