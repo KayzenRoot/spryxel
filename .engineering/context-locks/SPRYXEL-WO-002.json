@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "kind": "spryxel.context-lock",
+  "workOrderId": "SPRYXEL-WO-002",
+  "status": "FRESH",
+  "repository": "KayzenRoot/spryxel",
+  "authorizedBranch": "codex/spryxel-wo-002-product-master-decomposition",
+  "executionBase": {
+    "branch": "main",
+    "sha": "0a90e1c93d81f6f0ac861847a5434030d96f0307"
+  },
+  "trackingIssue": 7,
+  "gef": {
+    "package": "@gef-bootstrap/cli",
+    "version": "1.1.1"
+  },
+  "sourceSeed": {
+    "path": ".engineering/source-seeds/SPRYXEL-PRODUCT-MASTER-v0.6.0.md",
+    "manifestPath": ".engineering/source-seeds/SPRYXEL-PRODUCT-MASTER-v0.6.0.manifest.json",
+    "version": "0.6.0",
+    "date": "2026-10-01",
+    "sha256": "1c2bf605cb4851300e7f1cc64071b1eaa4cf6d814187dcc95ebe7366d5ec2a8e",
+    "gitBlobSha1": "cbb93ec44886eba6cc9b24a072eb23e0ad5ea05a",
+    "sizeBytes": 238278,
+    "lineCount": 12447,
+    "immutable": true
+  },
+  "workOrderSource": {
+    "path": ".engineering/work-orders/SPRYXEL-WO-002.md",
+    "gitBlobSha": "6497077ba6387b021db5a9fc3320e3186968f0ed"
+  },
+  "criticalBaseSources": [
+    {
+        "path": ".engineering/ARCHITECTURE.md",
+        "gitBlobSha": "36e11bebdb29597a04bb69cf67fe5267d3c036f1"
+    },
+    {
+        "path": ".engineering/BACKLOG.md",
+        "gitBlobSha": "f489d61089ec3d7c82703df5c253a61de257e877"
+    },
+    {
+        "path": ".engineering/CHECKPOINT.json",
+        "gitBlobSha": "baebc5902ee8192e5ad15ccf6f1b61c3153f2ab3"
+    },
+    {
+        "path": ".engineering/CHECKPOINT.md",
+        "gitBlobSha": "df9862906e3d186949b2f74f3a2b47b214030a49"
+    },
+    {
+        "path": ".engineering/DECISIONS-LEDGER.md",
+        "gitBlobSha": "f4acb71bf4da345bf24fa30f33c8449d13e3eac9"
+    },
+    {
+        "path": ".engineering/DEFINITION-OF-DONE.md",
+        "gitBlobSha": "4ad8e4b5fefb3dd39d35622ae60c7110d43173e5"
+    },
+    {
+        "path": ".engineering/DEPLOYMENT.md",
+        "gitBlobSha": "c43334c9c758a10dfe051b23efe635382f27f43e"
+    },
+    {
+        "path": ".engineering/REQUIREMENTS.md",
+        "gitBlobSha": "34f1ec6631bf1ceb2f937f1fc89bda12613cfbef"
+    },
+    {
+        "path": ".engineering/SCOPE.md",
+        "gitBlobSha": "65aace90475a065f28673ff45d332e3525756bc9"
+    },
+    {
+        "path": ".engineering/SECURITY.md",
+        "gitBlobSha": "39732d7bb747e835260cce58f8831d4bb390af27"
+    },
+    {
+        "path": ".engineering/SOURCE-HIERARCHY.md",
+        "gitBlobSha": "d406d6ada9a7618a64979beac87b7479ded43614"
+    },
+    {
+        "path": ".engineering/TEST-BENCHMARK-PLAN.md",
+        "gitBlobSha": "b93ee2552f76c5261bfd3975ef351af9cb56c420"
+    },
+    {
+        "path": "AGENTS.md",
+        "gitBlobSha": "522c7244d933ad7bcec666b5b4320b17d1aa27dc"
+    }
+],
+  "migrationRule": {
+    "seedIsPreRepositoryApprovedTruth": true,
+    "canonicalOwnershipMovesOnlyAfterAuditPromotion": true,
+    "approvedDecisionsMayNotBeSilentlyChanged": true,
+    "executeNextPlanningIncrement": false
+  },
+  "staleIf": [
+    "executionBase.sha changes before executor preflight",
+    "sourceSeed fingerprint or bytes change",
+    "workOrderSource gitBlobSha changes outside an audited correction",
+    "any criticalBaseSources gitBlobSha changes outside this Work Order",
+    "GEF package pin changes"
+  ],
+  "stopOnStale": true
+}
