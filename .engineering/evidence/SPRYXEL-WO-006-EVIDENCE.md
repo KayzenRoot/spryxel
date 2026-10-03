@@ -1,6 +1,6 @@
 # SPRYXEL-WO-006 / SPRYXEL-IMP-002 — Evidence Bundle
 
-**Estado:** C-09 implementado; acceptance HIGH_ASSURANCE em Node 22/npm 10 concluída; checks do novo HEAD aguardam execução no GitHub. Não declara aprovação, merge ou promoção.
+**Estado:** C-09 implementado; acceptance HIGH_ASSURANCE em Node 22/npm 10 concluída. Os required checks do exact head atual estão registrados no pós-push da descrição da PR. Não declara aprovação, merge ou promoção.
 
 **Data:** 2026-10-02
 
@@ -105,6 +105,8 @@ O aceite de execução Node 22 acima substitui o run Node 24 como evidência ofi
 ## Correction Delta 03 — C-09: reconciliação durável de revogação
 
 Esta execução partiu do candidate head `8e004ded243326dd36644561cfad8231c4997077`, na base imutável `main@95ae64d1951ca285c67014fcedbb00e74c3d163d`. A correção substitui a dependência exclusiva de log operacional após revogação WorkOS confirmada por um handle canônico em PostgreSQL, criado depois da validação de identidade/suspensão e da propriedade da sessão, mas antes do efeito externo. Se a persistência do intent falhar, o provider não é chamado e a API falha com a semântica segura de disponibilidade existente.
+
+A acceptance local foi executada contra o código C-09 antes da atualização documental que registra seu resultado. O commit `7c28d9bf41425588ecdb6fce5b04da0b3d40a1ae` contém somente a implementação C-09, os testes e a primeira versão deste Evidence Bundle; esta revisão documental posterior não altera código ou comportamento. O exact final head e os required checks correspondentes são sempre os da descrição atual da PR #24.
 
 O estado do intent distingue `pending`, `retryable`, `provider_confirmed` e `finalized`, com códigos seguros de falha; nenhuma mensagem bruta do provider, token, cookie, credencial ou segredo é persistida. Falha do provider deixa intent recuperável e não cria `session.revoked`. Após confirmação, falha de finalização preserva o intent `provider_confirmed`, mantém resposta `204` e permite retry determinístico pelo DELETE existente. A finalização grava evento e estado final de forma idempotente; a restrição única impede eventos duplicados. RLS, `FORCE ROW LEVEL SECURITY`, vínculo composto de tenant/subject e permissões mínimas de `spryxel_app` mantêm o isolamento.
 
