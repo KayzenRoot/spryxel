@@ -113,6 +113,14 @@ export class WorkOSSessionProvider implements IdentitySessionProviderPort {
     await this.userManagement.revokeSession({ sessionId });
     return true;
   }
+
+  async retrySessionRevocation(
+    _externalSubject: ExternalSubjectReference,
+    sessionId: string,
+  ): Promise<boolean> {
+    await this.userManagement.revokeSession({ sessionId });
+    return true;
+  }
 }
 
 export class WorkOSSessionListingUnavailableError extends Error {

@@ -9,6 +9,9 @@ import { v7 as uuidv7 } from 'uuid';
 import type {
   AuthenticatedPrincipal,
   IdentityBootstrapResult,
+  SessionRevocationFailureReason,
+  SessionRevocationIntent,
+  SessionRevocationIntentStatus,
   TenantMembership,
 } from '@spryxel/identity';
 
@@ -203,27 +206,99 @@ export async function listIdentityMemberships(
   }
 }
 
-export async function recordSessionRevocation(
+export async function getSessionRevocationIntent(
+  database: Database,
+  input: { subjectId: string; tenantId: string; sessionId: string },
+): Promise<SessionRevocationIntent | undefined> {
+  await database.validateRuntimeRole();
+  const client = await database.pool.connect();
+  try {
+    await client.query('BEGIN READ ONLY');
+    await setSecurityContext(client, input.subjectId, input.tenantId);
+    const result = await client.query<{
+      id: string;
+      status: SessionRevocationIntentStatus;
+    }>(
+      `SELECT id, status FROM platform.session_revocation_intent
+       WHERE subject_id = $1 AND tenant_id = $2 AND external_session_ref = $3`,
+      [input.subjectId, input.tenantId, input.sessionId],
+    );
+    await client.query('COMMIT');
+    const row = result.rows[0];
+    return row ? { id: row.id, status: row.status } : undefined;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function createSessionRevocationIntent(
   database: Database,
   input: { subjectId: string; tenantId: string; sessionId: string; requestId: string },
+): Promise<SessionRevocationIntent> {
+  await database.validateRuntimeRole();
+  const client = await database.pool.connect();
+  try {
+    await client.query('BEGIN');
+    await setSecurityContext(client, input.subjectId, input.tenantId);
+    await assertActiveMembership(client, input.subjectId, input.tenantId);
+    const inserted = await client.query<{
+      id: string;
+      status: SessionRevocationIntentStatus;
+    }>(
+      `INSERT INTO platform.session_revocation_intent
+        (id, subject_id, tenant_id, external_session_ref, request_id)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (subject_id, tenant_id, external_session_ref) DO NOTHING
+       RETURNING id, status`,
+      [uuidv7(), input.subjectId, input.tenantId, input.sessionId, input.requestId],
+    );
+    const existing =
+      inserted.rows[0] ??
+      (
+        await client.query<{ id: string; status: SessionRevocationIntentStatus }>(
+          `SELECT id, status FROM platform.session_revocation_intent
+           WHERE subject_id = $1 AND tenant_id = $2 AND external_session_ref = $3`,
+          [input.subjectId, input.tenantId, input.sessionId],
+        )
+      ).rows[0];
+    if (!existing) throw new IdentityRepositoryError('session_revocation_not_found');
+    await client.query('COMMIT');
+    return { id: existing.id, status: existing.status };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function markSessionRevocationRetryable(
+  database: Database,
+  input: {
+    intentId: string;
+    subjectId: string;
+    tenantId: string;
+    reason: SessionRevocationFailureReason;
+  },
 ): Promise<void> {
   await database.validateRuntimeRole();
   const client = await database.pool.connect();
   try {
     await client.query('BEGIN');
     await setSecurityContext(client, input.subjectId, input.tenantId);
-    const membership = await client.query(
-      `SELECT 1 FROM platform.tenant_membership
-       WHERE subject_id = $1 AND tenant_id = $2 AND status = 'active'`,
-      [input.subjectId, input.tenantId],
-    );
-    if (!membership.rowCount) throw new IdentityRepositoryError('membership_required');
-    await client.query(
-      `INSERT INTO platform.security_event
-        (id, subject_id, tenant_id, event_type, external_session_ref, request_id)
-       VALUES ($1, $2, $3, 'session.revoked', $4, $5)`,
-      [uuidv7(), input.subjectId, input.tenantId, input.sessionId, input.requestId],
-    );
+    const current = await getIntentForUpdate(client, input);
+    if (current.status === 'pending' || current.status === 'retryable') {
+      await assertActiveMembership(client, input.subjectId, input.tenantId);
+      await client.query(
+        `UPDATE platform.session_revocation_intent
+         SET status = 'retryable', failure_code = $4, updated_at = now()
+         WHERE id = $1 AND subject_id = $2 AND tenant_id = $3`,
+        [input.intentId, input.subjectId, input.tenantId, input.reason],
+      );
+    }
     await client.query('COMMIT');
   } catch (error) {
     await client.query('ROLLBACK');
@@ -231,6 +306,143 @@ export async function recordSessionRevocation(
   } finally {
     client.release();
   }
+}
+
+export async function markSessionRevocationProviderConfirmed(
+  database: Database,
+  input: { intentId: string; subjectId: string; tenantId: string },
+): Promise<void> {
+  await database.validateRuntimeRole();
+  const client = await database.pool.connect();
+  try {
+    await client.query('BEGIN');
+    await setSecurityContext(client, input.subjectId, input.tenantId);
+    const current = await getIntentForUpdate(client, input);
+    if (current.status !== 'finalized' && current.status !== 'provider_confirmed') {
+      await assertActiveMembership(client, input.subjectId, input.tenantId);
+      await client.query(
+        `UPDATE platform.session_revocation_intent
+         SET status = 'provider_confirmed', failure_code = NULL,
+             provider_confirmed_at = COALESCE(provider_confirmed_at, now()), updated_at = now()
+         WHERE id = $1 AND subject_id = $2 AND tenant_id = $3`,
+        [input.intentId, input.subjectId, input.tenantId],
+      );
+    }
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function finalizeSessionRevocation(
+  database: Database,
+  input: { intentId: string; subjectId: string; tenantId: string },
+): Promise<void> {
+  await database.validateRuntimeRole();
+  const client = await database.pool.connect();
+  try {
+    await client.query('BEGIN');
+    await setSecurityContext(client, input.subjectId, input.tenantId);
+    const current = await getIntentForUpdate(client, input, true);
+    if (current.status === 'finalized') {
+      await client.query('COMMIT');
+      return;
+    }
+    if (current.status !== 'provider_confirmed') {
+      throw new IdentityRepositoryError('session_revocation_not_confirmed');
+    }
+    await assertActiveMembership(client, input.subjectId, input.tenantId);
+    await client.query(
+      `INSERT INTO platform.security_event
+        (id, subject_id, tenant_id, event_type, external_session_ref, request_id,
+         session_revocation_intent_id)
+       VALUES ($1, $2, $3, 'session.revoked', $4, $5, $6)
+       ON CONFLICT (session_revocation_intent_id)
+         WHERE session_revocation_intent_id IS NOT NULL DO NOTHING`,
+      [
+        uuidv7(),
+        input.subjectId,
+        input.tenantId,
+        current.external_session_ref,
+        current.request_id,
+        input.intentId,
+      ],
+    );
+    const finalized = await client.query(
+      `UPDATE platform.session_revocation_intent
+       SET status = 'finalized', failure_code = NULL, updated_at = now()
+       WHERE id = $1 AND subject_id = $2 AND tenant_id = $3 AND status = 'provider_confirmed'`,
+      [input.intentId, input.subjectId, input.tenantId],
+    );
+    if (finalized.rowCount !== 1) {
+      throw new IdentityRepositoryError('session_revocation_not_confirmed');
+    }
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+function getIntentForUpdate(
+  client: import('pg').PoolClient,
+  input: { intentId: string; subjectId: string; tenantId: string },
+  includeAuditFields: true,
+): Promise<{
+  id: string;
+  status: SessionRevocationIntentStatus;
+  external_session_ref: string;
+  request_id: string;
+}>;
+function getIntentForUpdate(
+  client: import('pg').PoolClient,
+  input: { intentId: string; subjectId: string; tenantId: string },
+  includeAuditFields?: false,
+): Promise<{ id: string; status: SessionRevocationIntentStatus }>;
+async function getIntentForUpdate(
+  client: import('pg').PoolClient,
+  input: { intentId: string; subjectId: string; tenantId: string },
+  includeAuditFields = false,
+): Promise<
+  | { id: string; status: SessionRevocationIntentStatus }
+  | {
+      id: string;
+      status: SessionRevocationIntentStatus;
+      external_session_ref: string;
+      request_id: string;
+    }
+> {
+  const result = await client.query<{
+    id: string;
+    status: SessionRevocationIntentStatus;
+    external_session_ref?: string;
+    request_id?: string;
+  }>(
+    `SELECT id, status${includeAuditFields ? ', external_session_ref, request_id' : ''}
+     FROM platform.session_revocation_intent
+     WHERE id = $1 AND subject_id = $2 AND tenant_id = $3
+     FOR UPDATE`,
+    [input.intentId, input.subjectId, input.tenantId],
+  );
+  const row = result.rows[0];
+  if (!row) throw new IdentityRepositoryError('session_revocation_not_found');
+  if (includeAuditFields) {
+    if (!row.external_session_ref || !row.request_id) {
+      throw new IdentityRepositoryError('session_revocation_not_found');
+    }
+    return {
+      id: row.id,
+      status: row.status,
+      external_session_ref: row.external_session_ref,
+      request_id: row.request_id,
+    };
+  }
+  return { id: row.id, status: row.status };
 }
 
 export class RuntimeDatabaseRoleError extends Error {
@@ -275,7 +487,7 @@ async function validateRuntimePoolRole(pool: Pool): Promise<void> {
       COALESCE(pg_catalog.has_schema_privilege(role.oid, pg_catalog.to_regnamespace('platform'), 'USAGE'), false)
       AND NOT COALESCE(pg_catalog.has_schema_privilege(role.oid, pg_catalog.to_regnamespace('platform'), 'CREATE'), false)
       AND (
-        SELECT count(*) = 5 AND bool_and(
+        SELECT count(*) = 6 AND bool_and(
           relation.relrowsecurity AND relation.relforcerowsecurity AND
           CASE relation.relname
             WHEN 'identity_subject' THEN
@@ -318,6 +530,23 @@ async function validateRuntimePoolRole(pool: Pool): Promise<void> {
               NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRUNCATE') AND
               NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'REFERENCES') AND
               NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRIGGER')
+            WHEN 'session_revocation_intent' THEN
+              pg_catalog.has_table_privilege(role.oid, relation.oid, 'SELECT') AND
+              pg_catalog.has_table_privilege(role.oid, relation.oid, 'INSERT') AND
+              pg_catalog.has_column_privilege(role.oid, relation.oid, 'status', 'UPDATE') AND
+              pg_catalog.has_column_privilege(role.oid, relation.oid, 'failure_code', 'UPDATE') AND
+              pg_catalog.has_column_privilege(role.oid, relation.oid, 'provider_confirmed_at', 'UPDATE') AND
+              pg_catalog.has_column_privilege(role.oid, relation.oid, 'updated_at', 'UPDATE') AND
+              NOT pg_catalog.has_column_privilege(role.oid, relation.oid, 'id', 'UPDATE') AND
+              NOT pg_catalog.has_column_privilege(role.oid, relation.oid, 'subject_id', 'UPDATE') AND
+              NOT pg_catalog.has_column_privilege(role.oid, relation.oid, 'tenant_id', 'UPDATE') AND
+              NOT pg_catalog.has_column_privilege(role.oid, relation.oid, 'external_session_ref', 'UPDATE') AND
+              NOT pg_catalog.has_column_privilege(role.oid, relation.oid, 'request_id', 'UPDATE') AND
+              NOT pg_catalog.has_column_privilege(role.oid, relation.oid, 'created_at', 'UPDATE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'DELETE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRUNCATE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'REFERENCES') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRIGGER')
             ELSE false
           END
         )
@@ -325,7 +554,8 @@ async function validateRuntimePoolRole(pool: Pool): Promise<void> {
         JOIN pg_catalog.pg_namespace namespace ON namespace.oid = relation.relnamespace
         WHERE namespace.nspname = 'platform'
           AND relation.relname IN (
-            'identity_subject', 'external_auth_identity', 'tenant', 'tenant_membership', 'security_event'
+            'identity_subject', 'external_auth_identity', 'tenant', 'tenant_membership',
+            'security_event', 'session_revocation_intent'
           )
       ) AS has_runtime_capabilities
     FROM runtime_role role
@@ -343,10 +573,29 @@ async function validateRuntimePoolRole(pool: Pool): Promise<void> {
 }
 
 export class IdentityRepositoryError extends Error {
-  constructor(readonly code: 'identity_suspended' | 'membership_required') {
+  constructor(
+    readonly code:
+      | 'identity_suspended'
+      | 'membership_required'
+      | 'session_revocation_not_found'
+      | 'session_revocation_not_confirmed',
+  ) {
     super('Identity repository operation was denied');
     this.name = 'IdentityRepositoryError';
   }
+}
+
+async function assertActiveMembership(
+  client: import('pg').PoolClient,
+  subjectId: string,
+  tenantId: string,
+): Promise<void> {
+  const membership = await client.query(
+    `SELECT 1 FROM platform.tenant_membership
+     WHERE subject_id = $1 AND tenant_id = $2 AND status = 'active'`,
+    [subjectId, tenantId],
+  );
+  if (!membership.rowCount) throw new IdentityRepositoryError('membership_required');
 }
 
 async function setSecurityContext(

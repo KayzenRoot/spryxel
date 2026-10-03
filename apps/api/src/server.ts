@@ -2,10 +2,14 @@ import { parseRuntimeConfig, type RuntimeConfig } from '@spryxel/config';
 import {
   bootstrapIdentity,
   createDatabase,
+  createSessionRevocationIntent,
   type Database,
+  finalizeSessionRevocation,
+  getSessionRevocationIntent,
   IdentityRepositoryError,
   listIdentityMemberships,
-  recordSessionRevocation,
+  markSessionRevocationProviderConfirmed,
+  markSessionRevocationRetryable,
 } from '@spryxel/db';
 import type {
   AuthenticatedPrincipal,
@@ -65,12 +69,33 @@ export function buildApiServer(config: RuntimeConfig, dependencies: ApiServerDep
           bootstrap: (principal: AuthenticatedPrincipal, requestId: string) =>
             bootstrapIdentity(database, principal, requestId),
           listMemberships: (subjectId: string) => listIdentityMemberships(database, subjectId),
-          recordSessionRevocation: (input: {
+          getSessionRevocationIntent: (input: {
+            subjectId: string;
+            tenantId: string;
+            sessionId: string;
+          }) => getSessionRevocationIntent(database, input),
+          createSessionRevocationIntent: (input: {
             subjectId: string;
             tenantId: string;
             sessionId: string;
             requestId: string;
-          }) => recordSessionRevocation(database, input),
+          }) => createSessionRevocationIntent(database, input),
+          markSessionRevocationRetryable: (input: {
+            intentId: string;
+            subjectId: string;
+            tenantId: string;
+            reason: 'provider_unavailable' | 'provider_not_confirmed';
+          }) => markSessionRevocationRetryable(database, input),
+          markSessionRevocationProviderConfirmed: (input: {
+            intentId: string;
+            subjectId: string;
+            tenantId: string;
+          }) => markSessionRevocationProviderConfirmed(database, input),
+          finalizeSessionRevocation: (input: {
+            intentId: string;
+            subjectId: string;
+            tenantId: string;
+          }) => finalizeSessionRevocation(database, input),
         }
       : undefined);
   const sessionProvider =
@@ -209,30 +234,123 @@ export function buildApiServer(config: RuntimeConfig, dependencies: ApiServerDep
         );
         return unavailableProblem(reply, request.id, 'session_management_unavailable');
       }
+
+      const scope = {
+        subjectId: identity.subjectId,
+        tenantId: identity.tenantId,
+        sessionId,
+      };
+      let intent: Awaited<ReturnType<IdentityRepositoryPort['getSessionRevocationIntent']>>;
+      let reconcilingExistingIntent = false;
       try {
-        const revoked = await sessionProvider.revokeSession(principal.externalSubject, sessionId);
-        if (!revoked) return notFoundProblem(reply, request.id);
-      } catch {
-        return unavailableProblem(reply, request.id, 'session_management_unavailable');
-      }
-      try {
-        await identityRepository.recordSessionRevocation({
-          subjectId: identity.subjectId,
-          tenantId: identity.tenantId,
-          sessionId,
-          requestId: request.id,
-        });
+        intent = await identityRepository.getSessionRevocationIntent(scope);
+        reconcilingExistingIntent = intent !== undefined;
       } catch (error) {
         request.log.error(
           {
-            event: 'session.revocation_audit_reconciliation_required',
+            event: 'session.revocation_intent_lookup_failed',
             requestId: request.id,
             subjectId: identity.subjectId,
             tenantId: identity.tenantId,
             errorType: safeErrorType(error),
           },
-          'provider session revoked but security event projection failed',
+          'session revocation intent lookup failed',
         );
+        return unavailableProblem(reply, request.id, 'session_management_unavailable');
+      }
+
+      if (!intent) {
+        try {
+          const sessions = await sessionProvider.listSessions(
+            principal.externalSubject,
+            principal.externalSession.session,
+          );
+          if (
+            !sessions.some((session) => session.id === sessionId && session.status === 'active')
+          ) {
+            return notFoundProblem(reply, request.id);
+          }
+        } catch {
+          return unavailableProblem(reply, request.id, 'session_management_unavailable');
+        }
+
+        try {
+          intent = await identityRepository.createSessionRevocationIntent({
+            ...scope,
+            requestId: request.id,
+          });
+        } catch (error) {
+          request.log.error(
+            {
+              event: 'session.revocation_intent_persistence_failed',
+              requestId: request.id,
+              subjectId: identity.subjectId,
+              tenantId: identity.tenantId,
+              errorType: safeErrorType(error),
+            },
+            'session revocation stopped because its repair intent was not persisted',
+          );
+          return unavailableProblem(reply, request.id, 'session_management_unavailable');
+        }
+      }
+
+      const intentScope = {
+        intentId: intent.id,
+        subjectId: identity.subjectId,
+        tenantId: identity.tenantId,
+      };
+      if (intent.status === 'finalized') return reply.code(204).send();
+
+      if (intent.status === 'provider_confirmed') {
+        try {
+          await identityRepository.finalizeSessionRevocation(intentScope);
+        } catch (error) {
+          logRevocationReconciliationRequired(request, identity, error);
+        }
+        return reply.code(204).send();
+      }
+
+      try {
+        const providerConfirmed = reconcilingExistingIntent
+          ? await sessionProvider.retrySessionRevocation(principal.externalSubject, sessionId)
+          : await sessionProvider.revokeSession(principal.externalSubject, sessionId);
+        if (!providerConfirmed) {
+          try {
+            await identityRepository.markSessionRevocationRetryable({
+              ...intentScope,
+              reason: 'provider_not_confirmed',
+            });
+          } catch {
+            // The original durable intent remains pending if this state update is unavailable.
+          }
+          return reconcilingExistingIntent
+            ? unavailableProblem(reply, request.id, 'session_management_unavailable')
+            : notFoundProblem(reply, request.id);
+        }
+      } catch {
+        try {
+          await identityRepository.markSessionRevocationRetryable({
+            ...intentScope,
+            reason: 'provider_unavailable',
+          });
+        } catch {
+          // The original durable intent remains pending if this state update is unavailable.
+        }
+        return unavailableProblem(reply, request.id, 'session_management_unavailable');
+      }
+
+      try {
+        await identityRepository.markSessionRevocationProviderConfirmed(intentScope);
+      } catch (error) {
+        logRevocationReconciliationRequired(request, identity, error);
+        return reply.code(204).send();
+      }
+
+      try {
+        await identityRepository.finalizeSessionRevocation(intentScope);
+      } catch (error) {
+        logRevocationReconciliationRequired(request, identity, error);
+        return reply.code(204).send();
       }
       request.log.info(
         { event: 'session.revoked', subjectId: identity.subjectId, tenantId: identity.tenantId },
@@ -266,6 +384,23 @@ export function buildApiServer(config: RuntimeConfig, dependencies: ApiServerDep
       return unavailableProblem(reply, request.id, 'authentication_unavailable');
     }
   }
+}
+
+function logRevocationReconciliationRequired(
+  request: import('fastify').FastifyRequest,
+  identity: { subjectId: string; tenantId: string },
+  error: unknown,
+): void {
+  request.log.error(
+    {
+      event: 'session.revocation_audit_reconciliation_required',
+      requestId: request.id,
+      subjectId: identity.subjectId,
+      tenantId: identity.tenantId,
+      errorType: safeErrorType(error),
+    },
+    'provider session revoked but durable security-event finalization is pending',
+  );
 }
 
 async function runProbe(

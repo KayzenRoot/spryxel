@@ -1,6 +1,6 @@
 # SPRYXEL-WO-006 / SPRYXEL-IMP-002 — Evidence Bundle
 
-**Estado:** candidato para reauditoria independente; não declara aprovação, merge ou promoção.
+**Estado:** C-09 implementado; acceptance HIGH_ASSURANCE em Node 22/npm 10 concluída; checks do novo HEAD aguardam execução no GitHub. Não declara aprovação, merge ou promoção.
 
 **Data:** 2026-10-02
 
@@ -50,6 +50,7 @@ O contrato oficial documenta `auth_time` e `max_age` para reautenticação. A do
 - DB runtime: `packages/db/src/index.ts` e regressões do pool/papel.
 - Architecture enforcement: `scripts/check-architecture.ts` e fixtures negativas.
 - Integration harness: `scripts/run-integration.ts` inicia PostgreSQL antes de Redis/SeaweedFS para evitar contenção durante a inicialização; os testes seguem usando PostgreSQL, Redis e SeaweedFS reais, sem simulação.
+- C-09 acrescenta a migração `packages/db/src/migrations/0003_session_revocation_reconciliation.sql` e usa `apps/api/src/server.ts`, `apps/api/src/server.test.ts`, adapters WorkOS, `packages/db/src/index.ts`, `packages/identity/src/index.ts` e `scripts/run-integration.ts` para intent durável, retry e finalização idempotente.
 - Evidência: este bundle. `D-001…D-161`, manifests/lockfile, provider, `.gef`, GEF, workflows, ruleset, seed e checkpoint não fazem parte da correção.
 - Nenhum Project/Product Shell ou slice posterior foi iniciado.
 
@@ -101,11 +102,41 @@ Esta é a acceptance run oficial de runtime para HIGH_ASSURANCE. O checkout esta
 
 O aceite de execução Node 22 acima substitui o run Node 24 como evidência oficial. O delta é proof-only: nenhum comportamento, dependência, manifest/lockfile, D-001…D-161, provider WorkOS/AuthKit, checkpoint, `.gef`, GEF, workflow, ruleset ou source seed foi alterado. O exact final head do commit documental e os quatro required checks desse mesmo SHA são registrados no corpo pós-push da PR #24; nenhum check de SHA anterior é reutilizado.
 
+## Correction Delta 03 — C-09: reconciliação durável de revogação
+
+Esta execução partiu do candidate head `8e004ded243326dd36644561cfad8231c4997077`, na base imutável `main@95ae64d1951ca285c67014fcedbb00e74c3d163d`. A correção substitui a dependência exclusiva de log operacional após revogação WorkOS confirmada por um handle canônico em PostgreSQL, criado depois da validação de identidade/suspensão e da propriedade da sessão, mas antes do efeito externo. Se a persistência do intent falhar, o provider não é chamado e a API falha com a semântica segura de disponibilidade existente.
+
+O estado do intent distingue `pending`, `retryable`, `provider_confirmed` e `finalized`, com códigos seguros de falha; nenhuma mensagem bruta do provider, token, cookie, credencial ou segredo é persistida. Falha do provider deixa intent recuperável e não cria `session.revoked`. Após confirmação, falha de finalização preserva o intent `provider_confirmed`, mantém resposta `204` e permite retry determinístico pelo DELETE existente. A finalização grava evento e estado final de forma idempotente; a restrição única impede eventos duplicados. RLS, `FORCE ROW LEVEL SECURITY`, vínculo composto de tenant/subject e permissões mínimas de `spryxel_app` mantêm o isolamento.
+
+As regressões demonstram falha segura sem chamada ao provider quando o intent não é persistido, identidade suspensa e sessão não pertencente sem efeito destrutivo, falha do provider sem falso evento, resposta `204` com intent durável após falha PostgreSQL injetada na auditoria, retry que finaliza e repetição sem duplicatas. A integração usa PostgreSQL real para acesso cross-tenant negado, contexto RLS transacional sem vazamento em pool reutilizado e recuperação HTTP com falha de trigger removida; Redis/BullMQ e SeaweedFS autenticados também passaram.
+
+### Acceptance run oficial — Node 22.23.3 / npm 10.9.9
+
+`node --version` reportou `v22.23.3`; `npm --version` reportou `10.9.9`. `npm ci --no-audit --no-fund` concluiu com 218 pacotes instalados; `package.json` e `package-lock.json` não mudaram. Todas as validações abaixo foram executadas após corrigir duas importações duplicadas no harness C-09. Nenhum resultado de check GitHub de SHA anterior foi reutilizado.
+
+| Validação | Resultado observado |
+| --- | --- |
+| `npm run format:check` | PASS — 84 arquivos. Para acomodar `core.autocrlf=true` no checkout Windows, os finais de linha foram normalizados temporariamente para LF; após o check, arquivos fora do delta semântico foram restaurados ao estado do índice. |
+| `npm run lint` | PASS — 84 arquivos, sem findings. |
+| `npm run typecheck -- --force` | PASS — 18/18 tarefas, sem cache. |
+| `npm run build -- --force` | PASS — 11/11 workspaces, sem cache; build Next.js completou geração de rotas. |
+| `npm run architecture:check` | PASS — 11 workspaces, 13 edges, sem ciclos; oito fontes de `apps/web/app` inspecionadas. |
+| `npm run test:unit` | PASS — 15 arquivos / 52 testes. |
+| `npm run test:worker` | PASS — smoke em processo Node separado. |
+| `npm run test:integration` | PASS — PostgreSQL real: migrations/idempotência, startup privilegiado recusado antes do bind, `spryxel_app NOBYPASSRLS` permitido, pool compartilhado e isolamento RLS, bootstrap concorrente, isolamento cross-tenant, estados duráveis de retry, falha injetada na finalização HTTP com recuperação sem duplicatas; Redis/BullMQ autenticado e SeaweedFS S3 autenticado; teardown dos containers/volumes descartáveis. |
+| `npm run test:browser` | PASS — Playwright 7/7. |
+| `npm test` | PASS — agregado completo: unit 52/52, worker, integração real PostgreSQL/Redis/SeaweedFS e browser 7/7. |
+| `npm audit --audit-level=high` | PASS — zero vulnerabilidades. |
+| `git diff --check` | PASS — sem erro de whitespace no delta C-09. |
+| GEF 1.1.1 `doctor/status` | `doctor`: terminal `SUCCEEDED`, efeito `NONE`, toolchain Node/platform/Git `HEALTHY`, `repository.observable=FINDING`; limitações `GIT_DIRECTORY_NOT_A_DIRECTORY` e `WORKING_TREE_NOT_OBSERVED`. Duas leituras read-only de `status` foram byte-idênticas (6.109 bytes; SHA-256 `abf75c06e3bdd72887b7b27dd8abf56146ce921e2b13948ab42e972ac30c6fdf`), com `statusDigest=113b1bab4bf8ed942123aa11f6e7f2d3f2d394f30542922254666b6cae04673a`, `dirtiness=UNKNOWN`, `operator.stale=true` e drift bruto `UNEXPECTED` (`before=8e6af789ede5f95e3a8022d8e084f3775da9d76b940fd83ca8d8c6f30e541954`, `after=dbe81ee345172e46a3f494ff7511e4df3568fa79d8996341184b09d259db4fe0`). Tratado conforme D-0007: autorização é demonstrada por Work Order, Context Lock e diff; `.gef` e checkpoint não foram alterados. |
+
+O commit de código será aceito somente com os quatro required checks PASS no novo exact final head: `Repository validation`, `Pipeline integrity`, `Gitleaks secrets` e `Trivy filesystem and configuration`. URLs/IDs, SHA publicado e contagem de threads não resolvidas serão registrados no corpo pós-push da PR #24; esta evidência não herda status de checks anteriores.
+
 ## Riscos, limitações e próximo gate
 
 - Não houve smoke contra tenant WorkOS por falta de credenciais staging. Fixtures determinísticas e assinatura/JWKS de teste não podem ser selecionadas pelo config de produção.
 - Antes de produção: confirmar billing/termos e audiência API no token template; aprovar e provar MFA para cada método permitido, inclusive SSO. Até essa prova, a política sensível falha fechada.
-- Se o insert de auditoria falhar após a revogação WorkOS confirmada, a API retorna sucesso e emite log error-level seguro para reconciliação operacional; a projeção `session.revoked` do PostgreSQL pode permanecer pendente até remediação.
+- Se a finalização falhar após revogação WorkOS confirmada, a API retorna sucesso e conserva intent `provider_confirmed` durável para retry determinístico; a finalização idempotente impede perda permanente e duplicação de `session.revoked`.
 - `npm audit` não reporta finding HIGH/CRITICAL na árvore validada.
 - Review threads só são resolvidas depois da validação do finding correspondente; contagem final é publicada na PR.
 - O Checkpoint Delta `SPRYXEL-WO-006-PROPOSED.md` continua apenas proposto; não foi alterado, aceito ou promovido.

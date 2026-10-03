@@ -14,18 +14,23 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
+import { parseRuntimeConfig } from '@spryxel/config';
 import {
   bootstrapIdentity,
+  createSessionRevocationIntent,
   createDatabase,
+  finalizeSessionRevocation,
+  getSessionRevocationIntent,
   getMigrationStatus,
   listIdentityMemberships,
+  markSessionRevocationRetryable,
   probePostgres,
-  recordSessionRevocation,
   runMigrations,
 } from '@spryxel/db';
 import type { AuthenticatedPrincipal } from '@spryxel/identity';
 import { createRunId, waitFor } from '@spryxel/testkit';
 import { BullMqTechnicalQueueProbe } from '@spryxel/worker/queue-probe';
+import { buildApiServer } from '../apps/api/src/server.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const composePath = resolve(root, 'infra/compose.yml');
@@ -119,14 +124,14 @@ try {
 
   const pristineMigrationStatus = await getMigrationStatus(databaseUrl);
   if (
-    pristineMigrationStatus.length !== 2 ||
+    pristineMigrationStatus.length !== 3 ||
     pristineMigrationStatus.some((migration) => migration.applied)
   ) {
     throw new Error('Pristine PostgreSQL did not report all migrations as unapplied');
   }
 
   const migrationStatus = await runMigrations(databaseUrl);
-  if (migrationStatus.length !== 2 || migrationStatus.some((migration) => !migration.applied)) {
+  if (migrationStatus.length !== 3 || migrationStatus.some((migration) => !migration.applied)) {
     throw new Error(
       'Disposable PostgreSQL migrations did not apply the technical and identity schemas',
     );
@@ -136,7 +141,7 @@ try {
     throw new Error('Migration runner was not idempotent');
   }
   const readStatus = await getMigrationStatus(databaseUrl);
-  if (readStatus.length !== 2 || readStatus.some((migration) => !migration.applied)) {
+  if (readStatus.length !== 3 || readStatus.some((migration) => !migration.applied)) {
     throw new Error('Migration status did not report every applied migration');
   }
 
@@ -153,6 +158,7 @@ try {
       'platform.external_auth_identity',
       'platform.identity_subject',
       'platform.security_event',
+      'platform.session_revocation_intent',
       'platform.tenant',
       'platform.tenant_membership',
       'public._spryxel_schema_migrations',
@@ -293,12 +299,308 @@ try {
     await identityRlsDatabase.close();
   }
 
-  await recordSessionRevocation(appRuntimeDatabase, {
+  const retryableRevocationInput = {
+    subjectId: identityA.subjectId,
+    tenantId: identityA.tenantId,
+    sessionId: 'session_retryable_integration_a',
+    requestId: 'integration-session-revoke-retry',
+  };
+  const retryableIntent = await createSessionRevocationIntent(
+    appRuntimeDatabase,
+    retryableRevocationInput,
+  );
+  if (retryableIntent.status !== 'pending') {
+    throw new Error('New PostgreSQL revocation intent did not begin in pending state');
+  }
+  await markSessionRevocationRetryable(appRuntimeDatabase, {
+    intentId: retryableIntent.id,
+    subjectId: identityA.subjectId,
+    tenantId: identityA.tenantId,
+    reason: 'provider_unavailable',
+  });
+  const retryableState = await getSessionRevocationIntent(
+    appRuntimeDatabase,
+    retryableRevocationInput,
+  );
+  const beforeProviderConfirmation = await appRuntimeDatabase.pool.query<{ count: string }>(
+    `SELECT count(*)::text AS count FROM platform.security_event
+     WHERE event_type = 'session.revoked' AND external_session_ref = $1`,
+    [retryableRevocationInput.sessionId],
+  );
+  if (retryableState?.status !== 'retryable' || beforeProviderConfirmation.rows[0]?.count !== '0') {
+    throw new Error('Provider failure did not remain retryable without a false revoked event');
+  }
+  let rawProviderErrorRejected = false;
+  const intentPrivacyClient = await appRuntimeDatabase.pool.connect();
+  try {
+    await intentPrivacyClient.query('BEGIN');
+    await intentPrivacyClient.query(
+      "SELECT set_config('spryxel.subject_id', $1, true), set_config('spryxel.tenant_id', $2, true)",
+      [identityA.subjectId, identityA.tenantId],
+    );
+    await intentPrivacyClient.query('SAVEPOINT raw_provider_error');
+    try {
+      await intentPrivacyClient.query(
+        `UPDATE platform.session_revocation_intent
+         SET failure_code = 'provider token secret raw error'
+         WHERE id = $1`,
+        [retryableIntent.id],
+      );
+    } catch (error) {
+      const code =
+        typeof error === 'object' && error !== null && 'code' in error ? error.code : undefined;
+      rawProviderErrorRejected = code === '23514';
+      await intentPrivacyClient.query('ROLLBACK TO SAVEPOINT raw_provider_error');
+    }
+    const safeRow = await intentPrivacyClient.query<{ row: string }>(
+      `SELECT to_jsonb(intent)::text AS row
+       FROM platform.session_revocation_intent intent WHERE id = $1`,
+      [retryableIntent.id],
+    );
+    await intentPrivacyClient.query('COMMIT');
+    if (
+      !rawProviderErrorRejected ||
+      safeRow.rows[0]?.row.includes('provider token secret raw error')
+    ) {
+      throw new Error('Revocation intent persisted an unsafe raw provider error');
+    }
+  } catch (error) {
+    await intentPrivacyClient.query('ROLLBACK');
+    throw error;
+  } finally {
+    intentPrivacyClient.release();
+  }
+  let crossTenantIntentDenied = false;
+  let crossTenantIntentWriteDenied = false;
+  let crossTenantEventLinkDenied = false;
+  const intentRlsClient = await appRuntimeDatabase.pool.connect();
+  try {
+    await intentRlsClient.query('BEGIN');
+    await intentRlsClient.query(
+      "SELECT set_config('spryxel.subject_id', $1, true), set_config('spryxel.tenant_id', $2, true)",
+      [identityB.subjectId, identityB.tenantId],
+    );
+    const hiddenIntent = await intentRlsClient.query(
+      'SELECT id FROM platform.session_revocation_intent WHERE id = $1',
+      [retryableIntent.id],
+    );
+    const crossTenantIntentUpdate = await intentRlsClient.query(
+      `UPDATE platform.session_revocation_intent SET status = 'retryable'
+       WHERE id = $1`,
+      [retryableIntent.id],
+    );
+    await intentRlsClient.query('SAVEPOINT cross_tenant_revocation_intent');
+    try {
+      await intentRlsClient.query(
+        `INSERT INTO platform.session_revocation_intent
+          (id, subject_id, tenant_id, external_session_ref, request_id)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          randomUUID(),
+          identityA.subjectId,
+          identityA.tenantId,
+          'session_cross_tenant_attempt',
+          'integration-cross-tenant',
+        ],
+      );
+    } catch (error) {
+      const code =
+        typeof error === 'object' && error !== null && 'code' in error ? error.code : undefined;
+      crossTenantIntentWriteDenied = code === '42501';
+      await intentRlsClient.query('ROLLBACK TO SAVEPOINT cross_tenant_revocation_intent');
+    }
+    await intentRlsClient.query('SAVEPOINT cross_tenant_revocation_event_link');
+    try {
+      await intentRlsClient.query(
+        `INSERT INTO platform.security_event
+          (id, subject_id, tenant_id, event_type, external_session_ref, request_id,
+           session_revocation_intent_id)
+         VALUES ($1, $2, $3, 'session.revoked', $4, $5, $6)`,
+        [
+          randomUUID(),
+          identityB.subjectId,
+          identityB.tenantId,
+          'session_cross_tenant_link_attempt',
+          'integration-cross-tenant-link',
+          retryableIntent.id,
+        ],
+      );
+    } catch (error) {
+      const code =
+        typeof error === 'object' && error !== null && 'code' in error ? error.code : undefined;
+      crossTenantEventLinkDenied = code === '23503';
+      await intentRlsClient.query('ROLLBACK TO SAVEPOINT cross_tenant_revocation_event_link');
+    }
+    await intentRlsClient.query('COMMIT');
+    crossTenantIntentDenied = hiddenIntent.rowCount === 0 && crossTenantIntentUpdate.rowCount === 0;
+  } catch (error) {
+    await intentRlsClient.query('ROLLBACK');
+    throw error;
+  } finally {
+    intentRlsClient.release();
+  }
+  let crossTenantFinalizationDenied = false;
+  try {
+    await finalizeSessionRevocation(appRuntimeDatabase, {
+      intentId: retryableIntent.id,
+      subjectId: identityB.subjectId,
+      tenantId: identityB.tenantId,
+    });
+  } catch (error) {
+    crossTenantFinalizationDenied =
+      error instanceof Error && error.message === 'Identity repository operation was denied';
+  }
+  if (
+    !crossTenantIntentDenied ||
+    !crossTenantIntentWriteDenied ||
+    !crossTenantEventLinkDenied ||
+    !crossTenantFinalizationDenied
+  ) {
+    throw new Error(
+      'PostgreSQL RLS did not deny cross-tenant revocation intent access/finalization',
+    );
+  }
+
+  const revocationPoolIsolation = createDatabase(appDatabaseUrl, { max: 1 });
+  try {
+    await getSessionRevocationIntent(revocationPoolIsolation, retryableRevocationInput);
+    await revocationPoolIsolation.pool.query('BEGIN READ ONLY');
+    const unscopedIntent = await revocationPoolIsolation.pool.query(
+      'SELECT id FROM platform.session_revocation_intent WHERE id = $1',
+      [retryableIntent.id],
+    );
+    const leakedContext = await revocationPoolIsolation.pool.query<{
+      subject_id: string | null;
+      tenant_id: string | null;
+    }>(
+      `SELECT NULLIF(current_setting('spryxel.subject_id', true), '') AS subject_id,
+              NULLIF(current_setting('spryxel.tenant_id', true), '') AS tenant_id`,
+    );
+    await revocationPoolIsolation.pool.query('COMMIT');
+    if (
+      unscopedIntent.rowCount !== 0 ||
+      leakedContext.rows[0]?.subject_id ||
+      leakedContext.rows[0]?.tenant_id
+    ) {
+      throw new Error('Reused pooled connection leaked session-revocation RLS context');
+    }
+  } catch (error) {
+    await revocationPoolIsolation.pool.query('ROLLBACK');
+    throw error;
+  } finally {
+    await revocationPoolIsolation.close();
+  }
+
+  const revocationInput = {
     subjectId: identityA.subjectId,
     tenantId: identityA.tenantId,
     sessionId: 'session_revoked_integration_a',
     requestId: 'integration-session-revoke',
+  };
+  const failingSessionRef = revocationInput.sessionId;
+  const finalizationFaultDatabase = createDatabase(databaseUrl, { max: 1 });
+  const apiRouteDatabase = createDatabase(appDatabaseUrl, { max: 1 });
+  let listCalls = 0;
+  let revokeCalls = 0;
+  let retryCalls = 0;
+  const routeApi = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'silent' }, 'api'), {
+    database: apiRouteDatabase,
+    authenticateToken: async () => principalA,
+    sessionProvider: {
+      listSessions: async (_subject, currentSessionId) => {
+        listCalls += 1;
+        return [
+          {
+            id: failingSessionRef,
+            status: 'active' as const,
+            authMethod: 'password',
+            createdAt: '2026-10-02T11:00:00.000Z',
+            expiresAt: '2026-10-03T11:00:00.000Z',
+            current: currentSessionId === principalA.externalSession.session,
+            impersonated: false,
+          },
+        ];
+      },
+      revokeSession: async () => {
+        revokeCalls += 1;
+        return true;
+      },
+      retrySessionRevocation: async () => {
+        retryCalls += 1;
+        return true;
+      },
+    },
   });
+  let auditTriggerInstalled = false;
+  try {
+    await finalizationFaultDatabase.pool.query(`
+      CREATE FUNCTION public.fail_one_session_revocation_audit() RETURNS trigger
+      LANGUAGE plpgsql AS $$
+      BEGIN
+        IF NEW.external_session_ref = '${failingSessionRef}' THEN
+          RAISE EXCEPTION 'transient revocation audit storage fault';
+        END IF;
+        RETURN NEW;
+      END;
+      $$
+    `);
+    await finalizationFaultDatabase.pool.query(`
+      CREATE TRIGGER fail_one_session_revocation_audit
+      BEFORE INSERT ON platform.security_event
+      FOR EACH ROW EXECUTE FUNCTION public.fail_one_session_revocation_audit()
+    `);
+    auditTriggerInstalled = true;
+    await routeApi.ready();
+    const request = {
+      method: 'DELETE' as const,
+      url: `/v1/me/sessions/${failingSessionRef}`,
+      headers: {
+        authorization: 'Bearer integration-token',
+        'x-request-id': revocationInput.requestId,
+      },
+    };
+    const firstRevocation = await routeApi.inject(request);
+    const durableRepairHandle = await getSessionRevocationIntent(apiRouteDatabase, revocationInput);
+    if (
+      firstRevocation.statusCode !== 204 ||
+      durableRepairHandle?.status !== 'provider_confirmed'
+    ) {
+      throw new Error('Confirmed provider revoke did not return 204 with a durable repair handle');
+    }
+    await finalizationFaultDatabase.pool.query(
+      'DROP TRIGGER IF EXISTS fail_one_session_revocation_audit ON platform.security_event',
+    );
+    await finalizationFaultDatabase.pool.query(
+      'DROP FUNCTION IF EXISTS public.fail_one_session_revocation_audit()',
+    );
+    auditTriggerInstalled = false;
+
+    const reconciled = await routeApi.inject(request);
+    const repeatedReconciliation = await routeApi.inject(request);
+    const finalIntent = await getSessionRevocationIntent(apiRouteDatabase, revocationInput);
+    if (
+      reconciled.statusCode !== 204 ||
+      repeatedReconciliation.statusCode !== 204 ||
+      finalIntent?.status !== 'finalized' ||
+      listCalls !== 1 ||
+      revokeCalls !== 1 ||
+      retryCalls !== 0
+    ) {
+      throw new Error('Explicit HTTP reconciliation was not deterministic and idempotent');
+    }
+  } finally {
+    await routeApi.close();
+    if (auditTriggerInstalled) {
+      await finalizationFaultDatabase.pool.query(
+        'DROP TRIGGER IF EXISTS fail_one_session_revocation_audit ON platform.security_event',
+      );
+      await finalizationFaultDatabase.pool.query(
+        'DROP FUNCTION IF EXISTS public.fail_one_session_revocation_audit()',
+      );
+    }
+    await finalizationFaultDatabase.close();
+  }
+
   const eventDatabase = createDatabase(appDatabaseUrl, { max: 1 });
   const eventClient = await eventDatabase.pool.connect();
   try {
@@ -530,7 +832,7 @@ try {
 
 if (primaryError) throw new Error(redact(String(primaryError), allSecrets));
 process.stdout.write(
-  'Real-service integration: PASS (PostgreSQL migrations/idempotency, privileged API startup refused before bind, spryxel_app NOBYPASSRLS API startup allowed, shared API runtime pool with transaction-scoped RLS context isolation, concurrent identity bootstrap, cross-tenant RLS boundaries, safe bootstrap/revocation events, authenticated Redis/BullMQ, authenticated SeaweedFS S3 and API health/readiness).\n',
+  'Real-service integration: PASS (PostgreSQL migrations/idempotency, privileged API startup refused before bind, spryxel_app NOBYPASSRLS API startup allowed, shared API runtime pool with transaction-scoped RLS context isolation, concurrent identity bootstrap, cross-tenant intent/finalization RLS, durable retryable revocation state, HTTP audit recovery after injected PostgreSQL finalization fault with duplicate prevention, authenticated Redis/BullMQ, authenticated SeaweedFS S3 and API health/readiness).\n',
 );
 process.stdout.write(
   'Migration/queue regressions: PASS (pristine PostgreSQL reports unapplied; two BullMQ probes leave no disposable queue keys).\n',

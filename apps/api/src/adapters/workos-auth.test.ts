@@ -149,4 +149,21 @@ describe('WorkOS session mapping', () => {
       provider.listSessions({ provider: 'workos', subject: 'user_fixture' }, ''),
     ).rejects.toBeInstanceOf(WorkOSSessionListingUnavailableError);
   });
+
+  it('replays a revoke only through the durable-intent recovery operation', async () => {
+    const listSessions = vi.fn(async () => ({ data: [], listMetadata: {} }));
+    const revokeSession = vi.fn(async () => undefined);
+    const provider = new WorkOSSessionProvider('test-key', 'test-client', 'https://issuer.test', {
+      api: { listSessions, revokeSession } as unknown as WorkOSSessionApi,
+    });
+
+    await expect(
+      provider.retrySessionRevocation(
+        { provider: 'workos', subject: 'user_fixture' },
+        'session_with_durable_intent',
+      ),
+    ).resolves.toBe(true);
+    expect(revokeSession).toHaveBeenCalledWith({ sessionId: 'session_with_durable_intent' });
+    expect(listSessions).not.toHaveBeenCalled();
+  });
 });

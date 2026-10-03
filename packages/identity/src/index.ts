@@ -102,12 +102,46 @@ export type IdentityBootstrapResult = {
 export type IdentityRepositoryPort = {
   bootstrap(principal: AuthenticatedPrincipal, requestId: string): Promise<IdentityBootstrapResult>;
   listMemberships(subjectId: string): Promise<TenantMembership[]>;
-  recordSessionRevocation(input: {
+  getSessionRevocationIntent(input: {
+    subjectId: string;
+    tenantId: string;
+    sessionId: string;
+  }): Promise<SessionRevocationIntent | undefined>;
+  createSessionRevocationIntent(input: {
     subjectId: string;
     tenantId: string;
     sessionId: string;
     requestId: string;
+  }): Promise<SessionRevocationIntent>;
+  markSessionRevocationRetryable(input: {
+    intentId: string;
+    subjectId: string;
+    tenantId: string;
+    reason: SessionRevocationFailureReason;
   }): Promise<void>;
+  markSessionRevocationProviderConfirmed(input: {
+    intentId: string;
+    subjectId: string;
+    tenantId: string;
+  }): Promise<void>;
+  finalizeSessionRevocation(input: {
+    intentId: string;
+    subjectId: string;
+    tenantId: string;
+  }): Promise<void>;
+};
+
+export type SessionRevocationIntentStatus =
+  | 'pending'
+  | 'retryable'
+  | 'provider_confirmed'
+  | 'finalized';
+
+export type SessionRevocationFailureReason = 'provider_unavailable' | 'provider_not_confirmed';
+
+export type SessionRevocationIntent = {
+  id: string;
+  status: SessionRevocationIntentStatus;
 };
 
 export type ExternalSession = {
@@ -126,4 +160,9 @@ export type IdentitySessionProviderPort = {
     currentSessionId: string,
   ): Promise<ExternalSession[]>;
   revokeSession(externalSubject: ExternalSubjectReference, sessionId: string): Promise<boolean>;
+  /** Replays a revoke only when a durable intent proves prior session ownership. */
+  retrySessionRevocation(
+    externalSubject: ExternalSubjectReference,
+    sessionId: string,
+  ): Promise<boolean>;
 };

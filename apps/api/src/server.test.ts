@@ -112,7 +112,11 @@ describe('identity API boundary', () => {
           active: true,
         },
       ],
-      recordSessionRevocation: async () => undefined,
+      getSessionRevocationIntent: async () => undefined,
+      createSessionRevocationIntent: async () => ({ id: 'intent_fixture', status: 'pending' }),
+      markSessionRevocationRetryable: async () => undefined,
+      markSessionRevocationProviderConfirmed: async () => undefined,
+      finalizeSessionRevocation: async () => undefined,
       ...overrides.identityRepository,
     };
     return {
@@ -127,7 +131,11 @@ describe('identity API boundary', () => {
     const identityRepository = {
       bootstrap: async () => bootstrap,
       listMemberships: async () => [],
-      recordSessionRevocation: async () => undefined,
+      getSessionRevocationIntent: async () => undefined,
+      createSessionRevocationIntent: async () => ({ id: 'intent_fixture', status: 'pending' }),
+      markSessionRevocationRetryable: async () => undefined,
+      markSessionRevocationProviderConfirmed: async () => undefined,
+      finalizeSessionRevocation: async () => undefined,
     } satisfies IdentityRepositoryPort;
     const app = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'silent' }, 'api'), {
       ...dependencies({ identityRepository }),
@@ -176,25 +184,49 @@ describe('identity API boundary', () => {
     }
   });
 
-  it('does not disclose whether another user session exists and revokes only owned sessions', async () => {
+  it('persists a durable intent only after ownership is verified and before provider revocation', async () => {
+    const order: string[] = [];
     const provider = {
-      listSessions: async () => [
-        {
-          id: 'session_fixture',
-          status: 'active' as const,
-          authMethod: 'password',
-          createdAt: '2026-10-02T11:00:00.000Z',
-          expiresAt: '2026-10-03T11:00:00.000Z',
-          current: true,
-          impersonated: false,
-        },
-      ],
-      revokeSession: async (_external, sessionId) => sessionId === 'session_fixture',
+      listSessions: async () => {
+        order.push('provider-list');
+        return [
+          {
+            id: 'session_fixture',
+            status: 'active' as const,
+            authMethod: 'password',
+            createdAt: '2026-10-02T11:00:00.000Z',
+            expiresAt: '2026-10-03T11:00:00.000Z',
+            current: true,
+            impersonated: false,
+          },
+        ];
+      },
+      revokeSession: vi.fn(async (_external, sessionId) => {
+        order.push('provider-revoke');
+        return sessionId === 'session_fixture';
+      }),
+      retrySessionRevocation: async () => true,
     } satisfies IdentitySessionProviderPort;
-    const recordSessionRevocation = vi.fn(async () => undefined);
+    const getSessionRevocationIntent = vi.fn(async () => {
+      order.push('find-intent');
+      return undefined;
+    });
+    const createSessionRevocationIntent = vi.fn(async () => {
+      order.push('persist-intent');
+      return { id: 'intent_fixture', status: 'pending' as const };
+    });
+    const markSessionRevocationProviderConfirmed = vi.fn(async () => {
+      order.push('provider-confirmed');
+    });
+    const finalizeSessionRevocation = vi.fn(async () => {
+      order.push('finalize');
+    });
     const identityRepository = {
       ...dependencies().identityRepository,
-      recordSessionRevocation,
+      getSessionRevocationIntent,
+      createSessionRevocationIntent,
+      markSessionRevocationProviderConfirmed,
+      finalizeSessionRevocation,
     };
     const app = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'silent' }, 'api'), {
       ...dependencies({ identityRepository, sessionProvider: provider }),
@@ -206,14 +238,24 @@ describe('identity API boundary', () => {
         headers: { authorization: 'Bearer valid-fixture-token' },
       });
       expect(missing.statusCode).toBe(404);
-      expect(recordSessionRevocation).not.toHaveBeenCalled();
+      expect(createSessionRevocationIntent).not.toHaveBeenCalled();
+      expect(provider.revokeSession).not.toHaveBeenCalled();
+      order.length = 0;
       const revoked = await app.inject({
         method: 'DELETE',
         url: '/v1/me/sessions/session_fixture',
         headers: { authorization: 'Bearer valid-fixture-token' },
       });
       expect(revoked.statusCode).toBe(204);
-      expect(recordSessionRevocation).toHaveBeenCalledOnce();
+      expect(createSessionRevocationIntent).toHaveBeenCalledOnce();
+      expect(order).toEqual([
+        'find-intent',
+        'provider-list',
+        'persist-intent',
+        'provider-revoke',
+        'provider-confirmed',
+        'finalize',
+      ]);
     } finally {
       await app.close();
     }
@@ -229,11 +271,15 @@ describe('identity API boundary', () => {
       },
     };
     const sessionProvider = {
-      listSessions: async () => [],
+      listSessions: async () => {
+        order.push('provider-list');
+        return [];
+      },
       revokeSession: async () => {
         order.push('provider-revoke');
         return true;
       },
+      retrySessionRevocation: async () => true,
     } satisfies IdentitySessionProviderPort;
     const app = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'silent' }, 'api'), {
       ...dependencies({ identityRepository, sessionProvider }),
@@ -252,18 +298,125 @@ describe('identity API boundary', () => {
     }
   });
 
-  it('keeps provider revocation successful when only the audit projection fails', async () => {
-    const lines: string[] = [];
-    const logger = createLogger({ level: 'error' }, { write: (line) => lines.push(line) });
+  it('does not revoke when the durable repair handle cannot be persisted', async () => {
+    const provider = {
+      listSessions: vi.fn(async () => [
+        {
+          id: 'session_fixture',
+          status: 'active' as const,
+          authMethod: 'password',
+          createdAt: '2026-10-02T11:00:00.000Z',
+          expiresAt: '2026-10-03T11:00:00.000Z',
+          current: true,
+          impersonated: false,
+        },
+      ]),
+      revokeSession: vi.fn(async () => true),
+      retrySessionRevocation: vi.fn(async () => true),
+    } satisfies IdentitySessionProviderPort;
     const identityRepository = {
       ...dependencies().identityRepository,
-      recordSessionRevocation: async () => {
+      createSessionRevocationIntent: async () => {
+        throw new Error('postgres://private database password');
+      },
+    };
+    const app = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'silent' }, 'api'), {
+      ...dependencies({ identityRepository, sessionProvider: provider }),
+    });
+    try {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: '/v1/me/sessions/session_fixture',
+        headers: { authorization: 'Bearer valid-fixture-token' },
+      });
+      expect(response.statusCode).toBe(503);
+      expect(response.body).not.toContain('private database password');
+      expect(provider.revokeSession).not.toHaveBeenCalled();
+      expect(provider.retrySessionRevocation).not.toHaveBeenCalled();
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('preserves a retryable intent without a false event when the provider fails', async () => {
+    const lines: string[] = [];
+    const logger = createLogger({ level: 'error' }, { write: (line) => lines.push(line) });
+    const markSessionRevocationRetryable = vi.fn(async () => undefined);
+    const finalizeSessionRevocation = vi.fn(async () => undefined);
+    const identityRepository = {
+      ...dependencies().identityRepository,
+      markSessionRevocationRetryable,
+      finalizeSessionRevocation,
+    };
+    const sessionProvider = {
+      listSessions: async () => [
+        {
+          id: 'session_fixture',
+          status: 'active' as const,
+          authMethod: 'password',
+          createdAt: '2026-10-02T11:00:00.000Z',
+          expiresAt: '2026-10-03T11:00:00.000Z',
+          current: true,
+          impersonated: false,
+        },
+      ],
+      revokeSession: async () => {
+        throw new Error('provider token and secret');
+      },
+      retrySessionRevocation: async () => true,
+    } satisfies IdentitySessionProviderPort;
+    const app = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'silent' }, 'api'), {
+      ...dependencies({ identityRepository, sessionProvider, logger }),
+    });
+    try {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: '/v1/me/sessions/session_fixture',
+        headers: { authorization: 'Bearer valid-fixture-token' },
+      });
+      expect(response.statusCode).toBe(503);
+      expect(response.body).not.toContain('provider token');
+      expect(lines.join('')).not.toContain('provider token and secret');
+      expect(markSessionRevocationRetryable).toHaveBeenCalledWith(
+        expect.objectContaining({ reason: 'provider_unavailable' }),
+      );
+      expect(finalizeSessionRevocation).not.toHaveBeenCalled();
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('keeps provider revocation successful when audit finalization fails with a durable confirmed intent', async () => {
+    const lines: string[] = [];
+    const logger = createLogger({ level: 'error' }, { write: (line) => lines.push(line) });
+    let status: 'pending' | 'provider_confirmed' | 'finalized' = 'pending';
+    const identityRepository = {
+      ...dependencies().identityRepository,
+      createSessionRevocationIntent: async () => ({
+        id: 'intent_fixture',
+        status: 'pending' as const,
+      }),
+      markSessionRevocationProviderConfirmed: async () => {
+        status = 'provider_confirmed';
+      },
+      finalizeSessionRevocation: async () => {
         throw new Error('database URL and provider credential must not be logged');
       },
     };
     const sessionProvider = {
-      listSessions: async () => [],
+      listSessions: async () => [
+        {
+          id: 'session_fixture',
+          status: 'active' as const,
+          authMethod: 'password',
+          createdAt: '2026-10-02T11:00:00.000Z',
+          expiresAt: '2026-10-03T11:00:00.000Z',
+          current: true,
+          impersonated: false,
+        },
+      ],
       revokeSession: async () => true,
+      retrySessionRevocation: async () => true,
     } satisfies IdentitySessionProviderPort;
     const app = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'error' }, 'api'), {
       ...dependencies({ identityRepository, sessionProvider, logger }),
@@ -277,6 +430,70 @@ describe('identity API boundary', () => {
       expect(response.statusCode).toBe(204);
       expect(lines.join('')).toContain('session.revocation_audit_reconciliation_required');
       expect(lines.join('')).not.toContain('database URL and provider credential');
+      expect(status).toBe('provider_confirmed');
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('reconciles a retryable intent on replay and returns one event idempotently', async () => {
+    const lines: string[] = [];
+    const logger = createLogger({ level: 'error' }, { write: (line) => lines.push(line) });
+    let status: 'pending' | 'retryable' | 'provider_confirmed' | 'finalized' = 'pending';
+    let events = 0;
+    const identityRepository = {
+      ...dependencies().identityRepository,
+      getSessionRevocationIntent: async () =>
+        status === 'pending' ? undefined : { id: 'intent_fixture', status },
+      createSessionRevocationIntent: async () => ({ id: 'intent_fixture', status }),
+      markSessionRevocationRetryable: async () => {
+        status = 'retryable';
+      },
+      markSessionRevocationProviderConfirmed: async () => {
+        status = 'provider_confirmed';
+      },
+      finalizeSessionRevocation: async () => {
+        if (status !== 'finalized') events += 1;
+        status = 'finalized';
+      },
+    };
+    const sessionProvider = {
+      listSessions: async () => [
+        {
+          id: 'session_fixture',
+          status: 'active' as const,
+          authMethod: 'password',
+          createdAt: '2026-10-02T11:00:00.000Z',
+          expiresAt: '2026-10-03T11:00:00.000Z',
+          current: true,
+          impersonated: false,
+        },
+      ],
+      revokeSession: vi
+        .fn<IdentitySessionProviderPort['revokeSession']>()
+        .mockRejectedValueOnce(new Error('transient provider credential failure'))
+        .mockResolvedValue(true),
+      retrySessionRevocation: vi
+        .fn<IdentitySessionProviderPort['retrySessionRevocation']>()
+        .mockResolvedValue(true),
+    } satisfies IdentitySessionProviderPort;
+    const app = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'error' }, 'api'), {
+      ...dependencies({ identityRepository, sessionProvider, logger }),
+    });
+    try {
+      const request = {
+        method: 'DELETE' as const,
+        url: '/v1/me/sessions/session_fixture',
+        headers: { authorization: 'Bearer valid-fixture-token' },
+      };
+      const first = await app.inject(request);
+      expect(first.statusCode).toBe(503);
+      const retry = await app.inject(request);
+      expect(retry.statusCode).toBe(204);
+      const repeated = await app.inject(request);
+      expect(repeated.statusCode).toBe(204);
+      expect(sessionProvider.retrySessionRevocation).toHaveBeenCalledTimes(1);
+      expect(events).toBe(1);
     } finally {
       await app.close();
     }
