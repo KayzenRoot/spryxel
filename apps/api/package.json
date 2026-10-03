@@ -15,7 +15,10 @@
     "@spryxel/contracts": "0.0.0",
     "@spryxel/db": "0.0.0",
     "@spryxel/domain": "0.0.0",
+    "@spryxel/identity": "0.0.0",
     "@spryxel/observability": "0.0.0",
-    "fastify": "5.12.5"
+    "@workos-inc/node": "10.14.0",
+    "fastify": "5.12.5",
+    "jose": "6.2.12"
   }
 }

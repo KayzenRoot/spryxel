@@ -10,6 +10,8 @@
     "start": "next start"
   },
   "dependencies": {
+    "@workos-inc/authkit-nextjs": "4.4.0",
+    "@workos-inc/node": "10.14.0",
     "@spryxel/contracts": "0.0.0",
     "@spryxel/ui": "0.0.0",
     "next": "16.3.8",

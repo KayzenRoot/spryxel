@@ -13,6 +13,8 @@ test('shell preserves the shared theme and keyboard boundaries', async ({ page }
   await page.keyboard.press('Tab');
   await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused();
   await page.keyboard.press('Tab');
+  await expect(page.getByRole('link', { name: 'Sign in' })).toBeFocused();
+  await page.keyboard.press('Tab');
   const themeButton = page.getByRole('button', { name: 'Switch to light theme' });
   await expect(themeButton).toBeFocused();
   await page.keyboard.press('Enter');
@@ -73,6 +75,59 @@ test('theme toggle stays synchronized when local storage access throws', async (
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await expect(page.getByRole('button', { name: 'Switch to dark theme' })).toBeVisible();
   expect(pageErrors).toEqual([]);
+});
+
+test('signed-out account route starts hosted AuthKit with PKCE and CSRF state', async ({
+  page,
+}) => {
+  const response = await page.request.get('/account', { maxRedirects: 0 });
+  expect([302, 307]).toContain(response.status());
+  const location = response.headers().location;
+  expect(location).toBeTruthy();
+  const authorization = new URL(location ?? 'http://invalid.test');
+  expect(authorization.pathname).toContain('authorize');
+  expect(authorization.searchParams.get('client_id')).toBe('client_test_fixture');
+  expect(authorization.searchParams.get('state')).toBeTruthy();
+  expect(authorization.searchParams.get('code_challenge')).toBeTruthy();
+  expect(authorization.searchParams.get('code_challenge_method')).toBe('S256');
+});
+
+test('sign-in route creates a one-time PKCE flow and callback rejects absent CSRF state', async ({
+  page,
+}) => {
+  const signIn = await page.request.get('/sign-in', { maxRedirects: 0 });
+  expect([302, 307]).toContain(signIn.status());
+  expect(signIn.headers().location).toContain('authorize');
+  const cookieHeader = signIn.headers()['set-cookie'] ?? '';
+  expect(/wos-auth-verifier-/i.test(cookieHeader)).toBe(true);
+  expect(/httponly/i.test(cookieHeader)).toBe(true);
+  expect(/samesite=lax/i.test(cookieHeader)).toBe(true);
+
+  const callback = await page.request.get('/auth/callback', { maxRedirects: 0 });
+  expect(callback.status()).toBe(400);
+  expect(callback.headers()['content-type']).toContain('application/problem+json');
+  const body = await callback.text();
+  expect(body).toContain('Authentication callback rejected');
+  expect(body).not.toContain('client_test_fixture');
+  expect(body).not.toContain('test-secret');
+});
+
+test('sign-out returns the browser to the public shell and browser storage has no tokens', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const stored = await page.evaluate(() => ({
+    local: Object.keys(window.localStorage),
+    session: Object.keys(window.sessionStorage),
+  }));
+  expect(stored.local.some((key) => /token|auth|session/i.test(key))).toBe(false);
+  expect(stored.session.some((key) => /token|auth|session/i.test(key))).toBe(false);
+
+  const signOut = await page.request.get('/sign-out', { maxRedirects: 0 });
+  expect([302, 303, 307]).toContain(signOut.status());
+  const location = signOut.headers().location;
+  expect(location).toBeTruthy();
+  expect(new URL(location ?? '/', 'http://127.0.0.1').pathname).toBe('/');
 });
 
 async function captureThemeBeforePaint(page: import('@playwright/test').Page): Promise<void> {

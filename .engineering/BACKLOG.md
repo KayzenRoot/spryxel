@@ -79,3 +79,11 @@ The auth-provider planning gate for the next NECESSARY slice is resolved by D-15
 - Spryxel PostgreSQL: canonical identity linkage, tenant membership, product authorization and RLS authority;
 - exact SDK pins and current terms/security remain an implementation-time preflight;
 - Identity/Tenancy code is still NOT_ADMITTED until its Work Order/Context Lock exists.
+
+## SPRYXEL-WO-006 / IMP-002 approval
+
+`SPRYXEL-IMP-002 — Identity/Tenancy security baseline` is objectively APPROVED on exact audited head `8e4f5b16883bf03a29893783032a00d31753457b` after Correction Delta 01…05. The admitted implementation includes WorkOS/AuthKit external authentication/session edges, Spryxel-owned identity/tenant/membership authority, PostgreSQL RLS, bootstrap, JWT/JWKS verification, bounded session management and durable session-revocation reconciliation.
+
+HIGH_ASSURANCE acceptance passed in Node 22.23.3/npm 10.9.9, including 61/61 unit tests, real PostgreSQL/RLS + Redis + SeaweedFS integration, Playwright 7/7, aggregate npm test, audit, required GitHub checks and SonarQube Quality Gate with zero security hotspots.
+
+The next NECESSARY slice is Projects + canonical shell/Home. It remains NOT_ADMITTED until WO-006 is merged/post-merge validated and a new Work Order/Context Lock is compiled.

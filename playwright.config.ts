@@ -18,6 +18,13 @@ export default defineConfig({
     url: 'http://127.0.0.1:3100',
     reuseExistingServer: false,
     timeout: 120_000,
+    env: {
+      WORKOS_API_KEY: 'test_api_key_placeholder',
+      WORKOS_CLIENT_ID: 'client_test_fixture',
+      WORKOS_COOKIE_PASSWORD: 'test-cookie-password-for-local-playwright-only-000000000000000000',
+      WORKOS_ISSUER: 'https://auth.example.test',
+      NEXT_PUBLIC_WORKOS_REDIRECT_URI: 'http://127.0.0.1:3100/auth/callback',
+    },
   },
   outputDir: 'test-results/browser',
 });
