@@ -113,7 +113,11 @@ describe('identity API boundary', () => {
         },
       ],
       getSessionRevocationIntent: async () => undefined,
-      createSessionRevocationIntent: async () => ({ id: 'intent_fixture', status: 'pending' }),
+      createSessionRevocationIntent: async () => ({
+        id: 'intent_fixture',
+        status: 'pending',
+        createdAt: '2026-10-03T11:00:00.000Z',
+      }),
       markSessionRevocationRetryable: async () => undefined,
       markSessionRevocationProviderConfirmed: async () => undefined,
       finalizeSessionRevocation: async () => undefined,
@@ -132,7 +136,11 @@ describe('identity API boundary', () => {
       bootstrap: async () => bootstrap,
       listMemberships: async () => [],
       getSessionRevocationIntent: async () => undefined,
-      createSessionRevocationIntent: async () => ({ id: 'intent_fixture', status: 'pending' }),
+      createSessionRevocationIntent: async () => ({
+        id: 'intent_fixture',
+        status: 'pending',
+        createdAt: '2026-10-03T11:00:00.000Z',
+      }),
       markSessionRevocationRetryable: async () => undefined,
       markSessionRevocationProviderConfirmed: async () => undefined,
       finalizeSessionRevocation: async () => undefined,
@@ -205,6 +213,7 @@ describe('identity API boundary', () => {
         order.push('provider-revoke');
         return sessionId === 'session_fixture';
       }),
+      reconcileSessionRevocation: async () => false,
       retrySessionRevocation: async () => true,
     } satisfies IdentitySessionProviderPort;
     const getSessionRevocationIntent = vi.fn(async () => {
@@ -213,7 +222,11 @@ describe('identity API boundary', () => {
     });
     const createSessionRevocationIntent = vi.fn(async () => {
       order.push('persist-intent');
-      return { id: 'intent_fixture', status: 'pending' as const };
+      return {
+        id: 'intent_fixture',
+        status: 'pending' as const,
+        createdAt: '2026-10-03T11:00:00.000Z',
+      };
     });
     const markSessionRevocationProviderConfirmed = vi.fn(async () => {
       order.push('provider-confirmed');
@@ -279,6 +292,7 @@ describe('identity API boundary', () => {
         order.push('provider-revoke');
         return true;
       },
+      reconcileSessionRevocation: async () => false,
       retrySessionRevocation: async () => true,
     } satisfies IdentitySessionProviderPort;
     const app = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'silent' }, 'api'), {
@@ -312,6 +326,7 @@ describe('identity API boundary', () => {
         },
       ]),
       revokeSession: vi.fn(async () => true),
+      reconcileSessionRevocation: async () => false,
       retrySessionRevocation: vi.fn(async () => true),
     } satisfies IdentitySessionProviderPort;
     const identityRepository = {
@@ -363,6 +378,7 @@ describe('identity API boundary', () => {
       revokeSession: async () => {
         throw new Error('provider token and secret');
       },
+      reconcileSessionRevocation: async () => false,
       retrySessionRevocation: async () => true,
     } satisfies IdentitySessionProviderPort;
     const app = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'silent' }, 'api'), {
@@ -395,6 +411,7 @@ describe('identity API boundary', () => {
       createSessionRevocationIntent: async () => ({
         id: 'intent_fixture',
         status: 'pending' as const,
+        createdAt: '2026-10-03T11:00:00.000Z',
       }),
       markSessionRevocationProviderConfirmed: async () => {
         status = 'provider_confirmed';
@@ -416,6 +433,7 @@ describe('identity API boundary', () => {
         },
       ],
       revokeSession: async () => true,
+      reconcileSessionRevocation: async () => false,
       retrySessionRevocation: async () => true,
     } satisfies IdentitySessionProviderPort;
     const app = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'error' }, 'api'), {
@@ -436,6 +454,151 @@ describe('identity API boundary', () => {
     }
   });
 
+  it('recovers a provider-confirmed current-session revoke from a WorkOS event without replaying revoke', async () => {
+    const lines: string[] = [];
+    const logger = createLogger({ level: 'error' }, { write: (line) => lines.push(line) });
+    let intentExists = false;
+    let status: 'pending' | 'provider_confirmed' | 'finalized' = 'pending';
+    let confirmationWrites = 0;
+    let securityEvents = 0;
+    const durableIntent = {
+      id: 'intent_current_session_fixture',
+      status,
+      createdAt: '2026-10-03T11:00:00.000Z',
+    };
+    const identityRepository = {
+      ...dependencies().identityRepository,
+      getSessionRevocationIntent: async () =>
+        intentExists ? { ...durableIntent, status } : undefined,
+      createSessionRevocationIntent: async () => {
+        intentExists = true;
+        return { ...durableIntent, status };
+      },
+      markSessionRevocationProviderConfirmed: async () => {
+        confirmationWrites += 1;
+        if (confirmationWrites === 1) {
+          throw new Error('postgres password must not be exposed');
+        }
+        status = 'provider_confirmed';
+      },
+      finalizeSessionRevocation: async () => {
+        if (status !== 'finalized') securityEvents += 1;
+        status = 'finalized';
+      },
+    };
+    const sessionProviderDouble = {
+      listSessions: vi.fn(async () => [
+        {
+          id: 'session_fixture',
+          status: 'active' as const,
+          authMethod: 'password',
+          createdAt: '2026-10-03T10:00:00.000Z',
+          expiresAt: '2026-10-04T10:00:00.000Z',
+          current: true,
+          impersonated: false,
+        },
+      ]),
+      revokeSession: vi.fn(async () => true),
+      reconcileSessionRevocation: vi.fn(async () => true),
+      retrySessionRevocation: vi.fn(async () => true),
+    };
+    const sessionProvider = sessionProviderDouble as unknown as IdentitySessionProviderPort;
+    const app = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'error' }, 'api'), {
+      ...dependencies({
+        authenticateToken: async (token) =>
+          token === 'initial-session-token'
+            ? principal
+            : {
+                ...principal,
+                externalSession: { provider: 'workos', session: 'fresh_recovery_session' },
+              },
+        identityRepository,
+        sessionProvider,
+        logger,
+      }),
+    });
+    try {
+      const originalRequest = {
+        method: 'DELETE' as const,
+        url: '/v1/me/sessions/session_fixture',
+        headers: { authorization: 'Bearer initial-session-token' },
+      };
+      const first = await app.inject(originalRequest);
+      expect(first.statusCode).toBe(204);
+      expect(first.body).toBe('');
+      expect(lines.join('')).not.toContain('postgres password');
+      expect(status).toBe('pending');
+      expect(securityEvents).toBe(0);
+
+      const recovery = await app.inject({
+        ...originalRequest,
+        headers: { authorization: 'Bearer fresh-session-token' },
+      });
+      const repeatedRecovery = await app.inject({
+        ...originalRequest,
+        headers: { authorization: 'Bearer fresh-session-token' },
+      });
+
+      expect(recovery.statusCode).toBe(204);
+      expect(repeatedRecovery.statusCode).toBe(204);
+      expect(status).toBe('finalized');
+      expect(sessionProviderDouble.reconcileSessionRevocation).toHaveBeenCalledWith(
+        principal.externalSubject,
+        'session_fixture',
+        '2026-10-03T11:00:00.000Z',
+      );
+      expect(sessionProviderDouble.reconcileSessionRevocation).toHaveBeenCalledOnce();
+      expect(sessionProviderDouble.revokeSession).toHaveBeenCalledOnce();
+      expect(sessionProviderDouble.retrySessionRevocation).not.toHaveBeenCalled();
+      expect(sessionProviderDouble.listSessions).toHaveBeenCalledOnce();
+      expect(securityEvents).toBe(1);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('fails closed for a pending intent when the provider event does not confirm revocation', async () => {
+    const identityRepository = {
+      ...dependencies().identityRepository,
+      getSessionRevocationIntent: async () => ({
+        id: 'intent_unconfirmed_fixture',
+        status: 'pending' as const,
+        createdAt: '2026-10-03T11:00:00.000Z',
+      }),
+      markSessionRevocationProviderConfirmed: vi.fn(async () => undefined),
+      finalizeSessionRevocation: vi.fn(async () => undefined),
+    };
+    const sessionProvider = {
+      listSessions: vi.fn(async () => []),
+      revokeSession: vi.fn(async () => true),
+      reconcileSessionRevocation: vi.fn(async () => false),
+      retrySessionRevocation: vi.fn(async () => true),
+    };
+    const app = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'silent' }, 'api'), {
+      ...dependencies({
+        identityRepository,
+        sessionProvider: sessionProvider as unknown as IdentitySessionProviderPort,
+      }),
+    });
+    try {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: '/v1/me/sessions/session_fixture',
+        headers: { authorization: 'Bearer valid-fixture-token' },
+      });
+
+      expect(response.statusCode).toBe(503);
+      expect(response.body).not.toContain('intent_unconfirmed_fixture');
+      expect(sessionProvider.reconcileSessionRevocation).toHaveBeenCalledOnce();
+      expect(sessionProvider.revokeSession).not.toHaveBeenCalled();
+      expect(sessionProvider.retrySessionRevocation).not.toHaveBeenCalled();
+      expect(identityRepository.markSessionRevocationProviderConfirmed).not.toHaveBeenCalled();
+      expect(identityRepository.finalizeSessionRevocation).not.toHaveBeenCalled();
+    } finally {
+      await app.close();
+    }
+  });
+
   it('reconciles a retryable intent on replay and returns one event idempotently', async () => {
     const lines: string[] = [];
     const logger = createLogger({ level: 'error' }, { write: (line) => lines.push(line) });
@@ -444,8 +607,14 @@ describe('identity API boundary', () => {
     const identityRepository = {
       ...dependencies().identityRepository,
       getSessionRevocationIntent: async () =>
-        status === 'pending' ? undefined : { id: 'intent_fixture', status },
-      createSessionRevocationIntent: async () => ({ id: 'intent_fixture', status }),
+        status === 'pending'
+          ? undefined
+          : { id: 'intent_fixture', status, createdAt: '2026-10-03T11:00:00.000Z' },
+      createSessionRevocationIntent: async () => ({
+        id: 'intent_fixture',
+        status,
+        createdAt: '2026-10-03T11:00:00.000Z',
+      }),
       markSessionRevocationRetryable: async () => {
         status = 'retryable';
       },
@@ -473,6 +642,9 @@ describe('identity API boundary', () => {
         .fn<IdentitySessionProviderPort['revokeSession']>()
         .mockRejectedValueOnce(new Error('transient provider credential failure'))
         .mockResolvedValue(true),
+      reconcileSessionRevocation: vi
+        .fn<IdentitySessionProviderPort['reconcileSessionRevocation']>()
+        .mockResolvedValue(false),
       retrySessionRevocation: vi
         .fn<IdentitySessionProviderPort['retrySessionRevocation']>()
         .mockResolvedValue(true),

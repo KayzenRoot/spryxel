@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   mapWorkOSSession,
   WorkOSSessionListingUnavailableError,
+  WorkOSSessionReconciliationUnavailableError,
   WorkOSSessionProvider,
   type WorkOSSessionApi,
 } from './workos-auth.js';
@@ -148,6 +149,178 @@ describe('WorkOS session mapping', () => {
     await expect(
       provider.listSessions({ provider: 'workos', subject: 'user_fixture' }, ''),
     ).rejects.toBeInstanceOf(WorkOSSessionListingUnavailableError);
+  });
+
+  it('confirms revocation only from a matching user session event within the durable intent window', async () => {
+    const intentCreatedAt = new Date(Date.now() - 30_000).toISOString();
+    const expectedRangeStart = new Date(Date.parse(intentCreatedAt) - 60_000).toISOString();
+    const listEvents = vi.fn(
+      async (_options: { after?: string; rangeStart?: string; rangeEnd?: string }) => {
+        if (_options.after === 'event_cursor') {
+          return {
+            data: [
+              {
+                id: 'event_exact_session',
+                event: 'session.revoked',
+                createdAt: new Date(Date.parse(intentCreatedAt) + 3_000).toISOString(),
+                context: {},
+                data: {
+                  object: 'session',
+                  id: 'session_target',
+                  userId: 'user_target',
+                  status: 'revoked',
+                },
+              },
+            ],
+            listMetadata: {},
+          };
+        }
+        return {
+          data: [
+            {
+              id: 'event_other_user',
+              event: 'session.revoked',
+              createdAt: new Date(Date.parse(intentCreatedAt) + 2_000).toISOString(),
+              context: {},
+              data: {
+                object: 'session',
+                id: 'session_target',
+                userId: 'user_other',
+                status: 'revoked',
+              },
+            },
+            {
+              id: 'event_other_type',
+              event: 'session.created',
+              createdAt: new Date(Date.parse(intentCreatedAt) + 2_500).toISOString(),
+              context: {},
+              data: {
+                object: 'session',
+                id: 'session_target',
+                userId: 'user_target',
+                status: 'active',
+              },
+            },
+          ],
+          listMetadata: { after: 'event_cursor' },
+        };
+      },
+    );
+    const revokeSession = vi.fn(async () => undefined);
+    const provider = new WorkOSSessionProvider('test-key', 'test-client', 'https://issuer.test', {
+      api: {
+        listSessions: vi.fn(async () => ({ data: [], listMetadata: {} })),
+        revokeSession,
+      } as unknown as WorkOSSessionApi,
+      eventsApi: { listEvents } as never,
+    });
+
+    await expect(
+      provider.reconcileSessionRevocation(
+        { provider: 'workos', subject: 'user_target' },
+        'session_target',
+        intentCreatedAt,
+      ),
+    ).resolves.toBe(true);
+    expect(listEvents).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        events: ['session.revoked'],
+        rangeStart: expectedRangeStart,
+        limit: 100,
+        order: 'asc',
+      }),
+    );
+    expect(listEvents).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ after: 'event_cursor' }),
+    );
+    expect(revokeSession).not.toHaveBeenCalled();
+  });
+
+  it('fails closed when session-event reconciliation reaches its page bound without a match', async () => {
+    const listEvents = vi.fn(async () => ({
+      data: [],
+      listMetadata: { after: 'next_event_page' },
+    }));
+    const revokeSession = vi.fn(async () => undefined);
+    const provider = new WorkOSSessionProvider('test-key', 'test-client', 'https://issuer.test', {
+      api: {
+        listSessions: vi.fn(async () => ({ data: [], listMetadata: {} })),
+        revokeSession,
+      } as unknown as WorkOSSessionApi,
+      eventsApi: { listEvents } as never,
+      maxSessionEventPages: 1,
+    });
+
+    await expect(
+      provider.reconcileSessionRevocation(
+        { provider: 'workos', subject: 'user_target' },
+        'session_target',
+        new Date(Date.now() - 30_000).toISOString(),
+      ),
+    ).rejects.toBeInstanceOf(WorkOSSessionReconciliationUnavailableError);
+    expect(listEvents).toHaveBeenCalledOnce();
+    expect(revokeSession).not.toHaveBeenCalled();
+  });
+
+  it('keeps each WorkOS event query within the documented maximum range', async () => {
+    const intentCreatedAt = new Date(Date.now() - 45 * 24 * 60 * 60 * 1_000).toISOString();
+    let eventQueries = 0;
+    const listEvents = vi.fn(async (_options: { rangeStart?: string; rangeEnd?: string }) => {
+      eventQueries += 1;
+      if (eventQueries === 1) return { data: [], listMetadata: {} };
+      return {
+        data: [
+          {
+            id: 'event_old_intent_session',
+            event: 'session.revoked',
+            createdAt: new Date().toISOString(),
+            context: {},
+            data: {
+              object: 'session',
+              id: 'session_target',
+              userId: 'user_target',
+              status: 'revoked',
+            },
+          },
+        ],
+        listMetadata: {},
+      };
+    });
+    const provider = new WorkOSSessionProvider('test-key', 'test-client', 'https://issuer.test', {
+      api: {
+        listSessions: vi.fn(async () => ({ data: [], listMetadata: {} })),
+        revokeSession: vi.fn(async () => undefined),
+      } as unknown as WorkOSSessionApi,
+      eventsApi: { listEvents } as never,
+    });
+
+    await expect(
+      provider.reconcileSessionRevocation(
+        { provider: 'workos', subject: 'user_target' },
+        'session_target',
+        intentCreatedAt,
+      ),
+    ).resolves.toBe(true);
+    const firstRange = listEvents.mock.calls[0]?.[0];
+    const secondRange = listEvents.mock.calls[1]?.[0];
+    if (
+      !firstRange?.rangeStart ||
+      !firstRange.rangeEnd ||
+      !secondRange?.rangeStart ||
+      !secondRange.rangeEnd
+    ) {
+      throw new Error('WorkOS event request omitted a bounded range');
+    }
+    expect(listEvents).toHaveBeenCalledTimes(2);
+    expect(Date.parse(firstRange.rangeEnd) - Date.parse(firstRange.rangeStart)).toBeLessThanOrEqual(
+      30 * 24 * 60 * 60 * 1_000,
+    );
+    expect(
+      Date.parse(secondRange.rangeEnd) - Date.parse(secondRange.rangeStart),
+    ).toBeLessThanOrEqual(30 * 24 * 60 * 60 * 1_000);
+    expect(secondRange.rangeStart).toBe(firstRange.rangeEnd);
   });
 
   it('replays a revoke only through the durable-intent recovery operation', async () => {

@@ -142,6 +142,7 @@ export type SessionRevocationFailureReason = 'provider_unavailable' | 'provider_
 export type SessionRevocationIntent = {
   id: string;
   status: SessionRevocationIntentStatus;
+  createdAt: string;
 };
 
 export type ExternalSession = {
@@ -160,7 +161,13 @@ export type IdentitySessionProviderPort = {
     currentSessionId: string,
   ): Promise<ExternalSession[]>;
   revokeSession(externalSubject: ExternalSubjectReference, sessionId: string): Promise<boolean>;
-  /** Replays a revoke only when a durable intent proves prior session ownership. */
+  /** Confirms an existing provider outcome from the durable intent's session event. */
+  reconcileSessionRevocation(
+    externalSubject: ExternalSubjectReference,
+    sessionId: string,
+    intentCreatedAt: string,
+  ): Promise<boolean>;
+  /** Retries a revoke only for a durable intent marked retryable after provider failure. */
   retrySessionRevocation(
     externalSubject: ExternalSubjectReference,
     sessionId: string,

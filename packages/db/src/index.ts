@@ -218,14 +218,17 @@ export async function getSessionRevocationIntent(
     const result = await client.query<{
       id: string;
       status: SessionRevocationIntentStatus;
+      created_at: Date;
     }>(
-      `SELECT id, status FROM platform.session_revocation_intent
+      `SELECT id, status, created_at FROM platform.session_revocation_intent
        WHERE subject_id = $1 AND tenant_id = $2 AND external_session_ref = $3`,
       [input.subjectId, input.tenantId, input.sessionId],
     );
     await client.query('COMMIT');
     const row = result.rows[0];
-    return row ? { id: row.id, status: row.status } : undefined;
+    return row
+      ? { id: row.id, status: row.status, createdAt: row.created_at.toISOString() }
+      : undefined;
   } catch (error) {
     await client.query('ROLLBACK');
     throw error;
@@ -247,26 +250,35 @@ export async function createSessionRevocationIntent(
     const inserted = await client.query<{
       id: string;
       status: SessionRevocationIntentStatus;
+      created_at: Date;
     }>(
       `INSERT INTO platform.session_revocation_intent
         (id, subject_id, tenant_id, external_session_ref, request_id)
        VALUES ($1, $2, $3, $4, $5)
        ON CONFLICT (subject_id, tenant_id, external_session_ref) DO NOTHING
-       RETURNING id, status`,
+       RETURNING id, status, created_at`,
       [uuidv7(), input.subjectId, input.tenantId, input.sessionId, input.requestId],
     );
     const existing =
       inserted.rows[0] ??
       (
-        await client.query<{ id: string; status: SessionRevocationIntentStatus }>(
-          `SELECT id, status FROM platform.session_revocation_intent
+        await client.query<{
+          id: string;
+          status: SessionRevocationIntentStatus;
+          created_at: Date;
+        }>(
+          `SELECT id, status, created_at FROM platform.session_revocation_intent
            WHERE subject_id = $1 AND tenant_id = $2 AND external_session_ref = $3`,
           [input.subjectId, input.tenantId, input.sessionId],
         )
       ).rows[0];
     if (!existing) throw new IdentityRepositoryError('session_revocation_not_found');
     await client.query('COMMIT');
-    return { id: existing.id, status: existing.status };
+    return {
+      id: existing.id,
+      status: existing.status,
+      createdAt: existing.created_at.toISOString(),
+    };
   } catch (error) {
     await client.query('ROLLBACK');
     throw error;

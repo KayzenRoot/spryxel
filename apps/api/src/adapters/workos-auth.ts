@@ -11,10 +11,16 @@ import type { Session } from '@workos-inc/node';
 import { verifyWorkOSAccessToken } from '../auth/jwt.js';
 
 export type WorkOSSessionApi = Pick<WorkOS['userManagement'], 'listSessions' | 'revokeSession'>;
+export type WorkOSSessionEventsApi = Pick<WorkOS['events'], 'listEvents'>;
 
 const sessionPageLimit = 100;
 const defaultSessionPageCap = 10;
 const defaultSessionDeadlineMs = 5_000;
+const sessionEventPageLimit = 100;
+const defaultSessionEventPageCap = 10;
+const sessionEventClockSkewMs = 60_000;
+const sessionEventWindowMs = 30 * 24 * 60 * 60 * 1_000;
+const sessionEventRetentionMs = 90 * 24 * 60 * 60 * 1_000;
 
 export function createWorkOSAuthenticator(config: RuntimeConfig) {
   if (
@@ -45,7 +51,9 @@ export function createWorkOSAuthenticator(config: RuntimeConfig) {
 
 export class WorkOSSessionProvider implements IdentitySessionProviderPort {
   private readonly userManagement: WorkOSSessionApi;
+  private readonly events: WorkOSSessionEventsApi;
   private readonly maxSessionPages: number;
+  private readonly maxSessionEventPages: number;
   private readonly sessionDeadlineMs: number;
 
   constructor(
@@ -54,20 +62,23 @@ export class WorkOSSessionProvider implements IdentitySessionProviderPort {
     issuer: string,
     options: {
       api?: WorkOSSessionApi;
+      eventsApi?: WorkOSSessionEventsApi;
       maxSessionPages?: number;
+      maxSessionEventPages?: number;
       sessionDeadlineMs?: number;
     } = {},
   ) {
     this.maxSessionPages = options.maxSessionPages ?? defaultSessionPageCap;
+    this.maxSessionEventPages = options.maxSessionEventPages ?? defaultSessionEventPageCap;
     this.sessionDeadlineMs = options.sessionDeadlineMs ?? defaultSessionDeadlineMs;
-    this.userManagement =
-      options.api ??
-      new WorkOS(apiKey, {
-        clientId,
-        issuer,
-        timeout: this.sessionDeadlineMs,
-        maxRetries: 0,
-      }).userManagement;
+    const workos = new WorkOS(apiKey, {
+      clientId,
+      issuer,
+      timeout: this.sessionDeadlineMs,
+      maxRetries: 0,
+    });
+    this.userManagement = options.api ?? workos.userManagement;
+    this.events = options.eventsApi ?? workos.events;
   }
 
   async listSessions(
@@ -121,6 +132,77 @@ export class WorkOSSessionProvider implements IdentitySessionProviderPort {
     await this.userManagement.revokeSession({ sessionId });
     return true;
   }
+
+  async reconcileSessionRevocation(
+    externalSubject: ExternalSubjectReference,
+    sessionId: string,
+    intentCreatedAt: string,
+  ): Promise<boolean> {
+    const createdAt = Date.parse(intentCreatedAt);
+    const rangeEnd = Date.now();
+    if (
+      !Number.isFinite(createdAt) ||
+      createdAt > rangeEnd + sessionEventClockSkewMs ||
+      createdAt < rangeEnd - sessionEventRetentionMs
+    ) {
+      throw new WorkOSSessionReconciliationUnavailableError();
+    }
+
+    const rangeStart = Math.max(
+      createdAt - sessionEventClockSkewMs,
+      rangeEnd - sessionEventRetentionMs,
+    );
+    const deadline = rangeEnd + this.sessionDeadlineMs;
+    let pageCount = 0;
+    let windowStart = rangeStart;
+
+    while (windowStart <= rangeEnd) {
+      const windowEnd = Math.min(windowStart + sessionEventWindowMs, rangeEnd);
+      const cursors = new Set<string>();
+      let after: string | undefined;
+
+      while (true) {
+        const remainingMs = deadline - Date.now();
+        if (remainingMs <= 0 || pageCount >= this.maxSessionEventPages) {
+          throw new WorkOSSessionReconciliationUnavailableError();
+        }
+        pageCount += 1;
+        const page = await withinDeadline(
+          this.events.listEvents({
+            events: ['session.revoked'],
+            rangeStart: new Date(windowStart).toISOString(),
+            rangeEnd: new Date(windowEnd).toISOString(),
+            limit: sessionEventPageLimit,
+            order: 'asc',
+            ...(after ? { after } : {}),
+          }),
+          remainingMs,
+          () => new WorkOSSessionReconciliationUnavailableError(),
+        );
+        if (
+          page.data.some(
+            (event) =>
+              event.event === 'session.revoked' &&
+              event.data.id === sessionId &&
+              event.data.userId === externalSubject.subject,
+          )
+        ) {
+          return true;
+        }
+
+        const nextCursor = page.listMetadata.after ?? undefined;
+        if (!nextCursor) break;
+        if (cursors.has(nextCursor)) throw new WorkOSSessionReconciliationUnavailableError();
+        cursors.add(nextCursor);
+        after = nextCursor;
+      }
+
+      if (windowEnd === rangeEnd) return false;
+      windowStart = windowEnd;
+    }
+
+    return false;
+  }
 }
 
 export class WorkOSSessionListingUnavailableError extends Error {
@@ -130,12 +212,23 @@ export class WorkOSSessionListingUnavailableError extends Error {
   }
 }
 
-function withinDeadline<T>(operation: Promise<T>, deadlineMs: number): Promise<T> {
+export class WorkOSSessionReconciliationUnavailableError extends Error {
+  constructor() {
+    super('WorkOS session revocation outcome could not be reconciled within its safety bounds');
+    this.name = 'WorkOSSessionReconciliationUnavailableError';
+  }
+}
+
+function withinDeadline<T>(
+  operation: Promise<T>,
+  deadlineMs: number,
+  createTimeoutError: () => Error = () => new WorkOSSessionListingUnavailableError(),
+): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   return Promise.race([
     operation,
     new Promise<T>((_resolve, reject) => {
-      timer = setTimeout(() => reject(new WorkOSSessionListingUnavailableError()), deadlineMs);
+      timer = setTimeout(() => reject(createTimeoutError()), deadlineMs);
     }),
   ]).finally(() => {
     if (timer) clearTimeout(timer);

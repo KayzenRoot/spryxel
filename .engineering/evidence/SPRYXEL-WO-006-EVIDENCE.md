@@ -1,6 +1,6 @@
 # SPRYXEL-WO-006 / SPRYXEL-IMP-002 — Evidence Bundle
 
-**Estado:** C-09 implementado; acceptance HIGH_ASSURANCE em Node 22/npm 10 concluída. Os required checks do exact head atual estão registrados no pós-push da descrição da PR. Não declara aprovação, merge ou promoção.
+**Estado:** C-09 e C-10 Path B implementados; acceptance HIGH_ASSURANCE local em Node 22/npm 10 concluída. Os required checks do novo exact final head serão registrados após o push. Não declara aprovação, merge ou promoção.
 
 **Data:** 2026-10-02
 
@@ -138,10 +138,66 @@ O commit de código será aceito somente com os quatro required checks PASS no n
 
 - Não houve smoke contra tenant WorkOS por falta de credenciais staging. Fixtures determinísticas e assinatura/JWKS de teste não podem ser selecionadas pelo config de produção.
 - Antes de produção: confirmar billing/termos e audiência API no token template; aprovar e provar MFA para cada método permitido, inclusive SSO. Até essa prova, a política sensível falha fechada.
-- Se a finalização falhar após revogação WorkOS confirmada, a API retorna sucesso e conserva intent `provider_confirmed` durável para retry determinístico; a finalização idempotente impede perda permanente e duplicação de `session.revoked`.
+- Se a gravação de confirmação falhar depois do sucesso WorkOS, a API retorna sucesso e conserva a intent `pending` para reconciliação do evento; se só a finalização falhar, conserva `provider_confirmed`. Ambos os estados têm recuperação determinística e a chave única da intent impede duplicação de `session.revoked`.
 - `npm audit` não reporta finding HIGH/CRITICAL na árvore validada.
 - Review threads só são resolvidas depois da validação do finding correspondente; contagem final é publicada na PR.
 - O Checkpoint Delta `SPRYXEL-WO-006-PROPOSED.md` continua apenas proposto; não foi alterado, aceito ou promovido.
 - PR permanece sem merge. Checkpoint não é promovido. Projects/Product Shell não é iniciado.
 
+## Correction Delta 04 — C-10: reconciliar resultado sem replay do revoke
+
+**Decisão de caminho:** Path B. A referência oficial do endpoint exato `POST /user_management/sessions/revoke` documenta a operação e seu parâmetro `session_id`, mas não promete que repetir a operação seja idempotente ou seguro. Não usamos um endpoint de outro produto WorkOS para inferir esse contrato.
+
+O mesmo SDK WorkOS já fixado (`@workos-inc/node@10.14.0`) oferece `events.listEvents`. A recuperação de uma intent `pending` consulta somente `session.revoked`, usando `created_at` durável da intent como início do intervalo, com margem de 60 s para skew. A consulta é limitada a 100 eventos por página, 10 páginas no total e deadline global de 5 s; os intervalos são divididos em janelas de até 30 dias e não excedem a retenção oficial de 90 dias. A confirmação exige correspondência exata de `event`, `data.id` e `data.user_id` com sessão e subject WorkOS da intent. Sem evento correspondente, indisponibilidade, cursor ambíguo ou limite excedido, o fluxo falha fechado: responde indisponível, preserva a intent e não repete o revoke. Uma próxima requisição autenticada do mesmo subject — inclusive usando uma sessão diferente quando a sessão original era a atual — pode reconciliar o resultado.
+
+Intents `retryable` por falha anterior do provider permanecem distinguíveis: a reconciliação de evento é tentada primeiro; se não confirmar, o caminho de retry existente de C-09 permanece restrito a esse status. Uma intent `pending`, que pode representar sucesso externo com falha de persistência, nunca chama o endpoint de revoke novamente. C-01…C-09, RLS, papel runtime, WorkOS/AuthKit, dependências, workflows, ruleset, `.gef`, GEF, source seed e checkpoint permanecem preservados.
+
+Fontes oficiais WorkOS consultadas em 2026-10-03:
+
+- [Session API — endpoint exato de revoke](https://workos.com/docs/reference/authkit/session): documenta `POST /user_management/sessions/revoke` e `session_id`, sem garantia publicada de idempotência.
+- [Events API — consulta e filtros](https://workos.com/docs/reference/events): documenta `events`, `range_start`, `range_end`, `limit`, `after` e `order`.
+- [AuthKit Events — `session.revoked`](https://workos.com/docs/events): evento identifica sessão e usuário e é emitido quando uma sessão é revogada.
+- [Events API data-syncing](https://workos.com/docs/events/data-syncing/events-api): cursor via `after`, retenção de até 90 dias e intervalo de até 30 dias por solicitação.
+
+### Regressões C-10
+
+- Adapter WorkOS: evento correspondente numa página seguinte, evento de outro usuário e tipo não correspondente; paginação limitada falha fechado e não invoca revoke.
+- API: sucesso WorkOS seguido de falha transitória ao gravar `provider_confirmed` mantém intent `pending` e retorna `204` sem detalhe interno. Uma requisição com uma sessão atual nova reconcilia o evento, finaliza e, após chamadas repetidas, mantém um único `session.revoked`; não reexecuta revoke nem depende do bearer original.
+- API: evento ausente em intent `pending` retorna `503` seguro e não confirma, finaliza nem chama revoke/retry.
+- Integração PostgreSQL real: trigger falha uma vez na gravação `pending → provider_confirmed`; a primeira resposta deixa a intent persistida como `pending` sem evento; a requisição com nova sessão usa a reconciliação de evento, finaliza e as chamadas repetidas mantêm exatamente um evento. A falha prévia do provider continua testada separadamente como estado `retryable`.
+- Acceptance HIGH_ASSURANCE integral em Node `22.23.3` / npm `10.9.9`, seus resultados e os quatro required checks serão registrados no pós-push para o novo exact final head. Nenhum resultado de SHA anterior será reutilizado.
+
 **STOP CONDITION:** `SPRYXEL_IMP_002_IDENTITY_TENANCY_SECURITY_BASELINE_READY_FOR_AUDIT`.
+
+### Tentativa de acceptance C-10 — resultado local bloqueado (2026-10-03)
+
+Runtime oficial confirmado nesta tentativa: Node `v22.23.3` e npm `10.9.9`. O ZIP oficial Windows x64 foi validado pelo SHA-256 publicado (`2b0ff57b049cda1bbcea2240eec20467018713c1efe1f7360c2681859b90ed71`) e mantido fora do repositório. A regressão de integração envia explicitamente `x-request-id`, como exige a asserção do evento de auditoria.
+
+| Gate local no runtime oficial | Resultado observado |
+| --- | --- |
+| `npm ci --no-audit --no-fund` | PASS — 218 pacotes; manifest e lockfile sem alteração. |
+| `npm run format:check` | PASS — 84 arquivos após normalização temporária CRLF→LF; todos os bytes foram restaurados ao fim do comando. |
+| `npm run lint` | PASS — 84 arquivos. |
+| `npm run typecheck -- --force` | PASS — 18/18 tarefas, sem cache. |
+| `npm run build -- --force` | PASS — 11/11 workspaces. |
+| `npm run architecture:check` | PASS — 11 workspaces, 13 arestas, sem ciclos; oito fontes `apps/web/app`. |
+| `npm run test:unit` | PASS — 15 arquivos / 57 testes. |
+| `npm run test:worker` | PASS — smoke em processo Node separado. |
+| `npm run test:integration` | PASS — PostgreSQL/RLS real, migrations, startup privileged-role gate, recuperação C-10 com uma auditoria, Redis/BullMQ e SeaweedFS S3 autenticados; teardown descartável PASS. |
+| `npm run test:browser` | PASS — Playwright 7/7. |
+| `npm test` | **BLOCKED / exit 1** — o agregado passou unit e worker, mas o Compose marcou PostgreSQL descartável como `unhealthy` antes dos testes de integração. A execução isolada de `test:integration` passou no mesmo runtime. Este gate agregado não é declarado PASS. |
+| `npm audit --audit-level=high` | PASS — zero vulnerabilidades. |
+| `git diff --check` | PASS — sem erros de whitespace. |
+| GEF 1.1.1 `doctor/status` | `doctor` terminal `SUCCEEDED`, efeito `NONE`; toolchain saudável e `repository.observable=FINDING`. Duas leituras `status` byte-idênticas (SHA-256 `12a1a20a93e3a409a7fdc4713df0ea4036f0d6322980c4460aeb90a402750f6d`, `statusDigest=113b1bab4bf8ed942123aa11f6e7f2d3f2d394f30542922254666b6cae04673a`). `dirtiness=UNKNOWN`, `operator.stale=true` e drift bruto `UNEXPECTED`, reconciliado somente pelo delta autorizado sob D-0007; `.gef` e checkpoint permanecem intactos. |
+
+Esta tentativa está **BLOCKED antes da STOP CONDITION**. O checkout local continua sobre `492f169aad5f4e95c66ca5a34241d3381df14640`, com mudanças C-10 sem commit; a PR #24 continua apontando para esse SHA e base `95ae64d1951ca285c67014fcedbb00e74c3d163d`. Não há novo exact final head nem required checks executados nesse candidato. Os checks do SHA anterior não foram reutilizados, e a descrição da PR não foi alterada enquanto o agregado obrigatório está pendente.
+
+### Recuperação do único gate pendente — acceptance agregada (2026-10-03)
+
+O bloqueio agregado acima foi reavaliado sem tocar no processo/projeto que anteriormente ocupava a porta, sem alterar portas, Playwright, Docker, dependências, configuração ou código de produto. Antes da execução, `127.0.0.1:3100` estava livre. Runtime oficial: Node `v22.23.3` e npm `10.9.9`.
+
+| Gate | Resultado observado |
+| --- | --- |
+| `npm test` | **PASS / exit 0** — agregado executado nesta worktree; unit 15 arquivos / 57 testes; worker self-test em processo separado; integração real PostgreSQL (migrations/idempotência, startup privilegiado recusado antes do bind, `spryxel_app NOBYPASSRLS` aceito, pool compartilhado e isolamento RLS, bootstrap concorrente, limites cross-tenant e recuperação C-10); Redis/BullMQ autenticado; SeaweedFS S3 autenticado; health/readiness; teardown Compose descartável PASS; Playwright 7/7. |
+
+Antes de registrar este resultado, SHA-256 do diff C-10 completo em estado local (incluindo a versão anterior deste Evidence Bundle): `efc2433b3f37b84f06c70521970d3b11cec24070a70b14aa908eac78073a3d37`. Esse conteúdo C-10 permaneceu intacto durante `npm test`; a única alteração posterior à medição é este registro documental do PASS. Após a atualização documental, SHA-256 do patch apenas dos sete arquivos C-10 de código/teste: `2a1def2e27e05e95a0bb2c484d24542bdc62a64b6f920722bf80919893072bb3`; será conferido novamente imediatamente antes do commit. O candidate local ainda parte de `492f169aad5f4e95c66ca5a34241d3381df14640`, base `main@95ae64d1951ca285c67014fcedbb00e74c3d163d`; o SHA final, required checks e estado de review threads serão registrados após commit/push e verificação exclusiva do novo exact head. Nenhum check de SHA anterior será reutilizado.

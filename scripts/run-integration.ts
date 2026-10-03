@@ -525,6 +525,7 @@ try {
         revokeCalls += 1;
         return true;
       },
+      reconcileSessionRevocation: async () => false,
       retrySessionRevocation: async () => {
         retryCalls += 1;
         return true;
@@ -601,6 +602,167 @@ try {
     await finalizationFaultDatabase.close();
   }
 
+  const providerOutcomeSessionRef = 'session_current_revoked_integration';
+  const providerOutcomeInput = {
+    subjectId: identityA.subjectId,
+    tenantId: identityA.tenantId,
+    sessionId: providerOutcomeSessionRef,
+    requestId: 'integration-c10-session-revoke',
+  };
+  const providerOutcomeFaultDatabase = createDatabase(databaseUrl, { max: 1 });
+  const providerOutcomeApiDatabase = createDatabase(appDatabaseUrl, { max: 1 });
+  let outcomeListCalls = 0;
+  let outcomeRevokeCalls = 0;
+  let outcomeEventCalls = 0;
+  let outcomeRetryCalls = 0;
+  const initialCurrentSessionPrincipal: AuthenticatedPrincipal = {
+    ...principalA,
+    externalSession: { provider: 'workos', session: providerOutcomeSessionRef },
+  };
+  const freshRecoveryPrincipal: AuthenticatedPrincipal = {
+    ...principalA,
+    externalSession: { provider: 'workos', session: 'session_fresh_recovery_integration' },
+  };
+  const providerOutcomeApi = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'silent' }, 'api'), {
+    database: providerOutcomeApiDatabase,
+    authenticateToken: async (token) =>
+      token === 'integration-original-current-session'
+        ? initialCurrentSessionPrincipal
+        : freshRecoveryPrincipal,
+    sessionProvider: {
+      listSessions: async (_subject, currentSessionId) => {
+        outcomeListCalls += 1;
+        return [
+          {
+            id: providerOutcomeSessionRef,
+            status: 'active' as const,
+            authMethod: 'password',
+            createdAt: new Date(Date.now() - 60_000).toISOString(),
+            expiresAt: new Date(Date.now() + 60 * 60_000).toISOString(),
+            current: currentSessionId === providerOutcomeSessionRef,
+            impersonated: false,
+          },
+        ];
+      },
+      revokeSession: async () => {
+        outcomeRevokeCalls += 1;
+        return true;
+      },
+      reconcileSessionRevocation: async (externalSubject, sessionId, intentCreatedAt) => {
+        outcomeEventCalls += 1;
+        return (
+          externalSubject.subject === principalA.externalSubject.subject &&
+          sessionId === providerOutcomeSessionRef &&
+          Number.isFinite(Date.parse(intentCreatedAt))
+        );
+      },
+      retrySessionRevocation: async () => {
+        outcomeRetryCalls += 1;
+        return true;
+      },
+    },
+  });
+  let providerOutcomeTriggerInstalled = false;
+  try {
+    await providerOutcomeFaultDatabase.pool.query(
+      'CREATE SEQUENCE public.fail_one_session_revocation_confirmation_seq START WITH 1',
+    );
+    await providerOutcomeFaultDatabase.pool.query(`
+      CREATE FUNCTION public.fail_one_session_revocation_confirmation() RETURNS trigger
+      LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public AS $$
+      BEGIN
+        IF NEW.external_session_ref = '${providerOutcomeSessionRef}'
+           AND OLD.status = 'pending' AND NEW.status = 'provider_confirmed'
+           AND nextval('public.fail_one_session_revocation_confirmation_seq') = 1 THEN
+          RAISE EXCEPTION 'transient provider confirmation persistence fault';
+        END IF;
+        RETURN NEW;
+      END;
+      $$
+    `);
+    await providerOutcomeFaultDatabase.pool.query(`
+      CREATE TRIGGER fail_one_session_revocation_confirmation
+      BEFORE UPDATE OF status ON platform.session_revocation_intent
+      FOR EACH ROW EXECUTE FUNCTION public.fail_one_session_revocation_confirmation()
+    `);
+    providerOutcomeTriggerInstalled = true;
+    await providerOutcomeApi.ready();
+    const currentSessionRequest = {
+      method: 'DELETE' as const,
+      url: `/v1/me/sessions/${providerOutcomeSessionRef}`,
+      headers: {
+        authorization: 'Bearer integration-original-current-session',
+        'x-request-id': providerOutcomeInput.requestId,
+      },
+    };
+    const initialOutcome = await providerOutcomeApi.inject(currentSessionRequest);
+    const pendingIntent = await getSessionRevocationIntent(
+      providerOutcomeApiDatabase,
+      providerOutcomeInput,
+    );
+    const preRecoveryEventCount = await providerOutcomeFaultDatabase.pool.query<{ count: string }>(
+      `SELECT count(*)::text AS count FROM platform.security_event
+       WHERE event_type = 'session.revoked' AND external_session_ref = $1`,
+      [providerOutcomeSessionRef],
+    );
+    if (
+      initialOutcome.statusCode !== 204 ||
+      initialOutcome.body !== '' ||
+      pendingIntent?.status !== 'pending' ||
+      preRecoveryEventCount.rows[0]?.count !== '0'
+    ) {
+      throw new Error(
+        'Provider success with failed confirmation write did not preserve a truthful durable pending intent',
+      );
+    }
+
+    const recoveryRequest = {
+      ...currentSessionRequest,
+      headers: { authorization: 'Bearer integration-fresh-recovery-session' },
+    };
+    const recoveredOutcome = await providerOutcomeApi.inject(recoveryRequest);
+    const repeatedOutcomeRecovery = await providerOutcomeApi.inject(recoveryRequest);
+    const finalizedIntent = await getSessionRevocationIntent(
+      providerOutcomeApiDatabase,
+      providerOutcomeInput,
+    );
+    const postRecoveryEventCount = await providerOutcomeFaultDatabase.pool.query<{
+      count: string;
+    }>(
+      `SELECT count(*)::text AS count FROM platform.security_event
+       WHERE event_type = 'session.revoked' AND external_session_ref = $1`,
+      [providerOutcomeSessionRef],
+    );
+    if (
+      recoveredOutcome.statusCode !== 204 ||
+      repeatedOutcomeRecovery.statusCode !== 204 ||
+      finalizedIntent?.status !== 'finalized' ||
+      postRecoveryEventCount.rows[0]?.count !== '1' ||
+      outcomeListCalls !== 1 ||
+      outcomeRevokeCalls !== 1 ||
+      outcomeEventCalls !== 1 ||
+      outcomeRetryCalls !== 0
+    ) {
+      throw new Error(
+        'WorkOS event reconciliation after current-session revoke was not durable and idempotent',
+      );
+    }
+  } finally {
+    await providerOutcomeApi.close();
+    if (providerOutcomeTriggerInstalled) {
+      await providerOutcomeFaultDatabase.pool.query(
+        'DROP TRIGGER IF EXISTS fail_one_session_revocation_confirmation ON platform.session_revocation_intent',
+      );
+      await providerOutcomeFaultDatabase.pool.query(
+        'DROP FUNCTION IF EXISTS public.fail_one_session_revocation_confirmation()',
+      );
+    }
+    await providerOutcomeFaultDatabase.pool.query(
+      'DROP SEQUENCE IF EXISTS public.fail_one_session_revocation_confirmation_seq',
+    );
+    await providerOutcomeFaultDatabase.close();
+  }
+
   const eventDatabase = createDatabase(appDatabaseUrl, { max: 1 });
   const eventClient = await eventDatabase.pool.connect();
   try {
@@ -626,7 +788,7 @@ try {
          AND column_name ~* '(token|cookie|secret|password|credential)'`,
     );
     if (
-      events.rowCount !== 2 ||
+      events.rowCount !== 3 ||
       !events.rows.some(
         (row) =>
           row.event_type === 'identity.bootstrap' &&
@@ -638,6 +800,12 @@ try {
           row.event_type === 'session.revoked' &&
           row.external_session_ref === 'session_revoked_integration_a' &&
           row.request_id === 'integration-session-revoke',
+      ) ||
+      !events.rows.some(
+        (row) =>
+          row.event_type === 'session.revoked' &&
+          row.external_session_ref === 'session_current_revoked_integration' &&
+          row.request_id === 'integration-c10-session-revoke',
       ) ||
       credentialColumns.rowCount !== 0
     ) {

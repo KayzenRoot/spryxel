@@ -310,6 +310,50 @@ export function buildApiServer(config: RuntimeConfig, dependencies: ApiServerDep
         return reply.code(204).send();
       }
 
+      if (reconcilingExistingIntent) {
+        let providerEventConfirmed = false;
+        try {
+          providerEventConfirmed = await sessionProvider.reconcileSessionRevocation(
+            principal.externalSubject,
+            sessionId,
+            intent.createdAt,
+          );
+        } catch (error) {
+          request.log.error(
+            {
+              event: 'session.revocation_provider_outcome_reconciliation_failed',
+              requestId: request.id,
+              subjectId: identity.subjectId,
+              tenantId: identity.tenantId,
+              errorType: safeErrorType(error),
+            },
+            'provider session revocation outcome could not be reconciled',
+          );
+          return unavailableProblem(reply, request.id, 'session_management_unavailable');
+        }
+
+        if (providerEventConfirmed) {
+          try {
+            await identityRepository.markSessionRevocationProviderConfirmed(intentScope);
+          } catch (error) {
+            logRevocationReconciliationRequired(request, identity, error);
+            return reply.code(204).send();
+          }
+          try {
+            await identityRepository.finalizeSessionRevocation(intentScope);
+          } catch (error) {
+            logRevocationReconciliationRequired(request, identity, error);
+          }
+          return reply.code(204).send();
+        }
+
+        // A pending intent may represent a successful provider revoke whose local
+        // confirmation write failed. Never infer success by replaying that revoke.
+        if (intent.status === 'pending') {
+          return unavailableProblem(reply, request.id, 'session_management_unavailable');
+        }
+      }
+
       try {
         const providerConfirmed = reconcilingExistingIntent
           ? await sessionProvider.retrySessionRevocation(principal.externalSubject, sessionId)
