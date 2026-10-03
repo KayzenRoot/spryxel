@@ -237,3 +237,30 @@ O SHA-256 do patch binário dos cinco arquivos de código/teste C-11, antes do c
 Nenhuma dependência, manifest/lockfile, decisão D-001…D-161, WorkOS/AuthKit, workflow, ruleset/provider, `.gef`, GEF, source seed ou checkpoint foi alterado. A evidência do exact final head e dos quatro required checks será acrescentada à descrição da PR #24 após publicar o commit; checks de SHA anterior não serão reutilizados. A contagem de review threads também será conferida após push.
 
 **STOP CONDITION:** `SPRYXEL_IMP_002_IDENTITY_TENANCY_SECURITY_BASELINE_READY_FOR_AUDIT`.
+
+### C-11 follow-up — fixtures sem bearer literal e acceptance rerun (2026-10-03)
+
+Na análise SonarCloud do head publicado `50f1e2465a39923688ab4e63770036a0c02e8f27`, o Quality Gate adicional falhou porque `secrets:S8217` classificou os dois valores bearer fixos usados somente pelos fixtures de integração C-11 como credenciais. Os fixtures agora derivam tokens efêmeros de `createRunId()` e usam esses valores tanto no mock de autenticação quanto nos headers HTTP; nenhuma credencial externa foi introduzida. O diff local contém somente esta correção em `scripts/run-integration.ts`; C-01…C-10 permanecem intactos. SHA-256 do patch binário C-11 completo nos cinco arquivos de código/teste, relativo ao início do delta `b08024da1ee9f5123722c0cd6af824028cc87be1`: `0268a3fec9f9e61b10af75b800c63dc17de1aa51e3a5ecb02bda44ebce657736`.
+
+A primeira tentativa de browser nesta retomada encontrou a porta 3100 ocupada; nenhum processo foi encerrado ou alterado. Após a porta ficar livre, a acceptance completa foi executada novamente. A porta também estava livre antes do agregado `npm test`, que concluiu com sucesso.
+
+| Gate | Resultado observado nesta árvore local — Node 22.23.3 / npm 10.9.9 |
+| --- | --- |
+| `npm ci --no-audit --no-fund` | PASS — 218 pacotes; manifests e lockfile sem alteração. |
+| `npm run format:check` | PASS — 84 arquivos; normalização temporária CRLF→LF para contornar o checkout Windows; 58 arquivos restaurados byte a byte, sem divergências. |
+| `npm run lint` | PASS — 84 arquivos. |
+| `npm run typecheck -- --force` | PASS — 18/18 tarefas, sem cache. |
+| `npm run build -- --force` | PASS — 11/11 workspaces, sem cache; Next.js compilado e rotas geradas. |
+| `npm run architecture:check` | PASS — 11 workspaces, 13 arestas, sem ciclos; oito fontes `apps/web/app` inspecionadas. |
+| `npm run test:unit` | PASS — 15 arquivos / 61 testes. |
+| `npm run test:worker` | PASS — smoke do worker em processo Node separado. |
+| `npm run test:integration` | PASS — PostgreSQL/RLS real, migrations, autenticação privilegiada recusada e `spryxel_app NOBYPASSRLS` aceito, isolamento cross-tenant, intent C-11 fail-closed com evento atrasado finalizado exatamente uma vez; Redis/BullMQ e SeaweedFS S3 autenticados; teardown PASS. |
+| `npm run test:browser` | PASS — Playwright 7/7; porta 3100 livre antes do início. |
+| `npm test` | PASS — unit 61/61, worker, integração real PostgreSQL/Redis/SeaweedFS e Playwright 7/7; porta 3100 livre antes do início. |
+| `npm audit --audit-level=high` | PASS — zero vulnerabilidades. |
+| `git diff --check` | PASS — sem erros de whitespace. |
+| GEF `@gef-bootstrap/cli@1.1.1` doctor/status | `doctor`: terminal `SUCCEEDED`, read-only, efeito `NONE`; toolchain Node/platform/Git saudável; `repository.observable=FINDING` com `GIT_DIRECTORY_NOT_A_DIRECTORY` e `WORKING_TREE_NOT_OBSERVED`. Duas leituras `status` byte-idênticas, SHA-256 `37459FEFD1643174435A4FD032221BD9BA8A0D028A034778EB17A65E8B8B6ADB`, `statusDigest=113b1bab4bf8ed942123aa11f6e7f2d3f2d394f30542922254666b6cae04673a`, `dirtiness=UNKNOWN`, `operator.stale=true`, drift bruto `UNEXPECTED` (`before=8e6af789ede5f95e3a8022d8e084f3775da9d76b940fd83ca8d8c6f30e541954`, `after=dbe81ee345172e46a3f494ff7511e4df3568fa79d8996341184b09d259db4fe0`). Preservado conforme D-0007; `.gef` e checkpoint não foram alterados. |
+
+Esta acceptance é local e cobre o diff C-11 ainda não publicado. O SHA final, quatro required checks e o Quality Gate SonarCloud serão registrados somente após commit/push e confirmação de PASS no mesmo novo exact head; os resultados de `50f1e2465a39923688ab4e63770036a0c02e8f27` não serão reutilizados. A contagem de review threads será confirmada nesse fechamento.
+
+**STOP CONDITION:** `SPRYXEL_IMP_002_IDENTITY_TENANCY_SECURITY_BASELINE_READY_FOR_AUDIT`.

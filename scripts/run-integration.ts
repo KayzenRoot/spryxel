@@ -780,6 +780,8 @@ try {
     ...principalA,
     externalSession: { provider: 'workos', session: 'session_c11_fresh_recovery' },
   };
+  const ambiguousInitialToken = `integration-c11-initial-${createRunId()}`;
+  const ambiguousFreshToken = `integration-c11-fresh-${createRunId()}`;
   let ambiguousListCalls = 0;
   let ambiguousInitialRevokeCalls = 0;
   let ambiguousRetryChecks = 0;
@@ -834,9 +836,7 @@ try {
   const ambiguousApi = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'silent' }, 'api'), {
     database: ambiguousApiDatabase,
     authenticateToken: async (token) =>
-      token === 'integration-c11-initial-session'
-        ? ambiguousInitialPrincipal
-        : ambiguousFreshPrincipal,
+      token === ambiguousInitialToken ? ambiguousInitialPrincipal : ambiguousFreshPrincipal,
     sessionProvider: ambiguousSessionProvider,
   });
   try {
@@ -845,7 +845,7 @@ try {
       method: 'DELETE' as const,
       url: `/v1/me/sessions/${ambiguousSessionRef}`,
       headers: {
-        authorization: 'Bearer integration-c11-initial-session',
+        authorization: `Bearer ${ambiguousInitialToken}`,
         'x-request-id': ambiguousInput.requestId,
       },
     };
@@ -873,7 +873,7 @@ try {
 
     const recoveryRequest = {
       ...originalRequest,
-      headers: { authorization: 'Bearer integration-c11-fresh-session' },
+      headers: { authorization: `Bearer ${ambiguousFreshToken}` },
     };
     const absentSessionRecovery = await ambiguousApi.inject(recoveryRequest);
     const retryableAfterAbsentSession = await getSessionRevocationIntent(
