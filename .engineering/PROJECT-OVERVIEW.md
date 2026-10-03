@@ -107,3 +107,11 @@ Identity/Tenancy and every downstream business slice remain NOT_ADMITTED.
 `SPRYXEL-WO-005 / SPRYXEL-IMP-001` is COMPLETE: objectively audited, canonically promoted, squash-merged and post-merge validated on `main@6dbce3f1ba1e5b85a6e6ea40083e2d4418755261`.
 
 The canonical implemented surface remains the technical platform foundation only. Identity/Tenancy and all downstream product/business slices remain NOT_ADMITTED.
+
+## WO-006 / IMP-002 approval
+
+SPRYXEL-WO-006 objectively approved `SPRYXEL-IMP-002 — Identity/Tenancy security baseline` on head `8e4f5b16883bf03a29893783032a00d31753457b`. The implemented surface establishes the V1 external authentication/session edge with WorkOS AuthKit while keeping tenant membership, product authorization and row-level security under Spryxel-owned PostgreSQL authority.
+
+The slice includes durable identity bootstrap, tenant/membership schema, RLS isolation, JWT/JWKS verification, bounded session enumeration/revocation, durable revocation intents and fail-closed reconciliation of ambiguous provider outcomes. HIGH_ASSURANCE acceptance and the SonarQube Quality Gate passed; no known CRITICAL/HIGH finding remains.
+
+Projects/Product Shell and all later business slices remain NOT_ADMITTED until WO-006 merge/post-merge closeout and a fresh Work Order/Context Lock.

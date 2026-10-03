@@ -27,8 +27,8 @@ A Work Order/Context Lock is STALE if its base SHA changes or a critical authori
 - GEF package: `@gef-bootstrap/cli@1.1.1`
 - GEF v1.1.1 immutable release source: `KayzenRoot/gef-bootstrap@1dc030f1358eab0347043a3d54c7fc311c7c2123`
 - Product seed: v0.6.0 / `cbb93ec44886eba6cc9b24a072eb23e0ad5ea05a`
-- Last objectively approved Work Order: `SPRYXEL-WO-005`
-- Next legal stage: Identity/Tenancy security baseline under a new admitted Work Order and Context Lock
+- Last objectively approved Work Order: `SPRYXEL-WO-006`
+- Next legal stage: Projects + canonical shell/Home under a new admitted Work Order and Context Lock after WO-006 merge/post-merge closeout
 
 Post-release commits in the GEF repository may be consulted only for evidence about publication/rollout. They do not redefine the installed v1.1.1 runtime contract.
 
@@ -72,3 +72,9 @@ D-156…D-161 select WorkOS AuthKit as the V1 external human authentication/sess
 `.engineering/AUTH-PROVIDER-PREFLIGHT.md` is the current provider-evidence record. Exact SDK versions are not frozen by this planning decision and must be revalidated/pinned by the admitted Identity/Tenancy Work Order.
 
 If current implementation-time evidence materially invalidates the provider, execution must stop BLOCKED and return to an explicit decision update rather than silently substituting.
+
+## SPRYXEL-WO-006 canonical implementation binding
+
+`SPRYXEL-IMP-002 — Identity/Tenancy security baseline` is objectively approved on exact audited head `8e4f5b16883bf03a29893783032a00d31753457b`. Git/code/tests prove the WorkOS/AuthKit authentication/session edge, Spryxel-owned identity/tenant/membership authority, PostgreSQL RLS, bootstrap, JWT/JWKS verification, bounded session operations and durable revocation reconciliation. D-001…D-161 remain normative and unchanged.
+
+The historical WO-006 Context Lock becomes closed/stale at canonical promotion and must not be reused. Projects + canonical shell/Home requires its own Work Order and fresh Context Lock after merge/post-merge closeout.

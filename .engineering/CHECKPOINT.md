@@ -5,26 +5,30 @@ Status: CANONICAL
 Repository: `KayzenRoot/spryxel`  
 GEF: `@gef-bootstrap/cli@1.1.1`
 
-## Estado canônico
+## Estado promovido
 
 - `SPRYXEL-WO-001`: COMPLETE.
 - `SPRYXEL-WO-002`: COMPLETE.
 - `SPRYXEL-WO-003`: COMPLETE.
 - `SPRYXEL-WO-004`: COMPLETE.
 - `SPRYXEL-WO-005 / SPRYXEL-IMP-001`: COMPLETE.
-- Final audited head: `a81ca67894265da3679d817db737a9af3aee9a79`.
-- Promotion head: `085e92b8bd73a6495f3884b52e0a5c3891c36760`.
-- PR #20 merged em `main@6dbce3f1ba1e5b85a6e6ea40083e2d4418755261`.
-- Post-merge validation: PASS nos quatro required checks.
-- Correction Delta 01: SATISFIED.
-- Correction Delta 02: SATISFIED.
-- Platform Foundation Bootstrap: CANONICAL / COMPLETE.
-- Product implementation: PLATFORM_FOUNDATION_COMPLETE.
-- Product business features: NOT_STARTED.
-- Planning concluído através de `SPR-PLAN-007`.
-- Implementação concluída através de `SPRYXEL-IMP-001`.
-- Identity/Tenancy security baseline: NECESSARY / NOT_ADMITTED.
-- Auth provider: WORKOS AUTHKIT V1 SELECTED (D-156…D-161); exact SDK pins remain implementation-preflight decisions.
+- `SPRYXEL-WO-006 / SPRYXEL-IMP-002`: APPROVED; merge condicionado aos checks do head de promoção.
+- Final audited head: `8e4f5b16883bf03a29893783032a00d31753457b`.
+- Correction Delta 01…05: SATISFIED.
+- Identity/Tenancy security baseline: CANONICAL / APPROVED.
+- Provider-neutral identity/session boundary, AuthKit web edge, Fastify JWT/JWKS verifier, Spryxel identity/tenant/membership schema, PostgreSQL RLS, bootstrap, session revocation reconciliation and recent-auth/MFA policy: AUDITED.
+- Acceptance HIGH_ASSURANCE: PASS em Node `22.23.3` / npm `10.9.9`.
+- Unit: 61/61 PASS.
+- Integração real PostgreSQL/RLS + Redis/BullMQ + SeaweedFS: PASS.
+- Browser Playwright: 7/7 PASS.
+- `npm test`: PASS.
+- `npm audit --audit-level=high`: zero vulnerabilidades HIGH/CRITICAL.
+- SonarQube Cloud no head auditado: Quality Gate PASS; 0 security hotspots.
+- Review threads: 6 resolvidas / 0 pendentes.
+- Auth provider: WORKOS AUTHKIT V1 SELECTED (D-156…D-161).
+- SDK pins validados nesta implementação: `@workos-inc/authkit-nextjs@4.4.0`, `@workos-inc/node@10.14.0`, `jose@6.2.12`, `uuid@14.0.2`.
+- Product implementation completed through: `SPRYXEL-IMP-002`.
+- Product business features after Identity/Tenancy: NOT_STARTED.
 - Commercial pricing: NOT_FROZEN.
 - Benchmarks/COGS: NOT_RUN / NOT_AVAILABLE.
 - Billing/GPU-model/production-storage providers: NOT_FROZEN.
@@ -32,13 +36,16 @@ GEF: `@gef-bootstrap/cli@1.1.1`
 - Ruleset baseline: `24340349`.
 - CRITICAL/HIGH pendentes deste Work Order: nenhum conhecido.
 
-## Post-merge checks
+## Required checks no head auditado
 
-- Repository validation: `110999157035` PASS.
-- Pipeline integrity: `110999158238` PASS.
-- Gitleaks secrets: `110999157676` PASS.
-- Trivy filesystem and configuration: `110999158922` PASS.
+- Repository validation: `111201375371` PASS.
+- Pipeline integrity: `111201375413` PASS.
+- Gitleaks secrets: `111201375335` PASS.
+- Trivy filesystem and configuration: `111201375823` PASS.
+- SonarQube Cloud Quality Gate: PASS.
 
 ## Próxima ação legal
 
-Pode ser admitido um novo Work Order/Context Lock para o Identity/Tenancy security baseline. A decisão de provider está resolvida por D-156…D-161; antes de instalar dependências, o próximo Work Order ainda deve revalidar versões, segurança, termos e compatibilidade atuais. Nenhum código de Identity/Tenancy está admitido por este closeout.
+A promoção canônica de `SPRYXEL-WO-006 / SPRYXEL-IMP-002` está autorizada pelo veredito objetivo APPROVED. O merge da PR #24 só é permitido depois que os quatro required checks passarem novamente no exact head de promoção e não houver review thread pendente.
+
+Após merge e validação pós-merge no exact `main` SHA, o próximo incremento NECESSARY é Projects + canonical shell/Home, sob novo Work Order e fresh Context Lock. Esse próximo slice permanece NOT_ADMITTED neste checkpoint.
