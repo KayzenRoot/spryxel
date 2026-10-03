@@ -20,7 +20,7 @@ const workspaces = [
 ] as const;
 
 describe('architecture boundary checker', () => {
-  it('rejects forbidden imports under Next app/ while ignoring generated and vendor output', async () => {
+  it('rejects forbidden imports under Next app and all WorkOS loader forms outside edges', async () => {
     const fixtureRoot = await mkdtemp(join(tmpdir(), 'spryxel-architecture-'));
     try {
       await writeFile(
@@ -47,6 +47,32 @@ describe('architecture boundary checker', () => {
       await writeFile(
         join(appRoot, 'page.tsx'),
         "import { createDatabase } from '@spryxel/db';\nexport default createDatabase;\n",
+      );
+      await writeFile(
+        join(appRoot, 'provider-side-effect.ts'),
+        "import '@workos-inc/authkit-nextjs';\nexport const providerLoaded = true;\n",
+      );
+      await writeFile(join(appRoot, 'provider-dynamic.ts'), "void import('@workos-inc/node');\n");
+      const domainSource = join(fixtureRoot, 'packages/domain/src');
+      await mkdir(domainSource, { recursive: true });
+      await writeFile(join(domainSource, 'provider-require.js'), "require('@workos-inc/node');\n");
+      await writeFile(
+        join(domainSource, 'provider-module-require.cjs'),
+        "module.require('@workos-inc/node');\nrequire.resolve('@workos-inc/authkit-nextjs');\n",
+      );
+      await writeFile(
+        join(domainSource, 'provider-create-require.mjs'),
+        "import { createRequire as makeRequire } from 'node:module';\nconst load = makeRequire(import.meta.url);\nload('@workos-inc/node');\n",
+      );
+      await writeFile(
+        join(appRoot, 'provider-prose.ts'),
+        "// import '@workos-inc/node';\nconst note = \"require('@workos-inc/node')\";\nexport { note };\n",
+      );
+      const approvedApiEdge = join(fixtureRoot, 'apps/api/src/adapters');
+      await mkdir(approvedApiEdge, { recursive: true });
+      await writeFile(
+        join(approvedApiEdge, 'workos-auth.ts'),
+        "import { WorkOS } from '@workos-inc/node';\nexport { WorkOS };\n",
       );
 
       const generatedDirectories = [
@@ -80,6 +106,23 @@ describe('architecture boundary checker', () => {
       expect(result.error).toBeUndefined();
       expect(result.status).toBe(1);
       expect(result.stderr).toContain('apps/web/app/page.tsx crosses a forbidden import boundary');
+      expect(result.stderr).toContain(
+        'apps/web/app/provider-side-effect.ts imports WorkOS outside an authorized authentication edge',
+      );
+      expect(result.stderr).toContain(
+        'apps/web/app/provider-dynamic.ts imports WorkOS outside an authorized authentication edge',
+      );
+      expect(result.stderr).toContain(
+        'packages/domain/src/provider-require.js imports WorkOS outside an authorized authentication edge',
+      );
+      expect(result.stderr).toContain(
+        'packages/domain/src/provider-create-require.mjs imports WorkOS outside an authorized authentication edge',
+      );
+      expect(result.stderr).toContain(
+        'packages/domain/src/provider-module-require.cjs imports WorkOS outside an authorized authentication edge',
+      );
+      expect(result.stderr).not.toContain('provider-prose.ts');
+      expect(result.stderr).not.toContain('apps/api/src/adapters/workos-auth.ts');
       expect(result.stderr).not.toContain('.next/generated.ts');
       expect(result.stderr).not.toContain('node_modules/generated.ts');
       expect(result.stderr).not.toContain('dist/generated.ts');

@@ -4,4 +4,5 @@ FROM postgres:18.6-alpine3.24@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c666
 # Run as the built-in postgres user directly and remove the vulnerable unused helper.
 USER root
 RUN test -x /usr/local/bin/gosu && rm /usr/local/bin/gosu
+COPY create-app-role.sh /docker-entrypoint-initdb.d/10-create-app-role.sh
 USER postgres

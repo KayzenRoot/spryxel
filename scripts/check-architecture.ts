@@ -1,6 +1,7 @@
 import type { Dirent } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import { extname, join, resolve } from 'node:path';
+import ts from 'typescript';
 
 const root = process.cwd();
 const packageDirectories = ['apps', 'packages'];
@@ -44,12 +45,14 @@ const allowedInternalDependencies: Record<string, string[]> = {
     '@spryxel/contracts',
     '@spryxel/db',
     '@spryxel/domain',
+    '@spryxel/identity',
     '@spryxel/observability',
   ],
   '@spryxel/config': ['@spryxel/contracts'],
   '@spryxel/contracts': [],
-  '@spryxel/db': ['@spryxel/domain'],
+  '@spryxel/db': ['@spryxel/domain', '@spryxel/identity'],
   '@spryxel/domain': [],
+  '@spryxel/identity': [],
   '@spryxel/observability': [],
   '@spryxel/testkit': [],
   '@spryxel/ui': [],
@@ -100,6 +103,10 @@ const forbiddenByWorkspace: Record<string, RegExp[]> = {
     /from\s+['"]@spryxel\/(?:api|config|db|observability|ui|web|worker)(?:\/|['"])/,
     /from\s+['"]node:process['"]|process\.env/,
   ],
+  '@spryxel/identity': [
+    /from\s+['"](?:next|fastify|drizzle-orm|pg|bullmq|ioredis)(?:\/|['"])/,
+    /from\s+['"]@spryxel\/(?:api|config|contracts|db|domain|observability|ui|web|worker)(?:\/|['"])/,
+  ],
   '@spryxel/contracts': [
     /from\s+['"](?:drizzle-orm|pg|bullmq|ioredis|fastify)(?:\/|['"])/,
     /from\s+['"]@aws-sdk\//,
@@ -137,11 +144,30 @@ const migrationFiles = await sourceFiles(resolve(root, 'packages/db/src/migratio
 for (const file of migrationFiles.filter((path) => extname(path) === '.sql')) {
   const sql = await readFile(file, 'utf8');
   if (
-    /create\s+table\s+[^;]*(users?|tenants?|projects?|assets?|jobs?|wallet|credits?|ledger|trustshield)/i.test(
+    /create\s+table\s+[^;]*(users?|projects?|assets?|jobs?|wallet|credits?|ledger|trustshield)/i.test(
       sql,
     )
   ) {
     violations.push(`${file.slice(root.length + 1)} contains an out-of-scope product table`);
+  }
+}
+
+const approvedProviderEdges = new Set([
+  'apps/api/src/adapters/workos-auth.ts',
+  'apps/web/proxy.ts',
+  'apps/web/app/auth/callback/route.ts',
+  'apps/web/app/sign-in/route.ts',
+  'apps/web/app/sign-out/route.ts',
+  'apps/web/app/account/page.tsx',
+]);
+for (const files of sourceFilesByWorkspace.values()) {
+  for (const file of files) {
+    const relative = file.slice(root.length + 1).replaceAll('\\', '/');
+    if (approvedProviderEdges.has(relative)) continue;
+    const source = await readFile(file, 'utf8');
+    if (containsWorkOSImport(source, file)) {
+      violations.push(`${relative} imports WorkOS outside an authorized authentication edge`);
+    }
   }
 }
 
@@ -216,4 +242,102 @@ async function sourceFiles(directory: string): Promise<string[]> {
     else if (/\.(?:[cm]?[jt]sx?|sql)$/.test(entry.name)) files.push(path);
   }
   return files;
+}
+
+function containsWorkOSImport(source: string, file: string): boolean {
+  const extension = extname(file).toLowerCase();
+  const scriptKind = extension.endsWith('x')
+    ? extension.endsWith('tsx')
+      ? ts.ScriptKind.TSX
+      : ts.ScriptKind.JSX
+    : /\.[cm]?js$/.test(extension)
+      ? ts.ScriptKind.JS
+      : ts.ScriptKind.TS;
+  const sourceFile = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, scriptKind);
+  const createRequireNames = new Set(['createRequire']);
+  const requireNames = new Set(['require']);
+  let found = false;
+
+  function collectRequireAliases(node: ts.Node): void {
+    if (
+      ts.isImportDeclaration(node) &&
+      ts.isStringLiteralLike(node.moduleSpecifier) &&
+      (node.moduleSpecifier.text === 'node:module' || node.moduleSpecifier.text === 'module') &&
+      node.importClause?.namedBindings &&
+      ts.isNamedImports(node.importClause.namedBindings)
+    ) {
+      for (const element of node.importClause.namedBindings.elements) {
+        if ((element.propertyName?.text ?? element.name.text) === 'createRequire') {
+          createRequireNames.add(element.name.text);
+        }
+      }
+    }
+    if (
+      ts.isVariableDeclaration(node) &&
+      ts.isIdentifier(node.name) &&
+      node.initializer &&
+      ts.isCallExpression(node.initializer) &&
+      ts.isIdentifier(node.initializer.expression) &&
+      createRequireNames.has(node.initializer.expression.text)
+    ) {
+      requireNames.add(node.name.text);
+    }
+    ts.forEachChild(node, collectRequireAliases);
+  }
+
+  function isRequireCall(expression: ts.Expression): boolean {
+    if (ts.isIdentifier(expression)) return requireNames.has(expression.text);
+    if (!ts.isPropertyAccessExpression(expression)) return false;
+    if (expression.name.text === 'require' && ts.isIdentifier(expression.expression)) {
+      return expression.expression.text === 'module';
+    }
+    return (
+      expression.name.text === 'resolve' &&
+      ts.isIdentifier(expression.expression) &&
+      requireNames.has(expression.expression.text)
+    );
+  }
+
+  function visit(node: ts.Node): void {
+    if (found) return;
+    if (
+      (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
+      node.moduleSpecifier &&
+      ts.isStringLiteralLike(node.moduleSpecifier) &&
+      isWorkOSModule(node.moduleSpecifier.text)
+    ) {
+      found = true;
+      return;
+    }
+    if (
+      ts.isImportEqualsDeclaration(node) &&
+      ts.isExternalModuleReference(node.moduleReference) &&
+      node.moduleReference.expression &&
+      ts.isStringLiteralLike(node.moduleReference.expression) &&
+      isWorkOSModule(node.moduleReference.expression.text)
+    ) {
+      found = true;
+      return;
+    }
+    if (
+      ts.isCallExpression(node) &&
+      node.arguments.length === 1 &&
+      node.arguments[0] !== undefined &&
+      ts.isStringLiteralLike(node.arguments[0]) &&
+      isWorkOSModule(node.arguments[0].text) &&
+      (node.expression.kind === ts.SyntaxKind.ImportKeyword || isRequireCall(node.expression))
+    ) {
+      found = true;
+      return;
+    }
+    ts.forEachChild(node, visit);
+  }
+
+  collectRequireAliases(sourceFile);
+  visit(sourceFile);
+  return found;
+}
+
+function isWorkOSModule(moduleName: string): boolean {
+  return moduleName.startsWith('@workos-inc/');
 }

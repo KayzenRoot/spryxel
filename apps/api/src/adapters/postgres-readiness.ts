@@ -1,10 +1,10 @@
 import type { CanonicalDatabaseProbe } from '@spryxel/domain';
-import { probePostgres } from '@spryxel/db';
+import type { Database } from '@spryxel/db';
 
 export class DrizzlePostgresReadinessProbe implements CanonicalDatabaseProbe {
-  constructor(private readonly databaseUrl: string) {}
+  constructor(private readonly database: Pick<Database, 'ping'>) {}
 
   ping(): Promise<void> {
-    return probePostgres(this.databaseUrl);
+    return this.database.ping();
   }
 }

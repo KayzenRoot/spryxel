@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { ConfigValidationError, parseRuntimeConfig, redactRuntimeConfig } from './index.js';
+import {
+  ConfigValidationError,
+  parseMigrationDatabaseUrl,
+  parseRuntimeConfig,
+  redactRuntimeConfig,
+} from './index.js';
 
 describe('runtime configuration', () => {
   it('fails closed with sanitized field errors', () => {
@@ -45,5 +50,43 @@ describe('runtime configuration', () => {
     expect(() =>
       parseRuntimeConfig({ S3_ENDPOINT: 'http://user:private@127.0.0.1:8333' }, 'api'),
     ).toThrow(ConfigValidationError);
+  });
+
+  it('requires complete WorkOS verification settings when any auth setting is supplied', () => {
+    expect(() => parseRuntimeConfig({ WORKOS_CLIENT_ID: 'client_fixture' }, 'api')).toThrow(
+      ConfigValidationError,
+    );
+  });
+
+  it('requires explicit API issuer and audience in production and redacts provider secrets', () => {
+    expect(() =>
+      parseRuntimeConfig(
+        { NODE_ENV: 'production', DATABASE_URL: 'postgresql://app:secret@localhost/app' },
+        'api',
+      ),
+    ).toThrow(ConfigValidationError);
+
+    const config = parseRuntimeConfig(
+      {
+        WORKOS_API_KEY: 'sk_workos_secret',
+        WORKOS_CLIENT_ID: 'client_fixture',
+        WORKOS_ISSUER: 'https://auth.example.test',
+        WORKOS_TOKEN_AUDIENCE: 'https://api.example.test',
+        MIGRATION_DATABASE_URL: 'postgresql://migrator:migration-secret@localhost/app',
+      },
+      'api',
+    );
+
+    const summary = JSON.stringify(redactRuntimeConfig(config));
+    expect(summary).not.toContain('sk_workos_secret');
+    expect(summary).not.toContain('migration-secret');
+    expect(
+      parseMigrationDatabaseUrl({
+        MIGRATION_DATABASE_URL: 'postgresql://migrator:migration-secret@localhost/app',
+      }),
+    ).toBe('postgresql://migrator:migration-secret@localhost/app');
+    expect(() => parseMigrationDatabaseUrl({ MIGRATION_DATABASE_URL: 'not-a-url-secret' })).toThrow(
+      ConfigValidationError,
+    );
   });
 });

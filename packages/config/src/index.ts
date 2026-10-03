@@ -7,6 +7,7 @@ const optionalString = z.preprocess(blankToUndefined, z.string().trim().min(1).o
 
 const runtimeConfigSchema = z
   .object({
+    serviceName: z.enum(['api', 'worker']),
     nodeEnv: z.enum(['development', 'test', 'production']).default('development'),
     host: z.string().trim().min(1).default('127.0.0.1'),
     port: z.coerce.number().int().min(1).max(65_535).default(3001),
@@ -20,17 +21,21 @@ const runtimeConfigSchema = z
     s3AccessKeyId: optionalString,
     s3SecretAccessKey: optionalString,
     s3Bucket: optionalString,
+    workosApiKey: optionalString,
+    workosClientId: optionalString,
+    workosIssuer: optionalString,
+    workosAudience: optionalString,
   })
   .superRefine((config, context) => {
-    if (config.databaseUrl) {
-      const valid = isUrlWithProtocols(config.databaseUrl, ['postgres:', 'postgresql:'], true);
-      if (!valid) {
-        context.addIssue({
-          code: 'custom',
-          path: ['databaseUrl'],
-          message: 'must use the postgres or postgresql URL scheme',
-        });
-      }
+    if (
+      config.databaseUrl &&
+      !isUrlWithProtocols(config.databaseUrl, ['postgres:', 'postgresql:'], true)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['databaseUrl'],
+        message: 'must use the postgres or postgresql URL scheme',
+      });
     }
 
     if (config.redisUrl && !isUrlWithProtocols(config.redisUrl, ['redis:', 'rediss:'], true)) {
@@ -70,6 +75,43 @@ const runtimeConfigSchema = z
         message: 'is required in production',
       });
     }
+
+    const workosValues = [
+      config.workosApiKey,
+      config.workosClientId,
+      config.workosIssuer,
+      config.workosAudience,
+    ];
+    if (workosValues.some(Boolean) && workosValues.some((value) => !value)) {
+      context.addIssue({
+        code: 'custom',
+        path: ['workosIssuer'],
+        message: 'API key, client ID, expected issuer, and audience must be configured together',
+      });
+    }
+    if (
+      config.nodeEnv === 'production' &&
+      config.serviceName === 'api' &&
+      workosValues.some((value) => !value)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['workosIssuer'],
+        message: 'WorkOS API key, client ID, issuer, and audience are required in production',
+      });
+    }
+    for (const [field, value] of [
+      ['workosIssuer', config.workosIssuer],
+      ['workosAudience', config.workosAudience],
+    ] as const) {
+      if (value && !isUrlWithProtocols(value, ['https:'])) {
+        context.addIssue({
+          code: 'custom',
+          path: [field],
+          message: 'must be a credential-free HTTPS URL',
+        });
+      }
+    }
   });
 
 export type RuntimeConfig = z.infer<typeof runtimeConfigSchema> & {
@@ -91,6 +133,7 @@ export function parseRuntimeConfig(
   serviceName: 'api' | 'worker',
 ): RuntimeConfig {
   const result = runtimeConfigSchema.safeParse({
+    serviceName,
     nodeEnv: source.NODE_ENV,
     host: source.HOST,
     port: source.PORT,
@@ -102,6 +145,10 @@ export function parseRuntimeConfig(
     s3AccessKeyId: source.S3_ACCESS_KEY_ID,
     s3SecretAccessKey: source.S3_SECRET_ACCESS_KEY,
     s3Bucket: source.S3_BUCKET,
+    workosApiKey: source.WORKOS_API_KEY,
+    workosClientId: source.WORKOS_CLIENT_ID,
+    workosIssuer: source.WORKOS_ISSUER,
+    workosAudience: source.WORKOS_TOKEN_AUDIENCE,
   });
 
   if (!result.success) {
@@ -129,7 +176,23 @@ export function redactRuntimeConfig(config: RuntimeConfig): Record<string, unkno
     s3AccessKeyId: config.s3AccessKeyId ? '[REDACTED]' : undefined,
     s3SecretAccessKey: config.s3SecretAccessKey ? '[REDACTED]' : undefined,
     s3Bucket: config.s3Bucket,
+    workosApiKey: config.workosApiKey ? '[REDACTED]' : undefined,
+    workosClientId: config.workosClientId,
+    workosIssuer: config.workosIssuer,
+    workosAudience: config.workosAudience,
   };
+}
+
+export function parseMigrationDatabaseUrl(
+  source: NodeJS.ProcessEnv | Record<string, string | undefined>,
+): string {
+  const value = source.MIGRATION_DATABASE_URL?.trim();
+  if (!value || !isUrlWithProtocols(value, ['postgres:', 'postgresql:'], true)) {
+    throw new ConfigValidationError([
+      'MIGRATION_DATABASE_URL: a postgres or postgresql migration-owner URL is required',
+    ]);
+  }
+  return value;
 }
 
 function isUrlWithProtocols(
