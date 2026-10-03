@@ -2,6 +2,7 @@ import type { Dirent } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import { extname, join, resolve } from 'node:path';
 import ts from 'typescript';
+import { findOutOfScopeProductTables } from './architecture-guard.js';
 
 const root = process.cwd();
 const packageDirectories = ['apps', 'packages'];
@@ -143,12 +144,11 @@ for (const [name, workspace] of workspaces) {
 const migrationFiles = await sourceFiles(resolve(root, 'packages/db/src/migrations'));
 for (const file of migrationFiles.filter((path) => extname(path) === '.sql')) {
   const sql = await readFile(file, 'utf8');
-  if (
-    /create\s+table\s+[^;]*(users?|projects?|assets?|jobs?|wallet|credits?|ledger|trustshield)/i.test(
-      sql,
-    )
-  ) {
-    violations.push(`${file.slice(root.length + 1)} contains an out-of-scope product table`);
+  const outOfScopeTables = findOutOfScopeProductTables(sql);
+  if (outOfScopeTables.length > 0) {
+    violations.push(
+      `${file.slice(root.length + 1)} contains out-of-scope product tables: ${outOfScopeTables.join(', ')}`,
+    );
   }
 }
 
@@ -159,6 +159,7 @@ const approvedProviderEdges = new Set([
   'apps/web/app/sign-in/route.ts',
   'apps/web/app/sign-out/route.ts',
   'apps/web/app/account/page.tsx',
+  'apps/web/src/auth/session.ts',
 ]);
 for (const files of sourceFilesByWorkspace.values()) {
   for (const file of files) {

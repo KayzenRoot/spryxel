@@ -1,26 +1,38 @@
 import { parseRuntimeConfig, type RuntimeConfig } from '@spryxel/config';
 import {
   bootstrapIdentity,
+  createProject,
   createDatabase,
   createSessionRevocationIntent,
   type Database,
   finalizeSessionRevocation,
   getSessionRevocationIntent,
+  getProject,
   IdentityRepositoryError,
+  listProjects,
+  ProjectRepositoryError,
   listIdentityMemberships,
   markSessionRevocationProviderConfirmed,
   markSessionRevocationRetryable,
 } from '@spryxel/db';
+import { canCreateProject, type ProjectRepositoryPort } from '@spryxel/domain';
 import type {
   AuthenticatedPrincipal,
   IdentityRepositoryPort,
   IdentitySessionProviderPort,
 } from '@spryxel/identity';
-import { requestIdPattern, type ReadinessDependency, type ServiceName } from '@spryxel/contracts';
+import {
+  idempotencyKeyPattern,
+  projectCreateRequestSchema,
+  projectIdPattern,
+  requestIdPattern,
+  type ReadinessDependency,
+  type ServiceName,
+} from '@spryxel/contracts';
 import { summarizeReadiness } from '@spryxel/domain';
 import { createLogger } from '@spryxel/observability';
 import Fastify from 'fastify';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { InvalidAccessTokenError } from './auth/jwt.js';
 import { createWorkOSAuthenticator, WorkOSSessionProvider } from './adapters/workos-auth.js';
 import { DrizzlePostgresReadinessProbe } from './adapters/postgres-readiness.js';
@@ -32,7 +44,14 @@ export type ApiServerDependencies = {
   database?: Database | undefined;
   identityRepository?: IdentityRepositoryPort | undefined;
   logger?: import('fastify').FastifyBaseLogger | undefined;
+  projectRepository?: ProjectRepositoryPort | undefined;
   sessionProvider?: IdentitySessionProviderPort | undefined;
+};
+
+type ProjectRequestContext = {
+  subjectId: string;
+  tenantId: string;
+  role: 'OWNER' | 'ADMIN' | 'MEMBER';
 };
 
 declare module 'fastify' {
@@ -96,6 +115,17 @@ export function buildApiServer(config: RuntimeConfig, dependencies: ApiServerDep
             subjectId: string;
             tenantId: string;
           }) => finalizeSessionRevocation(database, input),
+        }
+      : undefined);
+  const projectRepository =
+    dependencies.projectRepository ??
+    (database
+      ? {
+          create: (input: Parameters<ProjectRepositoryPort['create']>[0]) =>
+            createProject(database, input),
+          list: (input: Parameters<ProjectRepositoryPort['list']>[0]) =>
+            listProjects(database, input),
+          get: (input: Parameters<ProjectRepositoryPort['get']>[0]) => getProject(database, input),
         }
       : undefined);
   const sessionProvider =
@@ -187,6 +217,123 @@ export function buildApiServer(config: RuntimeConfig, dependencies: ApiServerDep
       return unavailableProblem(reply, request.id, 'identity_store_unavailable');
     }
   });
+
+  app.get('/api/v1/projects', { preHandler: authenticateRequest }, async (request, reply) => {
+    if (!identityRepository || !projectRepository) {
+      return projectProblem(
+        reply,
+        503,
+        'project_store_unavailable',
+        'Projects are unavailable',
+        request.id,
+      );
+    }
+    const context = await resolveProjectContext(request, reply);
+    if (!context) return;
+    try {
+      const projects = await projectRepository.list({
+        subjectId: context.subjectId,
+        tenantId: context.tenantId,
+      });
+      return reply.send({ tenantId: context.tenantId, role: context.role, projects });
+    } catch (error) {
+      return handleProjectRepositoryError(request, reply, error);
+    }
+  });
+
+  app.post('/api/v1/projects', { preHandler: authenticateRequest }, async (request, reply) => {
+    if (!identityRepository || !projectRepository) {
+      return projectProblem(
+        reply,
+        503,
+        'project_store_unavailable',
+        'Projects are unavailable',
+        request.id,
+      );
+    }
+    const context = await resolveProjectContext(request, reply);
+    if (!context) return;
+    if (!canCreateProject(context.role)) {
+      return projectProblem(
+        reply,
+        403,
+        'project_creation_forbidden',
+        'Workspace Owners and Admins can create projects',
+        request.id,
+      );
+    }
+
+    const parsedBody = projectCreateRequestSchema.safeParse(request.body);
+    if (!parsedBody.success) {
+      return projectProblem(
+        reply,
+        400,
+        'invalid_project_request',
+        'Provide a project name between 1 and 120 characters',
+        request.id,
+      );
+    }
+    const idempotencyKey = request.headers['idempotency-key'];
+    if (typeof idempotencyKey !== 'string' || !idempotencyKeyPattern.test(idempotencyKey)) {
+      return projectProblem(
+        reply,
+        400,
+        'idempotency_key_required',
+        'Provide a valid Idempotency-Key header',
+        request.id,
+      );
+    }
+    const name = parsedBody.data.name;
+    const requestHash = createHash('sha256').update(JSON.stringify({ name })).digest('hex');
+    const idempotencyKeyHash = createHash('sha256').update(idempotencyKey).digest('hex');
+    try {
+      const project = await projectRepository.create({
+        idempotencyKeyHash,
+        requestHash,
+        subjectId: context.subjectId,
+        tenantId: context.tenantId,
+        requestId: request.id,
+        name,
+      });
+      return reply.code(201).send({ tenantId: context.tenantId, role: context.role, project });
+    } catch (error) {
+      return handleProjectRepositoryError(request, reply, error);
+    }
+  });
+
+  app.get<{ Params: { projectId: string } }>(
+    '/api/v1/projects/:projectId',
+    { preHandler: authenticateRequest },
+    async (request, reply) => {
+      if (!identityRepository || !projectRepository) {
+        return projectProblem(
+          reply,
+          503,
+          'project_store_unavailable',
+          'Projects are unavailable',
+          request.id,
+        );
+      }
+      if (!projectIdPattern.test(request.params.projectId)) {
+        return projectProblem(reply, 404, 'project_not_found', 'Project not found', request.id);
+      }
+      const context = await resolveProjectContext(request, reply);
+      if (!context) return;
+      try {
+        const project = await projectRepository.get({
+          subjectId: context.subjectId,
+          tenantId: context.tenantId,
+          projectId: request.params.projectId,
+        });
+        if (!project) {
+          return projectProblem(reply, 404, 'project_not_found', 'Project not found', request.id);
+        }
+        return reply.send({ tenantId: context.tenantId, role: context.role, project });
+      } catch (error) {
+        return handleProjectRepositoryError(request, reply, error);
+      }
+    },
+  );
 
   app.get('/v1/me/sessions', { preHandler: authenticateRequest }, async (request, reply) => {
     const principal = request.spryxelPrincipal;
@@ -428,6 +575,129 @@ export function buildApiServer(config: RuntimeConfig, dependencies: ApiServerDep
       return unavailableProblem(reply, request.id, 'authentication_unavailable');
     }
   }
+
+  async function resolveProjectContext(
+    request: import('fastify').FastifyRequest,
+    reply: import('fastify').FastifyReply,
+  ): Promise<ProjectRequestContext | null> {
+    const principal = request.spryxelPrincipal;
+    if (!principal || principal.impersonated) {
+      projectProblem(
+        reply,
+        403,
+        'impersonation_not_supported',
+        'Project access is unavailable',
+        request.id,
+      );
+      return null;
+    }
+    if (!identityRepository) {
+      projectProblem(
+        reply,
+        503,
+        'project_store_unavailable',
+        'Projects are unavailable',
+        request.id,
+      );
+      return null;
+    }
+    try {
+      const identity = await identityRepository.bootstrap(principal, request.id);
+      const memberships = await identityRepository.listMemberships(identity.subjectId);
+      const requestedTenantId = request.headers['x-tenant-id'];
+      if (typeof requestedTenantId === 'string' && !projectIdPattern.test(requestedTenantId)) {
+        projectProblem(reply, 404, 'workspace_not_found', 'Workspace not found', request.id);
+        return null;
+      }
+      const membership = memberships.find(
+        (candidate) =>
+          candidate.active &&
+          candidate.tenantId ===
+            (typeof requestedTenantId === 'string' ? requestedTenantId : identity.tenantId),
+      );
+      if (!membership) {
+        projectProblem(reply, 404, 'workspace_not_found', 'Workspace not found', request.id);
+        return null;
+      }
+      return {
+        subjectId: identity.subjectId,
+        tenantId: membership.tenantId,
+        role: membership.role,
+      };
+    } catch (error) {
+      if (error instanceof IdentityRepositoryError && error.code === 'identity_suspended') {
+        projectProblem(
+          reply,
+          403,
+          'identity_suspended',
+          'Project access is unavailable',
+          request.id,
+        );
+        return null;
+      }
+      request.log.error(
+        {
+          event: 'projects.identity_resolution_failed',
+          requestId: request.id,
+          errorType: safeErrorType(error),
+        },
+        'project identity resolution failed',
+      );
+      projectProblem(
+        reply,
+        503,
+        'project_store_unavailable',
+        'Projects are unavailable',
+        request.id,
+      );
+      return null;
+    }
+  }
+
+  function handleProjectRepositoryError(
+    request: import('fastify').FastifyRequest,
+    reply: import('fastify').FastifyReply,
+    error: unknown,
+  ) {
+    if (error instanceof ProjectRepositoryError) {
+      switch (error.code) {
+        case 'membership_required':
+        case 'project_not_found':
+          return projectProblem(reply, 404, 'project_not_found', 'Project not found', request.id);
+        case 'insufficient_role':
+          return projectProblem(
+            reply,
+            403,
+            'project_creation_forbidden',
+            'Workspace Owners and Admins can create projects',
+            request.id,
+          );
+        case 'idempotency_conflict':
+          return projectProblem(
+            reply,
+            409,
+            'idempotency_conflict',
+            'This request key was already used for different project details',
+            request.id,
+          );
+      }
+    }
+    request.log.error(
+      {
+        event: 'projects.repository_unavailable',
+        requestId: request.id,
+        errorType: safeErrorType(error),
+      },
+      'project repository request failed',
+    );
+    return projectProblem(
+      reply,
+      503,
+      'project_store_unavailable',
+      'Projects are unavailable',
+      request.id,
+    );
+  }
 }
 
 function logRevocationReconciliationRequired(
@@ -536,4 +806,34 @@ function problem(
     instance: requestId,
     requestId,
   });
+}
+
+function projectProblem(
+  reply: import('fastify').FastifyReply,
+  status: number,
+  code: string,
+  detail: string,
+  requestId: string,
+) {
+  return reply
+    .code(status)
+    .type('application/problem+json')
+    .send({
+      type: 'about:blank',
+      title:
+        status === 400
+          ? 'Invalid request'
+          : status === 403
+            ? 'Forbidden'
+            : status === 404
+              ? 'Not found'
+              : status === 409
+                ? 'Conflict'
+                : 'Service unavailable',
+      status,
+      code,
+      detail,
+      instance: requestId,
+      requestId,
+    });
 }

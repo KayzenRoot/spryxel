@@ -34,9 +34,15 @@ import { buildApiServer } from '../apps/api/src/server.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const composePath = resolve(root, 'infra/compose.yml');
-const tempDirectory = await mkdtemp(resolve(tmpdir(), 'spryxel-wo006-imp002-'));
+const tempDirectory = await mkdtemp(resolve(tmpdir(), 'spryxel-wo007-imp003-'));
 const envPath = resolve(tempDirectory, 'test.env');
-const projectName = createRunId('spryxel-wo006-test');
+const projectName = createRunId('spryxel-wo007-test');
+const composeWaitTimeoutSeconds = 90;
+const composeCommandTimeoutMs = 105_000;
+const composeCleanupTimeoutMs = 30_000;
+const diagnosticCommandTimeoutMs = 10_000;
+const maxCapturedOutputCharacters = 8_000;
+const maxFailureDiagnosticsCharacters = 16_000;
 const secrets = {
   postgres: randomBytes(24).toString('hex'),
   databaseApp: randomBytes(24).toString('hex'),
@@ -80,18 +86,33 @@ let runtimeDatabase: ReturnType<typeof createDatabase> | undefined;
 try {
   await writeFile(envPath, `${envContent}\n`, { mode: 0o600, flag: 'wx' });
   await chmodBestEffort(envPath);
-  await runCompose(['config', '--quiet']);
-  await runCompose(['up', '--detach', '--build', '--wait', '--wait-timeout', '90', 'postgres']);
-  await runCompose([
-    'up',
-    '--detach',
-    '--build',
-    '--wait',
-    '--wait-timeout',
-    '90',
-    'redis',
-    'seaweedfs',
-  ]);
+  await runCompose(['config', '--quiet'], 30_000);
+  await runCompose(
+    [
+      'up',
+      '--detach',
+      '--build',
+      '--wait',
+      '--wait-timeout',
+      String(composeWaitTimeoutSeconds),
+      'postgres-test',
+    ],
+    composeCommandTimeoutMs,
+  );
+  await assertPostgresUsesEphemeralTmpfs();
+  await runCompose(
+    [
+      'up',
+      '--detach',
+      '--build',
+      '--wait',
+      '--wait-timeout',
+      String(composeWaitTimeoutSeconds),
+      'redis',
+      'seaweedfs',
+    ],
+    composeCommandTimeoutMs,
+  );
 
   let lastS3ProbeFailure = 'no S3 error details captured';
   await Promise.all([
@@ -124,14 +145,14 @@ try {
 
   const pristineMigrationStatus = await getMigrationStatus(databaseUrl);
   if (
-    pristineMigrationStatus.length !== 3 ||
+    pristineMigrationStatus.length !== 4 ||
     pristineMigrationStatus.some((migration) => migration.applied)
   ) {
     throw new Error('Pristine PostgreSQL did not report all migrations as unapplied');
   }
 
   const migrationStatus = await runMigrations(databaseUrl);
-  if (migrationStatus.length !== 3 || migrationStatus.some((migration) => !migration.applied)) {
+  if (migrationStatus.length !== 4 || migrationStatus.some((migration) => !migration.applied)) {
     throw new Error(
       'Disposable PostgreSQL migrations did not apply the technical and identity schemas',
     );
@@ -141,7 +162,7 @@ try {
     throw new Error('Migration runner was not idempotent');
   }
   const readStatus = await getMigrationStatus(databaseUrl);
-  if (readStatus.length !== 3 || readStatus.some((migration) => !migration.applied)) {
+  if (readStatus.length !== 4 || readStatus.some((migration) => !migration.applied)) {
     throw new Error('Migration status did not report every applied migration');
   }
 
@@ -157,6 +178,8 @@ try {
     const expectedTables = [
       'platform.external_auth_identity',
       'platform.identity_subject',
+      'platform.project',
+      'platform.project_create_idempotency',
       'platform.security_event',
       'platform.session_revocation_intent',
       'platform.tenant',
@@ -240,6 +263,312 @@ try {
     membershipsB[0]?.tenantId !== identityB.tenantId
   ) {
     throw new Error('Identity bootstrap did not create one local OWNER membership per subject');
+  }
+
+  const memberPrincipal: AuthenticatedPrincipal = {
+    externalSubject: { provider: 'workos', subject: 'user_integration_project_member' },
+    externalSession: { provider: 'workos', session: 'session_integration_project_member' },
+    authTimeSeconds: Math.floor(Date.now() / 1000) - 30,
+    verifiedAuthenticationMethods: ['pwd'],
+    impersonated: false,
+  };
+  const suspendedPrincipal: AuthenticatedPrincipal = {
+    externalSubject: { provider: 'workos', subject: 'user_integration_project_suspended' },
+    externalSession: { provider: 'workos', session: 'session_integration_project_suspended' },
+    authTimeSeconds: Math.floor(Date.now() / 1000) - 30,
+    verifiedAuthenticationMethods: ['pwd'],
+    impersonated: false,
+  };
+  const [memberIdentity, suspendedIdentity] = await Promise.all([
+    bootstrapIdentity(appRuntimeDatabase, memberPrincipal, 'integration-project-member'),
+    bootstrapIdentity(appRuntimeDatabase, suspendedPrincipal, 'integration-project-suspended'),
+  ]);
+  const projectAdminDatabase = createDatabase(databaseUrl, { max: 1 });
+  let mainProjectId = '';
+  try {
+    await projectAdminDatabase.pool.query(
+      `INSERT INTO platform.tenant_membership (tenant_id, subject_id, role, status)
+       VALUES ($1, $2, 'MEMBER', 'active')
+       ON CONFLICT (tenant_id, subject_id)
+       DO UPDATE SET role = 'MEMBER', status = 'active'`,
+      [identityA.tenantId, memberIdentity.subjectId],
+    );
+    await projectAdminDatabase.pool.query(
+      `UPDATE platform.identity_subject SET status = 'suspended' WHERE id = $1`,
+      [suspendedIdentity.subjectId],
+    );
+
+    const projectApiDatabase = createDatabase(appDatabaseUrl, { max: 2 });
+    const projectServer = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'silent' }, 'api'), {
+      database: projectApiDatabase,
+      authenticateToken: async (token) => {
+        const principalByToken: Record<string, AuthenticatedPrincipal> = {
+          'integration-project-owner': principalA,
+          'integration-project-other-tenant': principalB,
+          'integration-project-member': memberPrincipal,
+          'integration-project-suspended': suspendedPrincipal,
+        };
+        const principal = principalByToken[token];
+        if (!principal) throw new Error('Unknown integration token');
+        return principal;
+      },
+    });
+    try {
+      await projectServer.ready();
+      const projectRequest = (
+        token: string,
+        tenantId: string,
+        method: 'GET' | 'POST',
+        url: string,
+        body?: unknown,
+        idempotencyKey?: string,
+      ) =>
+        projectServer.inject({
+          method,
+          url,
+          headers: {
+            authorization: `Bearer ${token}`,
+            'x-tenant-id': tenantId,
+            ...(idempotencyKey ? { 'idempotency-key': idempotencyKey } : {}),
+          },
+          ...(body === undefined ? {} : { payload: body }),
+        });
+
+      const firstCreate = await projectRequest(
+        'integration-project-owner',
+        identityA.tenantId,
+        'POST',
+        '/api/v1/projects',
+        { name: '  Integration   Project  ' },
+        'project-create-once',
+      );
+      if (firstCreate.statusCode !== 201) {
+        throw new Error(`Owner project creation failed with HTTP ${firstCreate.statusCode}`);
+      }
+      const createdProject = firstCreate.json<{ project: { id: string; name: string } }>().project;
+      mainProjectId = createdProject.id;
+      if (createdProject.name !== 'Integration Project') {
+        throw new Error('Project name was not normalized before persistence');
+      }
+
+      const [sameKeyReplayA, sameKeyReplayB] = await Promise.all([
+        projectRequest(
+          'integration-project-owner',
+          identityA.tenantId,
+          'POST',
+          '/api/v1/projects',
+          { name: 'Integration Project' },
+          'project-create-concurrent',
+        ),
+        projectRequest(
+          'integration-project-owner',
+          identityA.tenantId,
+          'POST',
+          '/api/v1/projects',
+          { name: ' Integration   Project ' },
+          'project-create-concurrent',
+        ),
+      ]);
+      if (
+        sameKeyReplayA.statusCode !== 201 ||
+        sameKeyReplayB.statusCode !== 201 ||
+        sameKeyReplayA.json<{ project: { id: string } }>().project.id !==
+          sameKeyReplayB.json<{ project: { id: string } }>().project.id
+      ) {
+        throw new Error('Concurrent project creation replay did not resolve one durable project');
+      }
+
+      const conflictingReplay = await projectRequest(
+        'integration-project-owner',
+        identityA.tenantId,
+        'POST',
+        '/api/v1/projects',
+        { name: 'Different Project' },
+        'project-create-once',
+      );
+      if (conflictingReplay.statusCode !== 409) {
+        throw new Error('Reusing a project idempotency key with a different name was not rejected');
+      }
+
+      const ownerList = await projectRequest(
+        'integration-project-owner',
+        identityA.tenantId,
+        'GET',
+        '/api/v1/projects',
+      );
+      if (
+        ownerList.statusCode !== 200 ||
+        ownerList.json<{ projects: unknown[] }>().projects.length !== 2
+      ) {
+        throw new Error('Owner project list did not return only the two durable projects');
+      }
+
+      const memberList = await projectRequest(
+        'integration-project-member',
+        identityA.tenantId,
+        'GET',
+        '/api/v1/projects',
+      );
+      const memberOpen = await projectRequest(
+        'integration-project-member',
+        identityA.tenantId,
+        'GET',
+        `/api/v1/projects/${mainProjectId}`,
+      );
+      const memberCreate = await projectRequest(
+        'integration-project-member',
+        identityA.tenantId,
+        'POST',
+        '/api/v1/projects',
+        { name: 'Member Cannot Create' },
+        'member-cannot-create',
+      );
+      if (
+        memberList.statusCode !== 200 ||
+        memberList.json<{ projects: unknown[] }>().projects.length !== 2 ||
+        memberOpen.statusCode !== 200 ||
+        memberCreate.statusCode !== 403
+      ) {
+        throw new Error('Project MEMBER list/read/create authorization matrix failed');
+      }
+
+      await projectAdminDatabase.pool.query(
+        `UPDATE platform.tenant_membership SET role = 'ADMIN'
+         WHERE tenant_id = $1 AND subject_id = $2`,
+        [identityA.tenantId, memberIdentity.subjectId],
+      );
+      const adminCreate = await projectRequest(
+        'integration-project-member',
+        identityA.tenantId,
+        'POST',
+        '/api/v1/projects',
+        { name: 'Admin Project' },
+        'admin-project-create',
+      );
+      if (adminCreate.statusCode !== 201) {
+        throw new Error('Active tenant ADMIN could not create a project');
+      }
+
+      const otherTenantList = await projectRequest(
+        'integration-project-other-tenant',
+        identityB.tenantId,
+        'GET',
+        '/api/v1/projects',
+      );
+      const directCrossTenantRead = await projectRequest(
+        'integration-project-other-tenant',
+        identityB.tenantId,
+        'GET',
+        `/api/v1/projects/${mainProjectId}`,
+      );
+      const unjoinedTenantRead = await projectRequest(
+        'integration-project-other-tenant',
+        identityA.tenantId,
+        'GET',
+        `/api/v1/projects/${mainProjectId}`,
+      );
+      if (
+        otherTenantList.statusCode !== 200 ||
+        otherTenantList.json<{ projects: unknown[] }>().projects.length !== 0 ||
+        directCrossTenantRead.statusCode !== 404 ||
+        unjoinedTenantRead.statusCode !== 404 ||
+        directCrossTenantRead.body.includes(mainProjectId)
+      ) {
+        throw new Error('Project API exposed a cross-tenant row or confirmed its existence');
+      }
+
+      const suspendedRead = await projectRequest(
+        'integration-project-suspended',
+        suspendedIdentity.tenantId,
+        'GET',
+        '/api/v1/projects',
+      );
+      if (suspendedRead.statusCode !== 403) {
+        throw new Error('Suspended identity was not denied project access');
+      }
+    } finally {
+      await projectServer.close();
+    }
+
+    const projectRlsDatabase = createDatabase(appDatabaseUrl, { max: 1 });
+    const projectRlsClient = await projectRlsDatabase.pool.connect();
+    try {
+      await projectRlsClient.query('BEGIN');
+      const absentProjectContext = await projectRlsClient.query('SELECT id FROM platform.project');
+      const absentIdempotencyContext = await projectRlsClient.query(
+        'SELECT project_id FROM platform.project_create_idempotency',
+      );
+      await projectRlsClient.query('COMMIT');
+      if (absentProjectContext.rowCount !== 0 || absentIdempotencyContext.rowCount !== 0) {
+        throw new Error('Project RLS exposed rows without transaction subject/tenant context');
+      }
+
+      await projectRlsClient.query('BEGIN');
+      await projectRlsClient.query(
+        "SELECT set_config('spryxel.subject_id', $1, true), set_config('spryxel.tenant_id', $2, true)",
+        [identityB.subjectId, identityB.tenantId],
+      );
+      const hiddenProject = await projectRlsClient.query(
+        'SELECT id FROM platform.project WHERE id = $1',
+        [mainProjectId],
+      );
+      await projectRlsClient.query('SAVEPOINT cross_tenant_project_insert');
+      let crossTenantInsertDenied = false;
+      try {
+        await projectRlsClient.query(
+          `INSERT INTO platform.project (id, tenant_id, created_by_subject_id, name)
+           VALUES ($1, $2, $3, 'Unauthorized project')`,
+          [randomUUID(), identityA.tenantId, identityA.subjectId],
+        );
+      } catch (error) {
+        const code =
+          typeof error === 'object' && error !== null && 'code' in error ? error.code : undefined;
+        crossTenantInsertDenied = code === '42501';
+        await projectRlsClient.query('ROLLBACK TO SAVEPOINT cross_tenant_project_insert');
+      }
+      await projectRlsClient.query('COMMIT');
+      if (hiddenProject.rowCount !== 0 || !crossTenantInsertDenied) {
+        throw new Error('PostgreSQL RLS allowed direct cross-tenant project read or insert');
+      }
+    } catch (error) {
+      await projectRlsClient.query('ROLLBACK');
+      throw error;
+    } finally {
+      projectRlsClient.release();
+      await projectRlsDatabase.close();
+    }
+
+    const auditProof = await appRuntimeDatabase.pool.connect();
+    try {
+      await auditProof.query('BEGIN READ ONLY');
+      await auditProof.query(
+        "SELECT set_config('spryxel.subject_id', $1, true), set_config('spryxel.tenant_id', $2, true)",
+        [identityA.subjectId, identityA.tenantId],
+      );
+      const createdEvents = await auditProof.query<{ count: string; row: string }>(
+        `SELECT count(*)::text AS count, min(to_jsonb(event)::text) AS row
+         FROM platform.security_event event
+         WHERE event.event_type = 'project.created' AND event.project_id = $1`,
+        [mainProjectId],
+      );
+      await auditProof.query('COMMIT');
+      const eventRow = createdEvents.rows[0]?.row ?? '';
+      if (
+        createdEvents.rows[0]?.count !== '1' ||
+        /access.?token|refresh.?token|cookie|secret|authorization/i.test(eventRow)
+      ) {
+        throw new Error(
+          'Project creation audit was missing, duplicated or contained credential data',
+        );
+      }
+    } catch (error) {
+      await auditProof.query('ROLLBACK');
+      throw error;
+    } finally {
+      auditProof.release();
+    }
+  } finally {
+    await projectAdminDatabase.close();
   }
 
   const identityRlsDatabase = createDatabase(appDatabaseUrl, { max: 1 });
@@ -949,7 +1278,7 @@ try {
     }>(
       `SELECT event_type, external_session_ref, request_id
        FROM platform.security_event
-       WHERE subject_id = $1 AND tenant_id = $2
+       WHERE subject_id = $1 AND tenant_id = $2 AND event_type <> 'project.created'
        ORDER BY created_at, event_type`,
       [identityA.subjectId, identityA.tenantId],
     );
@@ -1163,16 +1492,39 @@ try {
   }
   await s3.send(new DeleteBucketCommand({ Bucket: bucket }));
 } catch (error) {
-  primaryError = error;
+  const diagnostics = await collectIntegrationDiagnostics();
+  primaryError = new Error(
+    `${String(error)}; infrastructure diagnostics before cleanup:\n${diagnostics}`,
+  );
 } finally {
-  await runtimeDatabase?.close();
+  const cleanupErrors: unknown[] = [];
+  try {
+    await runtimeDatabase?.close();
+  } catch (error) {
+    cleanupErrors.push(error);
+  }
   s3.destroy();
   try {
-    await runCompose(['down', '--volumes', '--remove-orphans']);
+    await runCompose(['down', '--volumes', '--remove-orphans'], composeCleanupTimeoutMs);
   } catch (error) {
-    if (!primaryError) primaryError = error;
+    cleanupErrors.push(error);
   }
-  await removeTemporaryDirectory(tempDirectory);
+  try {
+    await assertNoResidualTestResources();
+  } catch (error) {
+    cleanupErrors.push(error);
+  }
+  try {
+    await removeTemporaryDirectory(tempDirectory);
+  } catch (error) {
+    cleanupErrors.push(error);
+  }
+  if (cleanupErrors.length > 0) {
+    const cleanupFailure = cleanupErrors.map(String).join('; ');
+    primaryError = primaryError
+      ? new Error(`${String(primaryError)}; isolated test cleanup failed: ${cleanupFailure}`)
+      : new Error(`Isolated test cleanup failed: ${cleanupFailure}`);
+  }
 }
 
 if (primaryError) throw new Error(redact(String(primaryError), allSecrets));
@@ -1182,10 +1534,15 @@ process.stdout.write(
 process.stdout.write(
   'Migration/queue regressions: PASS (pristine PostgreSQL reports unapplied; two BullMQ probes leave no disposable queue keys).\n',
 );
-process.stdout.write('Disposable Compose teardown: PASS (containers and named volumes removed).\n');
+process.stdout.write(
+  'PostgreSQL PGDATA storage: PASS (Docker confirmed Linux tmpfs; no volume or bind mount covers PGDATA).\n',
+);
+process.stdout.write(
+  'Disposable Compose teardown: PASS (isolated containers, volumes and networks removed).\n',
+);
 
-function runCompose(args: string[]): Promise<void> {
-  const composeArgs = [
+function composeArgs(args: string[]): string[] {
+  return [
     'compose',
     '--env-file',
     envPath,
@@ -1197,29 +1554,23 @@ function runCompose(args: string[]): Promise<void> {
     'test',
     ...args,
   ];
-  return run('docker', composeArgs).catch(async (error: unknown) => {
-    if (!args.includes('up')) throw error;
-    const diagnostics = await captureOutput('docker', [
-      'compose',
-      '--env-file',
-      envPath,
-      '--project-name',
-      projectName,
-      '--file',
-      composePath,
-      '--profile',
-      'test',
-      'logs',
-      '--tail=80',
-      'seaweedfs',
-    ]);
-    throw new Error(
-      `${String(error)}; sanitized SeaweedFS startup log: ${redact(diagnostics.slice(-4_000), allSecrets)}`,
-    );
-  });
 }
 
-function captureOutput(command: string, args: string[]): Promise<string> {
+function runCompose(args: string[], timeoutMs = composeCommandTimeoutMs): Promise<void> {
+  return run('docker', composeArgs(args), timeoutMs);
+}
+
+interface CapturedOutput {
+  output: string;
+  exitCode: number | null;
+  timedOut: boolean;
+}
+
+function captureOutput(
+  command: string,
+  args: string[],
+  timeoutMs = diagnosticCommandTimeoutMs,
+): Promise<CapturedOutput> {
   return new Promise((resolveOutput) => {
     const child = spawn(command, args, {
       cwd: root,
@@ -1227,14 +1578,164 @@ function captureOutput(command: string, args: string[]): Promise<string> {
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let output = '';
-    child.stdout.setEncoding('utf8').on('data', (chunk: string) => (output += chunk));
-    child.stderr.setEncoding('utf8').on('data', (chunk: string) => (output += chunk));
-    child.once('error', (error) => resolveOutput(`${error.name}: service log unavailable`));
-    child.once('close', () => resolveOutput(output));
+    let settled = false;
+    let timedOut = false;
+    let timeoutTimer: ReturnType<typeof setTimeout> | undefined;
+    let killTimer: ReturnType<typeof setTimeout> | undefined;
+    const finish = (result: CapturedOutput): void => {
+      if (settled) return;
+      settled = true;
+      if (timeoutTimer) clearTimeout(timeoutTimer);
+      if (killTimer) clearTimeout(killTimer);
+      resolveOutput(result);
+    };
+    const append = (chunk: string): void => {
+      output = `${output}${chunk}`.slice(-maxCapturedOutputCharacters);
+    };
+    child.stdout.setEncoding('utf8').on('data', append);
+    child.stderr.setEncoding('utf8').on('data', append);
+    timeoutTimer = setTimeout(() => {
+      timedOut = true;
+      child.kill();
+      killTimer = setTimeout(() => finish({ output, exitCode: null, timedOut }), 5_000);
+    }, timeoutMs);
+    child.once('error', (error) =>
+      finish({ output: `${error.name}: diagnostic command unavailable`, exitCode: null, timedOut }),
+    );
+    child.once('close', (exitCode) => finish({ output, exitCode, timedOut }));
   });
 }
 
-function run(command: string, args: string[]): Promise<void> {
+function describeCapture(capture: CapturedOutput): string {
+  const status = capture.timedOut
+    ? 'timed out'
+    : capture.exitCode === 0
+      ? 'exit 0'
+      : `exit ${String(capture.exitCode)}`;
+  return `${status}: ${capture.output.trim() || '[no output]'}`;
+}
+
+async function assertPostgresUsesEphemeralTmpfs(): Promise<void> {
+  const containerList = await captureOutput(
+    'docker',
+    composeArgs(['ps', '--all', '--quiet', 'postgres-test']),
+  );
+  const containerId = requireSuccessfulCapture('PostgreSQL container lookup', containerList).split(
+    /\s+/,
+  )[0];
+  if (!containerId) throw new Error('Disposable PostgreSQL container was not found after startup');
+
+  const [tmpfsConfig, dockerMounts, linuxMount] = await Promise.all([
+    captureOutput('docker', ['inspect', '--format', '{{json .HostConfig.Tmpfs}}', containerId]),
+    captureOutput('docker', ['inspect', '--format', '{{json .Mounts}}', containerId]),
+    captureOutput('docker', [
+      'exec',
+      containerId,
+      'sh',
+      '-c',
+      "grep ' /var/lib/postgresql tmpfs ' /proc/mounts",
+    ]),
+  ]);
+  const configuredTmpfs = JSON.parse(
+    requireSuccessfulCapture('PostgreSQL tmpfs inspect', tmpfsConfig),
+  ) as Record<string, string> | null;
+  const mountedPaths = JSON.parse(
+    requireSuccessfulCapture('PostgreSQL volume inspect', dockerMounts),
+  ) as Array<{ Destination?: string; Type?: string }>;
+  const options = configuredTmpfs?.['/var/lib/postgresql'];
+  const expectedOptions = ['rw', 'noexec', 'nosuid', 'size=384m', 'uid=70', 'gid=70', 'mode=0700'];
+  const linuxMountLine = requireSuccessfulCapture('PostgreSQL Linux tmpfs mount', linuxMount);
+  if (
+    !options ||
+    expectedOptions.some((option) => !options.split(',').includes(option)) ||
+    !linuxMountLine
+      .split(/\s+/)
+      .some(
+        (field, index, fields) => field === '/var/lib/postgresql' && fields[index + 1] === 'tmpfs',
+      )
+  ) {
+    throw new Error('Disposable PostgreSQL PGDATA is not backed by the expected Linux tmpfs mount');
+  }
+  if (
+    mountedPaths.some(
+      ({ Destination }) =>
+        Destination === '/var/lib/postgresql' || Destination?.startsWith('/var/lib/postgresql/'),
+    )
+  ) {
+    throw new Error('Disposable PostgreSQL PGDATA is covered by a Docker volume or bind mount');
+  }
+}
+
+function requireSuccessfulCapture(label: string, capture: CapturedOutput): string {
+  if (capture.exitCode !== 0 || capture.timedOut) {
+    throw new Error(`${label} failed: ${describeCapture(capture)}`);
+  }
+  return capture.output.trim();
+}
+
+async function collectIntegrationDiagnostics(): Promise<string> {
+  const [serviceStatus, containerIds, postgresLogs, seaweedLogs] = await Promise.all([
+    captureOutput('docker', composeArgs(['ps', '--all'])),
+    captureOutput('docker', composeArgs(['ps', '--all', '--quiet', 'postgres-test'])),
+    captureOutput('docker', composeArgs(['logs', '--no-color', '--tail=80', 'postgres-test'])),
+    captureOutput('docker', composeArgs(['logs', '--no-color', '--tail=80', 'seaweedfs'])),
+  ]);
+  const containerId = containerIds.output.trim().split(/\s+/)[0];
+  const [inspection, processes] = containerId
+    ? await Promise.all([
+        captureOutput('docker', [
+          'inspect',
+          '--format',
+          '{{.Name}} image={{.Config.Image}} state={{json .State}} tmpfs={{json .HostConfig.Tmpfs}} mounts={{json .Mounts}}',
+          containerId,
+        ]),
+        captureOutput('docker', ['top', containerId, '-eo', 'pid,ppid,stat,comm,args']),
+      ])
+    : [
+        { output: 'no test PostgreSQL container found', exitCode: 0, timedOut: false },
+        { output: 'no test PostgreSQL container found', exitCode: 0, timedOut: false },
+      ];
+  return redact(
+    [
+      `compose ps: ${describeCapture(serviceStatus)}`,
+      `container inspect: ${describeCapture(inspection)}`,
+      `process state: ${describeCapture(processes)}`,
+      `PostgreSQL startup logs: ${describeCapture(postgresLogs)}`,
+      `SeaweedFS startup logs: ${describeCapture(seaweedLogs)}`,
+    ].join('\n'),
+    allSecrets,
+  ).slice(-maxFailureDiagnosticsCharacters);
+}
+
+async function assertNoResidualTestResources(): Promise<void> {
+  const projectFilter = `label=com.docker.compose.project=${projectName}`;
+  const [containers, volumes, networks] = await Promise.all([
+    captureOutput('docker', ['ps', '--all', '--quiet', '--filter', projectFilter]),
+    captureOutput('docker', ['volume', 'ls', '--quiet', '--filter', projectFilter]),
+    captureOutput('docker', ['network', 'ls', '--quiet', '--filter', projectFilter]),
+  ]);
+  const results = { containers, volumes, networks };
+  const verificationFailure = Object.entries(results).filter(
+    ([, result]) => result.exitCode !== 0 || result.timedOut,
+  );
+  if (verificationFailure.length > 0) {
+    throw new Error(
+      `Could not verify isolated Docker cleanup: ${verificationFailure
+        .map(([resource, result]) => `${resource} ${describeCapture(result)}`)
+        .join('; ')}`,
+    );
+  }
+  const leftovers = Object.entries(results).filter(([, result]) => result.output.trim());
+  if (leftovers.length > 0) {
+    throw new Error(
+      `Isolated test Compose resources remain after cleanup: ${leftovers
+        .map(([resource, result]) => `${resource}=${result.output.trim()}`)
+        .join('; ')}`,
+    );
+  }
+}
+
+function run(command: string, args: string[], timeoutMs: number): Promise<void> {
   return new Promise((resolveRun, reject) => {
     const child = spawn(command, args, {
       cwd: root,
@@ -1242,13 +1743,53 @@ function run(command: string, args: string[]): Promise<void> {
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let output = '';
-    child.stdout.setEncoding('utf8').on('data', (chunk: string) => (output += chunk));
-    child.stderr.setEncoding('utf8').on('data', (chunk: string) => (output += chunk));
-    child.once('error', (error) => reject(new Error(`${command} could not start: ${error.name}`)));
+    let timedOut = false;
+    let settled = false;
+    let timeoutTimer: ReturnType<typeof setTimeout> | undefined;
+    let killTimer: ReturnType<typeof setTimeout> | undefined;
+    const append = (chunk: string): void => {
+      output = `${output}${chunk}`.slice(-maxCapturedOutputCharacters);
+    };
+    const clearTimers = (): void => {
+      if (timeoutTimer) clearTimeout(timeoutTimer);
+      if (killTimer) clearTimeout(killTimer);
+    };
+    const finish = (error?: Error): void => {
+      if (settled) return;
+      settled = true;
+      clearTimers();
+      if (error) reject(error);
+      else resolveRun();
+    };
+    child.stdout.setEncoding('utf8').on('data', append);
+    child.stderr.setEncoding('utf8').on('data', append);
+    timeoutTimer = setTimeout(() => {
+      timedOut = true;
+      child.kill();
+      killTimer = setTimeout(() => {
+        child.kill('SIGKILL');
+        finish(
+          new Error(
+            `${command} ${args[0]} timed out after ${timeoutMs}ms: ${redact(output.slice(-2_000), allSecrets)}`,
+          ),
+        );
+      }, 5_000);
+    }, timeoutMs);
+    child.once('error', (error) => {
+      finish(new Error(`${command} could not start: ${error.name}`));
+    });
     child.once('close', (code) => {
-      if (code === 0) resolveRun();
+      if (timedOut) {
+        finish(
+          new Error(
+            `${command} ${args[0]} timed out after ${timeoutMs}ms: ${redact(output.slice(-2_000), allSecrets)}`,
+          ),
+        );
+        return;
+      }
+      if (code === 0) finish();
       else
-        reject(
+        finish(
           new Error(
             `${command} ${args[0]} failed (${code}): ${redact(output.slice(-1_200), allSecrets)}`,
           ),
