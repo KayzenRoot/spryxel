@@ -17,7 +17,7 @@
 
 ## Preflight HIGH_ASSURANCE
 
-O preflight foi feito antes de `npm ci`. A instalação limpa usou Node `22.23.3` e npm `10.9.9`; engines e peers exigem Node `>=22.11.0`. As validações locais desta correção usaram Node `24.19.0` e npm `11.17.0`. Pins, peer ranges, licenças e advisories foram conferidos sem instalar versões beta.
+O preflight foi feito antes de `npm ci`. A instalação limpa inicial usou Node `22.23.3` e npm `10.9.9`; engines e peers exigem Node `>=22.11.0`. O primeiro run de validações foi feito em Node `24.19.0`/npm `11.17.0`, mas não conta como acceptance run. A acceptance run oficial exigida pelo Correction Delta 02 foi executada em Node `22.23.3`/npm `10.9.9` e está registrada integralmente na seção própria abaixo. Pins, peer ranges, licenças e advisories foram conferidos sem instalar versões beta.
 
 | Dependência direta | Pin / licença | Compatibilidade verificada | Owner e justificativa arquitetural |
 | --- | --- | --- | --- |
@@ -53,7 +53,7 @@ O contrato oficial documenta `auth_time` e `max_age` para reautenticação. A do
 - Evidência: este bundle. `D-001…D-161`, manifests/lockfile, provider, `.gef`, GEF, workflows, ruleset, seed e checkpoint não fazem parte da correção.
 - Nenhum Project/Product Shell ou slice posterior foi iniciado.
 
-## Validações locais
+## Validações locais históricas — run prévio em Node 24
 
 | Validação | Resultado observado nesta correção |
 | --- | --- |
@@ -77,6 +77,29 @@ O contrato oficial documenta `auth_time` e `max_age` para reautenticação. A do
 `gef doctor --target . --json`: terminal `SUCCEEDED`, read-only; Node/platform/Git `HEALTHY`; `repository.observable=FINDING`; limites `GIT_DIRECTORY_NOT_A_DIRECTORY` e `WORKING_TREE_NOT_OBSERVED`. Duas leituras `gef status --target . --json` tiveram o mesmo `statusDigest` (`113b1bab4bf8ed942123aa11f6e7f2d3f2d394f30542922254666b6cae04673a`): estado read-only, `dirtiness=UNKNOWN`, `operator.stale=true`, drift bruto `UNEXPECTED` (`before=8e6af789ede5f95e3a8022d8e084f3775da9d76b940fd83ca8d8c6f30e541954`, `after=dbe81ee345172e46a3f494ff7511e4df3568fa79d8996341184b09d259db4fe0`). O checkpoint continua declarando Identity/Tenancy `NOT_ADMITTED` até sua promoção autorizada. D-0007 exige preservar a limitação e reconciliar com a Work Order/diff autorizados; não foi editado `.gef`, checkpoint, receipts ou baseline, nem aplicada remediação.
 
 No Windows deste executor, `core.autocrlf=true`; Biome exigiu LF no checkout local. Após `format:check` PASS, os arquivos sem mudança semântica fora da lista de escopo foram restaurados para o estado versionado. O commit de correção contém apenas os caminhos semânticos listados acima, sem normalização ampla de arquivos.
+
+## Correction Delta 02 — acceptance run oficial em Node 22/npm 10
+
+Esta é a acceptance run oficial de runtime para HIGH_ASSURANCE. O checkout estava no exact head `09f393314c0426c6149815d4ecfcd4c8ea7e9a40` durante todas as execuções. Node `v22.23.3` e npm `10.9.9` foram verificados com `node --version` e `npm --version`; a distribuição [oficial Windows x64 Node.js v22.23.3](https://nodejs.org/en/download/archive/v22.23.3), arquivo `node-v22.23.3-win-x64.zip`, teve SHA-256 `2b0ff57b049cda1bbcea2240eec20467018713c1efe1f7360c2681859b90ed71`, igual ao checksum publicado pelo Node.js. O binário ficou em diretório temporário fora do repositório. O head `09f3933` contém o Correction Delta 02 e não alterou produto ou dependências.
+
+| Validação — Node 22.23.3 / npm 10.9.9 | Resultado da acceptance run oficial |
+| --- | --- |
+| `npm ci --no-audit --no-fund` | PASS — instalação limpa; 218 pacotes adicionados; manifests/lockfile sem alteração. |
+| `npm run format:check` | PASS — 84 arquivos. No Windows, a primeira leitura com `core.autocrlf=true` apontou somente finais CRLF; após normalização temporária para LF o check passou. `git diff --ignore-space-at-eol` confirmou ausência de mudanças semânticas e os arquivos foram restaurados ao estado do checkout antes da atualização desta evidência. |
+| `npm run lint` | PASS — 84 arquivos. |
+| `npm run typecheck -- --force` | PASS — 18/18 tarefas executadas, sem resultados Turbo em cache. |
+| `npm run build -- --force` | PASS — 11/11 workspaces executados, sem resultados Turbo em cache; Next compilou e gerou as rotas. |
+| `npm run architecture:check` | PASS — 11 workspaces, 13 edges, sem ciclos; 8 fontes de `apps/web/app` examinadas. |
+| `npm run test:unit` | PASS — 15 arquivos / 48 testes. |
+| `npm run test:worker` | PASS — smoke em processo Node separado. |
+| `npm run test:integration` | PASS — PostgreSQL real (migrations/idempotência, startup privilegiado recusado antes do bind, `spryxel_app NOBYPASSRLS` aceito, shared pool/RLS, bootstrap e cross-tenant), Redis/BullMQ autenticado, SeaweedFS S3 autenticado, API health/readiness e teardown descartável. |
+| `npm run test:browser` | PASS — Playwright 7/7. |
+| `npm test` | PASS — agregado completo: unitários 48/48, worker, integração real dos três serviços e browser 7/7. |
+| `npm audit --audit-level=high` | PASS — zero vulnerabilidades. |
+| `git diff --check` | PASS — sem erro de whitespace. |
+| GEF 1.1.1 `doctor/status` | `doctor`: terminal `SUCCEEDED`, read-only; toolchain Node/platform/Git healthy e `repository.observable=FINDING`. Duas leituras `status` byte-idênticas, `statusDigest=113b1bab4bf8ed942123aa11f6e7f2d3f2d394f30542922254666b6cae04673a`; repositório `dirtiness=UNKNOWN`, limites `GIT_DIRECTORY_NOT_A_DIRECTORY`/`WORKING_TREE_NOT_OBSERVED`, `operator.stale=true`, drift bruto `UNEXPECTED` (`before=8e6af789ede5f95e3a8022d8e084f3775da9d76b940fd83ca8d8c6f30e541954`, `after=dbe81ee345172e46a3f494ff7511e4df3568fa79d8996341184b09d259db4fe0`). Tratado como limitação observacional conforme D-0007; `.gef` e checkpoint não foram alterados. |
+
+O aceite de execução Node 22 acima substitui o run Node 24 como evidência oficial. O delta é proof-only: nenhum comportamento, dependência, manifest/lockfile, D-001…D-161, provider WorkOS/AuthKit, checkpoint, `.gef`, GEF, workflow, ruleset ou source seed foi alterado. O exact final head do commit documental e os quatro required checks desse mesmo SHA são registrados no corpo pós-push da PR #24; nenhum check de SHA anterior é reutilizado.
 
 ## Riscos, limitações e próximo gate
 
