@@ -323,8 +323,15 @@ describe('WorkOS session mapping', () => {
     expect(secondRange.rangeStart).toBe(firstRange.rangeEnd);
   });
 
-  it('replays a revoke only through the durable-intent recovery operation', async () => {
-    const listSessions = vi.fn(async () => ({ data: [], listMetadata: {} }));
+  it('retries a revoke only when the complete bounded list confirms the exact active session', async () => {
+    const listSessions = vi.fn(async (_userId: string, options: { after?: string | null }) =>
+      options.after === 'cursor_second'
+        ? { data: [session('session_target')], listMetadata: {} }
+        : {
+            data: [session('session_other')],
+            listMetadata: { after: 'cursor_second' },
+          },
+    );
     const revokeSession = vi.fn(async () => undefined);
     const provider = new WorkOSSessionProvider('test-key', 'test-client', 'https://issuer.test', {
       api: { listSessions, revokeSession } as unknown as WorkOSSessionApi,
@@ -333,10 +340,107 @@ describe('WorkOS session mapping', () => {
     await expect(
       provider.retrySessionRevocation(
         { provider: 'workos', subject: 'user_fixture' },
-        'session_with_durable_intent',
+        'session_target',
       ),
     ).resolves.toBe(true);
-    expect(revokeSession).toHaveBeenCalledWith({ sessionId: 'session_with_durable_intent' });
-    expect(listSessions).not.toHaveBeenCalled();
+    expect(listSessions).toHaveBeenNthCalledWith(1, 'user_fixture', { limit: 100 });
+    expect(listSessions).toHaveBeenNthCalledWith(2, 'user_fixture', {
+      limit: 100,
+      after: 'cursor_second',
+    });
+    expect(revokeSession).toHaveBeenCalledOnce();
+    expect(revokeSession).toHaveBeenCalledWith({ sessionId: 'session_target' });
+  });
+
+  it.each([
+    { name: 'absent target', data: [] },
+    { name: 'different session', data: [session('session_other')] },
+    {
+      name: 'inactive exact target',
+      data: [{ ...session('session_target'), status: 'revoked' as const }],
+    },
+  ])('does not retry when the complete active-session list has $name', async ({ data }) => {
+    const listSessions = vi.fn(async () => ({ data, listMetadata: {} }));
+    const revokeSession = vi.fn(async () => undefined);
+    const provider = new WorkOSSessionProvider('test-key', 'test-client', 'https://issuer.test', {
+      api: { listSessions, revokeSession } as unknown as WorkOSSessionApi,
+    });
+
+    await expect(
+      provider.retrySessionRevocation(
+        { provider: 'workos', subject: 'user_fixture' },
+        'session_target',
+      ),
+    ).resolves.toBe(false);
+    expect(listSessions).toHaveBeenCalledWith('user_fixture', { limit: 100 });
+    expect(revokeSession).not.toHaveBeenCalled();
+  });
+
+  it('does not retry when the bounded active-session listing is incomplete or unavailable', async () => {
+    const cappedRevoke = vi.fn(async () => undefined);
+    const cappedProvider = new WorkOSSessionProvider(
+      'test-key',
+      'test-client',
+      'https://issuer.test',
+      {
+        api: {
+          listSessions: vi.fn(async () => ({
+            data: [session('session_target')],
+            listMetadata: { after: 'cursor_second' },
+          })),
+          revokeSession: cappedRevoke,
+        } as unknown as WorkOSSessionApi,
+        maxSessionPages: 1,
+      },
+    );
+    await expect(
+      cappedProvider.retrySessionRevocation(
+        { provider: 'workos', subject: 'user_fixture' },
+        'session_target',
+      ),
+    ).rejects.toBeInstanceOf(WorkOSSessionListingUnavailableError);
+    expect(cappedRevoke).not.toHaveBeenCalled();
+
+    const deadlineRevoke = vi.fn(async () => undefined);
+    const deadlineProvider = new WorkOSSessionProvider(
+      'test-key',
+      'test-client',
+      'https://issuer.test',
+      {
+        api: {
+          listSessions: vi.fn(() => new Promise<never>(() => undefined)),
+          revokeSession: deadlineRevoke,
+        } as unknown as WorkOSSessionApi,
+        sessionDeadlineMs: 10,
+      },
+    );
+    await expect(
+      deadlineProvider.retrySessionRevocation(
+        { provider: 'workos', subject: 'user_fixture' },
+        'session_target',
+      ),
+    ).rejects.toBeInstanceOf(WorkOSSessionListingUnavailableError);
+    expect(deadlineRevoke).not.toHaveBeenCalled();
+
+    const providerFailure = new Error('provider listing unavailable');
+    const unavailableRevoke = vi.fn(async () => undefined);
+    const unavailableProvider = new WorkOSSessionProvider(
+      'test-key',
+      'test-client',
+      'https://issuer.test',
+      {
+        api: {
+          listSessions: vi.fn(async () => Promise.reject(providerFailure)),
+          revokeSession: unavailableRevoke,
+        } as unknown as WorkOSSessionApi,
+      },
+    );
+    await expect(
+      unavailableProvider.retrySessionRevocation(
+        { provider: 'workos', subject: 'user_fixture' },
+        'session_target',
+      ),
+    ).rejects.toBe(providerFailure);
+    expect(unavailableRevoke).not.toHaveBeenCalled();
   });
 });

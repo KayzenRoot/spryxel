@@ -201,3 +201,39 @@ O bloqueio agregado acima foi reavaliado sem tocar no processo/projeto que anter
 | `npm test` | **PASS / exit 0** — agregado executado nesta worktree; unit 15 arquivos / 57 testes; worker self-test em processo separado; integração real PostgreSQL (migrations/idempotência, startup privilegiado recusado antes do bind, `spryxel_app NOBYPASSRLS` aceito, pool compartilhado e isolamento RLS, bootstrap concorrente, limites cross-tenant e recuperação C-10); Redis/BullMQ autenticado; SeaweedFS S3 autenticado; health/readiness; teardown Compose descartável PASS; Playwright 7/7. |
 
 Antes de registrar este resultado, SHA-256 do diff C-10 completo em estado local (incluindo a versão anterior deste Evidence Bundle): `efc2433b3f37b84f06c70521970d3b11cec24070a70b14aa908eac78073a3d37`. Esse conteúdo C-10 permaneceu intacto durante `npm test`; a única alteração posterior à medição é este registro documental do PASS. Após a atualização documental, SHA-256 do patch apenas dos sete arquivos C-10 de código/teste: `2a1def2e27e05e95a0bb2c484d24542bdc62a64b6f920722bf80919893072bb3`; será conferido novamente imediatamente antes do commit. O candidate local ainda parte de `492f169aad5f4e95c66ca5a34241d3381df14640`, base `main@95ae64d1951ca285c67014fcedbb00e74c3d163d`; o SHA final, required checks e estado de review threads serão registrados após commit/push e verificação exclusiva do novo exact head. Nenhum check de SHA anterior será reutilizado.
+
+## Correction Delta 05 — C-11: retry somente com prova positiva de sessão ativa
+
+Esta correção parte do candidate `b08024da1ee9f5123722c0cd6af824028cc87be1`, na branch `codex/spryxel-wo-006-imp-002-identity-tenancy`, PR #24, com base imutável `main@95ae64d1951ca285c67014fcedbb00e74c3d163d`. O Context Lock foi validado `FRESH`; os 27 fingerprints críticos correspondem à base imutável e o blob do Work Order no candidate é `98b68423eeedb5a3fc3957c95d06966a934205b4`. A execução limita-se ao C-11 e preserva C-01…C-10.
+
+Após falha ambígua do revoke, a API primeiro procura o evento `session.revoked` correspondente. Se o evento existir, a intent é finalizada sem novo revoke. Se não houver confirmação imediata, o adapter WorkOS consulta a listagem existente de sessões usando a paginação limitada, prazo global e detecção de cursor repetido. Somente uma listagem completa que contenha o identificador exato com status `active` permite um novo revoke. Sessão ausente/inativa, listagem incompleta, limite, deadline ou falha do provider não provoca replay: a intent permanece recuperável e o fluxo falha fechado. Um evento que se torna visível depois finaliza a intent uma vez, sem novo revoke. A recuperação continua exigindo uma requisição autenticada válida, podendo usar uma sessão nova.
+
+Arquivos C-11 alterados: `apps/api/src/adapters/workos-auth.ts`, `apps/api/src/adapters/workos-auth.test.ts`, `apps/api/src/server.test.ts`, `packages/identity/src/index.ts` e `scripts/run-integration.ts`. Os testes do adapter cobrem sessão exata ativa em página posterior; ausência, sessão diferente e estado inativo; cap de páginas, deadline e indisponibilidade do provider. A regressão da API comprova a verificação antes do retry. A integração com PostgreSQL real comprova intent `retryable` durável após erro ambíguo, ausência do alvo sem retry/sem falso evento, evento atrasado finalizado exatamente uma vez e recuperação por sessão autenticada nova.
+
+O SHA-256 do patch binário dos cinco arquivos de código/teste C-11, antes do commit, é `0d101079e7f915bdd23bf455036dc451f9ef5aa5fdc25a03120ac4bd5ae46877`. O delta não altera os commits nem os arquivos históricos C-01…C-10.
+
+### Acceptance HIGH_ASSURANCE oficial — Node 22.23.3 / npm 10.9.9
+
+`node --version`: `v22.23.3`; `npm --version`: `10.9.9`. `npm ci --no-audit --no-fund` passou, instalando 218 pacotes; manifests e lockfile não foram alterados. A primeira execução direta de `format:check` identificou 53 diagnósticos de CRLF no checkout Windows. A execução reaplicada com normalização temporária CRLF→LF passou para 84 arquivos; os bytes originais foram restaurados e verificados após o check. Nenhum arquivo fora do diff autorizado foi mantido alterado.
+
+| Gate | Resultado observado |
+| --- | --- |
+| `npm ci --no-audit --no-fund` | PASS — 218 pacotes; manifests/lockfile preservados. |
+| `npm run format:check` | PASS — 84 arquivos após normalização temporária de finais de linha; arquivos restaurados byte a byte. A tentativa sem normalização reportou 53 diagnósticos CRLF. |
+| `npm run lint` | PASS — 84 arquivos. |
+| `npm run typecheck -- --force` | PASS — 18/18 tarefas, sem cache. |
+| `npm run build -- --force` | PASS — 11/11 tarefas, sem cache. |
+| `npm run architecture:check` | PASS — 11 workspaces, 13 arestas, sem ciclos; oito fontes `apps/web/app` inspecionadas. |
+| Testes focados do adapter WorkOS | PASS — 28/28 testes no arquivo de adapter. |
+| `npm run test:unit` | PASS — 15 arquivos / 61 testes. |
+| `npm run test:worker` | PASS — smoke do worker em processo separado. |
+| `npm run test:integration` | PASS — PostgreSQL/RLS real, Redis/BullMQ autenticado e SeaweedFS S3 autenticado; C-11 ambíguo, sessão ausente sem replay e evento atrasado finalizado uma vez; teardown descartável PASS. |
+| `npm run test:browser` | PASS — Playwright 7/7. |
+| `npm test` | PASS — agregado completo com unitários 61/61, worker, integração real PostgreSQL/Redis/SeaweedFS e Playwright 7/7. |
+| `npm audit --audit-level=high` | PASS — zero vulnerabilidades. |
+| `git diff --check` | PASS — sem erros de whitespace. |
+| GEF 1.1.1 `doctor/status` | `doctor`: terminal `SUCCEEDED`, read-only, efeito `NONE`; runtime/toolchain saudável, `repository.observable=FINDING` por `GIT_DIRECTORY_NOT_A_DIRECTORY` e `WORKING_TREE_NOT_OBSERVED`. Duas leituras de `status` byte-idênticas: SHA-256 `37459FEFD1643174435A4FD032221BD9BA8A0D028A034778EB17A65E8B8B6ADB`, `statusDigest=113b1bab4bf8ed942123aa11f6e7f2d3f2d394f30542922254666b6cae04673a`, `dirtiness=UNKNOWN`, `operator.stale=true`, drift bruto `UNEXPECTED` (`before=8e6af789ede5f95e3a8022d8e084f3775da9d76b940fd83ca8d8c6f30e541954`, `after=dbe81ee345172e46a3f494ff7511e4df3568fa79d8996341184b09d259db4fe0`). Limitação mantida conforme D-0007; `.gef` e checkpoint não foram alterados. |
+
+Nenhuma dependência, manifest/lockfile, decisão D-001…D-161, WorkOS/AuthKit, workflow, ruleset/provider, `.gef`, GEF, source seed ou checkpoint foi alterado. A evidência do exact final head e dos quatro required checks será acrescentada à descrição da PR #24 após publicar o commit; checks de SHA anterior não serão reutilizados. A contagem de review threads também será conferida após push.
+
+**STOP CONDITION:** `SPRYXEL_IMP_002_IDENTITY_TENANCY_SECURITY_BASELINE_READY_FOR_AUDIT`.

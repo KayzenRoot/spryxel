@@ -126,9 +126,13 @@ export class WorkOSSessionProvider implements IdentitySessionProviderPort {
   }
 
   async retrySessionRevocation(
-    _externalSubject: ExternalSubjectReference,
+    externalSubject: ExternalSubjectReference,
     sessionId: string,
   ): Promise<boolean> {
+    const sessions = await this.listSessions(externalSubject, '');
+    if (!sessions.some((session) => session.id === sessionId && session.status === 'active')) {
+      return false;
+    }
     await this.userManagement.revokeSession({ sessionId });
     return true;
   }

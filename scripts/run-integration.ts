@@ -27,7 +27,7 @@ import {
   probePostgres,
   runMigrations,
 } from '@spryxel/db';
-import type { AuthenticatedPrincipal } from '@spryxel/identity';
+import type { AuthenticatedPrincipal, IdentitySessionProviderPort } from '@spryxel/identity';
 import { createRunId, waitFor } from '@spryxel/testkit';
 import { BullMqTechnicalQueueProbe } from '@spryxel/worker/queue-probe';
 import { buildApiServer } from '../apps/api/src/server.js';
@@ -763,6 +763,177 @@ try {
     await providerOutcomeFaultDatabase.close();
   }
 
+  const ambiguousSessionRef = 'session_ambiguous_retryable_integration_a';
+  const ambiguousInput = {
+    subjectId: identityA.subjectId,
+    tenantId: identityA.tenantId,
+    sessionId: ambiguousSessionRef,
+    requestId: 'integration-c11-session-revoke',
+  };
+  const ambiguousApiDatabase = createDatabase(appDatabaseUrl, { max: 1 });
+  const ambiguousInspectDatabase = createDatabase(databaseUrl, { max: 1 });
+  const ambiguousInitialPrincipal: AuthenticatedPrincipal = {
+    ...principalA,
+    externalSession: { provider: 'workos', session: ambiguousSessionRef },
+  };
+  const ambiguousFreshPrincipal: AuthenticatedPrincipal = {
+    ...principalA,
+    externalSession: { provider: 'workos', session: 'session_c11_fresh_recovery' },
+  };
+  let ambiguousListCalls = 0;
+  let ambiguousInitialRevokeCalls = 0;
+  let ambiguousRetryChecks = 0;
+  let ambiguousPermittedRetryCalls = 0;
+  let ambiguousEventCalls = 0;
+  let ambiguousEventAvailable = false;
+  const listAmbiguousSessions: IdentitySessionProviderPort['listSessions'] = async (
+    _subject,
+    currentSessionId,
+  ) => {
+    ambiguousListCalls += 1;
+    if (ambiguousListCalls !== 1) return [];
+    return [
+      {
+        id: ambiguousSessionRef,
+        status: 'active',
+        authMethod: 'password',
+        createdAt: new Date(Date.now() - 60_000).toISOString(),
+        expiresAt: new Date(Date.now() + 60 * 60_000).toISOString(),
+        current: currentSessionId === ambiguousSessionRef,
+        impersonated: false,
+      },
+    ];
+  };
+  const ambiguousSessionProvider: IdentitySessionProviderPort = {
+    listSessions: listAmbiguousSessions,
+    revokeSession: async () => {
+      ambiguousInitialRevokeCalls += 1;
+      throw new Error('simulated ambiguous transport failure after delivery');
+    },
+    reconcileSessionRevocation: async (externalSubject, sessionId, intentCreatedAt) => {
+      ambiguousEventCalls += 1;
+      return (
+        ambiguousEventAvailable &&
+        externalSubject.subject === principalA.externalSubject.subject &&
+        sessionId === ambiguousSessionRef &&
+        Number.isFinite(Date.parse(intentCreatedAt))
+      );
+    },
+    retrySessionRevocation: async (externalSubject, sessionId) => {
+      ambiguousRetryChecks += 1;
+      const activeSessions = await listAmbiguousSessions(externalSubject, '');
+      if (
+        !activeSessions.some((session) => session.id === sessionId && session.status === 'active')
+      ) {
+        return false;
+      }
+      ambiguousPermittedRetryCalls += 1;
+      return true;
+    },
+  };
+  const ambiguousApi = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'silent' }, 'api'), {
+    database: ambiguousApiDatabase,
+    authenticateToken: async (token) =>
+      token === 'integration-c11-initial-session'
+        ? ambiguousInitialPrincipal
+        : ambiguousFreshPrincipal,
+    sessionProvider: ambiguousSessionProvider,
+  });
+  try {
+    await ambiguousApi.ready();
+    const originalRequest = {
+      method: 'DELETE' as const,
+      url: `/v1/me/sessions/${ambiguousSessionRef}`,
+      headers: {
+        authorization: 'Bearer integration-c11-initial-session',
+        'x-request-id': ambiguousInput.requestId,
+      },
+    };
+    const originalOutcome = await ambiguousApi.inject(originalRequest);
+    const retryableAfterAmbiguity = await getSessionRevocationIntent(
+      ambiguousApiDatabase,
+      ambiguousInput,
+    );
+    const eventCountBeforeRecovery = await ambiguousInspectDatabase.pool.query<{ count: string }>(
+      `SELECT count(*)::text AS count FROM platform.security_event
+       WHERE event_type = 'session.revoked' AND external_session_ref = $1`,
+      [ambiguousSessionRef],
+    );
+    if (
+      originalOutcome.statusCode !== 503 ||
+      originalOutcome.body.includes('simulated ambiguous transport failure') ||
+      retryableAfterAmbiguity?.status !== 'retryable' ||
+      eventCountBeforeRecovery.rows[0]?.count !== '0' ||
+      ambiguousInitialRevokeCalls !== 1
+    ) {
+      throw new Error(
+        'Ambiguous initial revoke did not preserve a retryable intent without a false event',
+      );
+    }
+
+    const recoveryRequest = {
+      ...originalRequest,
+      headers: { authorization: 'Bearer integration-c11-fresh-session' },
+    };
+    const absentSessionRecovery = await ambiguousApi.inject(recoveryRequest);
+    const retryableAfterAbsentSession = await getSessionRevocationIntent(
+      ambiguousApiDatabase,
+      ambiguousInput,
+    );
+    const eventCountAfterAbsentSession = await ambiguousInspectDatabase.pool.query<{
+      count: string;
+    }>(
+      `SELECT count(*)::text AS count FROM platform.security_event
+       WHERE event_type = 'session.revoked' AND external_session_ref = $1`,
+      [ambiguousSessionRef],
+    );
+    if (
+      absentSessionRecovery.statusCode !== 503 ||
+      retryableAfterAbsentSession?.status !== 'retryable' ||
+      eventCountAfterAbsentSession.rows[0]?.count !== '0' ||
+      ambiguousRetryChecks !== 1 ||
+      ambiguousPermittedRetryCalls !== 0 ||
+      ambiguousInitialRevokeCalls !== 1
+    ) {
+      throw new Error(
+        'Absent active session replayed an ambiguous revoke or created a false event',
+      );
+    }
+
+    ambiguousEventAvailable = true;
+    const delayedEventRecovery = await ambiguousApi.inject(recoveryRequest);
+    const repeatedDelayedEventRecovery = await ambiguousApi.inject(recoveryRequest);
+    const finalizedAmbiguousIntent = await getSessionRevocationIntent(
+      ambiguousApiDatabase,
+      ambiguousInput,
+    );
+    const finalAmbiguousEventCount = await ambiguousInspectDatabase.pool.query<{
+      count: string;
+    }>(
+      `SELECT count(*)::text AS count FROM platform.security_event
+       WHERE event_type = 'session.revoked' AND external_session_ref = $1`,
+      [ambiguousSessionRef],
+    );
+    if (
+      delayedEventRecovery.statusCode !== 204 ||
+      repeatedDelayedEventRecovery.statusCode !== 204 ||
+      finalizedAmbiguousIntent?.status !== 'finalized' ||
+      finalAmbiguousEventCount.rows[0]?.count !== '1' ||
+      ambiguousInitialRevokeCalls !== 1 ||
+      ambiguousRetryChecks !== 1 ||
+      ambiguousPermittedRetryCalls !== 0 ||
+      ambiguousEventCalls !== 2
+    ) {
+      throw new Error(
+        'Delayed revoke event did not finalize the durable intent exactly once without replay',
+      );
+    }
+  } finally {
+    await ambiguousApi.close();
+    await ambiguousApiDatabase.close();
+    await ambiguousInspectDatabase.close();
+  }
+
   const eventDatabase = createDatabase(appDatabaseUrl, { max: 1 });
   const eventClient = await eventDatabase.pool.connect();
   try {
@@ -788,7 +959,7 @@ try {
          AND column_name ~* '(token|cookie|secret|password|credential)'`,
     );
     if (
-      events.rowCount !== 3 ||
+      events.rowCount !== 4 ||
       !events.rows.some(
         (row) =>
           row.event_type === 'identity.bootstrap' &&
@@ -806,6 +977,12 @@ try {
           row.event_type === 'session.revoked' &&
           row.external_session_ref === 'session_current_revoked_integration' &&
           row.request_id === 'integration-c10-session-revoke',
+      ) ||
+      !events.rows.some(
+        (row) =>
+          row.event_type === 'session.revoked' &&
+          row.external_session_ref === 'session_ambiguous_retryable_integration_a' &&
+          row.request_id === 'integration-c11-session-revoke',
       ) ||
       credentialColumns.rowCount !== 0
     ) {
@@ -1000,7 +1177,7 @@ try {
 
 if (primaryError) throw new Error(redact(String(primaryError), allSecrets));
 process.stdout.write(
-  'Real-service integration: PASS (PostgreSQL migrations/idempotency, privileged API startup refused before bind, spryxel_app NOBYPASSRLS API startup allowed, shared API runtime pool with transaction-scoped RLS context isolation, concurrent identity bootstrap, cross-tenant intent/finalization RLS, durable retryable revocation state, HTTP audit recovery after injected PostgreSQL finalization fault with duplicate prevention, authenticated Redis/BullMQ, authenticated SeaweedFS S3 and API health/readiness).\n',
+  'Real-service integration: PASS (PostgreSQL migrations/idempotency, privileged API startup refused before bind, spryxel_app NOBYPASSRLS API startup allowed, shared API runtime pool with transaction-scoped RLS context isolation, concurrent identity bootstrap, cross-tenant intent/finalization RLS, C-11 ambiguous revoke fail-closed recovery with delayed event finalization exactly once, HTTP audit recovery after injected PostgreSQL finalization fault with duplicate prevention, authenticated Redis/BullMQ, authenticated SeaweedFS S3 and API health/readiness).\n',
 );
 process.stdout.write(
   'Migration/queue regressions: PASS (pristine PostgreSQL reports unapplied; two BullMQ probes leave no disposable queue keys).\n',

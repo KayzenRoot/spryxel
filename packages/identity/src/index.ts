@@ -156,6 +156,7 @@ export type ExternalSession = {
 };
 
 export type IdentitySessionProviderPort = {
+  /** Resolves only for a complete bounded listing; incomplete provider pagination must reject. */
   listSessions(
     externalSubject: ExternalSubjectReference,
     currentSessionId: string,
@@ -167,7 +168,10 @@ export type IdentitySessionProviderPort = {
     sessionId: string,
     intentCreatedAt: string,
   ): Promise<boolean>;
-  /** Retries a revoke only for a durable intent marked retryable after provider failure. */
+  /**
+   * Retries a durable provider revoke only after a complete bounded session listing positively
+   * confirms that the exact target session is still active; incomplete listings must throw.
+   */
   retrySessionRevocation(
     externalSubject: ExternalSubjectReference,
     sessionId: string,

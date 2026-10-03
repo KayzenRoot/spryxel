@@ -626,18 +626,19 @@ describe('identity API boundary', () => {
         status = 'finalized';
       },
     };
+    const listSessions = vi.fn<IdentitySessionProviderPort['listSessions']>(async () => [
+      {
+        id: 'session_fixture',
+        status: 'active' as const,
+        authMethod: 'password',
+        createdAt: '2026-10-02T11:00:00.000Z',
+        expiresAt: '2026-10-03T11:00:00.000Z',
+        current: true,
+        impersonated: false,
+      },
+    ]);
     const sessionProvider = {
-      listSessions: async () => [
-        {
-          id: 'session_fixture',
-          status: 'active' as const,
-          authMethod: 'password',
-          createdAt: '2026-10-02T11:00:00.000Z',
-          expiresAt: '2026-10-03T11:00:00.000Z',
-          current: true,
-          impersonated: false,
-        },
-      ],
+      listSessions,
       revokeSession: vi
         .fn<IdentitySessionProviderPort['revokeSession']>()
         .mockRejectedValueOnce(new Error('transient provider credential failure'))
@@ -645,9 +646,17 @@ describe('identity API boundary', () => {
       reconcileSessionRevocation: vi
         .fn<IdentitySessionProviderPort['reconcileSessionRevocation']>()
         .mockResolvedValue(false),
-      retrySessionRevocation: vi
-        .fn<IdentitySessionProviderPort['retrySessionRevocation']>()
-        .mockResolvedValue(true),
+      retrySessionRevocation: vi.fn(
+        async (
+          externalSubject: Parameters<IdentitySessionProviderPort['retrySessionRevocation']>[0],
+          sessionId: string,
+        ) => {
+          const sessions = await listSessions(externalSubject, '');
+          return sessions.some(
+            (session) => session.id === sessionId && session.status === 'active',
+          );
+        },
+      ),
     } satisfies IdentitySessionProviderPort;
     const app = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'error' }, 'api'), {
       ...dependencies({ identityRepository, sessionProvider, logger }),
@@ -665,6 +674,7 @@ describe('identity API boundary', () => {
       const repeated = await app.inject(request);
       expect(repeated.statusCode).toBe(204);
       expect(sessionProvider.retrySessionRevocation).toHaveBeenCalledTimes(1);
+      expect(listSessions).toHaveBeenCalledTimes(2);
       expect(events).toBe(1);
     } finally {
       await app.close();
