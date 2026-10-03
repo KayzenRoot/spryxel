@@ -87,3 +87,9 @@ The auth-provider planning gate for the next NECESSARY slice is resolved by D-15
 HIGH_ASSURANCE acceptance passed in Node 22.23.3/npm 10.9.9, including 61/61 unit tests, real PostgreSQL/RLS + Redis + SeaweedFS integration, Playwright 7/7, aggregate npm test, audit, required GitHub checks and SonarQube Quality Gate with zero security hotspots.
 
 The next NECESSARY slice is Projects + canonical shell/Home. It remains NOT_ADMITTED until WO-006 is merged/post-merge validated and a new Work Order/Context Lock is compiled.
+
+## SPRYXEL-WO-006 completion
+
+`SPRYXEL-WO-006 / SPRYXEL-IMP-002` is COMPLETE on `main@814abd6ab27b2a4c4549a1941a713e1c6cae69bd` after objective HIGH_ASSURANCE audit, canonical promotion, squash merge and post-merge validation. Identity/Tenancy is now canonical.
+
+The next NECESSARY implementation slice is Projects + canonical shell/Home. It remains NOT_ADMITTED until a new Work Order and fresh Context Lock are created from the current main base.
