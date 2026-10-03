@@ -7,9 +7,9 @@ Read in order: `.engineering/CHECKPOINT.json`, Decisions Ledger/ADRs, Scope, Def
 Codex executes only an explicitly admitted Work Order and its current Context Lock. Inspect the exact base before mutation. Do not invent missing product decisions or provider selections.
 
 ## Current execution
-`SPRYXEL-WO-005 / SPRYXEL-IMP-001` is COMPLETE after objective audit, canonical promotion, squash merge and post-merge validation. Its historical R2 Context Lock is stale/closed.
+`SPRYXEL-WO-006 / SPRYXEL-IMP-002` is COMPLETE after objective HIGH_ASSURANCE audit, canonical promotion, squash merge and post-merge validation. Its historical Context Lock is stale/closed.
 
-The next legal slice is the Identity/Tenancy security baseline, but it is NOT_ADMITTED until a new Work Order and Context Lock are created. A current auth-provider decision/preflight is required before implementation.
+The next legal slice is Projects + canonical shell/Home, but it is NOT_ADMITTED until a new Work Order and fresh Context Lock are created from the current main base.
 
 ## Safety
 No force-push, history rewrite, destructive GitHub mutation, visibility change or checkpoint self-promotion. Critical source/base drift makes an execution Context Lock STALE. Missing required permissions means BLOCKED, not weakened controls.

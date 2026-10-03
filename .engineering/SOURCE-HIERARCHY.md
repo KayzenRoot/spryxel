@@ -78,3 +78,9 @@ If current implementation-time evidence materially invalidates the provider, exe
 `SPRYXEL-IMP-002 — Identity/Tenancy security baseline` is objectively approved on exact audited head `8e4f5b16883bf03a29893783032a00d31753457b`. Git/code/tests prove the WorkOS/AuthKit authentication/session edge, Spryxel-owned identity/tenant/membership authority, PostgreSQL RLS, bootstrap, JWT/JWKS verification, bounded session operations and durable revocation reconciliation. D-001…D-161 remain normative and unchanged.
 
 The historical WO-006 Context Lock becomes closed/stale at canonical promotion and must not be reused. Projects + canonical shell/Home requires its own Work Order and fresh Context Lock after merge/post-merge closeout.
+
+## SPRYXEL-WO-006 completion binding
+
+`SPRYXEL-WO-006 / SPRYXEL-IMP-002` is COMPLETE on `main@814abd6ab27b2a4c4549a1941a713e1c6cae69bd` after objective audit, promotion head `12a87d0a83907426acaaa208419f5a00b0f8007b`, squash merge and post-merge validation. Identity/Tenancy is implemented/canonical.
+
+The historical WO-006 Context Lock is STALE/closed and must not be reused. The next legal implementation stage is Projects + canonical shell/Home under a new admitted Work Order and fresh Context Lock.

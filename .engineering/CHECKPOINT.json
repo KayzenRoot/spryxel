@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "status": "CANONICAL",
   "phase": "IDENTITY_TENANCY_SECURITY_BASELINE_COMPLETE",
-  "stopState": "SPRYXEL_WO_006_APPROVED_PENDING_MERGE",
+  "stopState": "SPRYXEL_WO_006_COMPLETE",
   "completedThroughModule": "SPRYXEL_IMP_002_IDENTITY_TENANCY_SECURITY_BASELINE",
   "nextLegalStage": "PROJECTS_PRODUCT_SHELL_WORK_ORDER_REQUIRED",
   "v11": {
@@ -18,7 +18,7 @@
     "correctionDelta03": "SATISFIED",
     "correctionDelta04": "SATISFIED",
     "correctionDelta05": "SATISFIED",
-    "postMergeValidation": "PENDING",
+    "postMergeValidation": "PASS",
     "productImplementation": "IDENTITY_TENANCY_SECURITY_BASELINE_COMPLETE",
     "productBaseline": "CANONICAL_PRODUCT_MASTER_V0_6_0_DECOMPOSED",
     "planningCompletedThrough": "SPR-PLAN-007",
@@ -49,6 +49,18 @@
     "sonarSecurityHotspotsOnAuditedHead": 0,
     "driftPolicy": "RECONCILE_AGAINST_AUTHORIZED_GIT_DELTA_DO_NOT_REWRITE_GEF_BASELINE",
     "authProviderDecisionRange": "D-156..D-161",
-    "authProviderPreflightDate": "2026-10-02"
+    "authProviderPreflightDate": "2026-10-02",
+    "promotionHeadSha": "12a87d0a83907426acaaa208419f5a00b0f8007b",
+    "mergedMainSha": "814abd6ab27b2a4c4549a1941a713e1c6cae69bd",
+    "postMergeRequiredChecks": {
+      "repositoryValidation": 111270518484,
+      "pipelineIntegrity": 111270518842,
+      "gitleaksSecrets": 111270518886,
+      "trivyFilesystemAndConfiguration": 111270518709
+    },
+    "postMergeSonarCloud": {
+      "checkRun": 111270606243,
+      "conclusion": "PASS"
+    }
   }
 }

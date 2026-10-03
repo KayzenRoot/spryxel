@@ -115,3 +115,9 @@ SPRYXEL-WO-006 objectively approved `SPRYXEL-IMP-002 — Identity/Tenancy securi
 The slice includes durable identity bootstrap, tenant/membership schema, RLS isolation, JWT/JWKS verification, bounded session enumeration/revocation, durable revocation intents and fail-closed reconciliation of ambiguous provider outcomes. HIGH_ASSURANCE acceptance and the SonarQube Quality Gate passed; no known CRITICAL/HIGH finding remains.
 
 Projects/Product Shell and all later business slices remain NOT_ADMITTED until WO-006 merge/post-merge closeout and a fresh Work Order/Context Lock.
+
+## WO-006 completion
+
+`SPRYXEL-WO-006 / SPRYXEL-IMP-002` is COMPLETE: objectively audited, canonically promoted, squash-merged and post-merge validated on `main@814abd6ab27b2a4c4549a1941a713e1c6cae69bd`.
+
+The canonical implemented surface now includes the technical platform foundation plus Identity/Tenancy security baseline. Projects/Product Shell and every downstream business slice remain NOT_ADMITTED until their own Work Orders and Context Locks.
