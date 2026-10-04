@@ -1,39 +1,41 @@
 # SPRYXEL-WO-007 — Proposed Checkpoint Delta
 
-**Status:** PROPOSED_ONLY; NOT_ACCEPTED; NOT_PROMOTED.
+**Status:** ACCEPTED_BY_AUDITOR; PROMOTED_IN_CANONICAL_CHECKPOINT.
 
-## Preconditions for future promotion
+## Preconditions satisfied
 
-Promotion is forbidden until an independent objective audit returns `APPROVED` for the exact final PR head and verifies the full Evidence Bundle.
+- Independent objective audit returned `APPROVED` for PR #27 at exact audited head `a64b76c858f9e72e462478d910655b3d69d85ec6`.
+- Work Order and Context Lock remained byte-preserved; execution base `main@704b17f015f2bf0021730779f94bed38c45eeae5` remained current through audit.
+- D-001…D-161 remained byte-preserved.
+- Correction-01 and Correction-02 are SATISFIED.
+- HIGH_ASSURANCE acceptance passed under Node 22.23.3/npm 10.9.9.
+- Unit 74/74, worker, real PostgreSQL/RLS + Redis/BullMQ + SeaweedFS integration, Playwright 12/12, aggregate npm test and dependency audit passed.
+- Four required GitHub checks passed on the audited head.
+- SonarQube Cloud Quality Gate passed with 0 security hotspots.
+- Five review threads exist and zero remain unresolved.
+- No known CRITICAL/HIGH finding remains.
 
-The future audit must prove at minimum:
+## Promoted semantic delta
 
-- Work Order/Context Lock remained valid;
-- project schema/RLS/authorization/idempotency/audit contracts pass;
-- canonical shell/Home/Projects behavior satisfies the admitted UX boundary;
-- HIGH_ASSURANCE acceptance passes;
-- four required GitHub checks pass on the same exact final head;
-- no unresolved CRITICAL/HIGH finding remains;
-- no hard-out-of-scope module was implemented.
+1. Preserve all canonical implementation through `SPRYXEL-WO-006 / SPRYXEL-IMP-002`.
+2. Promote `SPRYXEL-WO-007 / SPRYXEL-IMP-003` Projects + canonical shell/Home to objectively APPROVED / CANONICAL implementation state.
+3. Record durable tenant-owned Projects with forced PostgreSQL RLS and application membership authorization.
+4. Record OWNER/ADMIN create and OWNER/ADMIN/MEMBER read/list/select policy for this increment.
+5. Record project-create idempotency mapping as write-once for the runtime role and `project.created` as durable exactly-once audit evidence.
+6. Record Global Shell, Home/Command Center, Projects list/create/select and minimal Project Overview as implemented V1 surfaces.
+7. Preserve D-001…D-161, WorkOS/AuthKit, GEF 1.1.1, ruleset/provider/workflows and immutable source seed unchanged.
+8. Advance the next NECESSARY implementation slice to Asset Contract + durable Job backbone, but keep it NOT_ADMITTED until WO-007 merge/post-merge validation and a fresh Work Order/Context Lock.
 
-## Proposed semantic delta after APPROVED only
+## Merge gate
 
-If all gates pass, the checkpoint may record:
+This promotion commit is not itself merge evidence. PR #27 may be merged only if:
 
-1. `SPRYXEL-WO-007 / SPRYXEL-IMP-003` Projects + canonical shell/Home as COMPLETE.
-2. The exact audited candidate SHA, promotion SHA, eventual merge SHA and post-merge validation evidence.
-3. PostgreSQL project state/RLS and project authorization as canonical implementation.
-4. Global Shell, Home/Command Center, Projects list/create/select and minimal Project Overview as canonical V1 implemented surfaces.
-5. Identity/Tenancy from WO-006 remains preserved and canonical.
-6. D-001…D-161, WorkOS AuthKit, GEF 1.1.1, ruleset/provider/workflows and immutable seed remain unchanged.
-7. The next NECESSARY implementation increment becomes Asset Contract + durable Job backbone, but remains `NOT_ADMITTED` until a new Work Order and fresh Context Lock.
+- the four required checks pass on the exact promotion head;
+- zero review threads are unresolved;
+- no new HIGH/CRITICAL finding appears.
 
-## Explicitly prohibited now
+After squash merge, post-merge validation must run on the exact resulting `main` SHA. Candidate-head checks are not reused as post-merge evidence.
 
-- no edit/promotion of `.engineering/CHECKPOINT.json` or `.engineering/CHECKPOINT.md` by executor;
-- no merge by executor;
-- no Asset Contract/Job implementation;
-- no downstream slice;
-- no provider/ruleset/workflow/`.gef`/decision-ledger/source-seed mutation.
+## Explicitly preserved
 
-Current canonical checkpoint remains authoritative until independent approval and authorized promotion.
+No Asset Contract/Job implementation, billing/credits, TrustShield, generation/assets, AI/model/GPU, provider/ruleset/workflow/`.gef` mutation, decision-ledger rewrite or source-seed rewrite is introduced by this promotion.

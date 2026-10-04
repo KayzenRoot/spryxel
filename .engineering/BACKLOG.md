@@ -93,3 +93,13 @@ The next NECESSARY slice is Projects + canonical shell/Home. It remains NOT_ADMI
 `SPRYXEL-WO-006 / SPRYXEL-IMP-002` is COMPLETE on `main@814abd6ab27b2a4c4549a1941a713e1c6cae69bd` after objective HIGH_ASSURANCE audit, canonical promotion, squash merge and post-merge validation. Identity/Tenancy is now canonical.
 
 The next NECESSARY implementation slice is Projects + canonical shell/Home. It remains NOT_ADMITTED until a new Work Order and fresh Context Lock are created from the current main base.
+
+## SPRYXEL-WO-007 / IMP-003 approval
+
+`SPRYXEL-IMP-003 — Projects + canonical shell/Home` is objectively APPROVED on exact audited head `a64b76c858f9e72e462478d910655b3d69d85ec6` after Correction-01 and Correction-02.
+
+The admitted implementation adds the durable tenant-owned Project entity, forced PostgreSQL RLS, OWNER/ADMIN creation, MEMBER read/select, write-once creation idempotency, `project.created` durable audit evidence, canonical Global Shell, Home/Command Center, Projects list/create/select and minimal Project Overview.
+
+HIGH_ASSURANCE acceptance passed in Node 22.23.3/npm 10.9.9, including 74/74 unit tests, real PostgreSQL/RLS + Redis/BullMQ + SeaweedFS integration, Playwright 12/12, aggregate npm test, dependency audit, exact-head required checks and SonarQube Quality Gate with zero security hotspots.
+
+The next NECESSARY slice is Asset Contract + durable Job backbone. It remains NOT_ADMITTED until WO-007 is merged/post-merge validated and a new Work Order/Context Lock is compiled.

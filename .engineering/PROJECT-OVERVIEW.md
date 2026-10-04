@@ -121,3 +121,11 @@ Projects/Product Shell and all later business slices remain NOT_ADMITTED until W
 `SPRYXEL-WO-006 / SPRYXEL-IMP-002` is COMPLETE: objectively audited, canonically promoted, squash-merged and post-merge validated on `main@814abd6ab27b2a4c4549a1941a713e1c6cae69bd`.
 
 The canonical implemented surface now includes the technical platform foundation plus Identity/Tenancy security baseline. Projects/Product Shell and every downstream business slice remain NOT_ADMITTED until their own Work Orders and Context Locks.
+
+## WO-007 / IMP-003 approval
+
+SPRYXEL-WO-007 objectively approved `SPRYXEL-IMP-003 — Projects + canonical shell/Home` on head `a64b76c858f9e72e462478d910655b3d69d85ec6`.
+
+The implemented surface establishes durable tenant-owned projects with application authorization plus forced PostgreSQL RLS, replay-safe project creation and durable project-created audit evidence. The V1 product shell now includes the authenticated Global Shell, Home/Command Center, Projects list/create/select and a minimal Project Overview that represents downstream DNA/Jobs/Assets capabilities honestly as not yet implemented.
+
+Identity/Tenancy from WO-006 remains preserved. Asset Contract/Job backbone and all later product slices remain NOT_ADMITTED until WO-007 merge/post-merge closeout and their own Work Orders/Context Locks.
