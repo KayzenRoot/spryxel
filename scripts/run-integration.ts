@@ -1,4 +1,4 @@
-import { randomBytes, randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
@@ -17,19 +17,33 @@ import {
 import { parseRuntimeConfig } from '@spryxel/config';
 import {
   bootstrapIdentity,
+  claimDurableJob,
+  createDurableIntegrityJob,
   createSessionRevocationIntent,
   createDatabase,
+  DurableJobRepositoryError,
   finalizeSessionRevocation,
+  finishDurableJob,
+  getDurableJob,
   getSessionRevocationIntent,
   getMigrationStatus,
+  listDurableJobs,
   listIdentityMemberships,
   markSessionRevocationRetryable,
   probePostgres,
+  reconcileDurableJobs,
   runMigrations,
 } from '@spryxel/db';
 import type { AuthenticatedPrincipal, IdentitySessionProviderPort } from '@spryxel/identity';
 import { createRunId, waitFor } from '@spryxel/testkit';
-import { BullMqTechnicalQueueProbe } from '@spryxel/worker/queue-probe';
+import { assertQueueNamespaceEmpty, BullMqTechnicalQueueProbe } from '@spryxel/worker/queue-probe';
+import {
+  DurableJobQueueRuntime,
+  durableQueueName,
+  enqueueDurableJobReference,
+} from '@spryxel/worker/durable-jobs';
+import { Queue } from 'bullmq';
+import { Redis } from 'ioredis';
 import { buildApiServer } from '../apps/api/src/server.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -46,6 +60,7 @@ const maxFailureDiagnosticsCharacters = 16_000;
 const secrets = {
   postgres: randomBytes(24).toString('hex'),
   databaseApp: randomBytes(24).toString('hex'),
+  databaseWorker: randomBytes(24).toString('hex'),
   redis: randomBytes(24).toString('hex'),
   accessKey: randomBytes(16).toString('hex'),
   secretKey: randomBytes(32).toString('hex'),
@@ -57,6 +72,7 @@ const ports = {
 };
 const databaseUrl = `postgresql://spryxel:${secrets.postgres}@127.0.0.1:${ports.postgres}/spryxel_test`;
 const appDatabaseUrl = `postgresql://spryxel_app:${secrets.databaseApp}@127.0.0.1:${ports.postgres}/spryxel_test`;
+const workerDatabaseUrl = `postgresql://spryxel_worker:${secrets.databaseWorker}@127.0.0.1:${ports.postgres}/spryxel_test`;
 const redisUrl = `redis://:${secrets.redis}@127.0.0.1:${ports.redis}/0`;
 const s3Endpoint = `http://127.0.0.1:${ports.s3}`;
 const bucket = `spryxel-${randomBytes(8).toString('hex')}`;
@@ -65,6 +81,7 @@ const envContent = [
   'POSTGRES_USER=spryxel',
   `POSTGRES_PASSWORD=${secrets.postgres}`,
   `DATABASE_APP_PASSWORD=${secrets.databaseApp}`,
+  `DATABASE_WORKER_PASSWORD=${secrets.databaseWorker}`,
   `REDIS_PASSWORD=${secrets.redis}`,
   `S3_ACCESS_KEY_ID=${secrets.accessKey}`,
   `S3_SECRET_ACCESS_KEY=${secrets.secretKey}`,
@@ -82,6 +99,7 @@ const s3 = new S3Client({
 });
 let primaryError: unknown;
 let runtimeDatabase: ReturnType<typeof createDatabase> | undefined;
+let workerDatabase: ReturnType<typeof createDatabase> | undefined;
 
 try {
   await writeFile(envPath, `${envContent}\n`, { mode: 0o600, flag: 'wx' });
@@ -145,14 +163,14 @@ try {
 
   const pristineMigrationStatus = await getMigrationStatus(databaseUrl);
   if (
-    pristineMigrationStatus.length !== 4 ||
+    pristineMigrationStatus.length !== 5 ||
     pristineMigrationStatus.some((migration) => migration.applied)
   ) {
     throw new Error('Pristine PostgreSQL did not report all migrations as unapplied');
   }
 
   const migrationStatus = await runMigrations(databaseUrl);
-  if (migrationStatus.length !== 4 || migrationStatus.some((migration) => !migration.applied)) {
+  if (migrationStatus.length !== 5 || migrationStatus.some((migration) => !migration.applied)) {
     throw new Error(
       'Disposable PostgreSQL migrations did not apply the technical and identity schemas',
     );
@@ -162,7 +180,7 @@ try {
     throw new Error('Migration runner was not idempotent');
   }
   const readStatus = await getMigrationStatus(databaseUrl);
-  if (readStatus.length !== 4 || readStatus.some((migration) => !migration.applied)) {
+  if (readStatus.length !== 5 || readStatus.some((migration) => !migration.applied)) {
     throw new Error('Migration status did not report every applied migration');
   }
 
@@ -176,8 +194,13 @@ try {
     );
     const observed = tables.rows.map((row) => `${row.table_schema}.${row.table_name}`);
     const expectedTables = [
+      'platform.asset_contract',
+      'platform.asset_contract_version',
+      'platform.durable_job',
       'platform.external_auth_identity',
       'platform.identity_subject',
+      'platform.job_attempt',
+      'platform.job_create_idempotency',
       'platform.project',
       'platform.project_create_idempotency',
       'platform.security_event',
@@ -212,6 +235,46 @@ try {
     throw new Error('Normal API connection did not use the restricted NOBYPASSRLS role');
   }
   await assertApiStartupRejected(await availablePort());
+  workerDatabase = createDatabase(workerDatabaseUrl, { max: 2 }, 'worker');
+  await workerDatabase.validateRuntimeRole();
+  const workerRole = await workerDatabase.pool.query<{
+    current_user: string;
+    rolsuper: boolean;
+    rolbypassrls: boolean;
+  }>(`SELECT current_user, role.rolsuper, role.rolbypassrls
+      FROM pg_catalog.pg_roles role WHERE role.rolname = current_user`);
+  if (
+    workerRole.rows[0]?.current_user !== 'spryxel_worker' ||
+    workerRole.rows[0].rolsuper ||
+    workerRole.rows[0].rolbypassrls
+  ) {
+    throw new Error(
+      'Worker runtime connection did not use the separate restricted NOBYPASSRLS role',
+    );
+  }
+  let workerIdentityReadDenied = false;
+  try {
+    await workerDatabase.pool.query('SELECT id FROM platform.identity_subject');
+  } catch (error) {
+    workerIdentityReadDenied =
+      typeof error === 'object' && error !== null && 'code' in error && error.code === '42501';
+  }
+  let appWorkerClaimDenied = false;
+  try {
+    await appRuntimeDatabase.pool.query('SELECT * FROM platform.claim_job($1, $2, $3)', [
+      randomUUID(),
+      'api-role-must-not-claim',
+      1,
+    ]);
+  } catch (error) {
+    appWorkerClaimDenied =
+      typeof error === 'object' && error !== null && 'code' in error && error.code === '42501';
+  }
+  if (!workerIdentityReadDenied || !appWorkerClaimDenied) {
+    throw new Error(
+      'Worker/API service-role boundary exposed identity reads or worker claim functions',
+    );
+  }
 
   const principalA: AuthenticatedPrincipal = {
     externalSubject: { provider: 'workos', subject: 'user_integration_a' },
@@ -643,6 +706,489 @@ try {
     } finally {
       projectRlsClient.release();
       await projectRlsDatabase.close();
+    }
+
+    const durableScope = {
+      subjectId: identityA.subjectId,
+      tenantId: identityA.tenantId,
+      projectId: mainProjectId,
+    };
+    const integritySpec = {
+      label: 'integration-private-contract-body',
+      dimensions: { height: 16, width: 24 },
+    };
+    const createDurable = (key: string, specification: unknown = integritySpec) =>
+      createDurableIntegrityJob(appRuntimeDatabase, {
+        ...durableScope,
+        idempotencyKeySha256: createHash('sha256').update(key).digest('hex'),
+        skuId: 'SKU-001',
+        specification,
+      });
+    const concurrentDurableJobs = await Promise.all(
+      Array.from({ length: 6 }, () => createDurable('durable-job-same-key')),
+    );
+    const durableJobId = concurrentDurableJobs[0]?.job.id;
+    const contractId = concurrentDurableJobs[0]?.job.contract.id;
+    if (
+      !durableJobId ||
+      !contractId ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        durableJobId,
+      ) ||
+      new Set(concurrentDurableJobs.map((entry) => entry.job.id)).size !== 1 ||
+      concurrentDurableJobs.filter((entry) => !entry.replayed).length !== 1
+    ) {
+      throw new Error('Concurrent same-key Job creation did not persist exactly one UUIDv7 Job');
+    }
+    const semanticReplay = await createDurable('durable-job-same-key', {
+      dimensions: { width: 24, height: 16 },
+      label: 'integration-private-contract-body',
+    });
+    if (semanticReplay.job.id !== durableJobId || !semanticReplay.replayed) {
+      throw new Error('Canonical Asset Contract property order did not reuse the durable Job');
+    }
+    let idempotencyConflict = false;
+    try {
+      await createDurable('durable-job-same-key', { label: 'different-body' });
+    } catch (error) {
+      idempotencyConflict =
+        error instanceof DurableJobRepositoryError && error.code === 'idempotency_conflict';
+    }
+    if (!idempotencyConflict)
+      throw new Error('Same idempotency key with a different request was not rejected');
+    const canonicalRows = await projectAdminDatabase.pool.query<{
+      jobs: string;
+      contracts: string;
+      versions: string;
+    }>(
+      `SELECT (SELECT count(*) FROM platform.durable_job WHERE id = $1)::text AS jobs,
+            (SELECT count(*) FROM platform.asset_contract WHERE id = $2)::text AS contracts,
+            (SELECT count(*) FROM platform.asset_contract_version WHERE contract_id = $2)::text AS versions`,
+      [durableJobId, contractId],
+    );
+    if (
+      canonicalRows.rows[0]?.jobs !== '1' ||
+      canonicalRows.rows[0]?.contracts !== '1' ||
+      canonicalRows.rows[0]?.versions !== '1'
+    )
+      throw new Error('Idempotent Job creation produced duplicate contract or durable rows');
+
+    const appJobRead = await getDurableJob(appRuntimeDatabase, {
+      ...durableScope,
+      jobId: durableJobId,
+    });
+    const globalJobList = await listDurableJobs(appRuntimeDatabase, {
+      subjectId: identityA.subjectId,
+      tenantId: identityA.tenantId,
+      limit: 50,
+    });
+    if (!appJobRead || !globalJobList.jobs.some((job) => job.id === durableJobId)) {
+      throw new Error(
+        'Tenant/project-scoped durable Job read did not return the authorized record',
+      );
+    }
+    const unsafeDirectUpdate = await appRuntimeDatabase.pool.query<{ count: string }>(
+      `SELECT count(*)::text AS count FROM information_schema.column_privileges
+     WHERE grantee = 'spryxel_app' AND table_schema = 'platform' AND table_name = 'durable_job' AND privilege_type = 'UPDATE'`,
+    );
+    if (unsafeDirectUpdate.rows[0]?.count !== '0')
+      throw new Error('Application role can directly update durable Job state');
+
+    let immutableVersionDenied = false;
+    try {
+      await projectAdminDatabase.pool.query(
+        'UPDATE platform.asset_contract_version SET specification_sha256 = $1 WHERE contract_id = $2 AND version = 1',
+        ['0'.repeat(64), contractId],
+      );
+    } catch (error) {
+      immutableVersionDenied =
+        typeof error === 'object' && error !== null && 'code' in error && error.code === '42501';
+    }
+    let illegalTransitionDenied = false;
+    try {
+      await projectAdminDatabase.pool.query(
+        "UPDATE platform.durable_job SET status = 'succeeded' WHERE id = $1",
+        [durableJobId],
+      );
+    } catch (error) {
+      illegalTransitionDenied =
+        typeof error === 'object' && error !== null && 'code' in error && error.code === '23514';
+    }
+    if (!immutableVersionDenied || !illegalTransitionDenied) {
+      throw new Error(
+        'PostgreSQL did not enforce immutable Asset Contract versions and legal Job transitions',
+      );
+    }
+
+    const jobIdentity = (token: string, tenantId: string) => ({
+      authorization: `Bearer ${token}`,
+      'x-tenant-id': tenantId,
+    });
+    const jobsApiDatabase = createDatabase(appDatabaseUrl, { max: 2 });
+    await projectAdminDatabase.pool.query(
+      `UPDATE platform.tenant_membership SET role = 'MEMBER' WHERE tenant_id = $1 AND subject_id = $2`,
+      [identityA.tenantId, memberIdentity.subjectId],
+    );
+    const jobsApi = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'silent' }, 'api'), {
+      database: jobsApiDatabase,
+      authenticateToken: async (token) => {
+        const principal = {
+          'jobs-owner': principalA,
+          'jobs-member': memberPrincipal,
+          'jobs-other-tenant': principalB,
+        }[token];
+        if (!principal) throw new Error('Unknown durable Job API token');
+        return principal;
+      },
+    });
+    const queuedCancel = await createDurable('durable-queued-cancel');
+    const runningCancel = await createDurable('durable-running-cancel');
+    const crashRecovery = await createDurable('durable-crash-recovery');
+    const exhausted = await createDurable('durable-attempt-exhaustion');
+    let durableWorkerRuntime: DurableJobQueueRuntime | undefined;
+    const workerEvents: string[] = [];
+    try {
+      await jobsApi.ready();
+      const listResponse = await jobsApi.inject({
+        method: 'GET',
+        url: `/api/v1/projects/${mainProjectId}/jobs?limit=10`,
+        headers: jobIdentity('jobs-owner', identityA.tenantId),
+      });
+      const detailResponse = await jobsApi.inject({
+        method: 'GET',
+        url: `/api/v1/projects/${mainProjectId}/jobs/${durableJobId}`,
+        headers: jobIdentity('jobs-owner', identityA.tenantId),
+      });
+      const memberRead = await jobsApi.inject({
+        method: 'GET',
+        url: `/api/v1/projects/${mainProjectId}/jobs/${durableJobId}`,
+        headers: jobIdentity('jobs-member', identityA.tenantId),
+      });
+      const memberCancel = await jobsApi.inject({
+        method: 'POST',
+        url: `/api/v1/projects/${mainProjectId}/jobs/${durableJobId}/cancel`,
+        headers: jobIdentity('jobs-member', identityA.tenantId),
+      });
+      const crossTenantRead = await jobsApi.inject({
+        method: 'GET',
+        url: `/api/v1/projects/${mainProjectId}/jobs/${durableJobId}`,
+        headers: jobIdentity('jobs-other-tenant', identityB.tenantId),
+      });
+      const missingAuthentication = await jobsApi.inject({
+        method: 'GET',
+        url: `/api/v1/projects/${mainProjectId}/jobs/${durableJobId}`,
+      });
+      if (
+        listResponse.statusCode !== 200 ||
+        detailResponse.statusCode !== 200 ||
+        memberRead.statusCode !== 200 ||
+        memberCancel.statusCode !== 404 ||
+        crossTenantRead.statusCode !== 404 ||
+        crossTenantRead.body.includes(durableJobId) ||
+        missingAuthentication.statusCode !== 401 ||
+        detailResponse.body.includes('integration-private-contract-body') ||
+        detailResponse.body.includes('specification":')
+      ) {
+        throw new Error(
+          `Job API list/detail gate failed: list=${listResponse.statusCode} ${listResponse.body.slice(0, 220)}; detail=${detailResponse.statusCode} ${detailResponse.body.slice(0, 220)}; memberRead=${memberRead.statusCode}; memberCancel=${memberCancel.statusCode}; crossTenant=${crossTenantRead.statusCode}; unauthenticated=${missingAuthentication.statusCode}; rawContractLeaked=${detailResponse.body.includes('integration-private-contract-body')}; specFieldLeaked=${detailResponse.body.includes('specification":')}`,
+        );
+      }
+      const globalApiList = await jobsApi.inject({
+        method: 'GET',
+        url: '/api/v1/jobs?limit=10',
+        headers: jobIdentity('jobs-owner', identityA.tenantId),
+      });
+      if (globalApiList.statusCode !== 200) throw new Error('Global tenant Job Center list failed');
+      const queuedCancelResponse = await jobsApi.inject({
+        method: 'POST',
+        url: `/api/v1/projects/${mainProjectId}/jobs/${queuedCancel.job.id}/cancel`,
+        headers: jobIdentity('jobs-owner', identityA.tenantId),
+      });
+      if (
+        queuedCancelResponse.statusCode !== 200 ||
+        queuedCancelResponse.json<{ job: { status: string } }>().job.status !== 'cancelled'
+      ) {
+        throw new Error('Queued Job cancellation did not win before worker claim');
+      }
+      const accidentalPublicCreate = await jobsApi.inject({
+        method: 'POST',
+        url: `/api/v1/projects/${mainProjectId}/jobs`,
+        headers: jobIdentity('jobs-owner', identityA.tenantId),
+        payload: { skuId: 'SKU-001', specification: integritySpec },
+      });
+      if (accidentalPublicCreate.statusCode !== 404)
+        throw new Error('Production Job creation endpoint was exposed');
+
+      const runningClaim = await claimDurableJob(
+        workerDatabase,
+        runningCancel.job.id,
+        'integration-running-cancel',
+        10,
+      );
+      if (!runningClaim)
+        throw new Error('Worker did not atomically claim a running-cancellation fixture');
+      const jobRlsDatabase = createDatabase(appDatabaseUrl, { max: 1 });
+      const jobRlsClient = await jobRlsDatabase.pool.connect();
+      try {
+        await jobRlsClient.query('BEGIN READ ONLY');
+        const missingContextRows = await jobRlsClient.query<{
+          contracts: string;
+          versions: string;
+          jobs: string;
+          idempotency: string;
+          attempts: string;
+        }>(
+          `SELECT
+             (SELECT count(*)::text FROM platform.asset_contract) AS contracts,
+             (SELECT count(*)::text FROM platform.asset_contract_version) AS versions,
+             (SELECT count(*)::text FROM platform.durable_job) AS jobs,
+             (SELECT count(*)::text FROM platform.job_create_idempotency) AS idempotency,
+             (SELECT count(*)::text FROM platform.job_attempt) AS attempts`,
+        );
+        await jobRlsClient.query('COMMIT');
+        if (Object.values(missingContextRows.rows[0] ?? {}).some((count) => count !== '0')) {
+          throw new Error('Asset Contract/Job RLS exposed records without transaction context');
+        }
+
+        await jobRlsClient.query('BEGIN READ ONLY');
+        await jobRlsClient.query(
+          "SELECT set_config('spryxel.subject_id', $1, true), set_config('spryxel.tenant_id', $2, true)",
+          [identityB.subjectId, identityB.tenantId],
+        );
+        const crossTenantRows = await jobRlsClient.query<{
+          contracts: number;
+          versions: number;
+          jobs: number;
+          idempotency: number;
+          attempts: number;
+        }>(
+          `SELECT
+             (SELECT count(*)::int FROM platform.asset_contract WHERE id = $1) AS contracts,
+             (SELECT count(*)::int FROM platform.asset_contract_version WHERE contract_id = $1) AS versions,
+             (SELECT count(*)::int FROM platform.durable_job WHERE id = $2) AS jobs,
+             (SELECT count(*)::int FROM platform.job_create_idempotency WHERE job_id = $2) AS idempotency,
+             (SELECT count(*)::int FROM platform.job_attempt WHERE id = $3) AS attempts`,
+          [contractId, durableJobId, runningClaim.attemptId],
+        );
+        await jobRlsClient.query('COMMIT');
+        if (Object.values(crossTenantRows.rows[0] ?? {}).some((count) => count !== 0)) {
+          throw new Error('Asset Contract/Job RLS exposed direct-ID rows across tenants');
+        }
+
+        let workerJobReadDenied = false;
+        try {
+          await workerDatabase.pool.query('SELECT id FROM platform.durable_job WHERE id = $1', [
+            durableJobId,
+          ]);
+        } catch (error) {
+          workerJobReadDenied =
+            typeof error === 'object' &&
+            error !== null &&
+            'code' in error &&
+            error.code === '42501';
+        }
+        let workerAttemptWriteDenied = false;
+        try {
+          await workerDatabase.pool.query(
+            "UPDATE platform.job_attempt SET status = 'cancelled' WHERE id = $1",
+            [runningClaim.attemptId],
+          );
+        } catch (error) {
+          workerAttemptWriteDenied =
+            typeof error === 'object' &&
+            error !== null &&
+            'code' in error &&
+            error.code === '42501';
+        }
+        if (!workerJobReadDenied || !workerAttemptWriteDenied) {
+          throw new Error('Worker role gained direct Job/Attempt table privileges');
+        }
+      } catch (error) {
+        await jobRlsClient.query('ROLLBACK');
+        throw error;
+      } finally {
+        jobRlsClient.release();
+      }
+      try {
+        await getDurableJob(jobRlsDatabase, { ...durableScope, jobId: durableJobId });
+        await jobRlsDatabase.pool.query('BEGIN READ ONLY');
+        const reusedConnectionContext = await jobRlsDatabase.pool.query<{
+          subject_id: string | null;
+          tenant_id: string | null;
+          project_id: string | null;
+          visible_jobs: string;
+        }>(
+          `SELECT NULLIF(current_setting('spryxel.subject_id', true), '') AS subject_id,
+                  NULLIF(current_setting('spryxel.tenant_id', true), '') AS tenant_id,
+                  NULLIF(current_setting('spryxel.project_id', true), '') AS project_id,
+                  (SELECT count(*)::text FROM platform.durable_job) AS visible_jobs`,
+        );
+        await jobRlsDatabase.pool.query('COMMIT');
+        const reused = reusedConnectionContext.rows[0];
+        if (
+          reused?.subject_id ||
+          reused?.tenant_id ||
+          reused?.project_id ||
+          reused?.visible_jobs !== '0'
+        ) {
+          throw new Error('Reused app pool connection leaked tenant/project Job RLS context');
+        }
+      } finally {
+        await jobRlsDatabase.close();
+      }
+      const runningCancelResponse = await jobsApi.inject({
+        method: 'POST',
+        url: `/api/v1/projects/${mainProjectId}/jobs/${runningCancel.job.id}/cancel`,
+        headers: jobIdentity('jobs-owner', identityA.tenantId),
+      });
+      if (
+        runningCancelResponse.json<{ job: { status: string } }>().job.status !== 'cancel_requested'
+      ) {
+        throw new Error('Running Job cancellation did not become a durable cancel request');
+      }
+      await finishDurableJob(workerDatabase, {
+        jobId: runningClaim.jobId,
+        attemptId: runningClaim.attemptId,
+        leaseToken: runningClaim.leaseToken,
+        outcome: 'succeeded',
+      });
+      const cancelledAtSafePoint = await getDurableJob(appRuntimeDatabase, {
+        ...durableScope,
+        jobId: runningCancel.job.id,
+      });
+      if (cancelledAtSafePoint?.status !== 'cancelled')
+        throw new Error('Worker cancellation safe point fabricated success');
+
+      const crashClaim = await claimDurableJob(
+        workerDatabase,
+        crashRecovery.job.id,
+        'integration-crashed-worker',
+        1,
+      );
+      if (
+        !crashClaim ||
+        (await claimDurableJob(
+          workerDatabase,
+          crashRecovery.job.id,
+          'integration-duplicate-worker',
+          1,
+        ))
+      ) {
+        throw new Error('Atomic claim created more than one active Attempt for a Job');
+      }
+      await new Promise((resolveDelay) => setTimeout(resolveDelay, 1_100));
+      const recoveredIds = await reconcileDurableJobs(workerDatabase, 50);
+      if (!recoveredIds.includes(crashRecovery.job.id))
+        throw new Error('Expired worker lease was not returned to bounded reconciliation');
+      const crashRow = await getDurableJob(appRuntimeDatabase, {
+        ...durableScope,
+        jobId: crashRecovery.job.id,
+      });
+      if (crashRow?.status !== 'queued' || crashRow.attempts[0]?.status !== 'expired') {
+        throw new Error(
+          'Forced worker crash did not close its Attempt and restore the durable Job',
+        );
+      }
+
+      for (let attempt = 1; attempt <= 3; attempt += 1) {
+        const claim = await claimDurableJob(
+          workerDatabase,
+          exhausted.job.id,
+          `integration-exhaustion-${attempt}`,
+          1,
+        );
+        if (!claim || claim.attemptNumber !== attempt)
+          throw new Error('Bounded attempt count skipped or duplicated an attempt');
+        await new Promise((resolveDelay) => setTimeout(resolveDelay, 1_100));
+        await reconcileDurableJobs(workerDatabase, 50);
+      }
+      const exhaustedRow = await getDurableJob(appRuntimeDatabase, {
+        ...durableScope,
+        jobId: exhausted.job.id,
+      });
+      if (
+        exhaustedRow?.status !== 'failed' ||
+        exhaustedRow.failureCode !== 'attempts_exhausted' ||
+        exhaustedRow.attemptCount !== 3
+      ) {
+        throw new Error(
+          'Expired claims exceeded or failed to enforce the configured maximum attempt count',
+        );
+      }
+
+      const projectionConnection = new Redis(redisUrl, { maxRetriesPerRequest: null });
+      const projectionQueue = new Queue(durableQueueName(), { connection: projectionConnection });
+      try {
+        await projectionQueue.waitUntilReady();
+        if (await projectionQueue.getJob(durableJobId))
+          throw new Error('Queue reference existed before the durable Job committed');
+        await enqueueDurableJobReference(projectionQueue, durableJobId);
+        await enqueueDurableJobReference(projectionQueue, durableJobId);
+        const reference = await projectionQueue.getJob(durableJobId);
+        if (
+          !reference ||
+          JSON.stringify(reference.data) !==
+            JSON.stringify({ jobId: durableJobId, schemaVersion: 'job-reference.v1' }) ||
+          JSON.stringify(reference.data).includes('integration-private-contract-body')
+        ) {
+          throw new Error('BullMQ payload was not the minimum safe durable Job reference');
+        }
+        await projectionQueue.obliterate({ force: true });
+        if (await projectionQueue.getJob(durableJobId))
+          throw new Error('Redis queue-loss fixture did not clear the transient reference');
+        const stillDurable = await getDurableJob(appRuntimeDatabase, {
+          ...durableScope,
+          jobId: durableJobId,
+        });
+        if (stillDurable?.status !== 'queued')
+          throw new Error('Redis loss changed canonical PostgreSQL Job state');
+      } finally {
+        await projectionQueue.close();
+        await projectionConnection.quit();
+      }
+
+      durableWorkerRuntime = new DurableJobQueueRuntime(
+        workerDatabase,
+        redisUrl,
+        'integration-asset-integrity-worker',
+        (fields) => {
+          workerEvents.push(JSON.stringify(fields));
+        },
+      );
+      await durableWorkerRuntime.start();
+      const integrityCompleted = await waitFor(
+        () => getDurableJob(appRuntimeDatabase, { ...durableScope, jobId: durableJobId }),
+        (job) => job?.status === 'succeeded',
+        { label: 'durable integrity consumer completion', timeoutMs: 15_000, intervalMs: 100 },
+      );
+      const crashRecovered = await waitFor(
+        () => getDurableJob(appRuntimeDatabase, { ...durableScope, jobId: crashRecovery.job.id }),
+        (job) => job?.status === 'succeeded',
+        { label: 'worker crash recovery completion', timeoutMs: 15_000, intervalMs: 100 },
+      );
+      if (
+        integrityCompleted?.attemptCount !== 1 ||
+        crashRecovered?.attemptCount !== 2 ||
+        crashRecovered.attempts.filter((attempt) => attempt.status === 'succeeded').length !== 1 ||
+        workerEvents.some((entry) => entry.includes('integration-private-contract-body'))
+      ) {
+        throw new Error(
+          'Durable consumer did not safely recover/replay the admitted integrity check',
+        );
+      }
+      await durableWorkerRuntime.reconcileOnce();
+    } finally {
+      await durableWorkerRuntime?.stop();
+      await jobsApi.close();
+    }
+    const finalQueueConnection = new Redis(redisUrl, { maxRetriesPerRequest: null });
+    const finalQueue = new Queue(durableQueueName(), { connection: finalQueueConnection });
+    try {
+      await finalQueue.obliterate({ force: true });
+      await assertQueueNamespaceEmpty(finalQueueConnection, durableQueueName());
+    } finally {
+      await finalQueue.close();
+      await finalQueueConnection.quit();
     }
 
     const auditProof = await appRuntimeDatabase.pool.connect();
@@ -1610,6 +2156,11 @@ try {
   } catch (error) {
     cleanupErrors.push(error);
   }
+  try {
+    await workerDatabase?.close();
+  } catch (error) {
+    cleanupErrors.push(error);
+  }
   s3.destroy();
   try {
     await runCompose(['down', '--volumes', '--remove-orphans'], composeCleanupTimeoutMs);
@@ -1636,7 +2187,7 @@ try {
 
 if (primaryError) throw new Error(redact(String(primaryError), allSecrets));
 process.stdout.write(
-  'Real-service integration: PASS (PostgreSQL migrations/idempotency, privileged API startup refused before bind, spryxel_app NOBYPASSRLS API startup allowed, shared API runtime pool with transaction-scoped RLS context isolation, concurrent identity bootstrap, cross-tenant intent/finalization RLS, C-11 ambiguous revoke fail-closed recovery with delayed event finalization exactly once, HTTP audit recovery after injected PostgreSQL finalization fault with duplicate prevention, authenticated Redis/BullMQ, authenticated SeaweedFS S3 and API health/readiness).\n',
+  'Real-service integration: PASS (PostgreSQL migrations/RLS, immutable Asset Contract/hash/caps, concurrent Job idempotency/replay/conflict, missing-context and cross-tenant Contract/Job/Attempt RLS, worker/API function and no-direct-table privilege boundary, atomic claim/Attempt, crash/lease recovery and max attempts, queued/running cancellation, safe list/detail/cancel API, Redis loss/rebuild/minimal BullMQ reference/duplicate delivery, pooled tenant/project context isolation, WO-006 identity/session regressions, authenticated SeaweedFS S3 and health/readiness).\n',
 );
 process.stdout.write(
   'Migration/queue regressions: PASS (pristine PostgreSQL reports unapplied; two BullMQ probes leave no disposable queue keys).\n',

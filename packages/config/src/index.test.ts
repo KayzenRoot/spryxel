@@ -22,6 +22,7 @@ describe('runtime configuration', () => {
     const config = parseRuntimeConfig(
       {
         DATABASE_URL: 'postgresql://user:db-secret@localhost:5432/app',
+        WORKER_DATABASE_URL: 'postgresql://worker:worker-db-secret@localhost:5432/app',
         REDIS_URL: 'redis://:redis-secret@localhost:6379/0',
         S3_ENDPOINT: 'http://127.0.0.1:8333',
         S3_ACCESS_KEY_ID: 'access-secret',
@@ -31,10 +32,16 @@ describe('runtime configuration', () => {
       'api',
     );
     const serialized = JSON.stringify(redactRuntimeConfig(config));
-    for (const secret of ['db-secret', 'redis-secret', 'access-secret', 's3-secret']) {
+    for (const secret of [
+      'db-secret',
+      'worker-db-secret',
+      'redis-secret',
+      'access-secret',
+      's3-secret',
+    ]) {
       expect(serialized).not.toContain(secret);
     }
-    expect(serialized.match(/\[REDACTED\]/g)).toHaveLength(4);
+    expect(serialized.match(/\[REDACTED\]/g)).toHaveLength(5);
   });
 
   it('rejects partial S3 credentials without printing secret values', () => {

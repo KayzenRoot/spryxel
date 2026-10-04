@@ -21,6 +21,7 @@ if (action === 'up') {
       POSTGRES_USER: 'spryxel',
       POSTGRES_PASSWORD: randomBytes(24).toString('hex'),
       DATABASE_APP_PASSWORD: randomBytes(24).toString('hex'),
+      DATABASE_WORKER_PASSWORD: randomBytes(24).toString('hex'),
       REDIS_PASSWORD: randomBytes(24).toString('hex'),
       S3_ACCESS_KEY_ID: randomBytes(16).toString('hex'),
       S3_SECRET_ACCESS_KEY: randomBytes(32).toString('hex'),
@@ -38,6 +39,15 @@ if (action === 'up') {
     await writeFile(
       envPath,
       `${existingEnv.replace(/\s*$/, '')}\nDATABASE_APP_PASSWORD=${randomBytes(24).toString('hex')}\n`,
+      { mode: 0o600 },
+    );
+    await chmod(envPath, 0o600);
+  }
+  if (existingEnv && !/^DATABASE_WORKER_PASSWORD=/m.test(existingEnv)) {
+    const current = await readFile(envPath, 'utf8');
+    await writeFile(
+      envPath,
+      `${current.replace(/\s*$/, '')}\nDATABASE_WORKER_PASSWORD=${randomBytes(24).toString('hex')}\n`,
       { mode: 0o600 },
     );
     await chmod(envPath, 0o600);

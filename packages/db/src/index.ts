@@ -6,7 +6,15 @@ import { sql } from 'drizzle-orm';
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Pool, type PoolConfig } from 'pg';
 import { v7 as uuidv7 } from 'uuid';
-import { normalizeProjectName, type Project, type ProjectCreateCommand } from '@spryxel/domain';
+import {
+  compileAssetContract,
+  integrityCheckOperation,
+  normalizeProjectName,
+  type CreatedDurableJob,
+  type Project,
+  type ProjectCreateCommand,
+  type SafeJob,
+} from '@spryxel/domain';
 import type {
   AuthenticatedPrincipal,
   IdentityBootstrapResult,
@@ -26,7 +34,11 @@ export type Database = {
   close(): Promise<void>;
 };
 
-export function createDatabase(databaseUrl: string, options: PoolConfig = {}): Database {
+export function createDatabase(
+  databaseUrl: string,
+  options: PoolConfig = {},
+  serviceRole: 'app' | 'worker' = 'app',
+): Database {
   const pool = new Pool({
     connectionString: databaseUrl,
     connectionTimeoutMillis: 2_000,
@@ -41,7 +53,8 @@ export function createDatabase(databaseUrl: string, options: PoolConfig = {}): D
     pool,
     orm: drizzle(pool),
     validateRuntimeRole: () => {
-      roleValidation ??= validateRuntimePoolRole(pool);
+      roleValidation ??=
+        serviceRole === 'app' ? validateRuntimePoolRole(pool) : validateWorkerPoolRole(pool);
       return roleValidation;
     },
     ping: async () => {
@@ -592,6 +605,408 @@ export async function finalizeSessionRevocation(
   }
 }
 
+export class DurableJobRepositoryError extends Error {
+  constructor(readonly code: 'job_not_found' | 'idempotency_conflict' | 'invalid_contract') {
+    super('Durable Job repository operation was denied');
+    this.name = 'DurableJobRepositoryError';
+  }
+}
+
+type JobCommandScope = { subjectId: string; tenantId: string; projectId: string };
+
+export async function createDurableIntegrityJob(
+  database: Database,
+  input: JobCommandScope & { idempotencyKeySha256: string; skuId: string; specification: unknown },
+): Promise<CreatedDurableJob> {
+  const compiled = compileAssetContract({ skuId: input.skuId, specification: input.specification });
+  await database.validateRuntimeRole();
+  const client = await database.pool.connect();
+  try {
+    await client.query('BEGIN');
+    await setSecurityContext(client, input.subjectId, input.tenantId, input.projectId);
+    await assertActiveMembership(client, input.subjectId, input.tenantId);
+    await requireProjectInScope(client, input.tenantId, input.projectId);
+    let created: {
+      job_id: string;
+      contract_id: string;
+      contract_version: number;
+      replayed: boolean;
+    };
+    try {
+      const result = await client.query<{
+        job_id: string;
+        contract_id: string;
+        contract_version: number;
+        replayed: boolean;
+      }>(`SELECT * FROM platform.create_integrity_job($1, $2, $3, $4::jsonb, $5)`, [
+        input.idempotencyKeySha256,
+        compiled.requestSha256,
+        compiled.skuId,
+        compiled.canonicalSpecification,
+        compiled.specificationSha256,
+      ]);
+      const row = result.rows[0];
+      if (!row) throw new DurableJobRepositoryError('job_not_found');
+      created = row;
+    } catch (error) {
+      if (pgCode(error) === 'P0001') throw new DurableJobRepositoryError('idempotency_conflict');
+      if (pgCode(error) === '22023') throw new DurableJobRepositoryError('invalid_contract');
+      throw error;
+    }
+    const job = await readJobInTransaction(client, input, created.job_id);
+    if (!job) throw new DurableJobRepositoryError('job_not_found');
+    await client.query('COMMIT');
+    return { job, replayed: created.replayed };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function listDurableJobs(
+  database: Database,
+  input: Omit<JobCommandScope, 'projectId'> & {
+    projectId?: string;
+    limit: number;
+    cursor?: string;
+  },
+): Promise<{ jobs: SafeJob[]; nextCursor?: string }> {
+  await database.validateRuntimeRole();
+  const client = await database.pool.connect();
+  try {
+    await client.query('BEGIN READ ONLY');
+    await setSecurityContext(client, input.subjectId, input.tenantId, input.projectId);
+    const role = await getActiveProjectMembership(client, input.subjectId, input.tenantId);
+    if (input.projectId) await requireProjectInScope(client, input.tenantId, input.projectId);
+    const cursor = decodeJobCursor(input.cursor);
+    const result = await client.query<JobSqlRow>(
+      `SELECT j.id, j.tenant_id, j.project_id, j.created_by_subject_id, j.operation_type, j.status,
+              j.attempt_count, j.max_attempts, j.result_code, j.failure_code, j.created_at, j.updated_at,
+              v.contract_id, v.version AS contract_version, v.schema_version, v.sku_id, v.specification_sha256
+       FROM platform.durable_job j
+       JOIN platform.asset_contract_version v
+         ON v.contract_id = j.contract_id AND v.version = j.contract_version
+        AND v.tenant_id = j.tenant_id AND v.project_id = j.project_id
+       WHERE j.tenant_id = $1 AND ($2::uuid IS NULL OR j.project_id = $2)
+         AND ($3::timestamptz IS NULL OR (j.created_at, j.id) < ($3, $4::uuid))
+       ORDER BY j.created_at DESC, j.id DESC LIMIT $5`,
+      [
+        input.tenantId,
+        input.projectId ?? null,
+        cursor?.createdAt ?? null,
+        cursor?.id ?? null,
+        input.limit + 1,
+      ],
+    );
+    const hasMore = result.rows.length > input.limit;
+    const rows = result.rows.slice(0, input.limit);
+    const attempts = await readAttempts(
+      client,
+      rows.map((row) => row.id),
+    );
+    const jobs = rows.map((row) =>
+      toSafeJob(row, attempts.get(row.id) ?? [], input.subjectId, role),
+    );
+    await client.query('COMMIT');
+    const last = rows.at(-1);
+    return {
+      jobs,
+      ...(hasMore && last
+        ? {
+            nextCursor: Buffer.from(
+              JSON.stringify({ createdAt: last.created_at.toISOString(), id: last.id }),
+            ).toString('base64url'),
+          }
+        : {}),
+    };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getDurableJob(
+  database: Database,
+  input: JobCommandScope & { jobId: string },
+): Promise<SafeJob | null> {
+  await database.validateRuntimeRole();
+  const client = await database.pool.connect();
+  try {
+    await client.query('BEGIN READ ONLY');
+    await setSecurityContext(client, input.subjectId, input.tenantId, input.projectId);
+    await requireProjectInScope(client, input.tenantId, input.projectId);
+    const job = await readJobInTransaction(client, input, input.jobId);
+    await client.query('COMMIT');
+    return job;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function cancelDurableJob(
+  database: Database,
+  input: JobCommandScope & { jobId: string },
+): Promise<SafeJob | null> {
+  await database.validateRuntimeRole();
+  const client = await database.pool.connect();
+  try {
+    await client.query('BEGIN');
+    await setSecurityContext(client, input.subjectId, input.tenantId, input.projectId);
+    try {
+      await client.query('SELECT platform.request_job_cancel($1)', [input.jobId]);
+    } catch (error) {
+      if (pgCode(error) === '42501') {
+        await client.query('ROLLBACK');
+        return null;
+      }
+      throw error;
+    }
+    const job = await readJobInTransaction(client, input, input.jobId);
+    await client.query('COMMIT');
+    return job;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+type JobSqlRow = {
+  id: string;
+  tenant_id: string;
+  project_id: string;
+  created_by_subject_id: string;
+  operation_type: string;
+  status: SafeJob['status'];
+  attempt_count: number;
+  max_attempts: number;
+  result_code: SafeJob['resultCode'];
+  failure_code: SafeJob['failureCode'];
+  created_at: Date;
+  updated_at: Date;
+  contract_id: string;
+  contract_version: number;
+  schema_version: 'asset-contract.v1';
+  sku_id: string;
+  specification_sha256: string;
+};
+
+type AttemptSqlRow = {
+  id: string;
+  job_id: string;
+  attempt_number: number;
+  status: SafeJob['attempts'][number]['status'];
+  started_at: Date;
+  completed_at: Date | null;
+  safe_failure_code: string | null;
+};
+
+async function readJobInTransaction(
+  client: import('pg').PoolClient,
+  scope: JobCommandScope,
+  jobId: string,
+): Promise<SafeJob | null> {
+  const result = await client.query<JobSqlRow>(
+    `SELECT j.id, j.tenant_id, j.project_id, j.created_by_subject_id, j.operation_type, j.status,
+            j.attempt_count, j.max_attempts, j.result_code, j.failure_code, j.created_at, j.updated_at,
+            v.contract_id, v.version AS contract_version, v.schema_version, v.sku_id, v.specification_sha256
+     FROM platform.durable_job j
+     JOIN platform.asset_contract_version v
+       ON v.contract_id = j.contract_id AND v.version = j.contract_version
+      AND v.tenant_id = j.tenant_id AND v.project_id = j.project_id
+     WHERE j.id = $1 AND j.tenant_id = $2 AND j.project_id = $3`,
+    [jobId, scope.tenantId, scope.projectId],
+  );
+  const row = result.rows[0];
+  if (!row) return null;
+  const attempts = await readAttempts(client, [jobId]);
+  const role = await getActiveProjectMembership(client, scope.subjectId, scope.tenantId);
+  return toSafeJob(row, attempts.get(jobId) ?? [], scope.subjectId, role);
+}
+
+async function readAttempts(
+  client: import('pg').PoolClient,
+  jobIds: string[],
+): Promise<Map<string, SafeJob['attempts']>> {
+  if (jobIds.length === 0) return new Map();
+  const result = await client.query<AttemptSqlRow>(
+    `SELECT id, job_id, attempt_number, status, started_at, completed_at, safe_failure_code
+     FROM platform.job_attempt WHERE job_id = ANY($1::uuid[])
+     ORDER BY job_id, attempt_number DESC`,
+    [jobIds],
+  );
+  const output = new Map<string, SafeJob['attempts']>();
+  for (const row of result.rows) {
+    const entries = output.get(row.job_id) ?? [];
+    entries.push({
+      id: row.id,
+      attemptNumber: row.attempt_number,
+      status: row.status,
+      startedAt: row.started_at.toISOString(),
+      completedAt: row.completed_at?.toISOString() ?? null,
+      failureCode: row.safe_failure_code,
+    });
+    output.set(row.job_id, entries);
+  }
+  return output;
+}
+
+function toSafeJob(
+  row: JobSqlRow,
+  attempts: SafeJob['attempts'],
+  subjectId: string,
+  role: 'OWNER' | 'ADMIN' | 'MEMBER',
+): SafeJob {
+  const job: SafeJob = {
+    id: row.id,
+    projectId: row.project_id,
+    operationType: integrityCheckOperation,
+    status: row.status,
+    retryable: row.status === 'queued' && row.attempt_count < row.max_attempts,
+    cancelEligible:
+      (row.status === 'queued' || row.status === 'running') &&
+      (row.created_by_subject_id === subjectId || role === 'OWNER' || role === 'ADMIN'),
+    attemptCount: row.attempt_count,
+    maxAttempts: 3,
+    resultCode: row.result_code,
+    failureCode: row.failure_code,
+    createdAt: row.created_at.toISOString(),
+    updatedAt: row.updated_at.toISOString(),
+    contract: {
+      id: row.contract_id,
+      version: row.contract_version,
+      schemaVersion: row.schema_version,
+      skuId: row.sku_id,
+      specificationSha256: row.specification_sha256,
+    },
+    attempts,
+  };
+  return job;
+}
+
+function decodeJobCursor(value: string | undefined): { createdAt: string; id: string } | undefined {
+  if (!value) return undefined;
+  try {
+    const parsed = JSON.parse(Buffer.from(value, 'base64url').toString('utf8')) as Record<
+      string,
+      unknown
+    >;
+    if (
+      typeof parsed.createdAt !== 'string' ||
+      Number.isNaN(Date.parse(parsed.createdAt)) ||
+      typeof parsed.id !== 'string' ||
+      !/^[0-9a-f-]{36}$/i.test(parsed.id)
+    ) {
+      throw new Error('invalid cursor');
+    }
+    return { createdAt: parsed.createdAt, id: parsed.id };
+  } catch {
+    throw new DurableJobRepositoryError('job_not_found');
+  }
+}
+
+async function requireProjectInScope(
+  client: import('pg').PoolClient,
+  tenantId: string,
+  projectId: string,
+): Promise<void> {
+  const project = await client.query(
+    'SELECT 1 FROM platform.project WHERE id = $1 AND tenant_id = $2',
+    [projectId, tenantId],
+  );
+  if (!project.rowCount) throw new DurableJobRepositoryError('job_not_found');
+}
+
+function pgCode(error: unknown): string | undefined {
+  return typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    typeof error.code === 'string'
+    ? error.code
+    : undefined;
+}
+
+export type ClaimedDurableJob = {
+  jobId: string;
+  attemptId: string;
+  leaseToken: string;
+  attemptNumber: number;
+  specification: unknown;
+  specificationSha256: string;
+  skuId: string;
+  contractVersion: number;
+  operationType: string;
+};
+
+export async function reconcileDurableJobs(database: Database, batch: number): Promise<string[]> {
+  await database.validateRuntimeRole();
+  const result = await database.pool.query<{ job_id: string }>(
+    'SELECT job_id FROM platform.reconcile_jobs($1)',
+    [batch],
+  );
+  return result.rows.map((row) => row.job_id);
+}
+
+export async function claimDurableJob(
+  database: Database,
+  jobId: string,
+  workerId: string,
+  leaseSeconds = 10,
+): Promise<ClaimedDurableJob | null> {
+  await database.validateRuntimeRole();
+  const result = await database.pool.query<{
+    job_id: string;
+    attempt_id: string;
+    lease_token: string;
+    attempt_number: number;
+    specification: unknown;
+    specification_sha256: string;
+    sku_id: string;
+    contract_version: number;
+    operation_type: string;
+  }>('SELECT * FROM platform.claim_job($1, $2, $3)', [jobId, workerId, leaseSeconds]);
+  const row = result.rows[0];
+  return row
+    ? {
+        jobId: row.job_id,
+        attemptId: row.attempt_id,
+        leaseToken: row.lease_token,
+        attemptNumber: row.attempt_number,
+        specification: row.specification,
+        specificationSha256: row.specification_sha256,
+        skuId: row.sku_id,
+        contractVersion: row.contract_version,
+        operationType: row.operation_type,
+      }
+    : null;
+}
+
+export async function finishDurableJob(
+  database: Database,
+  input: {
+    jobId: string;
+    attemptId: string;
+    leaseToken: string;
+    outcome: 'succeeded' | 'failed' | 'cancelled';
+    failureCode?: string;
+  },
+): Promise<boolean> {
+  await database.validateRuntimeRole();
+  const result = await database.pool.query<{ finish_job: boolean }>(
+    'SELECT platform.finish_job($1, $2, $3, $4, $5) AS finish_job',
+    [input.jobId, input.attemptId, input.leaseToken, input.outcome, input.failureCode ?? null],
+  );
+  return result.rows[0]?.finish_job ?? false;
+}
+
 function getIntentForUpdate(
   client: import('pg').PoolClient,
   input: { intentId: string; subjectId: string; tenantId: string },
@@ -652,6 +1067,13 @@ export class RuntimeDatabaseRoleError extends Error {
   constructor() {
     super('DATABASE_URL must use the restricted Spryxel runtime role');
     this.name = 'RuntimeDatabaseRoleError';
+  }
+}
+
+export class WorkerRuntimeRoleError extends Error {
+  constructor() {
+    super('WORKER_DATABASE_URL must use the restricted Spryxel worker role');
+    this.name = 'WorkerRuntimeRoleError';
   }
 }
 
@@ -785,15 +1207,39 @@ async function validateRuntimePoolRole(pool: Pool): Promise<void> {
       )
       AND (
         SELECT count(*) = 5 AND bool_and(
-          pg_catalog.has_function_privilege(role.oid, function_name, 'EXECUTE')
+          relation.relrowsecurity AND relation.relforcerowsecurity
+          AND pg_catalog.has_table_privilege(role.oid, relation.oid, 'SELECT')
+          AND NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'INSERT')
+          AND NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'UPDATE')
+          AND NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'DELETE')
+          AND NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRUNCATE')
+          AND NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'REFERENCES')
+          AND NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRIGGER')
         )
-        FROM unnest(ARRAY[
-          'platform.current_subject_id()',
-          'platform.current_tenant_id()',
-          'platform.is_active_tenant_member(uuid, uuid)',
-          'platform.can_create_project(uuid, uuid)',
-          'platform.is_project_created_event(text)'
-        ]::text[]) AS runtime_function(function_name)
+        FROM pg_catalog.pg_class relation
+        JOIN pg_catalog.pg_namespace namespace ON namespace.oid = relation.relnamespace
+        WHERE namespace.nspname = 'platform'
+          AND relation.relname IN ('asset_contract', 'asset_contract_version', 'durable_job', 'job_create_idempotency', 'job_attempt')
+      )
+      AND (
+        (
+          SELECT count(*) = 8 AND bool_and(
+            pg_catalog.has_function_privilege(role.oid, function_name, 'EXECUTE')
+          )
+          FROM unnest(ARRAY[
+            'platform.current_subject_id()',
+            'platform.current_tenant_id()',
+            'platform.is_active_tenant_member(uuid, uuid)',
+            'platform.can_create_project(uuid, uuid)',
+            'platform.is_project_created_event(text)',
+            'platform.current_project_id()',
+            'platform.create_integrity_job(text, text, text, jsonb, text)',
+            'platform.request_job_cancel(uuid)'
+          ]::text[]) AS runtime_function(function_name)
+        )
+        AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.reconcile_jobs(integer)', 'EXECUTE')
+        AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.claim_job(uuid, text, integer)', 'EXECUTE')
+        AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.finish_job(uuid, uuid, uuid, text, text)', 'EXECUTE')
       ) AS has_runtime_capabilities
     FROM runtime_role role
   `);
@@ -806,6 +1252,65 @@ async function validateRuntimePoolRole(pool: Pool): Promise<void> {
     !role.has_runtime_capabilities
   ) {
     throw new RuntimeDatabaseRoleError();
+  }
+}
+
+async function validateWorkerPoolRole(pool: Pool): Promise<void> {
+  const result = await pool.query<{
+    is_worker_role: boolean;
+    privileged: boolean;
+    has_memberships: boolean;
+    owns_platform_objects: boolean;
+    has_schema_create: boolean;
+    has_only_bounded_functions: boolean;
+    has_no_table_access: boolean;
+  }>(`
+    WITH worker_role AS (
+      SELECT role.* FROM pg_catalog.pg_roles role WHERE role.rolname = current_user
+    ), platform_relations AS (
+      SELECT relation.oid FROM pg_catalog.pg_class relation
+      JOIN pg_catalog.pg_namespace namespace ON namespace.oid = relation.relnamespace
+      WHERE namespace.nspname = 'platform' AND relation.relkind IN ('r','p','v','m','S')
+    )
+    SELECT role.rolname = 'spryxel_worker' AS is_worker_role,
+      (role.rolsuper OR role.rolbypassrls OR role.rolcreatedb OR role.rolcreaterole OR role.rolreplication) AS privileged,
+      EXISTS (SELECT 1 FROM pg_catalog.pg_auth_members membership WHERE membership.member = role.oid) AS has_memberships,
+      EXISTS (SELECT 1 FROM platform_relations r JOIN pg_catalog.pg_class c ON c.oid=r.oid WHERE c.relowner=role.oid)
+        OR EXISTS (SELECT 1 FROM pg_catalog.pg_namespace n WHERE n.nspname='platform' AND n.nspowner=role.oid) AS owns_platform_objects,
+      COALESCE(pg_catalog.has_schema_privilege(role.oid, pg_catalog.to_regnamespace('platform'), 'CREATE'), false) AS has_schema_create,
+      (
+        SELECT count(*) = 3 AND bool_and(pg_catalog.has_function_privilege(role.oid, function_name, 'EXECUTE'))
+        FROM unnest(ARRAY[
+          'platform.reconcile_jobs(integer)',
+          'platform.claim_job(uuid, text, integer)',
+          'platform.finish_job(uuid, uuid, uuid, text, text)'
+        ]::text[]) AS worker_function(function_name)
+      )
+      AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.create_integrity_job(text, text, text, jsonb, text)', 'EXECUTE')
+      AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.request_job_cancel(uuid)', 'EXECUTE') AS has_only_bounded_functions,
+      NOT EXISTS (
+        SELECT 1 FROM platform_relations r WHERE
+          pg_catalog.has_table_privilege(role.oid,r.oid,'SELECT') OR
+          pg_catalog.has_table_privilege(role.oid,r.oid,'INSERT') OR
+          pg_catalog.has_table_privilege(role.oid,r.oid,'UPDATE') OR
+          pg_catalog.has_table_privilege(role.oid,r.oid,'DELETE') OR
+          pg_catalog.has_table_privilege(role.oid,r.oid,'TRUNCATE') OR
+          pg_catalog.has_table_privilege(role.oid,r.oid,'REFERENCES') OR
+          pg_catalog.has_table_privilege(role.oid,r.oid,'TRIGGER')
+      ) AS has_no_table_access
+    FROM worker_role role
+  `);
+  const role = result.rows[0];
+  if (
+    !role?.is_worker_role ||
+    role.privileged ||
+    role.has_memberships ||
+    role.owns_platform_objects ||
+    role.has_schema_create ||
+    !role.has_only_bounded_functions ||
+    !role.has_no_table_access
+  ) {
+    throw new WorkerRuntimeRoleError();
   }
 }
 
@@ -839,9 +1344,11 @@ async function setSecurityContext(
   client: import('pg').PoolClient,
   subjectId: string,
   tenantId: string | undefined,
+  projectId?: string,
 ): Promise<void> {
   await client.query("SELECT set_config('spryxel.subject_id', $1, true)", [subjectId]);
   await client.query("SELECT set_config('spryxel.tenant_id', $1, true)", [tenantId ?? '']);
+  await client.query("SELECT set_config('spryxel.project_id', $1, true)", [projectId ?? '']);
 }
 
 async function setExternalIdentityContext(

@@ -1,6 +1,7 @@
 import { parseRuntimeConfig, type RuntimeConfig } from '@spryxel/config';
 import {
   bootstrapIdentity,
+  cancelDurableJob,
   createProject,
   createDatabase,
   createSessionRevocationIntent,
@@ -8,14 +9,21 @@ import {
   finalizeSessionRevocation,
   getSessionRevocationIntent,
   getProject,
+  getDurableJob,
   IdentityRepositoryError,
   listProjects,
+  listDurableJobs,
+  DurableJobRepositoryError,
   ProjectRepositoryError,
   listIdentityMemberships,
   markSessionRevocationProviderConfirmed,
   markSessionRevocationRetryable,
 } from '@spryxel/db';
-import { canCreateProject, type ProjectRepositoryPort } from '@spryxel/domain';
+import {
+  canCreateProject,
+  type DurableJobRepositoryPort,
+  type ProjectRepositoryPort,
+} from '@spryxel/domain';
 import type {
   AuthenticatedPrincipal,
   IdentityRepositoryPort,
@@ -23,6 +31,8 @@ import type {
 } from '@spryxel/identity';
 import {
   idempotencyKeyPattern,
+  jobListQuerySchema,
+  projectJobListQuerySchema,
   projectCreateRequestSchema,
   projectIdPattern,
   requestIdPattern,
@@ -45,6 +55,7 @@ export type ApiServerDependencies = {
   identityRepository?: IdentityRepositoryPort | undefined;
   logger?: import('fastify').FastifyBaseLogger | undefined;
   projectRepository?: ProjectRepositoryPort | undefined;
+  jobRepository?: DurableJobRepositoryPort | undefined;
   sessionProvider?: IdentitySessionProviderPort | undefined;
 };
 
@@ -126,6 +137,18 @@ export function buildApiServer(config: RuntimeConfig, dependencies: ApiServerDep
           list: (input: Parameters<ProjectRepositoryPort['list']>[0]) =>
             listProjects(database, input),
           get: (input: Parameters<ProjectRepositoryPort['get']>[0]) => getProject(database, input),
+        }
+      : undefined);
+  const jobRepository =
+    dependencies.jobRepository ??
+    (database
+      ? {
+          list: (input: Parameters<DurableJobRepositoryPort['list']>[0]) =>
+            listDurableJobs(database, input),
+          get: (input: Parameters<DurableJobRepositoryPort['get']>[0]) =>
+            getDurableJob(database, input),
+          cancel: (input: Parameters<DurableJobRepositoryPort['cancel']>[0]) =>
+            cancelDurableJob(database, input),
         }
       : undefined);
   const sessionProvider =
@@ -331,6 +354,132 @@ export function buildApiServer(config: RuntimeConfig, dependencies: ApiServerDep
         return reply.send({ tenantId: context.tenantId, role: context.role, project });
       } catch (error) {
         return handleProjectRepositoryError(request, reply, error);
+      }
+    },
+  );
+
+  app.get<{ Params: { projectId: string }; Querystring: { limit?: string; cursor?: string } }>(
+    '/api/v1/projects/:projectId/jobs',
+    { preHandler: authenticateRequest },
+    async (request, reply) => {
+      if (!jobRepository)
+        return jobProblem(reply, 503, 'job_store_unavailable', 'Jobs are unavailable', request.id);
+      if (!projectIdPattern.test(request.params.projectId))
+        return jobProblem(reply, 404, 'project_not_found', 'Project not found', request.id);
+      const context = await resolveProjectContext(request, reply);
+      if (!context) return;
+      const query = projectJobListQuerySchema.safeParse(request.query);
+      if (!query.success)
+        return jobProblem(
+          reply,
+          400,
+          'invalid_job_pagination',
+          'Job pagination is invalid',
+          request.id,
+        );
+      try {
+        return reply.send(
+          await jobRepository.list({
+            subjectId: context.subjectId,
+            tenantId: context.tenantId,
+            projectId: request.params.projectId,
+            limit: query.data.limit,
+            ...(query.data.cursor ? { cursor: query.data.cursor } : {}),
+          }),
+        );
+      } catch (error) {
+        return handleJobRepositoryError(request, reply, error);
+      }
+    },
+  );
+
+  app.get<{ Querystring: { limit?: string; cursor?: string; projectId?: string } }>(
+    '/api/v1/jobs',
+    { preHandler: authenticateRequest },
+    async (request, reply) => {
+      if (!jobRepository)
+        return jobProblem(reply, 503, 'job_store_unavailable', 'Jobs are unavailable', request.id);
+      const context = await resolveProjectContext(request, reply);
+      if (!context) return;
+      const query = jobListQuerySchema.safeParse(request.query);
+      if (!query.success)
+        return jobProblem(
+          reply,
+          400,
+          'invalid_job_pagination',
+          'Job pagination is invalid',
+          request.id,
+        );
+      try {
+        return reply.send(
+          await jobRepository.list({
+            subjectId: context.subjectId,
+            tenantId: context.tenantId,
+            limit: query.data.limit,
+            ...(query.data.cursor ? { cursor: query.data.cursor } : {}),
+            ...(query.data.projectId ? { projectId: query.data.projectId } : {}),
+          }),
+        );
+      } catch (error) {
+        return handleJobRepositoryError(request, reply, error);
+      }
+    },
+  );
+
+  app.get<{ Params: { projectId: string; jobId: string } }>(
+    '/api/v1/projects/:projectId/jobs/:jobId',
+    { preHandler: authenticateRequest },
+    async (request, reply) => {
+      if (!jobRepository)
+        return jobProblem(reply, 503, 'job_store_unavailable', 'Jobs are unavailable', request.id);
+      if (
+        !projectIdPattern.test(request.params.projectId) ||
+        !projectIdPattern.test(request.params.jobId)
+      ) {
+        return jobProblem(reply, 404, 'job_not_found', 'Job not found', request.id);
+      }
+      const context = await resolveProjectContext(request, reply);
+      if (!context) return;
+      try {
+        const job = await jobRepository.get({
+          subjectId: context.subjectId,
+          tenantId: context.tenantId,
+          projectId: request.params.projectId,
+          jobId: request.params.jobId,
+        });
+        if (!job) return jobProblem(reply, 404, 'job_not_found', 'Job not found', request.id);
+        return reply.send({ job });
+      } catch (error) {
+        return handleJobRepositoryError(request, reply, error);
+      }
+    },
+  );
+
+  app.post<{ Params: { projectId: string; jobId: string } }>(
+    '/api/v1/projects/:projectId/jobs/:jobId/cancel',
+    { preHandler: authenticateRequest },
+    async (request, reply) => {
+      if (!jobRepository)
+        return jobProblem(reply, 503, 'job_store_unavailable', 'Jobs are unavailable', request.id);
+      if (
+        !projectIdPattern.test(request.params.projectId) ||
+        !projectIdPattern.test(request.params.jobId)
+      ) {
+        return jobProblem(reply, 404, 'job_not_found', 'Job not found', request.id);
+      }
+      const context = await resolveProjectContext(request, reply);
+      if (!context) return;
+      try {
+        const job = await jobRepository.cancel({
+          subjectId: context.subjectId,
+          tenantId: context.tenantId,
+          projectId: request.params.projectId,
+          jobId: request.params.jobId,
+        });
+        if (!job) return jobProblem(reply, 404, 'job_not_found', 'Job not found', request.id);
+        return reply.send({ job });
+      } catch (error) {
+        return handleJobRepositoryError(request, reply, error);
       }
     },
   );
@@ -698,6 +847,25 @@ export function buildApiServer(config: RuntimeConfig, dependencies: ApiServerDep
       request.id,
     );
   }
+
+  function handleJobRepositoryError(
+    request: import('fastify').FastifyRequest,
+    reply: import('fastify').FastifyReply,
+    error: unknown,
+  ) {
+    if (error instanceof DurableJobRepositoryError && error.code === 'job_not_found') {
+      return jobProblem(reply, 404, 'job_not_found', 'Job not found', request.id);
+    }
+    request.log.error(
+      {
+        event: 'jobs.repository_unavailable',
+        requestId: request.id,
+        errorType: safeErrorType(error),
+      },
+      'durable Job request failed',
+    );
+    return jobProblem(reply, 503, 'job_store_unavailable', 'Jobs are unavailable', request.id);
+  }
 }
 
 function logRevocationReconciliationRequired(
@@ -830,6 +998,28 @@ function projectProblem(
               : status === 409
                 ? 'Conflict'
                 : 'Service unavailable',
+      status,
+      code,
+      detail,
+      instance: requestId,
+      requestId,
+    });
+}
+
+function jobProblem(
+  reply: import('fastify').FastifyReply,
+  status: number,
+  code: string,
+  detail: string,
+  requestId: string,
+) {
+  return reply
+    .code(status)
+    .type('application/problem+json')
+    .send({
+      type: 'about:blank',
+      title:
+        status === 400 ? 'Invalid request' : status === 404 ? 'Not found' : 'Service unavailable',
       status,
       code,
       detail,

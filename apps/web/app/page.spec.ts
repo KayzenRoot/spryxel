@@ -104,13 +104,13 @@ test('Home to Projects to Create to Open keeps a canonical project context', asy
   await page.getByRole('textbox', { name: 'Project name' }).fill('Northstar');
   await page.getByRole('button', { name: 'Create project' }).click();
   await expect(page.getByRole('status')).toContainText('Project created.');
-  await page.getByRole('link', { name: 'Open project' }).click();
+  await page.getByRole('status').getByRole('link', { name: 'Open project' }).click();
 
   await expect(page.getByRole('heading', { name: 'Northstar', exact: true })).toBeVisible();
   await expect(page.getByText('Not configured', { exact: true })).toBeVisible();
   await expect(
     page.getByText(
-      'Durable jobs are not available in this increment; no job status is being inferred.',
+      'No durable jobs yet. Job status will appear here after an admitted operation creates one.',
     ),
   ).toBeVisible();
   const stored = await page.evaluate(() => ({
@@ -119,6 +119,83 @@ test('Home to Projects to Create to Open keeps a canonical project context', asy
   }));
   expect(stored.local.some((key) => /token|auth|session/i.test(key))).toBe(false);
   expect(stored.session.some((key) => /token|auth|session/i.test(key))).toBe(false);
+});
+
+test('Jobs Center lists durable state and reload preserves details and cancellation', async ({
+  page,
+}) => {
+  await authenticateWorkspacePage(page, 'jobs-populated');
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Recent jobs' })).toBeVisible();
+  await expect(page.getByText('queued', { exact: true }).first()).toBeVisible();
+  await page.getByRole('link', { name: 'Jobs', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Jobs', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: /SKU-001 · contract v1/ })).toBeVisible();
+  const projectId = await page.locator('#jobs-project-filter option').nth(1).getAttribute('value');
+  const tenantId = await page.locator('input[name="tenantId"]').first().inputValue();
+  const jobLink = page.getByRole('link', { name: /SKU-001 · contract v1/ });
+  const jobHref = await jobLink.getAttribute('href');
+  expect(jobHref).toBeTruthy();
+  await Promise.all([
+    page.waitForURL(new URL(jobHref ?? '/jobs', page.url()).toString()),
+    jobLink.click(),
+  ]);
+  await expect(
+    page.getByRole('heading', { level: 1, name: /SKU-001 · contract v1/ }),
+  ).toBeVisible();
+  await expect(page.getByText('Specification SHA-256')).toBeVisible();
+  await expect(page.getByText(/raw contract|specification JSON/i)).toHaveCount(0);
+  await page.getByRole('button', { name: 'Cancel job' }).click();
+  await expect(page.getByText('Status: cancelled.')).toBeVisible();
+  await page.reload();
+  await expect(page.getByText('Status: cancelled.')).toBeVisible();
+  expect(projectId).toBeTruthy();
+  expect(tenantId).toMatch(/^[0-9a-f-]{36}$/i);
+});
+
+test('Project Overview shows recent jobs and all admitted states remain readable', async ({
+  page,
+}) => {
+  await authenticateWorkspacePage(page, 'jobs-populated');
+  await page.goto('/jobs');
+  const projectId = await page.locator('#jobs-project-filter option').nth(1).getAttribute('value');
+  const tenantId = await page.locator('input[name="tenantId"]').first().inputValue();
+  expect(projectId).toBeTruthy();
+  await page.goto(`/projects/${projectId}?tenantId=${tenantId}`);
+  await expect(page.getByRole('heading', { name: 'Recent jobs' })).toBeVisible();
+  await expect(page.getByRole('link', { name: /SKU-001 · contract v1/ })).toBeVisible();
+
+  for (const status of [
+    'queued',
+    'running',
+    'cancel_requested',
+    'succeeded',
+    'failed',
+    'cancelled',
+  ]) {
+    await authenticateWorkspacePage(page, `jobs-${status}`);
+    await page.goto('/jobs');
+    await expect(
+      page.getByText(status.replaceAll('_', ' '), { exact: true }).first(),
+    ).toBeVisible();
+  }
+});
+
+test('Jobs Center supports a mobile viewport without horizontal overflow and keeps cancel keyboard reachable', async ({
+  page,
+}) => {
+  await authenticateWorkspacePage(page, 'jobs-populated');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/jobs');
+  await page.getByRole('link', { name: /SKU-001 · contract v1/ }).click();
+  const cancelButton = page.getByRole('button', { name: 'Cancel job' });
+  await cancelButton.focus();
+  await expect(cancelButton).toBeFocused();
+  const dimensions = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    content: document.documentElement.scrollWidth,
+  }));
+  expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
 });
 
 test('project browsing and creation stay usable at a companion viewport', async ({ page }) => {
