@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Spryxel — Platform foundation',
-  description: 'A minimal accessible shell for the Spryxel platform foundation.',
+  title: 'Spryxel — Projects and creative workspace',
+  description: 'A secure project workspace for game-production teams and creators.',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

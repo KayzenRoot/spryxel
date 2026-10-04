@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { healthResponseSchema, readinessResponseSchema } from './index.js';
+import {
+  healthResponseSchema,
+  projectCreateRequestSchema,
+  readinessResponseSchema,
+} from './index.js';
 
 describe('platform contracts', () => {
   it('accepts safe liveness output', () => {
@@ -16,6 +20,17 @@ describe('platform contracts', () => {
         requestId: 'req-123',
         dependencies: [{ name: 'database-url', status: 'unavailable' }],
       }),
+    ).toThrow();
+  });
+
+  it('normalizes project names before validation and rejects empty or extra fields', () => {
+    expect(projectCreateRequestSchema.parse({ name: '  Spryxel   Studio  ' })).toEqual({
+      name: 'Spryxel Studio',
+    });
+    expect(() => projectCreateRequestSchema.parse({ name: '   ' })).toThrow();
+    expect(() => projectCreateRequestSchema.parse({ name: 'x'.repeat(121) })).toThrow();
+    expect(() =>
+      projectCreateRequestSchema.parse({ name: 'Studio', tenantId: 'client-choice' }),
     ).toThrow();
   });
 });

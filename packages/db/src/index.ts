@@ -6,6 +6,7 @@ import { sql } from 'drizzle-orm';
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Pool, type PoolConfig } from 'pg';
 import { v7 as uuidv7 } from 'uuid';
+import { normalizeProjectName, type Project, type ProjectCreateCommand } from '@spryxel/domain';
 import type {
   AuthenticatedPrincipal,
   IdentityBootstrapResult,
@@ -204,6 +205,196 @@ export async function listIdentityMemberships(
   } finally {
     client.release();
   }
+}
+
+export class ProjectRepositoryError extends Error {
+  constructor(
+    readonly code:
+      | 'membership_required'
+      | 'insufficient_role'
+      | 'idempotency_conflict'
+      | 'project_not_found',
+  ) {
+    super('Project repository operation was denied');
+    this.name = 'ProjectRepositoryError';
+  }
+}
+
+export async function createProject(
+  database: Database,
+  input: ProjectCreateCommand,
+): Promise<Project> {
+  if (normalizeProjectName(input.name) !== input.name) {
+    throw new ProjectRepositoryError('idempotency_conflict');
+  }
+  await database.validateRuntimeRole();
+  const client = await database.pool.connect();
+  try {
+    await client.query('BEGIN');
+    await setSecurityContext(client, input.subjectId, input.tenantId);
+    const role = await getActiveProjectMembership(client, input.subjectId, input.tenantId);
+    if (role !== 'OWNER' && role !== 'ADMIN') {
+      throw new ProjectRepositoryError('insufficient_role');
+    }
+
+    const proposedProjectId = uuidv7();
+    const inserted = await client.query<{ project_id: string }>(
+      `INSERT INTO platform.project_create_idempotency
+        (subject_id, tenant_id, idempotency_key_hash, request_hash, project_id)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (subject_id, tenant_id, idempotency_key_hash) DO NOTHING
+       RETURNING project_id`,
+      [
+        input.subjectId,
+        input.tenantId,
+        input.idempotencyKeyHash,
+        input.requestHash,
+        proposedProjectId,
+      ],
+    );
+
+    let projectId = inserted.rows[0]?.project_id;
+    const isNew = Boolean(projectId);
+    if (!projectId) {
+      // ON CONFLICT waits for a concurrent insert; immutable mappings need no row lock.
+      const existing = await client.query<{ project_id: string; request_hash: string }>(
+        `SELECT project_id, request_hash
+         FROM platform.project_create_idempotency
+         WHERE subject_id = $1 AND tenant_id = $2 AND idempotency_key_hash = $3`,
+        [input.subjectId, input.tenantId, input.idempotencyKeyHash],
+      );
+      const row = existing.rows[0];
+      if (!row) throw new ProjectRepositoryError('project_not_found');
+      if (row.request_hash !== input.requestHash) {
+        throw new ProjectRepositoryError('idempotency_conflict');
+      }
+      projectId = row.project_id;
+    }
+
+    if (isNew) {
+      const created = await client.query<ProjectSqlRow>(
+        `INSERT INTO platform.project (id, tenant_id, created_by_subject_id, name)
+         VALUES ($1, $2, $3, $4)
+         RETURNING id, tenant_id, created_by_subject_id, name, created_at, updated_at`,
+        [projectId, input.tenantId, input.subjectId, input.name],
+      );
+      await client.query(
+        `INSERT INTO platform.security_event
+          (id, subject_id, tenant_id, event_type, request_id, project_id)
+         VALUES ($1, $2, $3, 'project.created', $4, $5)`,
+        [uuidv7(), input.subjectId, input.tenantId, input.requestId, projectId],
+      );
+      const row = created.rows[0];
+      if (!row) throw new ProjectRepositoryError('project_not_found');
+      await client.query('COMMIT');
+      return toProject(row);
+    }
+
+    const replay = await client.query<ProjectSqlRow>(
+      `SELECT id, tenant_id, created_by_subject_id, name, created_at, updated_at
+       FROM platform.project WHERE id = $1 AND tenant_id = $2`,
+      [projectId, input.tenantId],
+    );
+    const row = replay.rows[0];
+    if (!row) throw new ProjectRepositoryError('project_not_found');
+    await client.query('COMMIT');
+    return toProject(row);
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function listProjects(
+  database: Database,
+  input: { subjectId: string; tenantId: string },
+): Promise<Project[]> {
+  await database.validateRuntimeRole();
+  const client = await database.pool.connect();
+  try {
+    await client.query('BEGIN READ ONLY');
+    await setSecurityContext(client, input.subjectId, input.tenantId);
+    await getActiveProjectMembership(client, input.subjectId, input.tenantId);
+    const result = await client.query<ProjectSqlRow>(
+      `SELECT id, tenant_id, created_by_subject_id, name, created_at, updated_at
+       FROM platform.project WHERE tenant_id = $1
+       ORDER BY created_at DESC, id DESC`,
+      [input.tenantId],
+    );
+    await client.query('COMMIT');
+    return result.rows.map(toProject);
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function getProject(
+  database: Database,
+  input: { subjectId: string; tenantId: string; projectId: string },
+): Promise<Project | null> {
+  await database.validateRuntimeRole();
+  const client = await database.pool.connect();
+  try {
+    await client.query('BEGIN READ ONLY');
+    await setSecurityContext(client, input.subjectId, input.tenantId);
+    await getActiveProjectMembership(client, input.subjectId, input.tenantId);
+    const result = await client.query<ProjectSqlRow>(
+      `SELECT id, tenant_id, created_by_subject_id, name, created_at, updated_at
+       FROM platform.project WHERE id = $1 AND tenant_id = $2`,
+      [input.projectId, input.tenantId],
+    );
+    await client.query('COMMIT');
+    const row = result.rows[0];
+    return row ? toProject(row) : null;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+type ProjectSqlRow = {
+  id: string;
+  tenant_id: string;
+  created_by_subject_id: string;
+  name: string;
+  created_at: Date;
+  updated_at: Date;
+};
+
+function toProject(row: ProjectSqlRow): Project {
+  return {
+    id: row.id,
+    tenantId: row.tenant_id,
+    createdBySubjectId: row.created_by_subject_id,
+    name: row.name,
+    createdAt: row.created_at.toISOString(),
+    updatedAt: row.updated_at.toISOString(),
+  };
+}
+
+async function getActiveProjectMembership(
+  client: import('pg').PoolClient,
+  subjectId: string,
+  tenantId: string,
+): Promise<'OWNER' | 'ADMIN' | 'MEMBER'> {
+  const result = await client.query<{ role: 'OWNER' | 'ADMIN' | 'MEMBER' }>(
+    `SELECT membership.role
+     FROM platform.tenant_membership membership
+     JOIN platform.tenant tenant ON tenant.id = membership.tenant_id
+     WHERE membership.subject_id = $1 AND membership.tenant_id = $2
+       AND membership.status = 'active' AND tenant.status = 'active'`,
+    [subjectId, tenantId],
+  );
+  const role = result.rows[0]?.role;
+  if (!role) throw new ProjectRepositoryError('membership_required');
+  return role;
 }
 
 export async function getSessionRevocationIntent(
@@ -499,7 +690,7 @@ async function validateRuntimePoolRole(pool: Pool): Promise<void> {
       COALESCE(pg_catalog.has_schema_privilege(role.oid, pg_catalog.to_regnamespace('platform'), 'USAGE'), false)
       AND NOT COALESCE(pg_catalog.has_schema_privilege(role.oid, pg_catalog.to_regnamespace('platform'), 'CREATE'), false)
       AND (
-        SELECT count(*) = 6 AND bool_and(
+        SELECT count(*) = 8 AND bool_and(
           relation.relrowsecurity AND relation.relforcerowsecurity AND
           CASE relation.relname
             WHEN 'identity_subject' THEN
@@ -559,6 +750,28 @@ async function validateRuntimePoolRole(pool: Pool): Promise<void> {
               NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRUNCATE') AND
               NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'REFERENCES') AND
               NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRIGGER')
+            WHEN 'project' THEN
+              pg_catalog.has_table_privilege(role.oid, relation.oid, 'SELECT') AND
+              pg_catalog.has_table_privilege(role.oid, relation.oid, 'INSERT') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'UPDATE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'DELETE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRUNCATE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'REFERENCES') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRIGGER')
+            WHEN 'project_create_idempotency' THEN
+              pg_catalog.has_table_privilege(role.oid, relation.oid, 'SELECT') AND
+              pg_catalog.has_table_privilege(role.oid, relation.oid, 'INSERT') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'UPDATE') AND
+              NOT pg_catalog.has_column_privilege(role.oid, relation.oid, 'subject_id', 'UPDATE') AND
+              NOT pg_catalog.has_column_privilege(role.oid, relation.oid, 'tenant_id', 'UPDATE') AND
+              NOT pg_catalog.has_column_privilege(role.oid, relation.oid, 'idempotency_key_hash', 'UPDATE') AND
+              NOT pg_catalog.has_column_privilege(role.oid, relation.oid, 'request_hash', 'UPDATE') AND
+              NOT pg_catalog.has_column_privilege(role.oid, relation.oid, 'project_id', 'UPDATE') AND
+              NOT pg_catalog.has_column_privilege(role.oid, relation.oid, 'created_at', 'UPDATE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'DELETE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRUNCATE') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'REFERENCES') AND
+              NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRIGGER')
             ELSE false
           END
         )
@@ -567,8 +780,20 @@ async function validateRuntimePoolRole(pool: Pool): Promise<void> {
         WHERE namespace.nspname = 'platform'
           AND relation.relname IN (
             'identity_subject', 'external_auth_identity', 'tenant', 'tenant_membership',
-            'security_event', 'session_revocation_intent'
+            'security_event', 'session_revocation_intent', 'project', 'project_create_idempotency'
           )
+      )
+      AND (
+        SELECT count(*) = 5 AND bool_and(
+          pg_catalog.has_function_privilege(role.oid, function_name, 'EXECUTE')
+        )
+        FROM unnest(ARRAY[
+          'platform.current_subject_id()',
+          'platform.current_tenant_id()',
+          'platform.is_active_tenant_member(uuid, uuid)',
+          'platform.can_create_project(uuid, uuid)',
+          'platform.is_project_created_event(text)'
+        ]::text[]) AS runtime_function(function_name)
       ) AS has_runtime_capabilities
     FROM runtime_role role
   `);

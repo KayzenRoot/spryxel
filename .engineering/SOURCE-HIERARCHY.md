@@ -27,8 +27,8 @@ A Work Order/Context Lock is STALE if its base SHA changes or a critical authori
 - GEF package: `@gef-bootstrap/cli@1.1.1`
 - GEF v1.1.1 immutable release source: `KayzenRoot/gef-bootstrap@1dc030f1358eab0347043a3d54c7fc311c7c2123`
 - Product seed: v0.6.0 / `cbb93ec44886eba6cc9b24a072eb23e0ad5ea05a`
-- Last objectively approved Work Order: `SPRYXEL-WO-006`
-- Next legal stage: Projects + canonical shell/Home under a new admitted Work Order and Context Lock after WO-006 merge/post-merge closeout
+- Last objectively approved Work Order: `SPRYXEL-WO-007`
+- Next legal stage: Asset Contract + durable Job backbone under a new admitted Work Order and Context Lock after WO-007 merge/post-merge closeout
 
 Post-release commits in the GEF repository may be consulted only for evidence about publication/rollout. They do not redefine the installed v1.1.1 runtime contract.
 
@@ -84,3 +84,9 @@ The historical WO-006 Context Lock becomes closed/stale at canonical promotion a
 `SPRYXEL-WO-006 / SPRYXEL-IMP-002` is COMPLETE on `main@814abd6ab27b2a4c4549a1941a713e1c6cae69bd` after objective audit, promotion head `12a87d0a83907426acaaa208419f5a00b0f8007b`, squash merge and post-merge validation. Identity/Tenancy is implemented/canonical.
 
 The historical WO-006 Context Lock is STALE/closed and must not be reused. The next legal implementation stage is Projects + canonical shell/Home under a new admitted Work Order and fresh Context Lock.
+
+## SPRYXEL-WO-007 canonical implementation binding
+
+`SPRYXEL-IMP-003 — Projects + canonical shell/Home` is objectively approved on exact audited head `a64b76c858f9e72e462478d910655b3d69d85ec6`. Git/code/tests prove tenant-owned Projects, application membership authorization, forced PostgreSQL RLS, write-once project-create idempotency, `project.created` audit evidence, Global Shell, Home/Command Center, Projects list/create/select and minimal Project Overview. D-001…D-161 remain normative and unchanged.
+
+The historical WO-007 Context Lock becomes closed/stale at canonical promotion and must not be reused. Asset Contract + durable Job backbone requires its own Work Order and fresh Context Lock after merge/post-merge closeout.

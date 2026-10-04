@@ -1,29 +1,26 @@
 {
   "schemaVersion": 2,
   "status": "CANONICAL",
-  "phase": "IDENTITY_TENANCY_SECURITY_BASELINE_COMPLETE",
-  "stopState": "SPRYXEL_WO_006_COMPLETE",
-  "completedThroughModule": "SPRYXEL_IMP_002_IDENTITY_TENANCY_SECURITY_BASELINE",
-  "nextLegalStage": "PROJECTS_PRODUCT_SHELL_WORK_ORDER_REQUIRED",
+  "phase": "PROJECTS_CANONICAL_SHELL_HOME_COMPLETE",
+  "stopState": "SPRYXEL_WO_007_APPROVED_PENDING_MERGE",
+  "completedThroughModule": "SPRYXEL_IMP_003_PROJECTS_CANONICAL_SHELL_HOME",
+  "nextLegalStage": "ASSET_CONTRACT_DURABLE_JOB_WORK_ORDER_REQUIRED",
   "v11": {
     "gefVersion": "1.1.1",
     "gefReleaseSourceSha": "1dc030f1358eab0347043a3d54c7fc311c7c2123",
-    "lastApprovedWorkOrder": "SPRYXEL-WO-006",
-    "trackingIssue": 23,
-    "pullRequest": 24,
-    "auditedFinalHeadSha": "8e4f5b16883bf03a29893783032a00d31753457b",
+    "lastApprovedWorkOrder": "SPRYXEL-WO-007",
+    "trackingIssue": 26,
+    "pullRequest": 27,
+    "auditedFinalHeadSha": "a64b76c858f9e72e462478d910655b3d69d85ec6",
     "auditVerdict": "APPROVED",
     "correctionDelta01": "SATISFIED",
     "correctionDelta02": "SATISFIED",
-    "correctionDelta03": "SATISFIED",
-    "correctionDelta04": "SATISFIED",
-    "correctionDelta05": "SATISFIED",
-    "postMergeValidation": "PASS",
-    "productImplementation": "IDENTITY_TENANCY_SECURITY_BASELINE_COMPLETE",
+    "postMergeValidation": "PENDING",
+    "productImplementation": "PROJECTS_CANONICAL_SHELL_HOME_COMPLETE",
     "productBaseline": "CANONICAL_PRODUCT_MASTER_V0_6_0_DECOMPOSED",
     "planningCompletedThrough": "SPR-PLAN-007",
-    "implementationCompletedThrough": "SPRYXEL-IMP-002",
-    "nextImplementationIncrement": "PROJECTS_PRODUCT_SHELL_HOME",
+    "implementationCompletedThrough": "SPRYXEL-IMP-003",
+    "nextImplementationIncrement": "ASSET_CONTRACT_DURABLE_JOB_BACKBONE",
     "nextImplementationIncrementStatus": "NOT_ADMITTED",
     "commercialPricing": "NOT_FROZEN",
     "benchmarksAndMeasuredCogs": "NOT_RUN_NOT_AVAILABLE",
@@ -50,17 +47,21 @@
     "driftPolicy": "RECONCILE_AGAINST_AUTHORIZED_GIT_DELTA_DO_NOT_REWRITE_GEF_BASELINE",
     "authProviderDecisionRange": "D-156..D-161",
     "authProviderPreflightDate": "2026-10-02",
-    "promotionHeadSha": "12a87d0a83907426acaaa208419f5a00b0f8007b",
-    "mergedMainSha": "814abd6ab27b2a4c4549a1941a713e1c6cae69bd",
-    "postMergeRequiredChecks": {
-      "repositoryValidation": 111270518484,
-      "pipelineIntegrity": 111270518842,
-      "gitleaksSecrets": 111270518886,
-      "trivyFilesystemAndConfiguration": 111270518709
-    },
-    "postMergeSonarCloud": {
-      "checkRun": 111270606243,
-      "conclusion": "PASS"
+    "projects": {
+      "persistence": "POSTGRESQL_CANONICAL",
+      "rls": "ENABLED_FORCED",
+      "creationRoles": [
+        "OWNER",
+        "ADMIN"
+      ],
+      "readRoles": [
+        "OWNER",
+        "ADMIN",
+        "MEMBER"
+      ],
+      "idempotencyMapping": "WRITE_ONCE_SELECT_INSERT_RUNTIME_ROLE",
+      "durableAuditEvent": "project.created",
+      "shellHomeProjectsOverview": "IMPLEMENTED"
     }
   }
 }
