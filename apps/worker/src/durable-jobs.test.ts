@@ -1,12 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import {
   createRateLimitedQueueErrorReporter,
+  effectiveOperationBudgetMs,
   parseJobReference,
   timeBudgetExceeded,
   workerRedisConnectionOptions,
 } from './durable-jobs.js';
 
 describe('durable queue projection boundary', () => {
+  it('uses the persisted wall-time bound and clamps it to the worker hard cap', () => {
+    expect(effectiveOperationBudgetMs(1_250)).toBe(1_250);
+    expect(effectiveOperationBudgetMs(50_000)).toBe(5_000);
+    expect(effectiveOperationBudgetMs(0)).toBe(0);
+  });
+
   it('accepts only a versioned UUIDv7 durable reference', () => {
     expect(
       parseJobReference({

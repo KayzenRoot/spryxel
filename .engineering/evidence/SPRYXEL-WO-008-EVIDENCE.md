@@ -132,3 +132,51 @@ Toda a acceptance HIGH_ASSURANCE foi reiniciada em Node v22.23.3/npm 10.9.9 apó
 | git diff --check | PASS |
 
 Após o push deste hardening, o exact final HEAD e os quatro required checks, SonarCloud, Socket e estado das review threads serão registrados no corpo da PR #30. Checks do predecessor a1ea8eb não serão reutilizados; nenhuma promoção ou merge ocorrerá.
+
+## Correction-02 — C-02-A…C-02-C
+
+Esta seção substitui todas as tabelas e métricas históricas anteriores como aceitação final de C-02. As seções Correction-01 e anteriores permanecem como histórico, agora supersedido.
+
+### C-02-A — bounds do Asset Contract
+
+O compilador admite e congela estes valores para `asset_contract.integrity_check.v1`: `maxCandidates=1`, `maxRetries=2`, `maxRepairs=0` e `maxWallTimeMs=5000`. `maxRetries` conta tentativas adicionais, portanto o Job deriva `maxAttempts=3`; há uma única execução candidata, nenhuma reparação e deadline máximo de 5.000 ms. São limites operacionais conservadores para a operação de integridade sem geração; não representam custo, preço, modelo, GPU ou provider.
+
+Os quatro limites fazem parte do envelope versionado, são congelados em runtime e entram na canonicalização/request identity. A migration forward-only `0007_asset_contract_bounds_and_cancel_safe_point.sql` persiste os valores na versão exata do contrato, valida independentemente intervalos e combinação admitida no PostgreSQL e impede atualização por roles de runtime. A função de criação recebe os quatro valores explicitamente e falha fechada se divergirem do conjunto admitido. O Job deriva tentativas e wall time do contrato persistido. O claim fornece contrato e limites ao worker, que verifica a request identity e usa o wall time persistido com hard cap interno de 5.000 ms.
+
+Regressões de domínio cobrem valores determinísticos/congelados, identidade idêntica para entradas iguais e mudança da identidade para cada bound diferente. Integração PostgreSQL real cobre os quatro campos persistidos, escrita runtime negada, tampering e valores fora do limite rejeitados, derivação Job/Attempt e parâmetros inválidos rejeitados pela função. O worker prova uso do limite persistido e clamp ao hard cap. Nenhum caminho de inferência, provider, GPU ou custo foi adicionado.
+
+### C-02-B — cancelamento e lease
+
+`running -> cancel_requested` preserva o lease ativo. Reconciliação não finaliza enquanto esse claim permanece válido. O worker finaliza `cancelled` no safe-point; se morrer após o pedido, a expiração do lease permite reconciliação terminal sem nova tentativa. Um finish de lease expirado/stale não pode alterar o estado terminal. Cancelamento queued continua imediato e cancelamento terminal permanece idempotente.
+
+A integração real PostgreSQL/RLS demonstrou: lease e Attempt preservados durante cancelamento ativo; reconciliação imediata não terminaliza; safe-point conclui uma única vez; crash após `cancel_requested` torna-se terminal após expiração sem nova execução; finish stale é recusado; cancelamento queued/terminal mantém semântica bounded.
+
+### Acceptance HIGH_ASSURANCE — Correction-02
+
+Runtime oficial: Node `v22.23.3`, npm `10.9.9`. A suíte foi executada no espelho Linux Git observado pelo GEF, com o diff sincronizado ao worktree autorizado. `npm ci --no-audit --no-fund` instalou 227 pacotes sem alteração de manifests ou lockfile.
+
+| Verificação | Resultado final local |
+|---|---|
+| `npm ci --no-audit --no-fund` | PASS; 227 pacotes, Node `v22.23.3`, npm `10.9.9` |
+| `npm run format:check` | PASS; 113 arquivos |
+| `npm run lint` | PASS; 113 arquivos |
+| `npm run typecheck -- --force` | PASS; 18/18 tarefas |
+| `npm run build -- --force` | PASS; 11/11 workspaces |
+| `npm run architecture:check` | PASS; 11 workspaces e 15 arestas internas |
+| `npm run test:unit` | PASS; 93/93 testes em 22 arquivos |
+| `npm run test:worker` | PASS; worker smoke em processo Node separado |
+| `npm run test:integration` | PASS com PostgreSQL/RLS, Redis/BullMQ e SeaweedFS reais; sete migrations, bounds, cancellation safe-point, recovery e restante dos cenários IMP-004 |
+| `npm run test:browser` | PASS; 19/19 |
+| `npm test` | PASS; exit code 0; repetiu unit, worker, integração real e browser 19/19 |
+| `npm audit --audit-level=high` | PASS; zero vulnerabilidades |
+| `git diff --check` | PASS; sem erros de whitespace |
+| GEF doctor 1.1.1 | PASS; read-only, `ok=true`, observabilidade saudável, sem limites/remediação |
+| GEF status 1.1.1 | Duas leituras idênticas; SHA-256 `3b16289220f25f15a232805f71099b217d7274eb80a862a11ef0297bb0bc1d89`; `DIRTY/OBSERVED`, `operator.stale=true` e drift `UNEXPECTED` sob D-0007 |
+
+Uma primeira tentativa do agregado teve uma falha transitória de navegação em um teste browser existente; o teste isolado e a execução agregada completa subsequente passaram. Nenhum código de produto, Playwright, porta ou configuração foi alterado para contornar essa tentativa. A aceitação final acima é a execução completa posterior com exit code zero.
+
+### Exact-head e gates hospedados — Correction-02
+
+A atualização do Evidence Bundle integra o candidato e os required checks/SonarCloud/Socket serão vinculados somente ao SHA exato publicado após o commit. Nenhum check de `ba8cd741b86533ef8e5e1f72e07f2c0d7caa692e` ou de outro head anterior será reutilizado. Após o push, completar aqui e na descrição da PR #30: SHA exato final, IDs/URLs/conclusões dos quatro required checks, SonarCloud, Socket e zero threads pendentes. O SHA final e cada resultado devem apontar para o mesmo head; nenhum gate pendente será declarado PASS.
+
+**STOP CONDITION:** `SPRYXEL_IMP_004_ASSET_CONTRACT_DURABLE_JOB_BACKBONE_READY_FOR_AUDIT`

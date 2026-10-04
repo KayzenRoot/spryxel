@@ -1,7 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
 import { Queue, Worker, type Job } from 'bullmq';
-import { compileAssetContract, integrityCheckOperation } from '@spryxel/domain';
+import {
+  compileAssetContract,
+  deriveAssetContractRequestSha256,
+  integrityCheckOperation,
+} from '@spryxel/domain';
 import {
   claimDurableJob,
   finishDurableJob,
@@ -16,7 +20,7 @@ const reconciliationBatchSize = 50;
 const reconciliationIntervalMs = 1_000;
 const reconciliationBudgetMs = 5_000;
 const workerLeaseSeconds = 10;
-const operationBudgetMs = 5_000;
+const workerHardOperationCapMs = 5_000;
 const queueErrorLogIntervalMs = 60_000;
 
 export type DurableJobReference = { jobId: string; schemaVersion: typeof queueSchemaVersion };
@@ -141,10 +145,23 @@ export class DurableJobQueueRuntime {
     if (!claim) return { outcome: 'already_claimed_or_terminal' };
 
     const startedAt = performance.now();
+    const operationBudgetMs = effectiveOperationBudgetMs(claim.maxWallTimeMs);
     let outcome: 'succeeded' | 'failed' | 'cancelled' = 'failed';
     let failureCode: string | undefined;
     try {
-      if (timeBudgetExceeded(startedAt, operationBudgetMs)) {
+      if (
+        claim.maxAttempts !== claim.executionBounds.maxRetries + 1 ||
+        claim.maxWallTimeMs !== claim.executionBounds.maxWallTimeMs ||
+        deriveAssetContractRequestSha256(
+          claim.skuId,
+          claim.specificationSha256,
+          claim.executionBounds,
+        ) !== claim.requestSha256
+      ) {
+        failureCode = 'contract_integrity_mismatch';
+      } else if (operationBudgetMs === 0) {
+        failureCode = 'execution_timeout';
+      } else if (timeBudgetExceeded(startedAt, operationBudgetMs)) {
         failureCode = 'execution_timeout';
       } else if (claim.operationType !== integrityCheckOperation) {
         failureCode = 'contract_integrity_mismatch';
@@ -193,6 +210,11 @@ export function timeBudgetExceeded(
     !Number.isFinite(nowMs) ||
     nowMs - startedAtMs >= budgetMs
   );
+}
+
+export function effectiveOperationBudgetMs(persistedBoundMs: number): number {
+  if (!Number.isSafeInteger(persistedBoundMs) || persistedBoundMs <= 0) return 0;
+  return Math.min(persistedBoundMs, workerHardOperationCapMs);
 }
 
 export async function enqueueDurableJobReference(

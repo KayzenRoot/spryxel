@@ -69,8 +69,20 @@ export const assetContractSchemaVersion = 'asset-contract.v1' as const;
 export const maxContractBytes = 65_536;
 export const maxContractDepth = 16;
 export const maxContractNodes = 2_048;
-export const maxJobAttempts = 3;
-export const maxJobWallTimeMs = 5_000;
+export type AssetContractExecutionBounds = Readonly<{
+  maxCandidates: number;
+  maxRetries: number;
+  maxRepairs: number;
+  maxWallTimeMs: number;
+}>;
+export const integrityCheckExecutionBounds: AssetContractExecutionBounds = Object.freeze({
+  maxCandidates: 1,
+  maxRetries: 2,
+  maxRepairs: 0,
+  maxWallTimeMs: 5_000,
+});
+export const maxJobAttempts = integrityCheckExecutionBounds.maxRetries + 1;
+export const maxJobWallTimeMs = integrityCheckExecutionBounds.maxWallTimeMs;
 
 export const admittedSkuIds = [
   ...Array.from({ length: 15 }, (_, index) => `SKU-${String(index + 1).padStart(3, '0')}`),
@@ -87,14 +99,15 @@ export type JsonValue =
   | JsonValue[]
   | { [key: string]: JsonValue };
 export type AssetContractDraft = { skuId: string; specification: unknown };
-export type CompiledAssetContract = {
+export type CompiledAssetContract = Readonly<{
   schemaVersion: typeof assetContractSchemaVersion;
   skuId: AdmittedSkuId;
   specification: Record<string, JsonValue>;
   canonicalSpecification: string;
   specificationSha256: string;
+  executionBounds: AssetContractExecutionBounds;
   requestSha256: string;
-};
+}>;
 
 export class AssetContractValidationError extends Error {
   constructor(readonly code: 'unknown_sku' | 'invalid_specification' | 'specification_too_large') {
@@ -165,22 +178,41 @@ export function compileAssetContract(draft: AssetContractDraft): CompiledAssetCo
     throw new AssetContractValidationError('specification_too_large');
   }
   const specificationSha256 = sha256(canonicalSpecification);
-  const requestSha256 = sha256(
-    canonicalJson({
-      operation: integrityCheckOperation,
-      schemaVersion: assetContractSchemaVersion,
-      skuId: draft.skuId,
-      specificationSha256,
-    }),
+  const requestSha256 = deriveAssetContractRequestSha256(
+    draft.skuId,
+    specificationSha256,
+    integrityCheckExecutionBounds,
   );
-  return {
+  return Object.freeze({
     schemaVersion: assetContractSchemaVersion,
     skuId: draft.skuId as AdmittedSkuId,
     specification: normalized,
     canonicalSpecification,
     specificationSha256,
+    executionBounds: integrityCheckExecutionBounds,
     requestSha256,
-  };
+  });
+}
+
+export function deriveAssetContractRequestSha256(
+  skuId: string,
+  specificationSha256: string,
+  executionBounds: AssetContractExecutionBounds,
+): string {
+  return sha256(
+    canonicalJson({
+      operation: integrityCheckOperation,
+      schemaVersion: assetContractSchemaVersion,
+      skuId,
+      specificationSha256,
+      executionBounds: {
+        maxCandidates: executionBounds.maxCandidates,
+        maxRetries: executionBounds.maxRetries,
+        maxRepairs: executionBounds.maxRepairs,
+        maxWallTimeMs: executionBounds.maxWallTimeMs,
+      },
+    }),
+  );
 }
 
 function canonicalJson(value: JsonValue): string {
@@ -289,6 +321,7 @@ export type SafeJob = {
     schemaVersion: typeof assetContractSchemaVersion;
     skuId: string;
     specificationSha256: string;
+    executionBounds: AssetContractExecutionBounds;
   };
   attempts: SafeJobAttempt[];
 };

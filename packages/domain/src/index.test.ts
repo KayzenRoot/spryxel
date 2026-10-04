@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   AssetContractValidationError,
   compileAssetContract,
+  deriveAssetContractRequestSha256,
   canCreateProject,
   nextDurableJobState,
   normalizeProjectName,
@@ -31,6 +32,40 @@ describe('Asset Contract compiler and durable Job policy', () => {
     expect(first.canonicalSpecification).toBe(second.canonicalSpecification);
     expect(first.specificationSha256).toBe(second.specificationSha256);
     expect(first.requestSha256).toBe(second.requestSha256);
+    expect(Object.isFrozen(first)).toBe(true);
+    expect(first.executionBounds).toEqual({
+      maxCandidates: 1,
+      maxRetries: 2,
+      maxRepairs: 0,
+      maxWallTimeMs: 5_000,
+    });
+    expect(Object.isFrozen(first.executionBounds)).toBe(true);
+    expect(Reflect.set(first, 'executionBounds', second.executionBounds)).toBe(false);
+    for (const changedBounds of [
+      { ...first.executionBounds, maxCandidates: 2 },
+      { ...first.executionBounds, maxRetries: 1 },
+      { ...first.executionBounds, maxRepairs: 1 },
+      { ...first.executionBounds, maxWallTimeMs: 4_999 },
+    ]) {
+      expect(
+        deriveAssetContractRequestSha256(first.skuId, first.specificationSha256, changedBounds),
+      ).not.toBe(first.requestSha256);
+    }
+  });
+
+  it('does not accept execution bounds as caller-controlled draft fields', () => {
+    const compiled = compileAssetContract({
+      skuId: 'SKU-001',
+      specification: { width: 12 },
+      executionBounds: { maxCandidates: 99, maxRetries: 99, maxRepairs: 99, maxWallTimeMs: 99_999 },
+    } as Parameters<typeof compileAssetContract>[0]);
+
+    expect(compiled.executionBounds).toEqual({
+      maxCandidates: 1,
+      maxRetries: 2,
+      maxRepairs: 0,
+      maxWallTimeMs: 5_000,
+    });
   });
 
   it('orders canonical keys by locale-independent UTF-16 code units', () => {

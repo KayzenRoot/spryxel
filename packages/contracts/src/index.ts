@@ -104,7 +104,7 @@ export const safeJobSchema = z
     retryable: z.boolean(),
     cancelEligible: z.boolean(),
     attemptCount: z.number().int().min(0).max(3),
-    maxAttempts: z.literal(3),
+    maxAttempts: z.number().int().min(1).max(3),
     resultCode: z.literal('integrity_passed').nullable(),
     failureCode: z
       .enum(['contract_integrity_mismatch', 'attempts_exhausted', 'execution_timeout'])
@@ -118,6 +118,14 @@ export const safeJobSchema = z
         schemaVersion: z.literal('asset-contract.v1'),
         skuId: z.string().regex(/^SKU-(?:MAP-|UI-)?[0-9]{3}$/),
         specificationSha256: z.string().regex(/^[0-9a-f]{64}$/),
+        executionBounds: z
+          .object({
+            maxCandidates: z.literal(1),
+            maxRetries: z.literal(2),
+            maxRepairs: z.literal(0),
+            maxWallTimeMs: z.literal(5_000),
+          })
+          .strict(),
       })
       .strict(),
     attempts: z.array(jobAttemptSchema).max(3),

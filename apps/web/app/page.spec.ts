@@ -156,7 +156,13 @@ test('Jobs Center lists durable state and reload preserves details and cancellat
 test('a terminal cancellation race redirects to the refreshed durable Job', async ({ page }) => {
   await authenticateWorkspacePage(page, 'jobs-cancel-raced');
   await page.goto('/jobs');
-  await page.getByRole('link', { name: /SKU-001 · contract v1/ }).click();
+  const jobLink = page.getByRole('link', { name: /SKU-001 · contract v1/ });
+  const jobHref = await jobLink.getAttribute('href');
+  expect(jobHref).toBeTruthy();
+  await Promise.all([
+    page.waitForURL(new URL(jobHref ?? '/jobs', page.url()).toString()),
+    jobLink.click(),
+  ]);
   await expect(page.getByRole('button', { name: 'Cancel job' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Cancel job' }).click();
@@ -171,7 +177,13 @@ test('a transient cancellation API failure returns to the current durable Job st
 }) => {
   await authenticateWorkspacePage(page, 'jobs-cancel-unavailable');
   await page.goto('/jobs');
-  await page.getByRole('link', { name: /SKU-001 · contract v1/ }).click();
+  const jobLink = page.getByRole('link', { name: /SKU-001 · contract v1/ });
+  const jobHref = await jobLink.getAttribute('href');
+  expect(jobHref).toBeTruthy();
+  await Promise.all([
+    page.waitForURL(new URL(jobHref ?? '/jobs', page.url()).toString()),
+    jobLink.click(),
+  ]);
   await expect(page.getByRole('button', { name: 'Cancel job' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Cancel job' }).click();

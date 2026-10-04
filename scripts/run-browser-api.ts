@@ -119,6 +119,12 @@ function ensureJobsFixture(
       schemaVersion: 'asset-contract.v1',
       skuId: 'SKU-001',
       specificationSha256: 'a'.repeat(64),
+      executionBounds: {
+        maxCandidates: 1,
+        maxRetries: 2,
+        maxRepairs: 0,
+        maxWallTimeMs: 5_000,
+      },
     },
     attempts:
       attemptCount > 0

@@ -226,14 +226,14 @@ try {
 
   const pristineMigrationStatus = await getMigrationStatus(databaseUrl);
   if (
-    pristineMigrationStatus.length !== 6 ||
+    pristineMigrationStatus.length !== 7 ||
     pristineMigrationStatus.some((migration) => migration.applied)
   ) {
     throw new Error('Pristine PostgreSQL did not report all migrations as unapplied');
   }
 
   const migrationStatus = await runMigrations(databaseUrl);
-  if (migrationStatus.length !== 6 || migrationStatus.some((migration) => !migration.applied)) {
+  if (migrationStatus.length !== 7 || migrationStatus.some((migration) => !migration.applied)) {
     throw new Error(
       'Disposable PostgreSQL migrations did not apply the technical and identity schemas',
     );
@@ -243,7 +243,7 @@ try {
     throw new Error('Migration runner was not idempotent');
   }
   const readStatus = await getMigrationStatus(databaseUrl);
-  if (readStatus.length !== 6 || readStatus.some((migration) => !migration.applied)) {
+  if (readStatus.length !== 7 || readStatus.some((migration) => !migration.applied)) {
     throw new Error('Migration status did not report every applied migration');
   }
 
@@ -900,13 +900,17 @@ try {
         [durableScope.subjectId, durableScope.tenantId, durableScope.projectId],
       );
       await oversizedClient.query(
-        `SELECT * FROM platform.create_integrity_job($1, $2, $3, $4, $5)`,
+        `SELECT * FROM platform.create_integrity_job($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
         [
           createHash('sha256').update('oversized-direct-db').digest('hex'),
           createHash('sha256').update(oversizedCanonical).digest('hex'),
           'SKU-001',
           oversizedCanonical,
           createHash('sha256').update(oversizedCanonical).digest('hex'),
+          1,
+          2,
+          0,
+          5_000,
         ],
       );
       await oversizedClient.query('COMMIT');
@@ -996,6 +1000,152 @@ try {
     )
       throw new Error('Idempotent Job creation produced duplicate contract or durable rows');
 
+    const compiledBoundContract = compileAssetContract({
+      skuId: 'SKU-001',
+      specification: integritySpec,
+    });
+    const persistedExecutionBounds = await projectAdminDatabase.pool.query<{
+      max_candidates: number;
+      max_retries: number;
+      max_repairs: number;
+      contract_max_wall_time_ms: number;
+      max_attempts: number;
+      job_max_wall_time_ms: number;
+      request_sha256: string;
+    }>(
+      `SELECT version.max_candidates, version.max_retries, version.max_repairs,
+              version.max_wall_time_ms AS contract_max_wall_time_ms,
+              job.max_attempts, job.max_wall_time_ms AS job_max_wall_time_ms,
+              idempotency.request_sha256
+       FROM platform.durable_job job
+       JOIN platform.asset_contract_version version
+         ON version.contract_id = job.contract_id AND version.version = job.contract_version
+        AND version.tenant_id = job.tenant_id AND version.project_id = job.project_id
+       JOIN platform.job_create_idempotency idempotency ON idempotency.job_id = job.id
+       WHERE job.id = $1`,
+      [durableJobId],
+    );
+    const persistedBounds = persistedExecutionBounds.rows[0];
+    if (
+      persistedBounds?.max_candidates !== 1 ||
+      persistedBounds?.max_retries !== 2 ||
+      persistedBounds?.max_repairs !== 0 ||
+      persistedBounds?.contract_max_wall_time_ms !== 5_000 ||
+      persistedBounds?.max_attempts !== (persistedBounds?.max_retries ?? -1) + 1 ||
+      persistedBounds?.job_max_wall_time_ms !== persistedBounds?.contract_max_wall_time_ms ||
+      persistedBounds?.request_sha256 !== compiledBoundContract.requestSha256
+    ) {
+      throw new Error(
+        'PostgreSQL did not persist the immutable Asset Contract bounds and derived Job identity',
+      );
+    }
+    const invalidBoundsClient = await runtimeDatabase.pool.connect();
+    let databaseFunctionRejectedBounds = false;
+    try {
+      await invalidBoundsClient.query('BEGIN');
+      await invalidBoundsClient.query(
+        `SELECT set_config('spryxel.subject_id', $1, true),
+                set_config('spryxel.tenant_id', $2, true),
+                set_config('spryxel.project_id', $3, true)`,
+        [durableScope.subjectId, durableScope.tenantId, durableScope.projectId],
+      );
+      await invalidBoundsClient.query(
+        `SELECT * FROM platform.create_integrity_job($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        [
+          createHash('sha256').update('invalid-execution-bounds').digest('hex'),
+          compiledBoundContract.requestSha256,
+          compiledBoundContract.skuId,
+          compiledBoundContract.canonicalSpecification,
+          compiledBoundContract.specificationSha256,
+          1,
+          3,
+          0,
+          5_000,
+        ],
+      );
+      await invalidBoundsClient.query('ROLLBACK');
+    } catch (error) {
+      databaseFunctionRejectedBounds =
+        typeof error === 'object' && error !== null && 'code' in error && error.code === '22023';
+      await invalidBoundsClient.query('ROLLBACK').catch(() => undefined);
+    } finally {
+      invalidBoundsClient.release();
+    }
+    if (!databaseFunctionRejectedBounds) {
+      throw new Error('PostgreSQL Job creation function accepted a non-admitted execution bound');
+    }
+    for (const [column, value] of [
+      ['max_candidates', 0],
+      ['max_retries', 3],
+      ['max_repairs', 1],
+      ['max_wall_time_ms', 5_001],
+    ] as const) {
+      const invalidBounds: Record<
+        'max_candidates' | 'max_retries' | 'max_repairs' | 'max_wall_time_ms',
+        number
+      > = {
+        max_candidates: 1,
+        max_retries: 2,
+        max_repairs: 0,
+        max_wall_time_ms: 5_000,
+      };
+      invalidBounds[column] = value;
+      let databaseRejectedBounds = false;
+      try {
+        await projectAdminDatabase.pool.query(
+          `INSERT INTO platform.asset_contract_version
+             (contract_id, tenant_id, project_id, version, schema_version, sku_id,
+              specification, specification_sha256, max_candidates, max_retries, max_repairs, max_wall_time_ms)
+           VALUES ($1, $2, $3, 2, 'asset-contract.v1', 'SKU-001', '{}'::jsonb, $4, $5, $6, $7, $8)`,
+          [
+            contractId,
+            identityA.tenantId,
+            mainProjectId,
+            'a'.repeat(64),
+            invalidBounds.max_candidates,
+            invalidBounds.max_retries,
+            invalidBounds.max_repairs,
+            invalidBounds.max_wall_time_ms,
+          ],
+        );
+      } catch (error) {
+        databaseRejectedBounds =
+          typeof error === 'object' && error !== null && 'code' in error && error.code === '23514';
+      }
+      if (!databaseRejectedBounds) {
+        throw new Error(`PostgreSQL accepted an out-of-range ${column} value`);
+      }
+    }
+
+    for (const runtimeRole of [runtimeDatabase, workerDatabase]) {
+      let runtimeMutationDenied = false;
+      try {
+        await runtimeRole.pool.query(
+          'UPDATE platform.asset_contract_version SET max_wall_time_ms = 1 WHERE contract_id = $1 AND version = 1',
+          [contractId],
+        );
+      } catch (error) {
+        runtimeMutationDenied =
+          typeof error === 'object' && error !== null && 'code' in error && error.code === '42501';
+      }
+      if (!runtimeMutationDenied) {
+        throw new Error('Application or worker runtime role mutated immutable execution bounds');
+      }
+    }
+    let privilegedMutationDenied = false;
+    try {
+      await projectAdminDatabase.pool.query(
+        'UPDATE platform.asset_contract_version SET max_wall_time_ms = 5001 WHERE contract_id = $1 AND version = 1',
+        [contractId],
+      );
+    } catch (error) {
+      privilegedMutationDenied =
+        typeof error === 'object' && error !== null && 'code' in error && error.code === '42501';
+    }
+    if (!privilegedMutationDenied) {
+      throw new Error('PostgreSQL immutable trigger allowed an existing contract bound to change');
+    }
+
     const appJobRead = await getDurableJob(appRuntimeDatabase, {
       ...durableScope,
       jobId: durableJobId,
@@ -1008,6 +1158,15 @@ try {
     if (!appJobRead || !globalJobList.jobs.some((job) => job.id === durableJobId)) {
       throw new Error(
         'Tenant/project-scoped durable Job read did not return the authorized record',
+      );
+    }
+    if (
+      appJobRead.maxAttempts !== 3 ||
+      JSON.stringify(appJobRead.contract.executionBounds) !==
+        JSON.stringify({ maxCandidates: 1, maxRetries: 2, maxRepairs: 0, maxWallTimeMs: 5_000 })
+    ) {
+      throw new Error(
+        'Durable Job projection did not expose the persisted contract execution bounds',
       );
     }
     const unsafeDirectUpdate = await appRuntimeDatabase.pool.query<{ count: string }>(
@@ -1066,6 +1225,7 @@ try {
     });
     const queuedCancel = await createDurable('durable-queued-cancel');
     const runningCancel = await createDurable('durable-running-cancel');
+    const cancelAfterWorkerCrash = await createDurable('durable-cancel-after-worker-crash');
     const crashRecovery = await createDurable('durable-crash-recovery');
     const exhausted = await createDurable('durable-attempt-exhaustion');
     let durableWorkerRuntime: DurableJobQueueRuntime | undefined;
@@ -1132,6 +1292,21 @@ try {
         queuedCancelResponse.json<{ job: { status: string } }>().job.status !== 'cancelled'
       ) {
         throw new Error('Queued Job cancellation did not win before worker claim');
+      }
+      const terminalCancelRepeat = await jobsApi.inject({
+        method: 'POST',
+        url: `/api/v1/projects/${mainProjectId}/jobs/${queuedCancel.job.id}/cancel`,
+        headers: jobIdentity('jobs-owner', identityA.tenantId),
+      });
+      if (
+        terminalCancelRepeat.statusCode !== 200 ||
+        terminalCancelRepeat.json<{ job: { status: string; attemptCount: number } }>().job
+          .status !== 'cancelled' ||
+        terminalCancelRepeat.json<{ job: { attemptCount: number } }>().job.attemptCount !== 0
+      ) {
+        throw new Error(
+          'Repeated cancellation changed a terminal queued Job or created an Attempt',
+        );
       }
       const accidentalPublicCreate = await jobsApi.inject({
         method: 'POST',
@@ -1268,18 +1443,144 @@ try {
       ) {
         throw new Error('Running Job cancellation did not become a durable cancel request');
       }
-      await finishDurableJob(workerDatabase, {
+      const runningCancelLease = await projectAdminDatabase.pool.query<{
+        status: string;
+        lease_valid: boolean;
+        attempt_count: number;
+        attempt_status: string;
+      }>(
+        `SELECT job.status, job.lease_expires_at > clock_timestamp() AS lease_valid,
+                job.attempt_count, attempt.status AS attempt_status
+         FROM platform.durable_job job
+         JOIN platform.job_attempt attempt ON attempt.job_id = job.id AND attempt.attempt_number = 1
+         WHERE job.id = $1`,
+        [runningCancel.job.id],
+      );
+      if (
+        runningCancelLease.rows[0]?.status !== 'cancel_requested' ||
+        !runningCancelLease.rows[0]?.lease_valid ||
+        runningCancelLease.rows[0]?.attempt_count !== 1 ||
+        runningCancelLease.rows[0]?.attempt_status !== 'running'
+      ) {
+        throw new Error('Running cancellation did not preserve its valid active lease and Attempt');
+      }
+      await reconcileDurableJobs(workerDatabase, 50);
+      const stillCancelling = await getDurableJob(appRuntimeDatabase, {
+        ...durableScope,
+        jobId: runningCancel.job.id,
+      });
+      if (stillCancelling?.status !== 'cancel_requested') {
+        throw new Error(
+          'Immediate reconciliation finalized cancellation before the worker safe point',
+        );
+      }
+      const finalizedAtSafePoint = await finishDurableJob(workerDatabase, {
         jobId: runningClaim.jobId,
         attemptId: runningClaim.attemptId,
         leaseToken: runningClaim.leaseToken,
         outcome: 'succeeded',
       });
+      if (!finalizedAtSafePoint)
+        throw new Error('Worker could not finalize its active cancellation safe point');
       const cancelledAtSafePoint = await getDurableJob(appRuntimeDatabase, {
         ...durableScope,
         jobId: runningCancel.job.id,
       });
-      if (cancelledAtSafePoint?.status !== 'cancelled')
+      if (
+        cancelledAtSafePoint?.status !== 'cancelled' ||
+        cancelledAtSafePoint.attempts[0]?.status !== 'cancelled'
+      )
         throw new Error('Worker cancellation safe point fabricated success');
+      if (
+        await finishDurableJob(workerDatabase, {
+          jobId: runningClaim.jobId,
+          attemptId: runningClaim.attemptId,
+          leaseToken: runningClaim.leaseToken,
+          outcome: 'succeeded',
+        })
+      ) {
+        throw new Error('Worker finalized the same cancellation safe point more than once');
+      }
+
+      const cancelCrashClaim = await claimDurableJob(
+        workerDatabase,
+        cancelAfterWorkerCrash.job.id,
+        'integration-crashed-during-cancel',
+        2,
+      );
+      if (!cancelCrashClaim) throw new Error('Worker did not claim the cancellation-crash fixture');
+      const cancelCrashResponse = await jobsApi.inject({
+        method: 'POST',
+        url: `/api/v1/projects/${mainProjectId}/jobs/${cancelAfterWorkerCrash.job.id}/cancel`,
+        headers: jobIdentity('jobs-owner', identityA.tenantId),
+      });
+      if (
+        cancelCrashResponse.statusCode !== 200 ||
+        cancelCrashResponse.json<{ job: { status: string } }>().job.status !== 'cancel_requested'
+      ) {
+        throw new Error('Cancellation after worker claim did not preserve the durable request');
+      }
+      const crashCancelLease = await projectAdminDatabase.pool.query<{ lease_valid: boolean }>(
+        'SELECT lease_expires_at > clock_timestamp() AS lease_valid FROM platform.durable_job WHERE id = $1',
+        [cancelAfterWorkerCrash.job.id],
+      );
+      if (!crashCancelLease.rows[0]?.lease_valid) {
+        throw new Error('Cancellation-crash fixture did not retain a live worker lease');
+      }
+      await reconcileDurableJobs(workerDatabase, 50);
+      const cancelCrashStillActive = await getDurableJob(appRuntimeDatabase, {
+        ...durableScope,
+        jobId: cancelAfterWorkerCrash.job.id,
+      });
+      if (
+        cancelCrashStillActive?.status !== 'cancel_requested' ||
+        cancelCrashStillActive.attempts[0]?.status !== 'running'
+      ) {
+        throw new Error(
+          'Reconciliation finalized a cancellation while its worker lease was active',
+        );
+      }
+      const cancelCrashDeadline = performance.now() + 10_000;
+      let cancelledAfterCrash: Awaited<ReturnType<typeof getDurableJob>> = null;
+      while (performance.now() < cancelCrashDeadline) {
+        await reconcileDurableJobs(workerDatabase, 50);
+        cancelledAfterCrash = await getDurableJob(appRuntimeDatabase, {
+          ...durableScope,
+          jobId: cancelAfterWorkerCrash.job.id,
+        });
+        if (cancelledAfterCrash?.status === 'cancelled') break;
+        await new Promise((resolveDelay) => setTimeout(resolveDelay, 50));
+      }
+      if (
+        cancelledAfterCrash?.status !== 'cancelled' ||
+        cancelledAfterCrash.attemptCount !== 1 ||
+        cancelledAfterCrash.attempts.length !== 1 ||
+        cancelledAfterCrash.attempts[0]?.status !== 'cancelled'
+      ) {
+        throw new Error(
+          'Expired cancellation lease did not reach terminal cancelled without retry',
+        );
+      }
+      if (
+        await claimDurableJob(
+          workerDatabase,
+          cancelAfterWorkerCrash.job.id,
+          'integration-stale-cancel-reclaim',
+          1,
+        )
+      ) {
+        throw new Error('Reconciled cancellation was claimed for a second execution');
+      }
+      if (
+        await finishDurableJob(workerDatabase, {
+          jobId: cancelCrashClaim.jobId,
+          attemptId: cancelCrashClaim.attemptId,
+          leaseToken: cancelCrashClaim.leaseToken,
+          outcome: 'succeeded',
+        })
+      ) {
+        throw new Error('Stale worker rewrote a terminal cancelled Job after lease expiry');
+      }
 
       const crashClaim = await claimDurableJob(
         workerDatabase,

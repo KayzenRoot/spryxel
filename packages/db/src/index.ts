@@ -638,12 +638,16 @@ export async function createDurableIntegrityJob(
         contract_id: string;
         contract_version: number;
         replayed: boolean;
-      }>(`SELECT * FROM platform.create_integrity_job($1, $2, $3, $4, $5)`, [
+      }>(`SELECT * FROM platform.create_integrity_job($1, $2, $3, $4, $5, $6, $7, $8, $9)`, [
         input.idempotencyKeySha256,
         compiled.requestSha256,
         compiled.skuId,
         compiled.canonicalSpecification,
         compiled.specificationSha256,
+        compiled.executionBounds.maxCandidates,
+        compiled.executionBounds.maxRetries,
+        compiled.executionBounds.maxRepairs,
+        compiled.executionBounds.maxWallTimeMs,
       ]);
       const row = result.rows[0];
       if (!row) throw new DurableJobRepositoryError('job_not_found');
@@ -685,7 +689,8 @@ export async function listDurableJobs(
       `SELECT j.id, j.tenant_id, j.project_id, j.created_by_subject_id, j.operation_type, j.status,
               j.attempt_count, j.max_attempts, j.result_code, j.failure_code, j.created_at, j.updated_at,
               to_char(j.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_created_at,
-              v.contract_id, v.version AS contract_version, v.schema_version, v.sku_id, v.specification_sha256
+              v.contract_id, v.version AS contract_version, v.schema_version, v.sku_id, v.specification_sha256,
+              v.max_candidates, v.max_retries, v.max_repairs, v.max_wall_time_ms
        FROM platform.durable_job j
        JOIN platform.asset_contract_version v
          ON v.contract_id = j.contract_id AND v.version = j.contract_version
@@ -789,6 +794,7 @@ type JobSqlRow = {
   status: SafeJob['status'];
   attempt_count: number;
   max_attempts: number;
+  max_wall_time_ms: number;
   result_code: SafeJob['resultCode'];
   failure_code: SafeJob['failureCode'];
   created_at: Date;
@@ -798,6 +804,9 @@ type JobSqlRow = {
   schema_version: 'asset-contract.v1';
   sku_id: string;
   specification_sha256: string;
+  max_candidates: number;
+  max_retries: number;
+  max_repairs: number;
 };
 
 type JobListSqlRow = JobSqlRow & { cursor_created_at: string };
@@ -820,7 +829,8 @@ async function readJobInTransaction(
   const result = await client.query<JobSqlRow>(
     `SELECT j.id, j.tenant_id, j.project_id, j.created_by_subject_id, j.operation_type, j.status,
             j.attempt_count, j.max_attempts, j.result_code, j.failure_code, j.created_at, j.updated_at,
-            v.contract_id, v.version AS contract_version, v.schema_version, v.sku_id, v.specification_sha256
+            v.contract_id, v.version AS contract_version, v.schema_version, v.sku_id, v.specification_sha256,
+            v.max_candidates, v.max_retries, v.max_repairs, v.max_wall_time_ms
      FROM platform.durable_job j
      JOIN platform.asset_contract_version v
        ON v.contract_id = j.contract_id AND v.version = j.contract_version
@@ -878,7 +888,7 @@ function toSafeJob(
       (row.status === 'queued' || row.status === 'running') &&
       (row.created_by_subject_id === subjectId || role === 'OWNER' || role === 'ADMIN'),
     attemptCount: row.attempt_count,
-    maxAttempts: 3,
+    maxAttempts: row.max_attempts,
     resultCode: row.result_code,
     failureCode: row.failure_code,
     createdAt: row.created_at.toISOString(),
@@ -889,6 +899,12 @@ function toSafeJob(
       schemaVersion: row.schema_version,
       skuId: row.sku_id,
       specificationSha256: row.specification_sha256,
+      executionBounds: {
+        maxCandidates: row.max_candidates,
+        maxRetries: row.max_retries,
+        maxRepairs: row.max_repairs,
+        maxWallTimeMs: row.max_wall_time_ms,
+      },
     },
     attempts,
   };
@@ -951,6 +967,10 @@ export type ClaimedDurableJob = {
   skuId: string;
   contractVersion: number;
   operationType: string;
+  maxAttempts: number;
+  maxWallTimeMs: number;
+  requestSha256: string;
+  executionBounds: SafeJob['contract']['executionBounds'];
 };
 
 export async function reconcileDurableJobs(database: Database, batch: number): Promise<string[]> {
@@ -979,6 +999,13 @@ export async function claimDurableJob(
     sku_id: string;
     contract_version: number;
     operation_type: string;
+    max_attempts: number;
+    job_max_wall_time_ms: number;
+    max_wall_time_ms: number;
+    max_candidates: number;
+    max_retries: number;
+    max_repairs: number;
+    request_sha256: string;
   }>('SELECT * FROM platform.claim_job($1, $2, $3)', [jobId, workerId, leaseSeconds]);
   const row = result.rows[0];
   return row
@@ -992,6 +1019,15 @@ export async function claimDurableJob(
         skuId: row.sku_id,
         contractVersion: row.contract_version,
         operationType: row.operation_type,
+        maxAttempts: row.max_attempts,
+        maxWallTimeMs: row.job_max_wall_time_ms,
+        requestSha256: row.request_sha256,
+        executionBounds: {
+          maxCandidates: row.max_candidates,
+          maxRetries: row.max_retries,
+          maxRepairs: row.max_repairs,
+          maxWallTimeMs: row.max_wall_time_ms,
+        },
       }
     : null;
 }
@@ -1240,7 +1276,7 @@ async function validateRuntimePoolRole(pool: Pool): Promise<void> {
             'platform.can_create_project(uuid, uuid)',
             'platform.is_project_created_event(text)',
             'platform.current_project_id()',
-            'platform.create_integrity_job(text, text, text, text, text)',
+            'platform.create_integrity_job(text, text, text, text, text, integer, integer, integer, integer)',
             'platform.request_job_cancel(uuid)'
           ]::text[]) AS runtime_function(function_name)
         )
@@ -1293,7 +1329,7 @@ async function validateWorkerPoolRole(pool: Pool): Promise<void> {
           'platform.finish_job(uuid, uuid, uuid, text, text)'
         ]::text[]) AS worker_function(function_name)
       )
-      AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.create_integrity_job(text, text, text, text, text)', 'EXECUTE')
+      AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.create_integrity_job(text, text, text, text, text, integer, integer, integer, integer)', 'EXECUTE')
       AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.request_job_cancel(uuid)', 'EXECUTE') AS has_only_bounded_functions,
       NOT EXISTS (
         SELECT 1 FROM platform_relations r WHERE
