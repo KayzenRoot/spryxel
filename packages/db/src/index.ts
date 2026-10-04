@@ -782,6 +782,18 @@ async function validateRuntimePoolRole(pool: Pool): Promise<void> {
             'identity_subject', 'external_auth_identity', 'tenant', 'tenant_membership',
             'security_event', 'session_revocation_intent', 'project', 'project_create_idempotency'
           )
+      )
+      AND (
+        SELECT count(*) = 5 AND bool_and(
+          pg_catalog.has_function_privilege(role.oid, function_name, 'EXECUTE')
+        )
+        FROM unnest(ARRAY[
+          'platform.current_subject_id()',
+          'platform.current_tenant_id()',
+          'platform.is_active_tenant_member(uuid, uuid)',
+          'platform.can_create_project(uuid, uuid)',
+          'platform.is_project_created_event(text)'
+        ]::text[]) AS runtime_function(function_name)
       ) AS has_runtime_capabilities
     FROM runtime_role role
   `);

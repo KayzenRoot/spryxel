@@ -33,83 +33,127 @@ ALTER TABLE platform.project FORCE ROW LEVEL SECURITY;
 ALTER TABLE platform.project_create_idempotency ENABLE ROW LEVEL SECURITY;
 ALTER TABLE platform.project_create_idempotency FORCE ROW LEVEL SECURITY;
 
-CREATE POLICY project_select_active_member ON platform.project
-  FOR SELECT USING (
-    tenant_id = NULLIF(current_setting('spryxel.tenant_id', true), '')::uuid
+CREATE OR REPLACE FUNCTION platform.current_subject_id()
+RETURNS uuid
+LANGUAGE sql
+STABLE
+PARALLEL SAFE
+SET search_path = pg_catalog
+AS $$
+  SELECT NULLIF(current_setting('spryxel.subject_id', true), '')::uuid
+$$;
+
+CREATE OR REPLACE FUNCTION platform.current_tenant_id()
+RETURNS uuid
+LANGUAGE sql
+STABLE
+PARALLEL SAFE
+SET search_path = pg_catalog
+AS $$
+  SELECT NULLIF(current_setting('spryxel.tenant_id', true), '')::uuid
+$$;
+
+CREATE OR REPLACE FUNCTION platform.is_active_tenant_member(p_subject_id uuid, p_tenant_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+PARALLEL SAFE
+SET search_path = pg_catalog
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM platform.tenant_membership membership
+    JOIN platform.tenant tenant ON tenant.id = membership.tenant_id
+    WHERE membership.subject_id = p_subject_id
+      AND membership.tenant_id = p_tenant_id
+      AND membership.status = 'active'
+      AND tenant.status = 'active'
+  )
+$$;
+
+CREATE OR REPLACE FUNCTION platform.can_create_project(p_subject_id uuid, p_tenant_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+PARALLEL SAFE
+SET search_path = pg_catalog
+AS $$
+  SELECT platform.is_active_tenant_member(p_subject_id, p_tenant_id)
     AND EXISTS (
       SELECT 1
       FROM platform.tenant_membership membership
-      JOIN platform.tenant tenant ON tenant.id = membership.tenant_id
-      WHERE membership.subject_id = NULLIF(current_setting('spryxel.subject_id', true), '')::uuid
-        AND membership.tenant_id = project.tenant_id
-        AND membership.status = 'active'
-        AND tenant.status = 'active'
+      WHERE membership.subject_id = p_subject_id
+        AND membership.tenant_id = p_tenant_id
+        AND membership.role IN ('OWNER', 'ADMIN')
     )
+$$;
+
+CREATE OR REPLACE FUNCTION platform.is_project_created_event(p_event_name text)
+RETURNS boolean
+LANGUAGE sql
+IMMUTABLE
+PARALLEL SAFE
+SET search_path = pg_catalog
+AS $$
+  SELECT p_event_name = 'project.created'
+$$;
+
+REVOKE ALL ON FUNCTION platform.current_subject_id() FROM PUBLIC;
+REVOKE ALL ON FUNCTION platform.current_tenant_id() FROM PUBLIC;
+REVOKE ALL ON FUNCTION platform.is_active_tenant_member(uuid, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION platform.can_create_project(uuid, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION platform.is_project_created_event(text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION platform.current_subject_id() TO spryxel_app;
+GRANT EXECUTE ON FUNCTION platform.current_tenant_id() TO spryxel_app;
+GRANT EXECUTE ON FUNCTION platform.is_active_tenant_member(uuid, uuid) TO spryxel_app;
+GRANT EXECUTE ON FUNCTION platform.can_create_project(uuid, uuid) TO spryxel_app;
+GRANT EXECUTE ON FUNCTION platform.is_project_created_event(text) TO spryxel_app;
+
+CREATE POLICY project_select_active_member ON platform.project
+  FOR SELECT USING (
+    tenant_id = platform.current_tenant_id()
+    AND platform.is_active_tenant_member(platform.current_subject_id(), project.tenant_id)
   );
 
 CREATE POLICY project_insert_owner_admin ON platform.project
   FOR INSERT WITH CHECK (
-    tenant_id = NULLIF(current_setting('spryxel.tenant_id', true), '')::uuid
-    AND created_by_subject_id = NULLIF(current_setting('spryxel.subject_id', true), '')::uuid
-    AND EXISTS (
-      SELECT 1
-      FROM platform.tenant_membership membership
-      JOIN platform.tenant tenant ON tenant.id = membership.tenant_id
-      WHERE membership.subject_id = project.created_by_subject_id
-        AND membership.tenant_id = project.tenant_id
-        AND membership.status = 'active'
-        AND membership.role IN ('OWNER', 'ADMIN')
-        AND tenant.status = 'active'
-    )
+    tenant_id = platform.current_tenant_id()
+    AND created_by_subject_id = platform.current_subject_id()
+    AND platform.can_create_project(created_by_subject_id, tenant_id)
   );
 
 CREATE POLICY project_idempotency_select_self ON platform.project_create_idempotency
   FOR SELECT USING (
-    subject_id = NULLIF(current_setting('spryxel.subject_id', true), '')::uuid
-    AND tenant_id = NULLIF(current_setting('spryxel.tenant_id', true), '')::uuid
-    AND EXISTS (
-      SELECT 1 FROM platform.tenant_membership membership
-      WHERE membership.subject_id = project_create_idempotency.subject_id
-        AND membership.tenant_id = project_create_idempotency.tenant_id
-        AND membership.status = 'active'
-        AND membership.role IN ('OWNER', 'ADMIN')
-    )
+    subject_id = platform.current_subject_id()
+    AND tenant_id = platform.current_tenant_id()
+    AND platform.can_create_project(subject_id, tenant_id)
   );
 
 CREATE POLICY project_idempotency_insert_owner_admin ON platform.project_create_idempotency
   FOR INSERT WITH CHECK (
-    subject_id = NULLIF(current_setting('spryxel.subject_id', true), '')::uuid
-    AND tenant_id = NULLIF(current_setting('spryxel.tenant_id', true), '')::uuid
-    AND EXISTS (
-      SELECT 1 FROM platform.tenant_membership membership
-      WHERE membership.subject_id = project_create_idempotency.subject_id
-        AND membership.tenant_id = project_create_idempotency.tenant_id
-        AND membership.status = 'active'
-        AND membership.role IN ('OWNER', 'ADMIN')
-    )
+    subject_id = platform.current_subject_id()
+    AND tenant_id = platform.current_tenant_id()
+    AND platform.can_create_project(subject_id, tenant_id)
   );
 
 CREATE POLICY project_idempotency_update_owner_admin ON platform.project_create_idempotency
   FOR UPDATE USING (
-    subject_id = NULLIF(current_setting('spryxel.subject_id', true), '')::uuid
-    AND tenant_id = NULLIF(current_setting('spryxel.tenant_id', true), '')::uuid
-    AND EXISTS (
-      SELECT 1 FROM platform.tenant_membership membership
-      WHERE membership.subject_id = project_create_idempotency.subject_id
-        AND membership.tenant_id = project_create_idempotency.tenant_id
-        AND membership.status = 'active'
-        AND membership.role IN ('OWNER', 'ADMIN')
-    )
+    subject_id = platform.current_subject_id()
+    AND tenant_id = platform.current_tenant_id()
+    AND platform.can_create_project(subject_id, tenant_id)
   ) WITH CHECK (
-    subject_id = NULLIF(current_setting('spryxel.subject_id', true), '')::uuid
-    AND tenant_id = NULLIF(current_setting('spryxel.tenant_id', true), '')::uuid
+    subject_id = platform.current_subject_id()
+    AND tenant_id = platform.current_tenant_id()
   );
 
 ALTER TABLE platform.security_event
   DROP CONSTRAINT security_event_event_type_check;
 ALTER TABLE platform.security_event
   ADD CONSTRAINT security_event_event_type_check
-  CHECK (event_type IN ('identity.bootstrap', 'session.revoked', 'project.created'));
+  CHECK (
+    event_type IN ('identity.bootstrap', 'session.revoked')
+    OR platform.is_project_created_event(event_type)
+  );
 ALTER TABLE platform.security_event
   ADD COLUMN project_id uuid;
 ALTER TABLE platform.security_event
@@ -119,16 +163,16 @@ ALTER TABLE platform.security_event
 ALTER TABLE platform.security_event
   ADD CONSTRAINT security_event_project_reference_check
   CHECK (
-    (event_type = 'project.created' AND project_id IS NOT NULL)
-    OR (event_type <> 'project.created' AND project_id IS NULL)
+    (platform.is_project_created_event(event_type) AND project_id IS NOT NULL)
+    OR (NOT platform.is_project_created_event(event_type) AND project_id IS NULL)
   );
 DROP POLICY security_event_insert_self ON platform.security_event;
 CREATE POLICY security_event_insert_self ON platform.security_event
   FOR INSERT WITH CHECK (
-    subject_id = NULLIF(current_setting('spryxel.subject_id', true), '')::uuid
-    AND tenant_id = NULLIF(current_setting('spryxel.tenant_id', true), '')::uuid
+    subject_id = platform.current_subject_id()
+    AND tenant_id = platform.current_tenant_id()
     AND (
-      event_type <> 'project.created'
+      NOT platform.is_project_created_event(event_type)
       OR EXISTS (
         SELECT 1 FROM platform.project project
         WHERE project.id = security_event.project_id
@@ -139,7 +183,7 @@ CREATE POLICY security_event_insert_self ON platform.security_event
   );
 CREATE UNIQUE INDEX security_event_project_created_once
   ON platform.security_event(project_id)
-  WHERE event_type = 'project.created';
+  WHERE platform.is_project_created_event(event_type);
 
 GRANT SELECT, INSERT ON platform.project TO spryxel_app;
 GRANT SELECT, INSERT ON platform.project_create_idempotency TO spryxel_app;

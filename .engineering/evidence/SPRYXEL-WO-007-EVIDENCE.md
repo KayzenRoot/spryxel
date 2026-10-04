@@ -1,6 +1,6 @@
 # SPRYXEL-WO-007 — Evidence Bundle
 
-**Veredito do executor:** `READY_FOR_AUDIT`
+**Veredito local:** `ACCEPTANCE_PASS; EXACT_HEAD_GATES_PENDING`
 **Work Order / incremento:** `SPRYXEL-WO-007` / `SPRYXEL-IMP-003`
 **Risco:** `HIGH_ASSURANCE`
 **Issue / PR:** [#26](https://github.com/KayzenRoot/spryxel/issues/26) / [#27](https://github.com/KayzenRoot/spryxel/pull/27)
@@ -30,7 +30,7 @@
 ### Persistência, autorização e API
 
 - Nova migration forward-only `0004_projects.sql`: `platform.project` com UUIDv7, tenant e criador internos, nome limitado e timestamps; tabela mínima de idempotência por sujeito/tenant/operação; referência de tenant/subject íntegra; índices necessários.
-- `project` e `project_create_idempotency` usam RLS `ENABLE` + `FORCE`. Ausência de contexto nega acesso. Leitura requer associação ativa ao tenant; criação exige OWNER/ADMIN ativo e `created_by_subject_id` igual ao sujeito autenticado. `MEMBER` pode listar/ler no tenant, mas não criar. A role `spryxel_app` permanece NOBYPASSRLS e com privilégios limitados; o runtime-role proof inclui ambas as tabelas novas.
+- `project` e `project_create_idempotency` usam RLS `ENABLE` + `FORCE`. Ausência de contexto nega acesso. Leitura requer associação ativa ao tenant; criação exige OWNER/ADMIN ativo e `created_by_subject_id` igual ao sujeito autenticado. `MEMBER` pode listar/ler no tenant, mas não criar. A role `spryxel_app` permanece NOBYPASSRLS e com privilégios limitados; o runtime-role proof inclui as duas tabelas novas e as cinco funções SQL de política com `EXECUTE` explícito.
 - Repositório PostgreSQL aplica contexto de sujeito/tenant com `set_config(..., true)` dentro de transações, sem persistência de contexto na conexão pooled. Operações suportadas: criar, listar e obter projeto por ID.
 - `POST /api/v1/projects` valida corpo e `Idempotency-Key`; armazena hashes, replay com chave/corpo iguais retorna o registro original e chave reutilizada com corpo diferente falha sem criar outro projeto. O registro e o evento são transacionais.
 - `project.created` é a única extensão do contrato de evento nesta fatia. A migration vincula projeto, tenant e criador e impede eventos duplicados por projeto; não armazena credenciais nem erros brutos de provider.
@@ -76,6 +76,13 @@ Ambiente oficial: Node `v22.23.3`; npm `10.9.9`.
 | GEF 1.1.1 `status` read-only | Comando `SUCCEEDED`; dirtiness `UNKNOWN`, drift `UNEXPECTED`; `.gef` permaneceu intacto |
 
 A aceitação local de formatação usa apenas o parâmetro CRLF necessário ao checkout Windows. A checagem canônica Linux continua sem override no workflow e deve passar no novo exact head.
+
+## Correção do SonarCloud no candidato
+
+- O primeiro commit publicado, `f73606aa0f4449d50e159537dd5f4c230489d08e`, falhou no Quality Gate por `D Reliability Rating on New Code`. A análise do Sonar indicou o bug `typescript:S2871` no ordenamento do architecture checker e apontou literais repetidos classificados como críticos em `0004_projects.sql`.
+- O comparador do checker agora usa `localeCompare`. A migration centraliza leitura de contexto, membership ativa, autorização OWNER/ADMIN e identificação do evento `project.created` em funções SQL explícitas, com `search_path` restrito e `EXECUTE` concedido somente a `spryxel_app`; as expressões de RLS continuam fail-closed e a integração real pós-alteração passou.
+- Uma tentativa focada executada em paralelo com `npm run test:integration` colidiu nos builds do Next (`Another next build process is already running`). Essa tentativa foi descartada como evidência de acceptance. Depois a sequência completa abaixo foi executada serialmente e passou.
+- A análise Sonar e os quatro required checks devem ser avaliados novamente no novo exact head; o resultado falho de `f73606a` não é reutilizado para o candidato posterior.
 
 ## Segurança, compatibilidade e limites
 

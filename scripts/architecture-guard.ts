@@ -31,5 +31,5 @@ export function findOutOfScopeProductTables(sql: string): string[] {
       violations.add(qualifiedName);
     }
   }
-  return [...violations].sort();
+  return [...violations].sort((left, right) => left.localeCompare(right));
 }
