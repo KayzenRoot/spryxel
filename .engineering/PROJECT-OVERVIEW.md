@@ -129,3 +129,9 @@ SPRYXEL-WO-007 objectively approved `SPRYXEL-IMP-003 — Projects + canonical sh
 The implemented surface establishes durable tenant-owned projects with application authorization plus forced PostgreSQL RLS, replay-safe project creation and durable project-created audit evidence. The V1 product shell now includes the authenticated Global Shell, Home/Command Center, Projects list/create/select and a minimal Project Overview that represents downstream DNA/Jobs/Assets capabilities honestly as not yet implemented.
 
 Identity/Tenancy from WO-006 remains preserved. Asset Contract/Job backbone and all later product slices remain NOT_ADMITTED until WO-007 merge/post-merge closeout and their own Work Orders/Context Locks.
+
+## WO-007 completion
+
+`SPRYXEL-WO-007 / SPRYXEL-IMP-003` is COMPLETE: objectively audited, canonically promoted, squash-merged and post-merge validated on `main@67debfaca7cae164872a06a30faebb43daf34425`.
+
+The canonical implemented surface now includes the technical foundation, Identity/Tenancy security baseline, durable tenant-owned Projects, and the authenticated Global Shell/Home/Projects/Project Overview product surface. Asset Contract/Job backbone and every later product slice remain NOT_ADMITTED until their own Work Orders and Context Locks.
