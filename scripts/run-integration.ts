@@ -1597,7 +1597,10 @@ function captureOutput(
     timeoutTimer = setTimeout(() => {
       timedOut = true;
       child.kill();
-      killTimer = setTimeout(() => finish({ output, exitCode: null, timedOut }), 5_000);
+      killTimer = setTimeout(() => {
+        child.kill('SIGKILL');
+        finish({ output, exitCode: null, timedOut });
+      }, 5_000);
     }, timeoutMs);
     child.once('error', (error) =>
       finish({ output: `${error.name}: diagnostic command unavailable`, exitCode: null, timedOut }),

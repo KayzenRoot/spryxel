@@ -43,4 +43,13 @@ describe('disposable PostgreSQL integration harness', () => {
     expect(integrationHarness).toContain('assertNoResidualTestResources');
     expect(integrationHarness).toContain("['down', '--volumes', '--remove-orphans']");
   });
+
+  it('escalates timed-out diagnostic children after the grace period', () => {
+    const captureOutput = integrationHarness.slice(
+      integrationHarness.indexOf('function captureOutput('),
+      integrationHarness.indexOf('function describeCapture('),
+    );
+
+    expect(captureOutput).toContain("child.kill('SIGKILL')");
+  });
 });
