@@ -18,7 +18,7 @@ export class ProjectApiError extends Error {
 export async function fetchProjects(session: WebSession, tenantId?: string): Promise<ProjectList> {
   const response = await requestApi('/api/v1/projects', session, tenantId);
   if (!response.ok) throw new ProjectApiError(response.status);
-  const parsed = projectListResponseSchema.safeParse(await response.json());
+  const parsed = projectListResponseSchema.safeParse(await readProjectJson(response));
   if (!parsed.success) throw new ProjectApiError(502);
   return parsed.data;
 }
@@ -34,7 +34,7 @@ export async function fetchProject(
     tenantId,
   );
   if (!response.ok) throw new ProjectApiError(response.status);
-  const parsed = projectResponseSchema.safeParse(await response.json());
+  const parsed = projectResponseSchema.safeParse(await readProjectJson(response));
   if (!parsed.success) throw new ProjectApiError(502);
   return parsed.data;
 }
@@ -49,7 +49,7 @@ export async function submitProject(
     body: JSON.stringify({ name: input.name }),
   });
   if (!response.ok) throw new ProjectApiError(response.status);
-  const parsed = projectResponseSchema.safeParse(await response.json());
+  const parsed = projectResponseSchema.safeParse(await readProjectJson(response));
   if (!parsed.success) throw new ProjectApiError(502);
   return parsed.data.project;
 }
@@ -83,5 +83,13 @@ async function requestApi(
     });
   } catch {
     throw new ProjectApiError(503);
+  }
+}
+
+async function readProjectJson(response: Response): Promise<unknown> {
+  try {
+    return await response.json();
+  } catch {
+    throw new ProjectApiError(502);
   }
 }

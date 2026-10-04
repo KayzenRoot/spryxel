@@ -20,7 +20,8 @@ export default async function ProjectsPage({
   try {
     projectList = await fetchProjects(session, tenantId);
   } catch (error) {
-    unavailable = error instanceof ProjectApiError;
+    if (!(error instanceof ProjectApiError)) throw error;
+    unavailable = true;
   }
   const normalizedQuery = query.toLocaleLowerCase('en');
   const visibleProjects = (projectList?.projects ?? []).filter((project) =>

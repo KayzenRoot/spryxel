@@ -19,7 +19,8 @@ export default async function HomePage({
   try {
     projectList = await fetchProjects(session, tenantId);
   } catch (error) {
-    unavailable = error instanceof ProjectApiError;
+    if (!(error instanceof ProjectApiError)) throw error;
+    unavailable = true;
   }
 
   return (
