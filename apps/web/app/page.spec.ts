@@ -1,5 +1,13 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
+async function openJobDetails(page: Page, jobLink: Locator): Promise<void> {
+  const href = await jobLink.getAttribute('href');
+  expect(href).toBeTruthy();
+  await Promise.all([
+    page.waitForURL(new URL(href ?? '/jobs', page.url()).toString()),
+    jobLink.click(),
+  ]);
+}
 test('authenticated shell preserves the shared theme and keyboard boundaries', async ({ page }) => {
   await authenticateWorkspacePage(page, 'shell-theme');
   await page.addInitScript(() => window.localStorage.setItem('spryxel.theme', 'dark'));
@@ -134,12 +142,8 @@ test('Jobs Center lists durable state and reload preserves details and cancellat
   const projectId = await page.locator('#jobs-project-filter option').nth(1).getAttribute('value');
   const tenantId = await page.locator('input[name="tenantId"]').first().inputValue();
   const jobLink = page.getByRole('link', { name: /SKU-001 · contract v1/ });
-  const jobHref = await jobLink.getAttribute('href');
-  expect(jobHref).toBeTruthy();
-  await Promise.all([
-    page.waitForURL(new URL(jobHref ?? '/jobs', page.url()).toString()),
-    jobLink.click(),
-  ]);
+  await openJobDetails(page, jobLink);
+
   await expect(
     page.getByRole('heading', { level: 1, name: /SKU-001 · contract v1/ }),
   ).toBeVisible();
@@ -157,12 +161,8 @@ test('a terminal cancellation race redirects to the refreshed durable Job', asyn
   await authenticateWorkspacePage(page, 'jobs-cancel-raced');
   await page.goto('/jobs');
   const jobLink = page.getByRole('link', { name: /SKU-001 · contract v1/ });
-  const jobHref = await jobLink.getAttribute('href');
-  expect(jobHref).toBeTruthy();
-  await Promise.all([
-    page.waitForURL(new URL(jobHref ?? '/jobs', page.url()).toString()),
-    jobLink.click(),
-  ]);
+  await openJobDetails(page, jobLink);
+
   await expect(page.getByRole('button', { name: 'Cancel job' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Cancel job' }).click();
@@ -178,12 +178,8 @@ test('a transient cancellation API failure returns to the current durable Job st
   await authenticateWorkspacePage(page, 'jobs-cancel-unavailable');
   await page.goto('/jobs');
   const jobLink = page.getByRole('link', { name: /SKU-001 · contract v1/ });
-  const jobHref = await jobLink.getAttribute('href');
-  expect(jobHref).toBeTruthy();
-  await Promise.all([
-    page.waitForURL(new URL(jobHref ?? '/jobs', page.url()).toString()),
-    jobLink.click(),
-  ]);
+  await openJobDetails(page, jobLink);
+
   await expect(page.getByRole('button', { name: 'Cancel job' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Cancel job' }).click();

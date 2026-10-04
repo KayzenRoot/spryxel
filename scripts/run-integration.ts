@@ -900,17 +900,13 @@ try {
         [durableScope.subjectId, durableScope.tenantId, durableScope.projectId],
       );
       await oversizedClient.query(
-        `SELECT * FROM platform.create_integrity_job($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        `SELECT * FROM platform.create_integrity_job($1, $2, $3, $4, $5)`,
         [
           createHash('sha256').update('oversized-direct-db').digest('hex'),
           createHash('sha256').update(oversizedCanonical).digest('hex'),
           'SKU-001',
           oversizedCanonical,
           createHash('sha256').update(oversizedCanonical).digest('hex'),
-          1,
-          2,
-          0,
-          5_000,
         ],
       );
       await oversizedClient.query('COMMIT');
@@ -1038,41 +1034,6 @@ try {
       throw new Error(
         'PostgreSQL did not persist the immutable Asset Contract bounds and derived Job identity',
       );
-    }
-    const invalidBoundsClient = await runtimeDatabase.pool.connect();
-    let databaseFunctionRejectedBounds = false;
-    try {
-      await invalidBoundsClient.query('BEGIN');
-      await invalidBoundsClient.query(
-        `SELECT set_config('spryxel.subject_id', $1, true),
-                set_config('spryxel.tenant_id', $2, true),
-                set_config('spryxel.project_id', $3, true)`,
-        [durableScope.subjectId, durableScope.tenantId, durableScope.projectId],
-      );
-      await invalidBoundsClient.query(
-        `SELECT * FROM platform.create_integrity_job($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-        [
-          createHash('sha256').update('invalid-execution-bounds').digest('hex'),
-          compiledBoundContract.requestSha256,
-          compiledBoundContract.skuId,
-          compiledBoundContract.canonicalSpecification,
-          compiledBoundContract.specificationSha256,
-          1,
-          3,
-          0,
-          5_000,
-        ],
-      );
-      await invalidBoundsClient.query('ROLLBACK');
-    } catch (error) {
-      databaseFunctionRejectedBounds =
-        typeof error === 'object' && error !== null && 'code' in error && error.code === '22023';
-      await invalidBoundsClient.query('ROLLBACK').catch(() => undefined);
-    } finally {
-      invalidBoundsClient.release();
-    }
-    if (!databaseFunctionRejectedBounds) {
-      throw new Error('PostgreSQL Job creation function accepted a non-admitted execution bound');
     }
     for (const [column, value] of [
       ['max_candidates', 0],

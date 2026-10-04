@@ -1,12 +1,12 @@
 # SPRYXEL-WO-008 — Pacote de Evidências
 
-**Estado:** `ACEITAÇÃO LOCAL PASSOU; validação hospedada vinculada ao exact head descrito na PR #30`
+**Estado:** `C-02-A/B aceitos localmente; validação hospedada do novo candidate ainda pendente`
 **Work Order / incremento:** `SPRYXEL-WO-008` / `SPRYXEL-IMP-004`
 **Risco:** `HIGH_ASSURANCE`
 **Issue / PR:** [#29](https://github.com/KayzenRoot/spryxel/issues/29) / [#30](https://github.com/KayzenRoot/spryxel/pull/30)
 **Base autorizada:** `main@08bd429bb924e26f7d5266ee9b556cc8da2c8b8c`
-**Head de origem desta execução:** `1b8ccbaee12bb5a5763aa9218218fb9eec958e45`
-**Head candidato final e URLs dos checks:** registrados no corpo da PR #30 após o push; nenhum check de SHA anterior será reutilizado.
+**Head remoto de partida desta reexecução:** `65cfa42b2b1b0d478e021f93819e78768fd2d9f9`
+**Head candidato final:** pendente do commit desta correção; nenhum check de SHA anterior será reutilizado. IDs/URLs hospedados serão publicados na PR #30 após os resultados do exact head.
 
 ## Autoridade e preflight
 
@@ -141,15 +141,15 @@ Esta seção substitui todas as tabelas e métricas históricas anteriores como 
 
 O compilador admite e congela estes valores para `asset_contract.integrity_check.v1`: `maxCandidates=1`, `maxRetries=2`, `maxRepairs=0` e `maxWallTimeMs=5000`. `maxRetries` conta tentativas adicionais, portanto o Job deriva `maxAttempts=3`; há uma única execução candidata, nenhuma reparação e deadline máximo de 5.000 ms. São limites operacionais conservadores para a operação de integridade sem geração; não representam custo, preço, modelo, GPU ou provider.
 
-Os quatro limites fazem parte do envelope versionado, são congelados em runtime e entram na canonicalização/request identity. A migration forward-only `0007_asset_contract_bounds_and_cancel_safe_point.sql` persiste os valores na versão exata do contrato, valida independentemente intervalos e combinação admitida no PostgreSQL e impede atualização por roles de runtime. A função de criação recebe os quatro valores explicitamente e falha fechada se divergirem do conjunto admitido. O Job deriva tentativas e wall time do contrato persistido. O claim fornece contrato e limites ao worker, que verifica a request identity e usa o wall time persistido com hard cap interno de 5.000 ms.
+Os quatro limites fazem parte do envelope versionado, são congelados em runtime e entram na canonicalização/request identity. A migration forward-only `0007_asset_contract_bounds_and_cancel_safe_point.sql` persiste os valores na versão exata do contrato por defaults `NOT NULL` fixos e os valida independentemente por `CHECK` no PostgreSQL; roles de runtime não podem atualizar a versão. A função de criação conserva sua assinatura provider-neutral e não recebe limites do chamador. No `INSERT` de Job, trigger lê a versão exata do contrato e deriva `max_attempts = maxRetries + 1` e `max_wall_time_ms = maxWallTimeMs`; o worker obtém os bounds persistidos somente para seu claim ativo através de função restrita ao papel `spryxel_worker`, verifica a request identity e aplica hard cap interno de 5.000 ms.
 
-Regressões de domínio cobrem valores determinísticos/congelados, identidade idêntica para entradas iguais e mudança da identidade para cada bound diferente. Integração PostgreSQL real cobre os quatro campos persistidos, escrita runtime negada, tampering e valores fora do limite rejeitados, derivação Job/Attempt e parâmetros inválidos rejeitados pela função. O worker prova uso do limite persistido e clamp ao hard cap. Nenhum caminho de inferência, provider, GPU ou custo foi adicionado.
+Regressões de domínio cobrem valores determinísticos/congelados, identidade idêntica para entradas iguais e mudança da identidade para cada bound diferente. Integração PostgreSQL real cobre os quatro campos persistidos, escrita runtime negada, tampering e valores fora do limite rejeitados pelo `CHECK`, derivação Job/Attempt e assinatura de criação sem campos de bounds controláveis pelo chamador. O worker prova uso do limite persistido e clamp ao hard cap. Nenhum caminho de inferência, provider, GPU ou custo foi adicionado.
 
 ### C-02-B — cancelamento e lease
 
 `running -> cancel_requested` preserva o lease ativo. Reconciliação não finaliza enquanto esse claim permanece válido. O worker finaliza `cancelled` no safe-point; se morrer após o pedido, a expiração do lease permite reconciliação terminal sem nova tentativa. Um finish de lease expirado/stale não pode alterar o estado terminal. Cancelamento queued continua imediato e cancelamento terminal permanece idempotente.
 
-A integração real PostgreSQL/RLS demonstrou: lease e Attempt preservados durante cancelamento ativo; reconciliação imediata não terminaliza; safe-point conclui uma única vez; crash após `cancel_requested` torna-se terminal após expiração sem nova execução; finish stale é recusado; cancelamento queued/terminal mantém semântica bounded.
+A integração real PostgreSQL/RLS demonstrou: trigger preserva lease e Attempt em `running -> cancel_requested`; reconciliação imediata não terminaliza enquanto lease está válida; wrapper `finish_job` autoriza o safe-point e conclui `cancelled` exatamente uma vez; crash após `cancel_requested` torna-se terminal após expiração sem nova execução; finish stale é recusado; cancelamento queued/terminal mantém semântica bounded. Apenas as funções públicas de worker `reconcile_jobs`, `claim_job`, `finish_job` e a leitura de bounds do claim ficam executáveis pela role; funções internas renomeadas não ficam diretamente acessíveis.
 
 ### Acceptance HIGH_ASSURANCE — Correction-02
 
@@ -166,17 +166,17 @@ Runtime oficial: Node `v22.23.3`, npm `10.9.9`. A suíte foi executada no espelh
 | `npm run test:unit` | PASS; 93/93 testes em 22 arquivos |
 | `npm run test:worker` | PASS; worker smoke em processo Node separado |
 | `npm run test:integration` | PASS com PostgreSQL/RLS, Redis/BullMQ e SeaweedFS reais; sete migrations, bounds, cancellation safe-point, recovery e restante dos cenários IMP-004 |
-| `npm run test:browser` | PASS; 19/19 |
-| `npm test` | PASS; exit code 0; repetiu unit, worker, integração real e browser 19/19 |
+| `npm run test:browser` | PASS final; 19/19. Uma tentativa anterior teve falha intermitente no fluxo de criação de projeto (18/19); o caso passou isolado e a repetição integral passou sem alteração de Playwright/configuração |
+| `npm test` | PASS final; exit code 0; repetiu unit (93/93), worker, integração real e browser (19/19). Uma tentativa anterior repetiu a mesma falha intermitente do browser e foi seguida por esta repetição integral PASS |
 | `npm audit --audit-level=high` | PASS; zero vulnerabilidades |
 | `git diff --check` | PASS; sem erros de whitespace |
-| GEF doctor 1.1.1 | PASS; read-only, `ok=true`, observabilidade saudável, sem limites/remediação |
-| GEF status 1.1.1 | Duas leituras idênticas; SHA-256 `3b16289220f25f15a232805f71099b217d7274eb80a862a11ef0297bb0bc1d89`; `DIRTY/OBSERVED`, `operator.stale=true` e drift `UNEXPECTED` sob D-0007 |
+| GEF doctor 1.1.1 | PASS; read-only, `ok=true`, observabilidade saudável, sem limites/remediação; dependency provenance `unverified/REVIEW` reportada pelo doctor |
+| GEF status 1.1.1 | Duas leituras read-only byte-idênticas após código e Evidence Bundle, no snapshot pré-commit; SHA-256 `85ce6e474b371719e2abff4415689fe9d5a18f8106f8c07efd53e15f9f759edc`; `DIRTY/OBSERVED`, `operator.stale=true` e drift `UNEXPECTED` sob D-0007. O resumo/digest pós-commit será publicado na PR #30. |
 
 Uma primeira tentativa do agregado teve uma falha transitória de navegação em um teste browser existente; o teste isolado e a execução agregada completa subsequente passaram. Nenhum código de produto, Playwright, porta ou configuração foi alterado para contornar essa tentativa. A aceitação final acima é a execução completa posterior com exit code zero.
 
 ### Exact-head e gates hospedados — Correction-02
 
-A atualização do Evidence Bundle integra o candidato e os required checks/SonarCloud/Socket serão vinculados somente ao SHA exato publicado após o commit. Nenhum check de `ba8cd741b86533ef8e5e1f72e07f2c0d7caa692e` ou de outro head anterior será reutilizado. Após o push, completar aqui e na descrição da PR #30: SHA exato final, IDs/URLs/conclusões dos quatro required checks, SonarCloud, Socket e zero threads pendentes. O SHA final e cada resultado devem apontar para o mesmo head; nenhum gate pendente será declarado PASS.
+O SonarCloud do head predecessor `65cfa42b2b1b0d478e021f93819e78768fd2d9f9` falhou o Quality Gate por 9,2% de duplicação ([resultado histórico](https://github.com/KayzenRoot/spryxel/runs/111452403358)); a migration foi refatorada para retirar cópias integrais de rotinas SQL e essa falha não será reutilizada como resultado do candidato atual. A descrição viva da [PR #30](https://github.com/KayzenRoot/spryxel/pull/30) carregará o SHA exato final e os IDs/URLs/conclusões dos quatro required checks, SonarCloud e Socket, além das threads pendentes. Checks de `65cfa42b2b1b0d478e021f93819e78768fd2d9f9`, `ba8cd741b86533ef8e5e1f72e07f2c0d7caa692e` ou qualquer SHA anterior não serão reutilizados. Os IDs de checks só são criados após o commit que os aciona; por isso o ciclo do exact head será documentado na PR sem alegar que o commit de evidência contém resultados que ainda não existiam quando foi criado.
 
 **STOP CONDITION:** `SPRYXEL_IMP_004_ASSET_CONTRACT_DURABLE_JOB_BACKBONE_READY_FOR_AUDIT`

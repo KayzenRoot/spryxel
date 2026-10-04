@@ -638,16 +638,12 @@ export async function createDurableIntegrityJob(
         contract_id: string;
         contract_version: number;
         replayed: boolean;
-      }>(`SELECT * FROM platform.create_integrity_job($1, $2, $3, $4, $5, $6, $7, $8, $9)`, [
+      }>(`SELECT * FROM platform.create_integrity_job($1, $2, $3, $4, $5)`, [
         input.idempotencyKeySha256,
         compiled.requestSha256,
         compiled.skuId,
         compiled.canonicalSpecification,
         compiled.specificationSha256,
-        compiled.executionBounds.maxCandidates,
-        compiled.executionBounds.maxRetries,
-        compiled.executionBounds.maxRepairs,
-        compiled.executionBounds.maxWallTimeMs,
       ]);
       const row = result.rows[0];
       if (!row) throw new DurableJobRepositoryError('job_not_found');
@@ -999,39 +995,47 @@ export async function claimDurableJob(
     sku_id: string;
     contract_version: number;
     operation_type: string;
+  }>('SELECT * FROM platform.claim_job($1, $2, $3)', [jobId, workerId, leaseSeconds]);
+  const row = result.rows[0];
+  if (!row) return null;
+
+  const boundsResult = await database.pool.query<{
     max_attempts: number;
     job_max_wall_time_ms: number;
-    max_wall_time_ms: number;
     max_candidates: number;
     max_retries: number;
     max_repairs: number;
+    max_wall_time_ms: number;
     request_sha256: string;
-  }>('SELECT * FROM platform.claim_job($1, $2, $3)', [jobId, workerId, leaseSeconds]);
-  const row = result.rows[0];
-  return row
-    ? {
-        jobId: row.job_id,
-        attemptId: row.attempt_id,
-        leaseToken: row.lease_token,
-        attemptNumber: row.attempt_number,
-        specification: row.specification,
-        specificationSha256: row.specification_sha256,
-        skuId: row.sku_id,
-        contractVersion: row.contract_version,
-        operationType: row.operation_type,
-        maxAttempts: row.max_attempts,
-        maxWallTimeMs: row.job_max_wall_time_ms,
-        requestSha256: row.request_sha256,
-        executionBounds: {
-          maxCandidates: row.max_candidates,
-          maxRetries: row.max_retries,
-          maxRepairs: row.max_repairs,
-          maxWallTimeMs: row.max_wall_time_ms,
-        },
-      }
-    : null;
-}
+  }>('SELECT * FROM platform.read_claimed_job_execution_bounds($1, $2, $3)', [
+    row.job_id,
+    row.attempt_id,
+    row.lease_token,
+  ]);
+  const bounds = boundsResult.rows[0];
+  if (!bounds) throw new Error('claimed_job_execution_bounds_unavailable');
 
+  return {
+    jobId: row.job_id,
+    attemptId: row.attempt_id,
+    leaseToken: row.lease_token,
+    attemptNumber: row.attempt_number,
+    specification: row.specification,
+    specificationSha256: row.specification_sha256,
+    skuId: row.sku_id,
+    contractVersion: row.contract_version,
+    operationType: row.operation_type,
+    maxAttempts: bounds.max_attempts,
+    maxWallTimeMs: bounds.job_max_wall_time_ms,
+    requestSha256: bounds.request_sha256,
+    executionBounds: {
+      maxCandidates: bounds.max_candidates,
+      maxRetries: bounds.max_retries,
+      maxRepairs: bounds.max_repairs,
+      maxWallTimeMs: bounds.max_wall_time_ms,
+    },
+  };
+}
 export async function finishDurableJob(
   database: Database,
   input: {
@@ -1276,13 +1280,14 @@ async function validateRuntimePoolRole(pool: Pool): Promise<void> {
             'platform.can_create_project(uuid, uuid)',
             'platform.is_project_created_event(text)',
             'platform.current_project_id()',
-            'platform.create_integrity_job(text, text, text, text, text, integer, integer, integer, integer)',
+            'platform.create_integrity_job(text, text, text, text, text)',
             'platform.request_job_cancel(uuid)'
           ]::text[]) AS runtime_function(function_name)
         )
         AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.reconcile_jobs(integer)', 'EXECUTE')
         AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.claim_job(uuid, text, integer)', 'EXECUTE')
         AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.finish_job(uuid, uuid, uuid, text, text)', 'EXECUTE')
+        AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.read_claimed_job_execution_bounds(uuid, uuid, uuid)', 'EXECUTE')
       ) AS has_runtime_capabilities
     FROM runtime_role role
   `);
@@ -1322,15 +1327,18 @@ async function validateWorkerPoolRole(pool: Pool): Promise<void> {
         OR EXISTS (SELECT 1 FROM pg_catalog.pg_namespace n WHERE n.nspname='platform' AND n.nspowner=role.oid) AS owns_platform_objects,
       COALESCE(pg_catalog.has_schema_privilege(role.oid, pg_catalog.to_regnamespace('platform'), 'CREATE'), false) AS has_schema_create,
       (
-        SELECT count(*) = 3 AND bool_and(pg_catalog.has_function_privilege(role.oid, function_name, 'EXECUTE'))
+        SELECT count(*) = 4 AND bool_and(pg_catalog.has_function_privilege(role.oid, function_name, 'EXECUTE'))
         FROM unnest(ARRAY[
           'platform.reconcile_jobs(integer)',
           'platform.claim_job(uuid, text, integer)',
-          'platform.finish_job(uuid, uuid, uuid, text, text)'
+          'platform.finish_job(uuid, uuid, uuid, text, text)',
+          'platform.read_claimed_job_execution_bounds(uuid, uuid, uuid)'
         ]::text[]) AS worker_function(function_name)
       )
-      AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.create_integrity_job(text, text, text, text, text, integer, integer, integer, integer)', 'EXECUTE')
-      AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.request_job_cancel(uuid)', 'EXECUTE') AS has_only_bounded_functions,
+      AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.create_integrity_job(text, text, text, text, text)', 'EXECUTE')
+      AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.request_job_cancel(uuid)', 'EXECUTE')
+      AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.reconcile_jobs_before_cancel_safe_point(integer)', 'EXECUTE')
+      AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.finish_job_before_cancel_safe_point(uuid, uuid, uuid, text, text)', 'EXECUTE') AS has_only_bounded_functions,
       NOT EXISTS (
         SELECT 1 FROM platform_relations r WHERE
           pg_catalog.has_table_privilege(role.oid,r.oid,'SELECT') OR
