@@ -33,6 +33,15 @@ describe('Asset Contract compiler and durable Job policy', () => {
     expect(first.requestSha256).toBe(second.requestSha256);
   });
 
+  it('orders canonical keys by locale-independent UTF-16 code units', () => {
+    const compiled = compileAssetContract({
+      skuId: 'SKU-001',
+      specification: { ä: 1, z: 2, a: 3 },
+    });
+
+    expect(compiled.canonicalSpecification).toBe('{"a":3,"z":2,"ä":1}');
+  });
+
   it('rejects unknown catalog IDs, excessive envelopes, and non-JSON values', () => {
     expect(() => compileAssetContract({ skuId: 'SKU-999', specification: {} })).toThrow(
       AssetContractValidationError,

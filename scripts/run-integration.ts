@@ -1076,14 +1076,31 @@ try {
       ) {
         throw new Error('Atomic claim created more than one active Attempt for a Job');
       }
-      await new Promise((resolveDelay) => setTimeout(resolveDelay, 1_100));
-      const recoveredIds = await reconcileDurableJobs(workerDatabase, 50);
-      if (!recoveredIds.includes(crashRecovery.job.id))
+      const waitForLeaseExpiry = async (jobId: string, attemptNumber: number) => {
+        const expectedStatus = attemptNumber === 3 ? 'failed' : 'queued';
+        const deadline = performance.now() + 5_000;
+        let row: Awaited<ReturnType<typeof getDurableJob>> = null;
+        let reconciledIds: string[] = [];
+        while (performance.now() < deadline) {
+          reconciledIds = await reconcileDurableJobs(workerDatabase, 50);
+          row = await getDurableJob(appRuntimeDatabase, { ...durableScope, jobId });
+          const expiredAttempt = row?.attempts.find(
+            (attempt) => attempt.attemptNumber === attemptNumber,
+          );
+          if (row?.status === expectedStatus && expiredAttempt?.status === 'expired') {
+            return { job: row, reconciledIds };
+          }
+          await new Promise((resolveDelay) => setTimeout(resolveDelay, 50));
+        }
+        throw new Error(
+          `Lease expiry was not reconciled within the bounded wait (status=${row?.status ?? 'missing'}, attemptCount=${row?.attemptCount ?? 'missing'}, attemptStatuses=${row?.attempts.map((attempt) => attempt.status).join(',') ?? 'missing'})`,
+        );
+      };
+
+      const crashExpiry = await waitForLeaseExpiry(crashRecovery.job.id, 1);
+      if (!crashExpiry.reconciledIds.includes(crashRecovery.job.id))
         throw new Error('Expired worker lease was not returned to bounded reconciliation');
-      const crashRow = await getDurableJob(appRuntimeDatabase, {
-        ...durableScope,
-        jobId: crashRecovery.job.id,
-      });
+      const crashRow = crashExpiry.job;
       if (crashRow?.status !== 'queued' || crashRow.attempts[0]?.status !== 'expired') {
         throw new Error(
           'Forced worker crash did not close its Attempt and restore the durable Job',
@@ -1099,8 +1116,10 @@ try {
         );
         if (!claim || claim.attemptNumber !== attempt)
           throw new Error('Bounded attempt count skipped or duplicated an attempt');
-        await new Promise((resolveDelay) => setTimeout(resolveDelay, 1_100));
-        await reconcileDurableJobs(workerDatabase, 50);
+        const expiry = await waitForLeaseExpiry(exhausted.job.id, attempt);
+        if (attempt < 3 && !expiry.reconciledIds.includes(exhausted.job.id)) {
+          throw new Error('Expired Job was not returned to bounded reconciliation');
+        }
       }
       const exhaustedRow = await getDurableJob(appRuntimeDatabase, {
         ...durableScope,
@@ -1112,7 +1131,7 @@ try {
         exhaustedRow.attemptCount !== 3
       ) {
         throw new Error(
-          'Expired claims exceeded or failed to enforce the configured maximum attempt count',
+          `Expired claims exceeded or failed to enforce the configured maximum attempt count (status=${exhaustedRow?.status ?? 'missing'}, failureCode=${exhaustedRow?.failureCode ?? 'none'}, attemptCount=${exhaustedRow?.attemptCount ?? 'missing'}, attemptStatuses=${exhaustedRow?.attempts.map((attempt) => attempt.status).join(',') ?? 'missing'})`,
         );
       }
 

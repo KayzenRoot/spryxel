@@ -15,6 +15,7 @@
 - Contexto GitHub confirmado para PR #30: base `main`, branch autorizada `codex/spryxel-wo-008-imp-004-asset-contract-jobs`; nenhuma mutação de ruleset/provider/workflow.
 - Acceptance runtime: Node `v22.23.3`, npm `10.9.9`. `npm ci --no-audit --no-fund` passou. Não foi adicionada dependência externa: o worker usa somente os pacotes workspace já existentes `@spryxel/db` e `@spryxel/domain`; lockfile contém apenas esses vínculos locais.
 - O checkout gerenciado do Codex usa `.git` como arquivo de worktree. Para GEF observar o repositório sem `WORKING_TREE_NOT_OBSERVED`, doctor/status foram executados read-only em espelho Linux Git do mesmo head/base e do mesmo delta autorizado. O espelho reportou o working tree como `DIRTY/OBSERVED`, sem limites de observação.
+- Após o primeiro push, o SonarCloud encontrou dois bugs críticos de confiabilidade em ordenações sem comparador explícito. A canonicalização agora usa comparação ordinal UTF-16 independente de locale, com regressão Unicode. O teste de lease também substitui o atraso fixo por polling bounded do estado real no PostgreSQL (deadline de 5 s), preservando os limites e a máquina de estados de produção.
 
 ## Implementação entregue
 
@@ -36,20 +37,22 @@
 | `npm run typecheck -- --force` | PASS |
 | `npm run build -- --force` | PASS; 11 workspaces, incluindo `/jobs` e `/jobs/[jobId]` |
 | `npm run architecture:check` | PASS; 11 workspaces, 15 edges internos, sem ciclos/arestas proibidas; web app inspecionado |
-| `npm run test:unit` | PASS; 20 arquivos, 80 testes |
+| `npm run test:unit` | PASS; 20 arquivos, 81 testes |
 | `npm run test:worker` | PASS; worker smoke em processo Node separado |
 | `npm run test:integration` | PASS com PostgreSQL/RLS, Redis/BullMQ e SeaweedFS reais |
 | `npm run test:browser` | PASS; 15/15, incluindo Jobs, Home/Overview, estados, cancelamento, teclado, responsividade, tema e regressões AuthKit |
-| `npm test` | PASS; unidade, worker, integração e browser; exit code `0` |
+| `npm test` | PASS em Node `v22.23.3` / npm `10.9.9`; unidade (81), worker, integração real e browser (15/15); exit code `0` |
 | `npm audit --audit-level=high` | PASS; zero vulnerabilidades reportadas |
 | `git diff --check` | PASS; somente avisos de autocrlf do Git, sem whitespace errors |
 
 A integração real provou: migrações/pristine status e idempotência; RLS sem contexto e entre tenants para Contract/Job/Attempt; isolamento de contexto tenant/project no pool; role matrix app/worker; concorrência/replay/conflito de idempotency key; entrega durável antes da projeção; duplicate delivery; perda e reconstrução do Redis; claim/Attempt atômicos; crash + lease expiry; limite de tentativas; cancelamento queued/running; API safe list/detail/cancel; ausência de corpo de contrato em payload/log; S3 autenticado e health/readiness no SeaweedFS. PGDATA foi confirmado em tmpfs Linux, sem bind mount/volume; teardown removeu somente recursos descartáveis isolados do harness.
 
+Na primeira execução browser do espelho Linux, o Chromium não abriu porque faltavam bibliotecas de sistema (`libnspr4.so` e dependências). O runtime Playwright do WSL foi completado sem alterar o repositório; em seguida, os 15 testes browser isolados e o ciclo agregado `npm test` passaram. A execução oficial final foi Node `v22.23.3` / npm `10.9.9`.
+
 ## GEF e drift — D-0007
 
-- GEF `@gef-bootstrap/cli@1.1.1`; `gef doctor --target . --json`: exit `0`, `ok=true`, toolchain/OS/observabilidade compatíveis, sem remediação; o espelho observou o checkout.
-- Duas leituras `gef status --target . --json`: exit `0`, bytes idênticos; repositório observado `DIRTY`, sem limites de observação. O SHA-256 das leituras no exact head commitado será publicado no corpo da PR #30.
+- GEF `@gef-bootstrap/cli@1.1.1`; `gef doctor --target . --json`: exit `0`, `ok=true`, `terminal=SUCCEEDED`, `effect=NONE`, Node `v22.23.3`, platform Git e observabilidade saudáveis, sem remediação; o espelho observou o checkout.
+- Duas leituras `gef status --target . --json`: exit `0`, bytes idênticos; repositório `DIRTY/OBSERVED`, sem limites de observação, checkpoint legível; `operator.stale=true` e drift bruto `UNEXPECTED` preservados conforme D-0007 e o ciclo de promoção ainda não executado. O SHA-256 das leituras no exact head commitado será publicado no corpo da PR #30.
 - `status` bruto classifica drift de projeto `UNEXPECTED` (`changed=true`). D-0007 prevê esse diagnóstico não autorizado na implementação v1.1.1. A autorização está vinculada ao WO-008 + Context Lock FRESH + diff Git exato + este Evidence Bundle. Não houve edição de `.gef`, baseline de drift, GEF ou checkpoint.
 - O doctor informa proveniência de dependências `unverified`/`REVIEW` e contexto GitHub sem permissão de escrita/`REVIEW`; isso não é finding de vulnerabilidade. `npm audit` reportou zero vulnerabilidades e publicação/push foi executado pela credencial GitHub da sessão, sem mudar provider/ruleset.
 

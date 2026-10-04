@@ -138,7 +138,7 @@ export function compileAssetContract(draft: AssetContractDraft): CompiledAssetCo
         throw new AssetContractValidationError('invalid_specification');
       }
       const output: Record<string, JsonValue> = {};
-      for (const key of Object.keys(value).sort()) {
+      for (const key of Object.keys(value).sort(compareCanonicalKeys)) {
         const normalizedKey = key.normalize('NFC');
         if (
           !normalizedKey ||
@@ -186,9 +186,15 @@ function canonicalJson(value: JsonValue): string {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
   return `{${Object.keys(value)
-    .sort()
+    .sort(compareCanonicalKeys)
     .map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key] as JsonValue)}`)
     .join(',')}}`;
+}
+
+function compareCanonicalKeys(left: string, right: string): number {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
 }
 
 function sha256(value: string): string {
