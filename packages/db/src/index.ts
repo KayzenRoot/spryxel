@@ -256,11 +256,11 @@ export async function createProject(
     let projectId = inserted.rows[0]?.project_id;
     const isNew = Boolean(projectId);
     if (!projectId) {
+      // ON CONFLICT waits for a concurrent insert; immutable mappings need no row lock.
       const existing = await client.query<{ project_id: string; request_hash: string }>(
         `SELECT project_id, request_hash
          FROM platform.project_create_idempotency
-         WHERE subject_id = $1 AND tenant_id = $2 AND idempotency_key_hash = $3
-         FOR UPDATE`,
+         WHERE subject_id = $1 AND tenant_id = $2 AND idempotency_key_hash = $3`,
         [input.subjectId, input.tenantId, input.idempotencyKeyHash],
       );
       const row = existing.rows[0];
@@ -761,12 +761,12 @@ async function validateRuntimePoolRole(pool: Pool): Promise<void> {
             WHEN 'project_create_idempotency' THEN
               pg_catalog.has_table_privilege(role.oid, relation.oid, 'SELECT') AND
               pg_catalog.has_table_privilege(role.oid, relation.oid, 'INSERT') AND
-              pg_catalog.has_column_privilege(role.oid, relation.oid, 'project_id', 'UPDATE') AND
               NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'UPDATE') AND
               NOT pg_catalog.has_column_privilege(role.oid, relation.oid, 'subject_id', 'UPDATE') AND
               NOT pg_catalog.has_column_privilege(role.oid, relation.oid, 'tenant_id', 'UPDATE') AND
               NOT pg_catalog.has_column_privilege(role.oid, relation.oid, 'idempotency_key_hash', 'UPDATE') AND
               NOT pg_catalog.has_column_privilege(role.oid, relation.oid, 'request_hash', 'UPDATE') AND
+              NOT pg_catalog.has_column_privilege(role.oid, relation.oid, 'project_id', 'UPDATE') AND
               NOT pg_catalog.has_column_privilege(role.oid, relation.oid, 'created_at', 'UPDATE') AND
               NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'DELETE') AND
               NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRUNCATE') AND

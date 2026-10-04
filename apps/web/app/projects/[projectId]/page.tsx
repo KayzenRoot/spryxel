@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation';
 import { GlobalShell } from '../../components/global-shell';
+import { ProjectLoadFailure } from '../../components/project-load-failure';
 import { requireWebSession } from '../../../src/auth/session';
-import { fetchProject, ProjectApiError } from '../../../src/projects/api';
+import { assertProjectApiError, fetchProject } from '../../../src/projects/api';
 
 export default async function ProjectOverviewPage({
   params,
@@ -17,15 +18,16 @@ export default async function ProjectOverviewPage({
   try {
     result = await fetchProject(session, projectId, tenantId);
   } catch (error) {
-    if (error instanceof ProjectApiError && error.status === 404) notFound();
+    assertProjectApiError(error);
+    if (error.status === 404) notFound();
     return (
       <GlobalShell displayName={session.displayName}>
-        <section className="rounded-workspace border border-border bg-surface p-6" role="alert">
-          <h1 className="text-2xl font-semibold">Project temporarily unavailable</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-text-secondary">
-            The project overview could not be loaded. No project data was changed.
-          </p>
-        </section>
+        <ProjectLoadFailure
+          error={error}
+          resource="project"
+          retryHref="/projects"
+          headingLevel={1}
+        />
       </GlobalShell>
     );
   }

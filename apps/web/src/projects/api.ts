@@ -15,6 +15,10 @@ export class ProjectApiError extends Error {
   }
 }
 
+export function assertProjectApiError(error: unknown): asserts error is ProjectApiError {
+  if (!(error instanceof ProjectApiError)) throw error;
+}
+
 export async function fetchProjects(session: WebSession, tenantId?: string): Promise<ProjectList> {
   const response = await requestApi('/api/v1/projects', session, tenantId);
   if (!response.ok) throw new ProjectApiError(response.status);

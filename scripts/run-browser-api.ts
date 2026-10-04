@@ -8,6 +8,7 @@ import type {
 } from '@spryxel/identity';
 import { ProjectRepositoryError } from '@spryxel/db';
 import { browserTestAccessToken } from '../apps/web/src/auth/test-session.js';
+import { InvalidAccessTokenError } from '../apps/api/src/auth/jwt.js';
 import { buildApiServer } from '../apps/api/src/server.js';
 
 if (process.env.NODE_ENV === 'production') {
@@ -15,6 +16,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const identities = new Map<string, { subjectId: string; tenantId: string }>();
+const identityScopes = new Map<string, string>();
 const projects = new Map<string, Project>();
 const idempotency = new Map<string, { requestHash: string; projectId: string }>();
 let projectCounter = 0;
@@ -32,8 +34,20 @@ function identityForScope(scope: string) {
       tenantId: uuidV7From(`tenant:${scope}`),
     };
     identities.set(scope, identity);
+    identityScopes.set(identity.subjectId, scope);
   }
   return identity;
+}
+
+function invalidFixtureProject(tenantId: string, subjectId: string): Project {
+  return {
+    id: 'invalid-project-id',
+    tenantId,
+    createdBySubjectId: subjectId,
+    name: 'Fixture private project',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
 }
 
 const projectRepository: ProjectRepositoryPort = {
@@ -62,9 +76,19 @@ const projectRepository: ProjectRepositoryPort = {
     return project;
   },
   async list(input) {
+    const scope = identityScopes.get(input.subjectId);
+    if (scope === 'workspace-403') throw new ProjectRepositoryError('insufficient_role');
+    if (scope === 'workspace-502') {
+      return [invalidFixtureProject(input.tenantId, input.subjectId)];
+    }
+    if (scope === 'workspace-503') throw new Error('Browser fixture dependency failure');
     return [...projects.values()].filter((project) => project.tenantId === input.tenantId);
   },
   async get(input) {
+    const scope = identityScopes.get(input.subjectId);
+    if (scope === 'project-403') throw new ProjectRepositoryError('insufficient_role');
+    if (scope === 'project-502') return invalidFixtureProject(input.tenantId, input.subjectId);
+    if (scope === 'project-503') throw new Error('Browser fixture dependency failure');
     const project = projects.get(input.projectId);
     return project?.tenantId === input.tenantId ? project : null;
   },
@@ -118,6 +142,9 @@ const app = buildApiServer(parseRuntimeConfig({ NODE_ENV: 'test', LOG_LEVEL: 'si
     const scope = token.startsWith(prefix) ? token.slice(prefix.length) : '';
     if (!/^[A-Za-z0-9_-]{1,48}$/.test(scope)) {
       throw new Error('Browser test identity rejected');
+    }
+    if (scope === 'workspace-401' || scope === 'project-401') {
+      throw new InvalidAccessTokenError();
     }
     const identity = identityForScope(scope);
     const principal: AuthenticatedPrincipal = {

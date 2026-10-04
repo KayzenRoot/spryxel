@@ -136,6 +136,81 @@ test('project browsing and creation stay usable at a companion viewport', async 
   expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport + 1);
 });
 
+test('Home and Projects distinguish access and dependency failures without leaking workspace details', async ({
+  page,
+}) => {
+  const cases = [
+    { status: 401, heading: 'Session expired', action: 'Sign in again' },
+    { status: 403, heading: 'Access unavailable', action: 'Browse Projects' },
+    { status: 404, heading: 'Workspace unavailable', action: 'Browse Projects' },
+    { status: 502, heading: 'Projects are temporarily unavailable', action: 'Try again' },
+    { status: 503, heading: 'Projects are temporarily unavailable', action: 'Try again' },
+  ];
+
+  for (const scenario of cases) {
+    await authenticateWorkspacePage(page, `workspace-${scenario.status}`);
+    const tenantQuery = scenario.status === 404 ? '?tenantId=not-a-uuid' : '';
+
+    for (const path of [`/${tenantQuery}`, `/projects${tenantQuery}`]) {
+      await page.goto(path);
+      await expect(
+        page.getByRole('heading', { name: scenario.heading, exact: true }),
+      ).toBeVisible();
+      await expect(page.getByRole('link', { name: scenario.action, exact: true })).toBeVisible();
+      await expect(page.getByText('Fixture private project')).toHaveCount(0);
+      await expect(
+        page.getByText(/workspace_not_found|project_store_unavailable|invalid-project-id/i),
+      ).toHaveCount(0);
+      if (scenario.status !== 502 && scenario.status !== 503) {
+        await expect(page.getByText(/temporarily unavailable/i)).toHaveCount(0);
+      }
+      await expect(page.getByText('not-a-uuid', { exact: true })).toHaveCount(0);
+    }
+
+    if (scenario.status === 401) {
+      await expect(page.getByRole('link', { name: 'Sign in again' })).toHaveAttribute(
+        'href',
+        '/sign-in',
+      );
+    }
+  }
+});
+
+test('Project Overview distinguishes access, missing, and dependency states safely', async ({
+  page,
+}) => {
+  const projectId = '00000000-0000-7000-8000-000000000042';
+  const cases = [
+    { status: 401, heading: 'Session expired', action: 'Sign in again' },
+    { status: 403, heading: 'Access unavailable', action: 'Browse Projects' },
+    { status: 502, heading: 'Project temporarily unavailable', action: 'Try again' },
+    { status: 503, heading: 'Project temporarily unavailable', action: 'Try again' },
+  ];
+
+  for (const scenario of cases) {
+    await authenticateWorkspacePage(page, `project-${scenario.status}`);
+    await page.goto(`/projects/${projectId}`);
+    await expect(page.getByRole('heading', { name: scenario.heading, exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: scenario.action, exact: true })).toBeVisible();
+    await expect(page.getByText('Fixture private project')).toHaveCount(0);
+    await expect(
+      page.getByText(/workspace_not_found|project_store_unavailable|invalid-project-id/i),
+    ).toHaveCount(0);
+  }
+
+  await authenticateWorkspacePage(page, 'project-404');
+  const missingProject = await page.goto(`/projects/${projectId}`);
+  expect(missingProject?.status()).toBe(404);
+  await expect(
+    page.getByRole('heading', { name: 'Project unavailable', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText('The requested project could not be found or accessed.'),
+  ).toBeVisible();
+  await expect(page.getByText('Fixture private project')).toHaveCount(0);
+  await expect(page.getByText(projectId, { exact: true })).toHaveCount(0);
+});
+
 test('signed-out account route starts hosted AuthKit with PKCE and CSRF state', async ({
   page,
 }) => {

@@ -390,6 +390,113 @@ try {
         throw new Error('Reusing a project idempotency key with a different name was not rejected');
       }
 
+      const idempotencyUpdatePrivileges = await projectApiDatabase.pool.query<{
+        column_name: string;
+        can_update: boolean;
+      }>(
+        `SELECT column_info.column_name,
+                pg_catalog.has_column_privilege(
+                  current_user,
+                  'platform.project_create_idempotency',
+                  column_info.column_name,
+                  'UPDATE'
+                ) AS can_update
+         FROM information_schema.columns column_info
+         WHERE column_info.table_schema = 'platform'
+           AND column_info.table_name = 'project_create_idempotency'
+         ORDER BY column_info.ordinal_position`,
+      );
+      const tableUpdatePrivilege = await projectApiDatabase.pool.query<{ can_update: boolean }>(
+        `SELECT pg_catalog.has_table_privilege(
+           current_user,
+           'platform.project_create_idempotency',
+           'UPDATE'
+         ) AS can_update`,
+      );
+      if (
+        idempotencyUpdatePrivileges.rows.length !== 6 ||
+        idempotencyUpdatePrivileges.rows.some((column) => column.can_update) ||
+        tableUpdatePrivilege.rows[0]?.can_update
+      ) {
+        throw new Error('Runtime role retained UPDATE capability on idempotency mapping');
+      }
+
+      const idempotencyUpdateClient = await projectApiDatabase.pool.connect();
+      let directIdempotencyUpdateDenied = false;
+      try {
+        await idempotencyUpdateClient.query('BEGIN');
+        await idempotencyUpdateClient.query(
+          "SELECT set_config('spryxel.subject_id', $1, true), set_config('spryxel.tenant_id', $2, true)",
+          [identityA.subjectId, identityA.tenantId],
+        );
+        await idempotencyUpdateClient.query('SAVEPOINT immutable_idempotency_mapping');
+        try {
+          await idempotencyUpdateClient.query(
+            `UPDATE platform.project_create_idempotency
+             SET project_id = $1
+             WHERE project_id = $1 AND subject_id = $2 AND tenant_id = $3`,
+            [mainProjectId, identityA.subjectId, identityA.tenantId],
+          );
+        } catch (error) {
+          const code =
+            typeof error === 'object' && error !== null && 'code' in error ? error.code : undefined;
+          directIdempotencyUpdateDenied = code === '42501';
+          await idempotencyUpdateClient.query(
+            'ROLLBACK TO SAVEPOINT immutable_idempotency_mapping',
+          );
+        }
+        await idempotencyUpdateClient.query('COMMIT');
+      } catch (error) {
+        await idempotencyUpdateClient.query('ROLLBACK');
+        throw error;
+      } finally {
+        idempotencyUpdateClient.release();
+      }
+      if (!directIdempotencyUpdateDenied) {
+        throw new Error('Runtime role directly updated an idempotency mapping');
+      }
+
+      const immutableMappingReplay = await projectRequest(
+        'integration-project-owner',
+        identityA.tenantId,
+        'POST',
+        '/api/v1/projects',
+        { name: 'Integration Project' },
+        'project-create-once',
+      );
+      if (
+        immutableMappingReplay.statusCode !== 201 ||
+        immutableMappingReplay.json<{ project: { id: string } }>().project.id !== mainProjectId
+      ) {
+        throw new Error('Same-key project replay did not resolve the original immutable mapping');
+      }
+
+      const mappingProofClient = await projectApiDatabase.pool.connect();
+      let mappingCount = 0;
+      try {
+        await mappingProofClient.query('BEGIN');
+        await mappingProofClient.query(
+          "SELECT set_config('spryxel.subject_id', $1, true), set_config('spryxel.tenant_id', $2, true)",
+          [identityA.subjectId, identityA.tenantId],
+        );
+        const mapping = await mappingProofClient.query<{ count: string }>(
+          `SELECT count(*)::text AS count
+           FROM platform.project_create_idempotency
+           WHERE project_id = $1 AND subject_id = $2 AND tenant_id = $3`,
+          [mainProjectId, identityA.subjectId, identityA.tenantId],
+        );
+        mappingCount = Number(mapping.rows[0]?.count ?? 0);
+        await mappingProofClient.query('COMMIT');
+      } catch (error) {
+        await mappingProofClient.query('ROLLBACK');
+        throw error;
+      } finally {
+        mappingProofClient.release();
+      }
+      if (mappingCount !== 1) {
+        throw new Error('Same-key project replay did not retain exactly one idempotency mapping');
+      }
+
       const ownerList = await projectRequest(
         'integration-project-owner',
         identityA.tenantId,

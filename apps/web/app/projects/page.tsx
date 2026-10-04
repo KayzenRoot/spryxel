@@ -2,8 +2,9 @@ import { randomUUID } from 'node:crypto';
 import Link from 'next/link';
 import { CreateProjectForm } from '../components/create-project-form';
 import { GlobalShell } from '../components/global-shell';
+import { ProjectLoadFailure } from '../components/project-load-failure';
 import { requireWebSession } from '../../src/auth/session';
-import { fetchProjects, ProjectApiError } from '../../src/projects/api';
+import { assertProjectApiError, fetchProjects, type ProjectApiError } from '../../src/projects/api';
 
 export default async function ProjectsPage({
   searchParams,
@@ -15,18 +16,22 @@ export default async function ProjectsPage({
   const tenantId = typeof params.tenantId === 'string' ? params.tenantId : undefined;
   const query = typeof params.q === 'string' ? params.q.trim().slice(0, 80) : '';
 
-  let projectList: Awaited<ReturnType<typeof fetchProjects>> | undefined;
-  let unavailable = false;
+  let projectState:
+    | { kind: 'loaded'; projectList: Awaited<ReturnType<typeof fetchProjects>> }
+    | { kind: 'failed'; error: ProjectApiError };
   try {
-    projectList = await fetchProjects(session, tenantId);
+    projectState = { kind: 'loaded', projectList: await fetchProjects(session, tenantId) };
   } catch (error) {
-    if (!(error instanceof ProjectApiError)) throw error;
-    unavailable = true;
+    assertProjectApiError(error);
+    projectState = { kind: 'failed', error };
   }
   const normalizedQuery = query.toLocaleLowerCase('en');
-  const visibleProjects = (projectList?.projects ?? []).filter((project) =>
-    project.name.toLocaleLowerCase('en').includes(normalizedQuery),
-  );
+  const visibleProjects =
+    projectState.kind === 'loaded'
+      ? projectState.projectList.projects.filter((project) =>
+          project.name.toLocaleLowerCase('en').includes(normalizedQuery),
+        )
+      : [];
 
   return (
     <GlobalShell displayName={session.displayName}>
@@ -42,23 +47,16 @@ export default async function ProjectsPage({
         </p>
       </section>
 
-      {unavailable || !projectList ? (
-        <section className="rounded-workspace border border-border bg-surface p-5" role="alert">
-          <h2 className="text-xl font-semibold">Projects are temporarily unavailable</h2>
-          <p className="mt-2 text-sm leading-6 text-text-secondary">
-            The workspace could not be loaded. Retry when the service is available.
-          </p>
-          <Link
-            className="mt-4 inline-block text-brand-primary underline underline-offset-4"
-            href="/projects"
-          >
-            Try again
-          </Link>
-        </section>
+      {projectState.kind === 'failed' ? (
+        <ProjectLoadFailure error={projectState.error} resource="workspace" retryHref="/projects" />
       ) : (
         <>
-          {projectList.role === 'OWNER' || projectList.role === 'ADMIN' ? (
-            <CreateProjectForm tenantId={projectList.tenantId} idempotencyKey={randomUUID()} />
+          {projectState.projectList.role === 'OWNER' ||
+          projectState.projectList.role === 'ADMIN' ? (
+            <CreateProjectForm
+              tenantId={projectState.projectList.tenantId}
+              idempotencyKey={randomUUID()}
+            />
           ) : (
             <p className="rounded-panel border border-subtle-border bg-background p-4 text-sm text-text-secondary">
               Project creation is available to workspace Owners and Admins.
@@ -72,8 +70,8 @@ export default async function ProjectsPage({
                   All projects
                 </h2>
                 <p className="mt-1 text-sm text-text-secondary">
-                  {projectList.projects.length} authorized project
-                  {projectList.projects.length === 1 ? '' : 's'}.
+                  {projectState.projectList.projects.length} authorized project
+                  {projectState.projectList.projects.length === 1 ? '' : 's'}.
                 </p>
               </div>
               <form
@@ -81,7 +79,7 @@ export default async function ProjectsPage({
                 method="get"
                 className="flex w-full max-w-lg flex-wrap items-end gap-2"
               >
-                <input type="hidden" name="tenantId" value={projectList.tenantId} />
+                <input type="hidden" name="tenantId" value={projectState.projectList.tenantId} />
                 <label
                   className="grid min-w-0 flex-1 gap-2 text-sm font-medium"
                   htmlFor="project-search"
@@ -125,7 +123,7 @@ export default async function ProjectsPage({
                     </p>
                     <Link
                       className="mt-4 inline-block rounded-control px-1 py-1 text-sm font-semibold text-brand-primary underline underline-offset-4"
-                      href={`/projects/${encodeURIComponent(project.id)}?tenantId=${encodeURIComponent(projectList.tenantId)}`}
+                      href={`/projects/${encodeURIComponent(project.id)}?tenantId=${encodeURIComponent(projectState.projectList.tenantId)}`}
                     >
                       Open project
                     </Link>

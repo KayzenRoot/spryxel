@@ -136,16 +136,6 @@ CREATE POLICY project_idempotency_insert_owner_admin ON platform.project_create_
     AND platform.can_create_project(subject_id, tenant_id)
   );
 
-CREATE POLICY project_idempotency_update_owner_admin ON platform.project_create_idempotency
-  FOR UPDATE USING (
-    subject_id = platform.current_subject_id()
-    AND tenant_id = platform.current_tenant_id()
-    AND platform.can_create_project(subject_id, tenant_id)
-  ) WITH CHECK (
-    subject_id = platform.current_subject_id()
-    AND tenant_id = platform.current_tenant_id()
-  );
-
 ALTER TABLE platform.security_event
   DROP CONSTRAINT security_event_event_type_check;
 ALTER TABLE platform.security_event
@@ -187,4 +177,3 @@ CREATE UNIQUE INDEX security_event_project_created_once
 
 GRANT SELECT, INSERT ON platform.project TO spryxel_app;
 GRANT SELECT, INSERT ON platform.project_create_idempotency TO spryxel_app;
-GRANT UPDATE (project_id) ON platform.project_create_idempotency TO spryxel_app;

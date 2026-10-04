@@ -62,20 +62,29 @@ Ambiente oficial: Node `v22.23.3`; npm `10.9.9`.
 | `npm ci --no-audit --no-fund` | PASS; 218 pacotes instalados do lock existente |
 | `npm run format:check -- --line-ending=crlf` | PASS no checkout Windows com `core.autocrlf=true`; não reformatou o baseline |
 | `npm run lint` | PASS |
-| `npm run typecheck` | PASS |
-| `npm run build` | PASS |
-| `npm run architecture:check` | PASS; inclui inspeção dos 14 arquivos da aplicação Web |
-| `npm run test:unit` (via `npm test`) | PASS; 73/73 testes (19 arquivos) |
-| `npm run test:worker` (via `npm test`) | PASS; worker smoke |
-| `npm run test:integration` (via `npm test`) | PASS; serviços reais PostgreSQL/migrations/RLS, Redis/BullMQ e SeaweedFS S3 autenticado |
-| `npm run test:browser` (via `npm test`) | PASS; Playwright 10/10 |
-| `npm test` | PASS agregado em Node 22.23.3/npm 10.9.9 |
+| `npm run typecheck -- --force` | PASS; 18 tarefas executadas sem cache |
+| `npm run build -- --force` | PASS; 11 workspaces executados sem cache |
+| `npm run architecture:check` | PASS; inspeção de 16 fontes da aplicação Web |
+| `npm run test:unit` | PASS; 74/74 testes (19 arquivos) |
+| `npm run test:worker` | PASS; worker smoke em processo Node separado |
+| `npm run test:integration` | PASS; PostgreSQL/migrations/RLS, Redis/BullMQ e SeaweedFS S3 autenticado reais |
+| `npm run test:browser` | PASS; Playwright 12/12 |
+| `npm test` | PASS agregado após Correction-02 em Node 22.23.3/npm 10.9.9 |
 | `npm audit --audit-level=high` | PASS; 0 vulnerabilidades encontradas |
 | `git diff --check` | PASS |
 | GEF 1.1.1 `doctor` read-only | Comando `SUCCEEDED`; plataforma/toolchain healthy. Observação do repositório tem limites de worktree: `GIT_DIRECTORY_NOT_A_DIRECTORY`, `WORKING_TREE_NOT_OBSERVED` |
 | GEF 1.1.1 `status` read-only | Comando `SUCCEEDED`; dirtiness `UNKNOWN`, drift `UNEXPECTED`; `.gef` permaneceu intacto |
 
 A aceitação local de formatação usa apenas o parâmetro CRLF necessário ao checkout Windows. A checagem canônica Linux continua sem override no workflow e deve passar no novo exact head.
+
+## Correction-02 — C-02-A / C-02-B
+
+- Home e Projects agora distinguem respostas 401 (sessão expirada, caminho seguro para `/sign-in`), 403 (acesso indisponível), 404 (workspace não encontrado ou não acessível sem confirmar existência entre tenants) e 502/503 (dependência indisponível). Project Overview preserva 404 como not-found genérico e separa 401/403 de falhas de dependência. Nenhum estado expõe IDs protegidos, códigos internos ou mensagens do provider.
+- Erros que não sejam `ProjectApiError` são repropagados ao tratamento normal do Next. O teste unitário confirma que um erro de fluxo/controle não é convertido em estado de dependência.
+- Os fixtures browser determinísticos representam token inválido com `InvalidAccessTokenError`, que exercita a resposta 401 prevista pelo contrato da API; erro genérico de autenticação continua representando falha do provider/503. Home, Projects e Project Overview têm regressões browser cobrindo as classificações, links seguros e ausência de dados privados.
+- A migration `0004_projects.sql` removeu a policy RLS de UPDATE e o grant de coluna UPDATE da tabela `project_create_idempotency`. `validateRuntimePoolRole()` exige SELECT/INSERT e nega UPDATE da tabela e de todas as colunas do mapeamento. O repositório não bloqueia a linha com `FOR UPDATE`; o conflito do `INSERT ... ON CONFLICT` mantém a serialização do replay sem permitir remapeamento.
+- A integração PostgreSQL real confirma que UPDATE direto com a role runtime é negado e que replay com a mesma chave/corpo continua apontando para um único projeto. Também repetiu concorrência/exatamente-uma-criação, conflito de corpo, `project.created` único, isolamento cross-tenant/RLS e cleanup do harness Correction-01. Migrations e RLS reais não foram omitidos nem substituídos por mocks.
+- A revisão completa após as alterações foi executada com distribuição oficial Node `v22.23.3` (SHA-256 verificado) e npm `10.9.9`; a reinstalação e todos os gates locais abaixo pertencem à execução posterior à última correção. Nenhum resultado de `a1ab29cc1da1f719e22a399eca1662ecb58aac93` é reutilizado.
 
 ## Correção do SonarCloud no candidato
 
@@ -96,13 +105,13 @@ A aceitação local de formatação usa apenas o parâmetro CRLF necessário ao 
 - Nenhuma nova dependência, provider, autorização WorkOS alternativa, tabela de billing/job/assets ou capability de produção foi introduzida.
 - PostgreSQL é a fonte canônica de projetos; autenticação e membership precedem acesso; RLS continua como segunda barreira. A suíte de integração testa cross-tenant, membership/roles, idempotência concorrente, contexto ausente, runtime-role e isolamento entre conexões.
 - SeaweedFS, Redis e PostgreSQL são reais no harness; SeaweedFS permanece autenticado e fixado conforme baseline.
-- Existe uma thread externa menor do CodeRabbit no texto do Work Order (critério 29, cookie store AuthKit). Ela permanece sem resolução: o Work Order e seu blob fazem parte do Context Lock; editar sua redação nesta execução invalidaria a autoridade fingerprintada. Não é finding HIGH/CRITICAL e não altera comportamento de produto. Nenhuma thread foi marcada resolvida sem correção correspondente.
+- A Correction-02 registra o comentário sobre cookie store AuthKit como non-finding aceito; Work Order e Context Lock permanecem intactos. A contagem final de threads não resolvidas será verificada na PR após publicar o novo head; somente threads efetivamente corrigidas/aceitas serão resolvidas.
 - GEF não observa a árvore desta worktree corretamente; por D-0007, o estado é reconciliado pelo delta Git autorizado. Não afirmamos árvore limpa observada pelo GEF.
 - O executor não declara aprovação independente. A decisão de auditoria permanece externa.
 
 ## Gates remotos e encerramento
 
-Após o push, a descrição da PR #27 registra o SHA completo final, os quatro required checks e seus IDs/URLs exatos no mesmo SHA: `Gitleaks secrets`, `Pipeline integrity`, `Repository validation`, `Trivy filesystem and configuration`. Também registra SonarCloud/Quality Gate e os outros resultados disponíveis para esse HEAD. Nenhum check de SHA anterior é aceito como evidência do candidato final.
+Após o push, a descrição da PR #27 registra o SHA completo final, os quatro required checks e seus IDs/URLs exatos no mesmo SHA: `Gitleaks secrets`, `Pipeline integrity`, `Repository validation`, `Trivy filesystem and configuration`. Também registra SonarCloud/Quality Gate e os outros resultados disponíveis para esse HEAD. Esse bloco remoto completa o Evidence Bundle depois da criação dos check runs; nenhum check de SHA anterior é aceito como evidência do candidato final.
 
 **Checkpoint Delta:** `.engineering/checkpoint-deltas/SPRYXEL-WO-007-PROPOSED.md`, apenas proposto; não aceito nem promovido.
 **Próxima fatia:** Asset Contract + durable Job backbone segue `NOT_ADMITTED`.
