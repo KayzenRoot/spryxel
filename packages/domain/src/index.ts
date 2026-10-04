@@ -83,6 +83,8 @@ export const integrityCheckExecutionBounds: AssetContractExecutionBounds = Objec
 });
 export const maxJobAttempts = integrityCheckExecutionBounds.maxRetries + 1;
 export const maxJobWallTimeMs = integrityCheckExecutionBounds.maxWallTimeMs;
+export const integrityExecutorKind = 'spryxel.asset_contract.integrity_worker' as const;
+export const integrityExecutorVersion = 'v1' as const;
 
 export const admittedSkuIds = [
   ...Array.from({ length: 15 }, (_, index) => `SKU-${String(index + 1).padStart(3, '0')}`),
@@ -295,6 +297,8 @@ export function nextDurableJobState(
 
 export type SafeJobAttempt = {
   id: string;
+  executorKind: typeof integrityExecutorKind;
+  executorVersion: typeof integrityExecutorVersion;
   attemptNumber: number;
   status: 'running' | 'succeeded' | 'failed' | 'cancelled' | 'expired';
   startedAt: string;

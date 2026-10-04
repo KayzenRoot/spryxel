@@ -69,6 +69,29 @@ describe('safe durable Job boundary', () => {
     };
     expect(safeJobSchema.parse(projection)).toMatchObject({ status: 'queued' });
     expect(() => safeJobSchema.parse({ ...projection, createdBySubjectId: id })).toThrow();
+    const attempt = {
+      id,
+      executorKind: 'spryxel.asset_contract.integrity_worker',
+      executorVersion: 'v1',
+      attemptNumber: 1,
+      status: 'succeeded',
+      startedAt: '2026-10-04T00:00:00.000Z',
+      completedAt: '2026-10-04T00:00:01.000Z',
+      failureCode: null,
+    };
+    expect(
+      safeJobSchema.parse({ ...projection, attemptCount: 1, attempts: [attempt] }).attempts[0],
+    ).toMatchObject({
+      executorKind: 'spryxel.asset_contract.integrity_worker',
+      executorVersion: 'v1',
+    });
+    expect(() =>
+      safeJobSchema.parse({
+        ...projection,
+        attemptCount: 1,
+        attempts: [{ ...attempt, executorVersion: '0.0.0' }],
+      }),
+    ).toThrow();
     expect(() =>
       safeJobSchema.parse({
         ...projection,

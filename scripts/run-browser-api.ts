@@ -131,6 +131,8 @@ function ensureJobsFixture(
         ? [
             {
               id: uuidV7From(`attempt:${scope}`),
+              executorKind: 'spryxel.asset_contract.integrity_worker',
+              executorVersion: 'v1',
               attemptNumber: 1,
               status:
                 fixtureStatus === 'running' || fixtureStatus === 'cancel_requested'

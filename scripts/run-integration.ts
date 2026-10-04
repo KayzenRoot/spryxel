@@ -226,14 +226,14 @@ try {
 
   const pristineMigrationStatus = await getMigrationStatus(databaseUrl);
   if (
-    pristineMigrationStatus.length !== 7 ||
+    pristineMigrationStatus.length !== 8 ||
     pristineMigrationStatus.some((migration) => migration.applied)
   ) {
     throw new Error('Pristine PostgreSQL did not report all migrations as unapplied');
   }
 
   const migrationStatus = await runMigrations(databaseUrl);
-  if (migrationStatus.length !== 7 || migrationStatus.some((migration) => !migration.applied)) {
+  if (migrationStatus.length !== 8 || migrationStatus.some((migration) => !migration.applied)) {
     throw new Error(
       'Disposable PostgreSQL migrations did not apply the technical and identity schemas',
     );
@@ -243,7 +243,7 @@ try {
     throw new Error('Migration runner was not idempotent');
   }
   const readStatus = await getMigrationStatus(databaseUrl);
-  if (readStatus.length !== 7 || readStatus.some((migration) => !migration.applied)) {
+  if (readStatus.length !== 8 || readStatus.some((migration) => !migration.applied)) {
     throw new Error('Migration status did not report every applied migration');
   }
 
@@ -1286,6 +1286,33 @@ try {
       );
       if (!runningClaim)
         throw new Error('Worker did not atomically claim a running-cancellation fixture');
+      const claimedRunningJob = await getDurableJob(appRuntimeDatabase, {
+        ...durableScope,
+        jobId: runningCancel.job.id,
+      });
+      const claimedRunningAttempt = claimedRunningJob?.attempts.find(
+        (attempt) => attempt.id === runningClaim.attemptId,
+      );
+      if (
+        claimedRunningAttempt?.executorKind !== 'spryxel.asset_contract.integrity_worker' ||
+        claimedRunningAttempt.executorVersion !== 'v1' ||
+        claimedRunningAttempt.attemptNumber !== 1
+      ) {
+        throw new Error('Atomic PostgreSQL claim did not persist canonical executor provenance');
+      }
+      let immutableAttemptProvenanceDenied = false;
+      try {
+        await projectAdminDatabase.pool.query(
+          "UPDATE platform.job_attempt SET executor_kind = 'untrusted.executor', executor_version = 'v2' WHERE id = $1",
+          [runningClaim.attemptId],
+        );
+      } catch (error) {
+        immutableAttemptProvenanceDenied =
+          typeof error === 'object' && error !== null && 'code' in error && error.code === '42501';
+      }
+      if (!immutableAttemptProvenanceDenied) {
+        throw new Error('PostgreSQL allowed immutable Attempt executor provenance to be rewritten');
+      }
       const jobRlsDatabase = createDatabase(appDatabaseUrl, { max: 1 });
       const jobRlsClient = await jobRlsDatabase.pool.connect();
       try {
@@ -1346,6 +1373,19 @@ try {
             'code' in error &&
             error.code === '42501';
         }
+        let appExecutorUpdateDenied = false;
+        try {
+          await appRuntimeDatabase.pool.query(
+            "UPDATE platform.job_attempt SET executor_kind = 'untrusted.executor', executor_version = 'v2' WHERE id = $1",
+            [runningClaim.attemptId],
+          );
+        } catch (error) {
+          appExecutorUpdateDenied =
+            typeof error === 'object' &&
+            error !== null &&
+            'code' in error &&
+            error.code === '42501';
+        }
         let workerAttemptWriteDenied = false;
         try {
           await workerDatabase.pool.query(
@@ -1359,8 +1399,26 @@ try {
             'code' in error &&
             error.code === '42501';
         }
-        if (!workerJobReadDenied || !workerAttemptWriteDenied) {
-          throw new Error('Worker role gained direct Job/Attempt table privileges');
+        let workerExecutorUpdateDenied = false;
+        try {
+          await workerDatabase.pool.query(
+            "UPDATE platform.job_attempt SET executor_kind = 'untrusted.executor', executor_version = 'v2' WHERE id = $1",
+            [runningClaim.attemptId],
+          );
+        } catch (error) {
+          workerExecutorUpdateDenied =
+            typeof error === 'object' &&
+            error !== null &&
+            'code' in error &&
+            error.code === '42501';
+        }
+        if (
+          !workerJobReadDenied ||
+          !workerAttemptWriteDenied ||
+          !appExecutorUpdateDenied ||
+          !workerExecutorUpdateDenied
+        ) {
+          throw new Error('Runtime roles gained direct Attempt DML or executor provenance UPDATE');
         }
       } catch (error) {
         await rollbackBeforeRethrowing(() => jobRlsClient.query('ROLLBACK'), error);
@@ -1549,16 +1607,26 @@ try {
         'integration-crashed-worker',
         1,
       );
+      const duplicateDeliveryClaim = await claimDurableJob(
+        workerDatabase,
+        crashRecovery.job.id,
+        'integration-duplicate-worker',
+        1,
+      );
+      const duplicateDeliveryJob = await getDurableJob(appRuntimeDatabase, {
+        ...durableScope,
+        jobId: crashRecovery.job.id,
+      });
       if (
         !crashClaim ||
-        (await claimDurableJob(
-          workerDatabase,
-          crashRecovery.job.id,
-          'integration-duplicate-worker',
-          1,
-        ))
+        duplicateDeliveryClaim ||
+        duplicateDeliveryJob?.attempts.length !== 1 ||
+        duplicateDeliveryJob.attempts[0]?.id !== crashClaim.attemptId ||
+        duplicateDeliveryJob.attempts[0]?.executorKind !==
+          'spryxel.asset_contract.integrity_worker' ||
+        duplicateDeliveryJob.attempts[0]?.executorVersion !== 'v1'
       ) {
-        throw new Error('Atomic claim created more than one active Attempt for a Job');
+        throw new Error('Duplicate delivery changed or duplicated immutable claim provenance');
       }
       const waitForLeaseExpiry = async (jobId: string, attemptNumber: number) => {
         const expectedStatus = attemptNumber === 3 ? 'failed' : 'queued';
@@ -1609,10 +1677,18 @@ try {
         ...durableScope,
         jobId: exhausted.job.id,
       });
+      const exhaustedAttemptIds = exhaustedRow?.attempts.map((attempt) => attempt.id) ?? [];
       if (
         exhaustedRow?.status !== 'failed' ||
         exhaustedRow.failureCode !== 'attempts_exhausted' ||
-        exhaustedRow.attemptCount !== 3
+        exhaustedRow.attemptCount !== 3 ||
+        exhaustedAttemptIds.length !== 3 ||
+        new Set(exhaustedAttemptIds).size !== 3 ||
+        exhaustedRow.attempts.some(
+          (attempt) =>
+            attempt.executorKind !== 'spryxel.asset_contract.integrity_worker' ||
+            attempt.executorVersion !== 'v1',
+        )
       ) {
         throw new Error(
           `Expired claims exceeded or failed to enforce the configured maximum attempt count (status=${exhaustedRow?.status ?? 'missing'}, failureCode=${exhaustedRow?.failureCode ?? 'none'}, attemptCount=${exhaustedRow?.attemptCount ?? 'missing'}, attemptStatuses=${exhaustedRow?.attempts.map((attempt) => attempt.status).join(',') ?? 'missing'})`,
@@ -2700,7 +2776,7 @@ try {
 
 if (primaryError) throw new Error(redact(String(primaryError), allSecrets));
 process.stdout.write(
-  'Real-service integration: PASS (PostgreSQL migrations/RLS, immutable Asset Contract/hash/caps, concurrent Job idempotency/replay/conflict, missing-context and cross-tenant Contract/Job/Attempt RLS, worker/API function and no-direct-table privilege boundary, atomic claim/Attempt, crash/lease recovery and max attempts, queued/running cancellation, safe list/detail/cancel API, Redis loss/rebuild/minimal BullMQ reference/duplicate delivery, pooled tenant/project context isolation, WO-006 identity/session regressions, authenticated SeaweedFS S3 and health/readiness).\n',
+  'Real-service integration: PASS (PostgreSQL migrations/RLS, immutable Asset Contract/hash/caps, immutable Attempt executor kind/version claim provenance, duplicate-delivery single Attempt, crash/retry with distinct stable-contract Attempts, app/worker provenance UPDATE denied, concurrent Job idempotency/replay/conflict, missing-context and cross-tenant Contract/Job/Attempt RLS, worker/API function and no-direct-table privilege boundary, atomic claim/Attempt, crash/lease recovery and max attempts, queued/running cancellation, safe list/detail/cancel API, Redis loss/rebuild/minimal BullMQ reference/duplicate delivery, pooled tenant/project context isolation, WO-006 identity/session regressions, authenticated SeaweedFS S3 and health/readiness).\n',
 );
 process.stdout.write(
   'Migration/queue regressions: PASS (pristine PostgreSQL reports unapplied; two BullMQ probes leave no disposable queue keys).\n',

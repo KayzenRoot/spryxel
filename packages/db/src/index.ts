@@ -812,6 +812,8 @@ type AttemptSqlRow = {
   job_id: string;
   attempt_number: number;
   status: SafeJob['attempts'][number]['status'];
+  executor_kind: SafeJob['attempts'][number]['executorKind'];
+  executor_version: SafeJob['attempts'][number]['executorVersion'];
   started_at: Date;
   completed_at: Date | null;
   safe_failure_code: string | null;
@@ -847,7 +849,7 @@ async function readAttempts(
 ): Promise<Map<string, SafeJob['attempts']>> {
   if (jobIds.length === 0) return new Map();
   const result = await client.query<AttemptSqlRow>(
-    `SELECT id, job_id, attempt_number, status, started_at, completed_at, safe_failure_code
+    `SELECT id, job_id, attempt_number, status, executor_kind, executor_version, started_at, completed_at, safe_failure_code
      FROM platform.job_attempt WHERE job_id = ANY($1::uuid[])
      ORDER BY job_id, attempt_number DESC`,
     [jobIds],
@@ -857,6 +859,8 @@ async function readAttempts(
     const entries = output.get(row.job_id) ?? [];
     entries.push({
       id: row.id,
+      executorKind: row.executor_kind,
+      executorVersion: row.executor_version,
       attemptNumber: row.attempt_number,
       status: row.status,
       startedAt: row.started_at.toISOString(),

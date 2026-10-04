@@ -81,6 +81,8 @@ export const durableJobStatusSchema = z.enum([
 export const jobAttemptSchema = z
   .object({
     id: z.string().regex(projectIdPattern),
+    executorKind: z.literal('spryxel.asset_contract.integrity_worker'),
+    executorVersion: z.literal('v1'),
     attemptNumber: z.number().int().min(1).max(3),
     status: z.enum(['running', 'succeeded', 'failed', 'cancelled', 'expired']),
     startedAt: z.iso.datetime(),

@@ -1,16 +1,16 @@
 # SPRYXEL-WO-008 — Pacote de Evidências
 
-**Estado:** `C-02-A/B aceitos localmente; validação hospedada do novo candidate ainda pendente`
+**Estado:** `C-03-A implementado; aceitação local concluída; validação hospedada do exact head pendente`
 **Work Order / incremento:** `SPRYXEL-WO-008` / `SPRYXEL-IMP-004`
 **Risco:** `HIGH_ASSURANCE`
 **Issue / PR:** [#29](https://github.com/KayzenRoot/spryxel/issues/29) / [#30](https://github.com/KayzenRoot/spryxel/pull/30)
 **Base autorizada:** `main@08bd429bb924e26f7d5266ee9b556cc8da2c8b8c`
-**Head remoto de partida desta reexecução:** `65cfa42b2b1b0d478e021f93819e78768fd2d9f9`
+**Head remoto de partida desta reexecução:** `dbbdcecade592cbfbe0ce4839bcc8464a764ccda`
 **Head candidato final:** pendente do commit desta correção; nenhum check de SHA anterior será reutilizado. IDs/URLs hospedados serão publicados na PR #30 após os resultados do exact head.
 
 ## Autoridade e preflight
 
-- Context Lock `.engineering/context-locks/SPRYXEL-WO-008.json`: `FRESH`, risco `HIGH_ASSURANCE`, base exata confirmada e `39/39` fingerprints críticos válidos; hash limpo do Work Order `4a74623e75f5de2819e7d912c11d4ac63a23b06e`.
+- Context Lock `.engineering/context-locks/SPRYXEL-WO-008.json`: `FRESH`, risco `HIGH_ASSURANCE`, base exata confirmada e `39/39` fingerprints críticos válidos; blob do Context Lock `43c305917e8ef6d1c1608b13249bbb088291b9ed`; hash limpo do Work Order `4a74623e75f5de2819e7d912c11d4ac63a23b06e`; blob de Correction-03 `c7399e815aba682ef6eb1fc642f07be0625103e3`.
 - `D-001…D-161` preservados. WO-005…WO-007, GEF 1.1.1, regras do repositório, provider WorkOS/AuthKit e source seed não foram alterados.
 - Contexto GitHub confirmado para PR #30: base `main`, branch autorizada `codex/spryxel-wo-008-imp-004-asset-contract-jobs`; nenhuma mutação de ruleset/provider/workflow.
 - Acceptance runtime: Node `v22.23.3`, npm `10.9.9`. `npm ci --no-audit --no-fund` passou. Não foi adicionada dependência externa: o worker usa somente os pacotes workspace já existentes `@spryxel/db` e `@spryxel/domain`; lockfile contém apenas esses vínculos locais.
@@ -66,6 +66,41 @@ Na primeira execução browser do espelho Linux, o Chromium não abriu porque fa
 ## Gates hospedados e stop condition
 
 A descrição da PR #30 contém o SHA exato do head candidato e, após conclusão, os URLs/conclusões dos quatro required checks (`Repository validation`, `Pipeline integrity`, `Gitleaks secrets`, `Trivy filesystem and configuration`) e SonarCloud no mesmo SHA. Nenhum resultado de outro SHA será reaproveitado. Não há merge nem promoção de checkpoint.
+
+**STOP CONDITION:** `SPRYXEL_IMP_004_ASSET_CONTRACT_DURABLE_JOB_BACKBONE_READY_FOR_AUDIT`
+
+## Correction-03 — C-03-A: provenance imutável do executor em Job Attempt
+
+Esta seção registra a implementação e a aceitação local de C-03-A sobre o candidato iniciado em `dbbdcecade592cbfbe0ce4839bcc8464a764ccda`. A migration forward-only `0008_job_attempt_executor_provenance.sql` adiciona `executor_kind` e `executor_version`, atribui deterministicamente os valores canônicos aos Attempts históricos (`spryxel.asset_contract.integrity_worker` / `v1`) e os torna obrigatórios e limitados por constraint. O trigger grava os valores canônicos na criação atômica do Attempt durante o claim e recusa sua alteração posterior (`42501`). A migration revoga DML de `PUBLIC`, `spryxel_app` e `spryxel_worker` sobre `platform.job_attempt`; a aplicação recebe somente `SELECT`, e o worker continua operando apenas pelas funções autorizadas. Não há DML genérico concedido ao worker.
+
+O domínio e o contrato seguro tipam kind/version como literais do executor admitido; Job detail projeta esses dois campos seguros, sem expor `worker_id`. Fixtures da API/browser incluem a proveniência canônica. Nenhum executor registry, provider/model identity ou novo fluxo de produto foi introduzido.
+
+Regressões na integração PostgreSQL real comprovaram: claim atômico persiste kind/version e número do Attempt; um UPDATE administrativo da proveniência é negado pelo trigger; `spryxel_app` e `spryxel_worker` não conseguem atualizar esses campos diretamente; delivery duplicado conserva um único Attempt/proveniência; crash/retry cria IDs distintos para cada tentativa e mantém `v1`; os cenários existentes de RLS/cross-tenant continuam executando na mesma suíte. Testes de contrato aceitam somente a proveniência semântica canônica e rejeitam `0.0.0` como versão.
+
+### Acceptance HIGH_ASSURANCE — Correction-03
+
+Runtime usado: Node `v22.23.3`, npm `10.9.9`. Os comandos foram executados contra o mesmo conteúdo-fonte C-03-A; a checagem de formato foi executada no espelho Linux porque o checkout Windows materializa LF como CRLF (`core.autocrlf=true`). No checkout Windows, `format:check` reportou divergências de fim de linha em arquivos de base não modificados; nenhuma alteração global de line endings foi introduzida. A versão efetiva do candidato no espelho foi conferida por hashes de arquivos idênticos aos do worktree autorizado.
+
+| Verificação | Resultado local final |
+|---|---|
+| `npm ci --no-audit --no-fund` | PASS; instalação limpa sob Node `v22.23.3` / npm `10.9.9`; sem alteração de manifests ou lockfile |
+| `npm run format:check` | PASS no espelho Linux; 113 arquivos. No checkout Windows, a execução reportou incompatibilidade LF/CRLF do `autocrlf` em arquivos de base; fontes do candidato não foram modificadas para mascarar a diferença |
+| `npm run lint` | PASS; 113 arquivos |
+| `npm run typecheck -- --force` | PASS; 18/18 tarefas |
+| `npm run build -- --force` | PASS; 11/11 workspaces |
+| `npm run architecture:check` | PASS; 11 workspaces, 15 arestas internas e 21 arquivos da aplicação Next inspecionados |
+| `npm run test:unit` | PASS; 93/93 testes em 22 arquivos |
+| `npm run test:worker` | PASS; worker smoke em processo Node separado |
+| `npm run test:integration` | PASS com PostgreSQL 18.6/RLS, Redis/BullMQ e SeaweedFS reais; oito migrations e regressões de provenance, duplicate delivery, crash/retry, role privileges, RLS e cenários existentes IMP-004 |
+| `npm run test:browser -- --workers=1` | PASS; 19/19. A execução paralela padrão repetiu uma corrida preexistente da fixture compartilhada Home/Projects; serializar Playwright fez a suíte inteira passar sem alterar código/configuração Playwright |
+| `npm test -- -- --workers=1` | PASS; exit code 0; repetiu unit 93/93, worker, integração real e browser 19/19. Usou `SPRYXEL_E2E_PORT=3101`, pois a porta 3100 estava ocupada por `goodz-menu`; nenhum processo externo foi encerrado |
+| `npm audit --audit-level=high` | PASS; zero vulnerabilidades |
+| `git diff --check` | PASS após a atualização do Evidence Bundle; sem erros de whitespace |
+| GEF doctor/status 1.1.1 | Doctor PASS no espelho Git Linux observável. O doctor no worktree Windows não conseguiu observar o checkout gerenciado (`GIT_DIRECTORY_NOT_A_DIRECTORY`); a limitação não foi tratada como PASS. Status é lido somente no espelho observável, duas vezes após conteúdo/evidência sincronizados; resultados brutos e SHA-256 registrados abaixo |
+
+No espelho Linux, `gef doctor` reportou `ok=true`, `effect=NONE`, GEF 1.1.1, observabilidade do repositório saudável e nenhum limite de observação/remediação; os indicadores `dependency.provenance=unverified/REVIEW` e `github.immutableRef=false/REVIEW` permanecem informativos. Duas leituras `gef status` read-only, após sincronizar código e Evidence Bundle, foram byte-idênticas; SHA-256 da saída JSON: `addc1d16780f9193dee98816b053a7f121ef215671f0b33611a0d9b35de8b73d`. Estado observado `DIRTY/OBSERVED`, sem limites; `operator.stale=true` e drift bruto `UNEXPECTED` correspondem ao delta autorizado. Conforme D-0007, o estado é reconciliado contra Work Order, Context Lock e diff autorizado; nenhum baseline ou arquivo `.gef` foi editado. No worktree Windows, GEF não observa o `.git` indireto e esse resultado é reportado como limitação, não como aprovação.
+
+O bundle versionado registra toda a evidência local; os IDs/URLs/conclusões de checks hospedados do exact head, SonarCloud, Socket e a contagem de review threads serão atestados na descrição viva da PR após o push. Nenhum resultado de SHA anterior será reutilizado; o próprio commit de evidência não afirma conter IDs de checks que só existem depois dele.
 
 **STOP CONDITION:** `SPRYXEL_IMP_004_ASSET_CONTRACT_DURABLE_JOB_BACKBONE_READY_FOR_AUDIT`
 
