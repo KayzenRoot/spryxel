@@ -3,6 +3,8 @@ import { GlobalShell } from '../../components/global-shell';
 import { ProjectLoadFailure } from '../../components/project-load-failure';
 import { requireWebSession } from '../../../src/auth/session';
 import { assertProjectApiError, fetchProject } from '../../../src/projects/api';
+import { assertJobApiError, fetchProjectJobs } from '../../../src/jobs/api';
+import { JobList, JobLoadProblem } from '../../jobs/job-list';
 
 export default async function ProjectOverviewPage({
   params,
@@ -30,6 +32,18 @@ export default async function ProjectOverviewPage({
         />
       </GlobalShell>
     );
+  }
+  let recentJobs: Awaited<ReturnType<typeof fetchProjectJobs>> | undefined;
+  let jobsFailure: number | undefined;
+  try {
+    recentJobs = await fetchProjectJobs(session, {
+      tenantId: result.tenantId,
+      projectId: result.project.id,
+      limit: 5,
+    });
+  } catch (error) {
+    assertJobApiError(error);
+    jobsFailure = error.status;
   }
 
   return (
@@ -107,9 +121,11 @@ export default async function ProjectOverviewPage({
           <h2 id="jobs-state-title" className="text-lg font-semibold">
             Recent jobs
           </h2>
-          <p className="mt-2 text-sm leading-6 text-text-secondary">
-            Durable jobs are not available in this increment; no job status is being inferred.
-          </p>
+          {jobsFailure ? (
+            <JobLoadProblem status={jobsFailure} />
+          ) : recentJobs ? (
+            <JobList jobs={recentJobs.jobs} tenantId={result.tenantId} />
+          ) : null}
         </section>
       </div>
     </GlobalShell>

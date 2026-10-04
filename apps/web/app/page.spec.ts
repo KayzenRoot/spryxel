@@ -1,5 +1,13 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
+async function openJobDetails(page: Page, jobLink: Locator): Promise<void> {
+  const href = await jobLink.getAttribute('href');
+  expect(href).toBeTruthy();
+  await Promise.all([
+    page.waitForURL(new URL(href ?? '/jobs', page.url()).toString()),
+    jobLink.click(),
+  ]);
+}
 test('authenticated shell preserves the shared theme and keyboard boundaries', async ({ page }) => {
   await authenticateWorkspacePage(page, 'shell-theme');
   await page.addInitScript(() => window.localStorage.setItem('spryxel.theme', 'dark'));
@@ -104,13 +112,13 @@ test('Home to Projects to Create to Open keeps a canonical project context', asy
   await page.getByRole('textbox', { name: 'Project name' }).fill('Northstar');
   await page.getByRole('button', { name: 'Create project' }).click();
   await expect(page.getByRole('status')).toContainText('Project created.');
-  await page.getByRole('link', { name: 'Open project' }).click();
+  await page.getByRole('status').getByRole('link', { name: 'Open project' }).click();
 
   await expect(page.getByRole('heading', { name: 'Northstar', exact: true })).toBeVisible();
   await expect(page.getByText('Not configured', { exact: true })).toBeVisible();
   await expect(
     page.getByText(
-      'Durable jobs are not available in this increment; no job status is being inferred.',
+      'No durable jobs yet. Job status will appear here after an admitted operation creates one.',
     ),
   ).toBeVisible();
   const stored = await page.evaluate(() => ({
@@ -119,6 +127,153 @@ test('Home to Projects to Create to Open keeps a canonical project context', asy
   }));
   expect(stored.local.some((key) => /token|auth|session/i.test(key))).toBe(false);
   expect(stored.session.some((key) => /token|auth|session/i.test(key))).toBe(false);
+});
+
+test('Jobs Center lists durable state and reload preserves details and cancellation', async ({
+  page,
+}) => {
+  await authenticateWorkspacePage(page, 'jobs-populated');
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Recent jobs' })).toBeVisible();
+  await expect(page.getByText('queued', { exact: true }).first()).toBeVisible();
+  await page.getByRole('link', { name: 'Jobs', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Jobs', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: /SKU-001 · contract v1/ })).toBeVisible();
+  const projectId = await page.locator('#jobs-project-filter option').nth(1).getAttribute('value');
+  const tenantId = await page.locator('input[name="tenantId"]').first().inputValue();
+  const jobLink = page.getByRole('link', { name: /SKU-001 · contract v1/ });
+  await openJobDetails(page, jobLink);
+
+  await expect(
+    page.getByRole('heading', { level: 1, name: /SKU-001 · contract v1/ }),
+  ).toBeVisible();
+  await expect(page.getByText('Specification SHA-256')).toBeVisible();
+  await expect(page.getByText(/raw contract|specification JSON/i)).toHaveCount(0);
+  await page.getByRole('button', { name: 'Cancel job' }).click();
+  await expect(page.getByText('Status: cancelled.')).toBeVisible();
+  await page.reload();
+  await expect(page.getByText('Status: cancelled.')).toBeVisible();
+  expect(projectId).toBeTruthy();
+  expect(tenantId).toMatch(/^[0-9a-f-]{36}$/i);
+});
+
+test('a terminal cancellation race redirects to the refreshed durable Job', async ({ page }) => {
+  await authenticateWorkspacePage(page, 'jobs-cancel-raced');
+  await page.goto('/jobs');
+  const jobLink = page.getByRole('link', { name: /SKU-001 · contract v1/ });
+  await openJobDetails(page, jobLink);
+
+  await expect(page.getByRole('button', { name: 'Cancel job' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Cancel job' }).click();
+
+  await expect(page.getByText('cancelled', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Cancel job' })).toHaveCount(0);
+  await expect(page.getByText(/Internal Server Error|Application error/i)).toHaveCount(0);
+});
+
+test('a transient cancellation API failure returns to the current durable Job state', async ({
+  page,
+}) => {
+  await authenticateWorkspacePage(page, 'jobs-cancel-unavailable');
+  await page.goto('/jobs');
+  const jobLink = page.getByRole('link', { name: /SKU-001 · contract v1/ });
+  await openJobDetails(page, jobLink);
+
+  await expect(page.getByRole('button', { name: 'Cancel job' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Cancel job' }).click();
+
+  await expect(page.getByText('queued', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Cancel job' })).toBeVisible();
+  await expect(page.getByText(/Internal Server Error|Application error/i)).toHaveCount(0);
+});
+
+test('Jobs list does not create a demo project for a non-Jobs fixture scope', async ({ page }) => {
+  await authenticateWorkspacePage(page, 'mobile-projects');
+  await page.goto('/projects');
+  await expect(page.getByRole('textbox', { name: 'Project name' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Open project' })).toHaveCount(0);
+  await expect(page.getByText('0 authorized projects.')).toBeVisible();
+
+  await page.goto('/jobs');
+  await expect(page.getByRole('heading', { name: 'Jobs', exact: true })).toBeVisible();
+  await expect(page.getByText(/No durable jobs yet/)).toBeVisible();
+
+  await page.goto('/projects');
+  await expect(page.getByRole('link', { name: 'Open project' })).toHaveCount(0);
+  await expect(page.getByText('0 authorized projects.')).toBeVisible();
+});
+
+test('Jobs page preserves project authorization and dependency failures', async ({ page }) => {
+  for (const scenario of [
+    { status: 401, heading: 'Session expired', action: 'Sign in again' },
+    { status: 403, heading: 'Access unavailable', action: 'Browse Projects' },
+    { status: 404, heading: 'Workspace unavailable', action: 'Browse Projects' },
+    { status: 502, heading: 'Projects are temporarily unavailable', action: 'Try again' },
+    { status: 503, heading: 'Projects are temporarily unavailable', action: 'Try again' },
+  ]) {
+    await authenticateWorkspacePage(page, `workspace-${scenario.status}`);
+    const query = scenario.status === 404 ? '?tenantId=not-a-uuid' : '';
+    await page.goto(`/jobs${query}`);
+    await expect(page.getByRole('heading', { name: scenario.heading, exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: scenario.action, exact: true })).toBeVisible();
+    await expect(page.getByText('Fixture private project')).toHaveCount(0);
+    await expect(
+      page.getByText(/workspace_not_found|project_store_unavailable|not-a-uuid/i),
+    ).toHaveCount(0);
+    if (scenario.status === 401) {
+      await expect(page.getByRole('link', { name: 'Sign in again' })).toHaveAttribute(
+        'href',
+        '/sign-in',
+      );
+    }
+  }
+});
+
+test('Project Overview shows recent jobs and all admitted states remain readable', async ({
+  page,
+}) => {
+  await authenticateWorkspacePage(page, 'jobs-populated');
+  await page.goto('/jobs');
+  const projectId = await page.locator('#jobs-project-filter option').nth(1).getAttribute('value');
+  const tenantId = await page.locator('input[name="tenantId"]').first().inputValue();
+  expect(projectId).toBeTruthy();
+  await page.goto(`/projects/${projectId}?tenantId=${tenantId}`);
+  await expect(page.getByRole('heading', { name: 'Recent jobs' })).toBeVisible();
+  await expect(page.getByRole('link', { name: /SKU-001 · contract v1/ })).toBeVisible();
+
+  for (const status of [
+    'queued',
+    'running',
+    'cancel_requested',
+    'succeeded',
+    'failed',
+    'cancelled',
+  ]) {
+    await authenticateWorkspacePage(page, `jobs-${status}`);
+    await page.goto('/jobs');
+    await expect(
+      page.getByText(status.replaceAll('_', ' '), { exact: true }).first(),
+    ).toBeVisible();
+  }
+});
+
+test('Jobs Center supports a mobile viewport without horizontal overflow and keeps cancel keyboard reachable', async ({
+  page,
+}) => {
+  await authenticateWorkspacePage(page, 'jobs-mobile');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/jobs');
+  await page.getByRole('link', { name: /SKU-001 · contract v1/ }).click();
+  const cancelButton = page.getByRole('button', { name: 'Cancel job' });
+  await cancelButton.focus();
+  await expect(cancelButton).toBeFocused();
+  const dimensions = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    content: document.documentElement.scrollWidth,
+  }));
+  expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
 });
 
 test('project browsing and creation stay usable at a companion viewport', async ({ page }) => {

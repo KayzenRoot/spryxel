@@ -58,7 +58,12 @@ const allowedInternalDependencies: Record<string, string[]> = {
   '@spryxel/testkit': [],
   '@spryxel/ui': [],
   '@spryxel/web': ['@spryxel/contracts', '@spryxel/ui'],
-  '@spryxel/worker': ['@spryxel/config', '@spryxel/observability'],
+  '@spryxel/worker': [
+    '@spryxel/config',
+    '@spryxel/db',
+    '@spryxel/domain',
+    '@spryxel/observability',
+  ],
 };
 
 const graph = new Map<string, string[]>();
@@ -122,6 +127,11 @@ const forbiddenByWorkspace: Record<string, RegExp[]> = {
     /from\s+['"](?:drizzle-orm|pg|bullmq|ioredis)(?:\/|['"])/,
     /from\s+['"]@aws-sdk\//,
     /from\s+['"]@spryxel\/(?:api|db|domain|worker)(?:\/|['"])/,
+  ],
+  '@spryxel/worker': [
+    /from\s+['"](?:next|fastify|drizzle-orm|pg)(?:\/|['"])/,
+    /from\s+['"]@aws-sdk\//,
+    /from\s+['"]@spryxel\/(?:api|contracts|identity|ui|web)(?:\/|['"])/,
   ],
 };
 

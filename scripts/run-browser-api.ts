@@ -1,6 +1,11 @@
 import { createHash } from 'node:crypto';
 import { parseRuntimeConfig } from '@spryxel/config';
-import type { Project, ProjectRepositoryPort } from '@spryxel/domain';
+import type {
+  DurableJobRepositoryPort,
+  Project,
+  ProjectRepositoryPort,
+  SafeJob,
+} from '@spryxel/domain';
 import type {
   AuthenticatedPrincipal,
   IdentityRepositoryPort,
@@ -18,6 +23,7 @@ if (process.env.NODE_ENV === 'production') {
 const identities = new Map<string, { subjectId: string; tenantId: string }>();
 const identityScopes = new Map<string, string>();
 const projects = new Map<string, Project>();
+const jobs = new Map<string, { tenantId: string; job: SafeJob }>();
 const idempotency = new Map<string, { requestHash: string; projectId: string }>();
 let projectCounter = 0;
 
@@ -48,6 +54,102 @@ function invalidFixtureProject(tenantId: string, subjectId: string): Project {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
+}
+
+function ensureJobsProject(scope: string, tenantId: string, subjectId: string): Project {
+  const id = uuidV7From(`project:${scope}:durable-jobs`);
+  const existing = projects.get(id);
+  if (existing) return existing;
+  const project: Project = {
+    id,
+    tenantId,
+    createdBySubjectId: subjectId,
+    name: 'Jobs demo project',
+    createdAt: new Date('2026-10-01T12:00:00.000Z').toISOString(),
+    updatedAt: new Date('2026-10-01T12:00:00.000Z').toISOString(),
+  };
+  projects.set(id, project);
+  return project;
+}
+
+function ensureJobsFixture(
+  scope: string,
+  tenantId: string,
+  projectId: string,
+): SafeJob | undefined {
+  const fixtureStatus =
+    scope === 'jobs-populated' ||
+    scope === 'jobs-mobile' ||
+    scope === 'jobs-cancel-raced' ||
+    scope === 'jobs-cancel-unavailable'
+      ? 'queued'
+      : scope.startsWith('jobs-')
+        ? scope.slice(5).replaceAll('-', '_')
+        : '';
+  if (
+    !['queued', 'running', 'cancel_requested', 'succeeded', 'failed', 'cancelled'].includes(
+      fixtureStatus,
+    )
+  )
+    return undefined;
+  const id = uuidV7From(`job:${scope}`);
+  const existing = jobs.get(id)?.job;
+  if (existing) return existing;
+  const attemptCount = ['running', 'cancel_requested', 'succeeded', 'failed', 'cancelled'].includes(
+    fixtureStatus,
+  )
+    ? 1
+    : 0;
+  const job: SafeJob = {
+    id,
+    projectId,
+    operationType: 'asset_contract.integrity_check.v1',
+    status: fixtureStatus as SafeJob['status'],
+    retryable: fixtureStatus === 'queued',
+    cancelEligible: fixtureStatus === 'queued' || fixtureStatus === 'running',
+    attemptCount,
+    maxAttempts: 3,
+    resultCode: fixtureStatus === 'succeeded' ? 'integrity_passed' : null,
+    failureCode: fixtureStatus === 'failed' ? 'contract_integrity_mismatch' : null,
+    createdAt: '2026-10-01T12:00:00.000Z',
+    updatedAt: '2026-10-01T12:01:00.000Z',
+    contract: {
+      id: uuidV7From(`contract:${scope}`),
+      version: 1,
+      schemaVersion: 'asset-contract.v1',
+      skuId: 'SKU-001',
+      specificationSha256: 'a'.repeat(64),
+      executionBounds: {
+        maxCandidates: 1,
+        maxRetries: 2,
+        maxRepairs: 0,
+        maxWallTimeMs: 5_000,
+      },
+    },
+    attempts:
+      attemptCount > 0
+        ? [
+            {
+              id: uuidV7From(`attempt:${scope}`),
+              executorKind: 'spryxel.asset_contract.integrity_worker',
+              executorVersion: 'v1',
+              attemptNumber: 1,
+              status:
+                fixtureStatus === 'running' || fixtureStatus === 'cancel_requested'
+                  ? 'running'
+                  : (fixtureStatus as SafeJob['attempts'][number]['status']),
+              startedAt: '2026-10-01T12:00:30.000Z',
+              completedAt:
+                fixtureStatus === 'running' || fixtureStatus === 'cancel_requested'
+                  ? null
+                  : '2026-10-01T12:01:00.000Z',
+              failureCode: fixtureStatus === 'failed' ? 'contract_integrity_mismatch' : null,
+            },
+          ]
+        : [],
+  };
+  jobs.set(id, { tenantId, job });
+  return job;
 }
 
 const projectRepository: ProjectRepositoryPort = {
@@ -82,6 +184,7 @@ const projectRepository: ProjectRepositoryPort = {
       return [invalidFixtureProject(input.tenantId, input.subjectId)];
     }
     if (scope === 'workspace-503') throw new Error('Browser fixture dependency failure');
+    if (scope?.startsWith('jobs-')) ensureJobsProject(scope, input.tenantId, input.subjectId);
     return [...projects.values()].filter((project) => project.tenantId === input.tenantId);
   },
   async get(input) {
@@ -91,6 +194,75 @@ const projectRepository: ProjectRepositoryPort = {
     if (scope === 'project-503') throw new Error('Browser fixture dependency failure');
     const project = projects.get(input.projectId);
     return project?.tenantId === input.tenantId ? project : null;
+  },
+};
+
+const jobRepository: DurableJobRepositoryPort = {
+  async list(input) {
+    const scope = identityScopes.get(input.subjectId) ?? '';
+    if (!scope.startsWith('jobs-')) return { jobs: [] };
+    const project = ensureJobsProject(scope, input.tenantId, input.subjectId);
+    const fixture = ensureJobsFixture(scope, input.tenantId, project.id);
+    const matching = [...jobs.values()]
+      .filter(
+        (entry) =>
+          entry.tenantId === input.tenantId &&
+          (!input.projectId || entry.job.projectId === input.projectId),
+      )
+      .map((entry) => entry.job)
+      .filter(
+        (job) =>
+          scope.startsWith('jobs-') && (scope !== 'jobs-populated' || job.id === fixture?.id),
+      )
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+      .slice(0, input.limit);
+    return { jobs: matching };
+  },
+  async get(input) {
+    const entry = jobs.get(input.jobId);
+    return entry?.tenantId === input.tenantId && entry.job.projectId === input.projectId
+      ? entry.job
+      : null;
+  },
+  async cancel(input) {
+    const entry = jobs.get(input.jobId);
+    if (identityScopes.get(input.subjectId) === 'jobs-cancel-unavailable') {
+      throw new Error('Fixture Job store is temporarily unavailable');
+    }
+    if (
+      identityScopes.get(input.subjectId) === 'jobs-cancel-raced' &&
+      entry?.tenantId === input.tenantId &&
+      entry.job.projectId === input.projectId
+    ) {
+      jobs.set(input.jobId, {
+        ...entry,
+        job: {
+          ...entry.job,
+          status: 'cancelled',
+          cancelEligible: false,
+          retryable: false,
+          updatedAt: new Date().toISOString(),
+        },
+      });
+      return null;
+    }
+    if (
+      !entry ||
+      entry.tenantId !== input.tenantId ||
+      entry.job.projectId !== input.projectId ||
+      !entry.job.cancelEligible
+    )
+      return null;
+    const status = entry.job.status === 'running' ? 'cancel_requested' : 'cancelled';
+    const job: SafeJob = {
+      ...entry.job,
+      status,
+      retryable: false,
+      cancelEligible: false,
+      updatedAt: new Date().toISOString(),
+    };
+    jobs.set(input.jobId, { ...entry, job });
+    return job;
   },
 };
 
@@ -159,6 +331,7 @@ const app = buildApiServer(parseRuntimeConfig({ NODE_ENV: 'test', LOG_LEVEL: 'si
   },
   identityRepository,
   projectRepository,
+  jobRepository,
   sessionProvider,
 });
 
