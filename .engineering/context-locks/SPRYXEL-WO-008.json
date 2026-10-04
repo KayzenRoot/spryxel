@@ -1,0 +1,252 @@
+{
+  "schemaVersion": 1,
+  "kind": "spryxel.context-lock",
+  "workOrderId": "SPRYXEL-WO-008",
+  "implementationIncrement": "SPRYXEL-IMP-004",
+  "status": "FRESH",
+  "risk": "HIGH_ASSURANCE",
+  "repository": "KayzenRoot/spryxel",
+  "authorizedBranch": "codex/spryxel-wo-008-imp-004-asset-contract-jobs",
+  "executionBase": {
+    "branch": "main",
+    "sha": "08bd429bb924e26f7d5266ee9b556cc8da2c8b8c"
+  },
+  "trackingIssue": 29,
+  "gef": {
+    "package": "@gef-bootstrap/cli",
+    "version": "1.1.1",
+    "releaseSourceSha": "1dc030f1358eab0347043a3d54c7fc311c7c2123"
+  },
+  "workOrderSource": {
+    "path": ".engineering/work-orders/SPRYXEL-WO-008.md",
+    "gitBlobSha": "4a74623e75f5de2819e7d912c11d4ac63a23b06e"
+  },
+  "decisionBaseline": {
+    "ledgerBlobSha": "856894e9936780f36c5e9982d1c3fe6e96aed90f",
+    "protectedDecisionRange": "D-001..D-161"
+  },
+  "productState": {
+    "productImplementation": "PROJECTS_CANONICAL_SHELL_HOME_COMPLETE",
+    "implementationCompletedThrough": "SPRYXEL-IMP-003",
+    "nextLegalStage": "SPRYXEL-IMP-004_ASSET_CONTRACT_DURABLE_JOB_BACKBONE",
+    "nextIncrementStatus": "ADMITTED_FOR_EXECUTION",
+    "nextAfterThis": "CREDIT_LEDGER_COSTGUARD_NOT_ADMITTED",
+    "commercialPricing": "NOT_FROZEN",
+    "benchmarksAndMeasuredCogs": "NOT_RUN_NOT_AVAILABLE",
+    "authProvider": "WORKOS_AUTHKIT_V1_SELECTED",
+    "productionGpuModelProvider": "NOT_FROZEN",
+    "productionObjectStorageProvider": "NOT_FROZEN"
+  },
+  "criticalBaseSources": [
+    {
+      "path": ".engineering/API-CONTRACTS.md",
+      "gitBlobSha": "ed432144a9bf3e47f3eb197869456fc08bfd609a"
+    },
+    {
+      "path": ".engineering/API-FOUNDATION-CONTRACT.md",
+      "gitBlobSha": "fef70ebd35c2921dc69dc20c9d309f6739744075"
+    },
+    {
+      "path": ".engineering/ARCHITECTURE.md",
+      "gitBlobSha": "ea97f66b5776aaa35d6fa2e73db54be4c72a4769"
+    },
+    {
+      "path": ".engineering/CHECKPOINT.json",
+      "gitBlobSha": "cd1a8729e068d3bc72e57c5c2a6ea9a8f686cbe7"
+    },
+    {
+      "path": ".engineering/CHECKPOINT.md",
+      "gitBlobSha": "2986cc6b6b2b6922a39c4232c20a59b37a23b6e5"
+    },
+    {
+      "path": ".engineering/DATA-MODEL.md",
+      "gitBlobSha": "ff988dcc33cc640e258a058b1f016186ab2b1c14"
+    },
+    {
+      "path": ".engineering/DECISIONS-LEDGER.md",
+      "gitBlobSha": "856894e9936780f36c5e9982d1c3fe6e96aed90f"
+    },
+    {
+      "path": ".engineering/DEFINITION-OF-DONE.md",
+      "gitBlobSha": "4d3a24b404cdd70a86168773bc0ac206dec0365d"
+    },
+    {
+      "path": ".engineering/DEPLOYMENT.md",
+      "gitBlobSha": "8414fa08258627d8f5c516b62cd30967b423dc3f"
+    },
+    {
+      "path": ".engineering/IMPLEMENTATION-ARCHITECTURE.md",
+      "gitBlobSha": "ad12992ab85841e051bbc482ae7cab96ea07bacb"
+    },
+    {
+      "path": ".engineering/IMPLEMENTATION-SEQUENCE.md",
+      "gitBlobSha": "822290f94688286e6962d79904a77d12c3fae8cd"
+    },
+    {
+      "path": ".engineering/INFORMATION-ARCHITECTURE.md",
+      "gitBlobSha": "46910820cec93d14ccd0a2f072cc7a8720efc5a6"
+    },
+    {
+      "path": ".engineering/INTEGRATION-CONTRACTS.md",
+      "gitBlobSha": "56187247ce63263e880f28eaaa0fdd1adda78057"
+    },
+    {
+      "path": ".engineering/LOCAL-DEVELOPMENT.md",
+      "gitBlobSha": "0dd9641ee3a37ed9f16de85f10faf7fdeb9a1497"
+    },
+    {
+      "path": ".engineering/PHYSICAL-DATA-CONVENTIONS.md",
+      "gitBlobSha": "4e65b6778f63ff6664cf6aec6985db60013eead5"
+    },
+    {
+      "path": ".engineering/REPOSITORY-TOPOLOGY.md",
+      "gitBlobSha": "dca611512ef9e2f66f53686b535ba1698461326c"
+    },
+    {
+      "path": ".engineering/REQUIREMENTS.md",
+      "gitBlobSha": "5c0e7199708e9aa2e0014755c18942b48bb4d60d"
+    },
+    {
+      "path": ".engineering/RUNTIME-STACK.md",
+      "gitBlobSha": "3fde18dd86788db748164dccf3dcb64ae64f4bcf"
+    },
+    {
+      "path": ".engineering/SCOPE.md",
+      "gitBlobSha": "cca8420aa6427b9ddd2a16151f44f83a6bfd7cfe"
+    },
+    {
+      "path": ".engineering/SCREEN-INVENTORY.md",
+      "gitBlobSha": "6c44c9055208d7d2bc35d2bae1ffb565cab7ae52"
+    },
+    {
+      "path": ".engineering/SECURITY.md",
+      "gitBlobSha": "d8aa5007a8cc9429d8860a76d544bd7b1c49516b"
+    },
+    {
+      "path": ".engineering/SOURCE-HIERARCHY.md",
+      "gitBlobSha": "682405cf940db156779f345b0d924747245e2d79"
+    },
+    {
+      "path": ".engineering/TEST-BENCHMARK-PLAN.md",
+      "gitBlobSha": "157f6a81ccba63a3aa62f747b4b07607a166c8e8"
+    },
+    {
+      "path": ".engineering/UI-UX.md",
+      "gitBlobSha": "6738bf0c5f242253ceff7f7e177ac62ab841be3d"
+    },
+    {
+      "path": ".engineering/UX-DESIGN-SYSTEM.md",
+      "gitBlobSha": "6ab9d7a4ddb754363e9247633e3dcace0d12991d"
+    },
+    {
+      "path": ".engineering/UX-FLOWS.md",
+      "gitBlobSha": "039031eaf1207a56d6f12ee4d27d010f0759a73c"
+    },
+    {
+      "path": ".engineering/UX-STATE-CONTRACTS.md",
+      "gitBlobSha": "81598e52a8f00ce83cab4669522fe9d8000d501b"
+    },
+    {
+      "path": ".engineering/UX-WIREFRAME-CONTRACTS.md",
+      "gitBlobSha": "04d2bf45b0391c8fcd1f671e36f5881e57689cf2"
+    },
+    {
+      "path": "AGENTS.md",
+      "gitBlobSha": "4dec6b3e5a88536c507ae810e50e01ecd560f753"
+    },
+    {
+      "path": "package.json",
+      "gitBlobSha": "791cb01c32f7e11e5e962f9016861cf7ad1d1de4"
+    },
+    {
+      "path": "package-lock.json",
+      "gitBlobSha": "5585c5b1eb10deaac1f6f513f38f8bb3ff874e97"
+    },
+    {
+      "path": "apps/api/src/server.ts",
+      "gitBlobSha": "9329f7f00153ba468896ba507e74530a51f63802"
+    },
+    {
+      "path": "apps/worker/src/index.ts",
+      "gitBlobSha": "44959d78f33233906fbe41d53bce0cb52443f71b"
+    },
+    {
+      "path": "packages/domain/src/index.ts",
+      "gitBlobSha": "f566a836cbab7ea8ecf031bfda910f875dec93b5"
+    },
+    {
+      "path": "packages/contracts/src/index.ts",
+      "gitBlobSha": "aa7470bd8ea69cce748cb01c8aa0bc7fe362d63a"
+    },
+    {
+      "path": "packages/db/src/index.ts",
+      "gitBlobSha": "5864a624616fc9e25ab8500ffddb0b33c2d5432f"
+    },
+    {
+      "path": "packages/db/src/migrations/0004_projects.sql",
+      "gitBlobSha": "891877da1a273173204945072068c98b2304d46e"
+    },
+    {
+      "path": "scripts/run-integration.ts",
+      "gitBlobSha": "4d18177a021ff702e713d5ec4ece30967297647e"
+    },
+    {
+      "path": "playwright.config.ts",
+      "gitBlobSha": "e118b285e444a026311072e282b67b6f50d46449"
+    }
+  ],
+  "providerBaseline": {
+    "rulesetId": 24340349,
+    "authProvider": "WORKOS_AUTHKIT_V1_SELECTED",
+    "rulesetMutationAllowed": false,
+    "providerMutationAllowed": false,
+    "requiredStatusContextMutationAllowed": false
+  },
+  "authorizedMutationClasses": {
+    "productCode": true,
+    "contractSchemaAndMigration": true,
+    "jobAttemptSchemaAndMigration": true,
+    "rlsAndWorkerRole": true,
+    "contractDomainCompiler": true,
+    "durableJobStateMachine": true,
+    "queueReconciliationAndWorkerConsumer": true,
+    "jobReadAndCancelApi": true,
+    "jobsCenterUx": true,
+    "tests": true,
+    "rootPackageManifestAndLockfile": "ONLY_IF_REQUIRED_BY_JUSTIFIED_NEW_DEPENDENCY",
+    "evidenceAndProposedCheckpointDelta": true,
+    "canonicalDecisionMutation": false,
+    "checkpointPromotion": false,
+    "gefMutation": false,
+    "sourceSeedMutation": false,
+    "workflowMutation": false,
+    "rulesetProviderMutation": false
+  },
+  "hardOutOfScope": [
+    "model GPU inference or provider execution",
+    "Model Router implementation",
+    "ComfyUI generation execution",
+    "Credit Ledger CostGuard billing wallet reservation debit refund",
+    "TrustShield RevenueShield",
+    "Spryxel DNA implementation",
+    "canonical Asset or Asset Version tables",
+    "Asset Library Asset Graph",
+    "generated candidates or object-storage asset writes",
+    "QA Integrity Gate Production Score repair approval export",
+    "Generate Character World Tileset Items studio execution",
+    "API key MCP OAuth CLI credentials",
+    "production provider deployment or pricing freeze",
+    "D-001..D-161 mutation",
+    "next implementation slice"
+  ],
+  "staleIf": [
+    "executionBase.sha changes before executor preflight",
+    "workOrderSource.gitBlobSha changes outside an audited correction",
+    "any criticalBaseSources gitBlobSha changes unexpectedly outside this Work Order",
+    "D-001..D-161 decision baseline changes",
+    "GEF package pin changes",
+    "ruleset/provider/required-status baseline changes unexpectedly",
+    "WO-007 canonical completion is reverted or invalidated"
+  ],
+  "stopOnStale": true
+}
