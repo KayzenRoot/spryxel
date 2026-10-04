@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { chmod, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { spawn } from 'node:child_process';
+import { resolveDockerCliPath } from './docker-cli.js';
 
 const root = process.cwd();
 const action = process.argv[2];
@@ -68,7 +69,7 @@ const composePrefix = [
 
 async function runCompose(args: string[], operation: string): Promise<void> {
   await new Promise<void>((resolveRun, reject) => {
-    const child = spawn('docker', [...composePrefix, ...args], {
+    const child = spawn(resolveDockerCliPath(), [...composePrefix, ...args], {
       cwd: root,
       windowsHide: true,
       stdio: 'inherit',

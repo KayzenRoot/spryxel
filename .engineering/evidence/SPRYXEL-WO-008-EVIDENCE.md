@@ -109,3 +109,26 @@ A integração reportou seis migrations aplicadas e validou limites do contrato 
 gef doctor --target . --json: exit 0, ok=true, terminal=SUCCEEDED, effect=NONE, versão 1.1.1; Node, Git, plataforma e observabilidade HEALTHY, sem limites de observação ou remediação. Duas leituras gef status --target . --json no espelho tiveram bytes idênticos; saída bruta DIRTY/OBSERVED, sem limites, checkpoint legível, operator.stale=true e drift bruto UNEXPECTED. A interpretação e autorização seguem D-0007: Work Order + Context Lock + diff autorizado; nenhum baseline foi reescrito. Após o commit, as leituras determinísticas no exact final head e seu SHA-256 serão registrados no corpo da PR #30.
 
 O exact final HEAD, URLs e conclusões dos quatro required checks, Sonar/Socket e contagem de review threads serão registrados no corpo da PR #30 após o push. Nenhum check de SHA anterior será reutilizado.
+
+## Reexecução após finding do Sonar — hardening C-01-H
+
+A análise hospedada do head predecessor a1ea8eb identificou uma vulnerabilidade S4036 no lançamento da CLI Docker pelo nome simples, sujeito à resolução via PATH herdado. O código de infra local agora seleciona somente caminhos absolutos fixos suportados para Windows/macOS/Linux, ou exige DOCKER_CLI como caminho absoluto existente. Quatro testes cobrem override absoluto, rejeição de nome relativo, escolha do local Windows e ausência/falha de candidatos. A alteração permanece dentro da reconciliação local do C-01-H; não adiciona dependências nem muda manifests.
+
+Toda a acceptance HIGH_ASSURANCE foi reiniciada em Node v22.23.3/npm 10.9.9 após esse ajuste. Este resultado supersede os números anteriores da tabela acima:
+
+| Verificação final pós-hardening | Resultado |
+|---|---|
+| npm ci --no-audit --no-fund | PASS; 227 pacotes instalados a partir do lockfile, sem mudanças nos manifests |
+| npm run format:check / npm run lint | PASS; 113 arquivos |
+| npm run typecheck -- --force | PASS; 18/18 tarefas |
+| npm run build -- --force | PASS; 11/11 workspaces |
+| npm run architecture:check | PASS; 11 workspaces, 15 arestas internas |
+| npm run test:unit | PASS; 91/91 em 22 arquivos, incluindo 4 testes de resolução Docker |
+| npm run test:worker | PASS |
+| npm run test:integration | PASS; PostgreSQL/RLS, Redis/BullMQ e SeaweedFS reais; seis migrations e todos os cenários IMP-004 |
+| npm run test:browser | PASS; 19/19 |
+| npm test | PASS; exit code 0; repetiu os 91 unit, worker, integração real e browser 19/19 |
+| npm audit --audit-level=high | PASS; zero vulnerabilidades |
+| git diff --check | PASS |
+
+Após o push deste hardening, o exact final HEAD e os quatro required checks, SonarCloud, Socket e estado das review threads serão registrados no corpo da PR #30. Checks do predecessor a1ea8eb não serão reutilizados; nenhuma promoção ou merge ocorrerá.
