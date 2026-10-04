@@ -1,6 +1,6 @@
 # SPRYXEL-WO-007 — Proposed Checkpoint Delta
 
-**Status:** ACCEPTED_BY_AUDITOR; PROMOTED_IN_CANONICAL_CHECKPOINT.
+**Status:** ACCEPTED_BY_AUDITOR; PROMOTED_AND_POST_MERGE_VALIDATED.
 
 ## Preconditions satisfied
 
@@ -39,3 +39,11 @@ After squash merge, post-merge validation must run on the exact resulting `main`
 ## Explicitly preserved
 
 No Asset Contract/Job implementation, billing/credits, TrustShield, generation/assets, AI/model/GPU, provider/ruleset/workflow/`.gef` mutation, decision-ledger rewrite or source-seed rewrite is introduced by this promotion.
+
+## Final closeout
+
+- Promotion head: `4d2d2fad3e1d74a8311420f7c403cfed015582b1`.
+- Squash merge: `main@67debfaca7cae164872a06a30faebb43daf34425`.
+- Post-merge required checks: Repository validation `111339426620`, Pipeline integrity `111339426779`, Gitleaks `111339426402`, Trivy `111339426693`: PASS.
+- SonarCloud Code Analysis `111339499220`: PASS.
+- WO-007 is COMPLETE; Asset Contract + durable Job remains NOT_ADMITTED.

@@ -90,3 +90,9 @@ The historical WO-006 Context Lock is STALE/closed and must not be reused. The n
 `SPRYXEL-IMP-003 — Projects + canonical shell/Home` is objectively approved on exact audited head `a64b76c858f9e72e462478d910655b3d69d85ec6`. Git/code/tests prove tenant-owned Projects, application membership authorization, forced PostgreSQL RLS, write-once project-create idempotency, `project.created` audit evidence, Global Shell, Home/Command Center, Projects list/create/select and minimal Project Overview. D-001…D-161 remain normative and unchanged.
 
 The historical WO-007 Context Lock becomes closed/stale at canonical promotion and must not be reused. Asset Contract + durable Job backbone requires its own Work Order and fresh Context Lock after merge/post-merge closeout.
+
+## SPRYXEL-WO-007 completion binding
+
+`SPRYXEL-WO-007 / SPRYXEL-IMP-003` is COMPLETE on `main@67debfaca7cae164872a06a30faebb43daf34425` after objective audit, promotion head `4d2d2fad3e1d74a8311420f7c403cfed015582b1`, squash merge and post-merge validation. Projects + canonical shell/Home are implemented/canonical.
+
+The historical WO-007 Context Lock is STALE/closed and must not be reused. The next legal implementation stage is Asset Contract + durable Job backbone under a new admitted Work Order and fresh Context Lock.

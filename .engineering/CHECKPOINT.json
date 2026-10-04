@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "status": "CANONICAL",
   "phase": "PROJECTS_CANONICAL_SHELL_HOME_COMPLETE",
-  "stopState": "SPRYXEL_WO_007_APPROVED_PENDING_MERGE",
+  "stopState": "SPRYXEL_WO_007_COMPLETE",
   "completedThroughModule": "SPRYXEL_IMP_003_PROJECTS_CANONICAL_SHELL_HOME",
   "nextLegalStage": "ASSET_CONTRACT_DURABLE_JOB_WORK_ORDER_REQUIRED",
   "v11": {
@@ -15,7 +15,7 @@
     "auditVerdict": "APPROVED",
     "correctionDelta01": "SATISFIED",
     "correctionDelta02": "SATISFIED",
-    "postMergeValidation": "PENDING",
+    "postMergeValidation": "PASS",
     "productImplementation": "PROJECTS_CANONICAL_SHELL_HOME_COMPLETE",
     "productBaseline": "CANONICAL_PRODUCT_MASTER_V0_6_0_DECOMPOSED",
     "planningCompletedThrough": "SPR-PLAN-007",
@@ -62,6 +62,18 @@
       "idempotencyMapping": "WRITE_ONCE_SELECT_INSERT_RUNTIME_ROLE",
       "durableAuditEvent": "project.created",
       "shellHomeProjectsOverview": "IMPLEMENTED"
+    },
+    "promotionHeadSha": "4d2d2fad3e1d74a8311420f7c403cfed015582b1",
+    "mergedMainSha": "67debfaca7cae164872a06a30faebb43daf34425",
+    "postMergeRequiredChecks": {
+      "repositoryValidation": 111339426620,
+      "pipelineIntegrity": 111339426779,
+      "gitleaksSecrets": 111339426402,
+      "trivyFilesystemAndConfiguration": 111339426693
+    },
+    "postMergeSonarCloud": {
+      "checkRun": 111339499220,
+      "conclusion": "PASS"
     }
   }
 }
