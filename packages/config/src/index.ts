@@ -80,7 +80,7 @@ const runtimeConfigSchema = z
       });
     }
 
-    if (config.nodeEnv === 'production' && !config.databaseUrl) {
+    if (config.nodeEnv === 'production' && config.serviceName === 'api' && !config.databaseUrl) {
       context.addIssue({
         code: 'custom',
         path: ['databaseUrl'],

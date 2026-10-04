@@ -17,8 +17,30 @@ const reconciliationIntervalMs = 1_000;
 const reconciliationBudgetMs = 5_000;
 const workerLeaseSeconds = 10;
 const operationBudgetMs = 5_000;
+const queueErrorLogIntervalMs = 60_000;
 
 export type DurableJobReference = { jobId: string; schemaVersion: typeof queueSchemaVersion };
+export type QueueErrorSource = 'queue' | 'worker';
+
+export function workerRedisConnectionOptions() {
+  return { maxRetriesPerRequest: null, connectTimeout: 2_000 } as const;
+}
+
+export function createRateLimitedQueueErrorReporter(
+  onOutcome: (fields: Record<string, unknown>, message: string) => void,
+  now: () => number = Date.now,
+  intervalMs = queueErrorLogIntervalMs,
+): (source: QueueErrorSource, error: Error) => void {
+  const lastReportedAt = new Map<QueueErrorSource, number>();
+  return (source, error) => {
+    const timestamp = now();
+    const previous = lastReportedAt.get(source);
+    if (previous !== undefined && timestamp - previous < intervalMs) return;
+    lastReportedAt.set(source, timestamp);
+    const errorType = /^[A-Za-z][A-Za-z0-9]{0,63}$/.test(error.name) ? error.name : 'Error';
+    onOutcome({ event: `jobs.${source}_error`, errorType }, `durable Job ${source} Redis error`);
+  };
+}
 
 export class DurableJobQueueRuntime {
   private readonly queueConnection: Redis;
@@ -28,6 +50,7 @@ export class DurableJobQueueRuntime {
   private timer: NodeJS.Timeout | undefined;
   private reconciling: Promise<void> | undefined;
   private stopping = false;
+  private readonly reportQueueError: ReturnType<typeof createRateLimitedQueueErrorReporter>;
 
   constructor(
     private readonly database: Database,
@@ -43,7 +66,8 @@ export class DurableJobQueueRuntime {
       connectTimeout: 2_000,
       commandTimeout: 1_000,
     });
-    this.workerConnection = this.queueConnection.duplicate({ commandTimeout: 1_000 });
+    this.workerConnection = new Redis(redisUrl, workerRedisConnectionOptions());
+    this.reportQueueError = createRateLimitedQueueErrorReporter(onOutcome);
     this.queue = new Queue<DurableJobReference>(queueName, {
       connection: this.queueConnection,
       defaultJobOptions: { removeOnComplete: true, removeOnFail: true, attempts: 1 },
@@ -54,8 +78,8 @@ export class DurableJobQueueRuntime {
       lockDuration: 30_000,
       maxStalledCount: 1,
     });
-    this.queue.on('error', () => {});
-    this.worker.on('error', () => {});
+    this.queue.on('error', (error) => this.reportQueueError('queue', error));
+    this.worker.on('error', (error) => this.reportQueueError('worker', error));
   }
 
   async start(): Promise<void> {

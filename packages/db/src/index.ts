@@ -638,7 +638,7 @@ export async function createDurableIntegrityJob(
         contract_id: string;
         contract_version: number;
         replayed: boolean;
-      }>(`SELECT * FROM platform.create_integrity_job($1, $2, $3, $4::jsonb, $5)`, [
+      }>(`SELECT * FROM platform.create_integrity_job($1, $2, $3, $4, $5)`, [
         input.idempotencyKeySha256,
         compiled.requestSha256,
         compiled.skuId,
@@ -681,9 +681,10 @@ export async function listDurableJobs(
     const role = await getActiveProjectMembership(client, input.subjectId, input.tenantId);
     if (input.projectId) await requireProjectInScope(client, input.tenantId, input.projectId);
     const cursor = decodeJobCursor(input.cursor);
-    const result = await client.query<JobSqlRow>(
+    const result = await client.query<JobListSqlRow>(
       `SELECT j.id, j.tenant_id, j.project_id, j.created_by_subject_id, j.operation_type, j.status,
               j.attempt_count, j.max_attempts, j.result_code, j.failure_code, j.created_at, j.updated_at,
+              to_char(j.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_created_at,
               v.contract_id, v.version AS contract_version, v.schema_version, v.sku_id, v.specification_sha256
        FROM platform.durable_job j
        JOIN platform.asset_contract_version v
@@ -716,7 +717,7 @@ export async function listDurableJobs(
       ...(hasMore && last
         ? {
             nextCursor: Buffer.from(
-              JSON.stringify({ createdAt: last.created_at.toISOString(), id: last.id }),
+              JSON.stringify({ createdAt: last.cursor_created_at, id: last.id }),
             ).toString('base64url'),
           }
         : {}),
@@ -798,6 +799,8 @@ type JobSqlRow = {
   sku_id: string;
   specification_sha256: string;
 };
+
+type JobListSqlRow = JobSqlRow & { cursor_created_at: string };
 
 type AttemptSqlRow = {
   id: string;
@@ -895,12 +898,16 @@ function toSafeJob(
 function decodeJobCursor(value: string | undefined): { createdAt: string; id: string } | undefined {
   if (!value) return undefined;
   try {
+    if (value.length > 256 || !/^[A-Za-z0-9_-]+$/.test(value)) {
+      throw new Error('invalid cursor');
+    }
     const parsed = JSON.parse(Buffer.from(value, 'base64url').toString('utf8')) as Record<
       string,
       unknown
     >;
     if (
       typeof parsed.createdAt !== 'string' ||
+      !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z$/.test(parsed.createdAt) ||
       Number.isNaN(Date.parse(parsed.createdAt)) ||
       typeof parsed.id !== 'string' ||
       !/^[0-9a-f-]{36}$/i.test(parsed.id)
@@ -1233,7 +1240,7 @@ async function validateRuntimePoolRole(pool: Pool): Promise<void> {
             'platform.can_create_project(uuid, uuid)',
             'platform.is_project_created_event(text)',
             'platform.current_project_id()',
-            'platform.create_integrity_job(text, text, text, jsonb, text)',
+            'platform.create_integrity_job(text, text, text, text, text)',
             'platform.request_job_cancel(uuid)'
           ]::text[]) AS runtime_function(function_name)
         )
@@ -1286,7 +1293,7 @@ async function validateWorkerPoolRole(pool: Pool): Promise<void> {
           'platform.finish_job(uuid, uuid, uuid, text, text)'
         ]::text[]) AS worker_function(function_name)
       )
-      AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.create_integrity_job(text, text, text, jsonb, text)', 'EXECUTE')
+      AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.create_integrity_job(text, text, text, text, text)', 'EXECUTE')
       AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.request_job_cancel(uuid)', 'EXECUTE') AS has_only_bounded_functions,
       NOT EXISTS (
         SELECT 1 FROM platform_relations r WHERE

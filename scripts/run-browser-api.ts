@@ -78,7 +78,10 @@ function ensureJobsFixture(
   projectId: string,
 ): SafeJob | undefined {
   const fixtureStatus =
-    scope === 'jobs-populated'
+    scope === 'jobs-populated' ||
+    scope === 'jobs-mobile' ||
+    scope === 'jobs-cancel-raced' ||
+    scope === 'jobs-cancel-unavailable'
       ? 'queued'
       : scope.startsWith('jobs-')
         ? scope.slice(5).replaceAll('-', '_')
@@ -189,6 +192,7 @@ const projectRepository: ProjectRepositoryPort = {
 const jobRepository: DurableJobRepositoryPort = {
   async list(input) {
     const scope = identityScopes.get(input.subjectId) ?? '';
+    if (!scope.startsWith('jobs-')) return { jobs: [] };
     const project = ensureJobsProject(scope, input.tenantId, input.subjectId);
     const fixture = ensureJobsFixture(scope, input.tenantId, project.id);
     const matching = [...jobs.values()]
@@ -214,6 +218,26 @@ const jobRepository: DurableJobRepositoryPort = {
   },
   async cancel(input) {
     const entry = jobs.get(input.jobId);
+    if (identityScopes.get(input.subjectId) === 'jobs-cancel-unavailable') {
+      throw new Error('Fixture Job store is temporarily unavailable');
+    }
+    if (
+      identityScopes.get(input.subjectId) === 'jobs-cancel-raced' &&
+      entry?.tenantId === input.tenantId &&
+      entry.job.projectId === input.projectId
+    ) {
+      jobs.set(input.jobId, {
+        ...entry,
+        job: {
+          ...entry.job,
+          status: 'cancelled',
+          cancelEligible: false,
+          retryable: false,
+          updatedAt: new Date().toISOString(),
+        },
+      });
+      return null;
+    }
     if (
       !entry ||
       entry.tenantId !== input.tenantId ||

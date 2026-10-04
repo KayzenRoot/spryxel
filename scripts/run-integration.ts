@@ -16,6 +16,11 @@ import {
 } from '@aws-sdk/client-s3';
 import { parseRuntimeConfig } from '@spryxel/config';
 import {
+  AssetContractValidationError,
+  compileAssetContract,
+  maxContractBytes,
+} from '@spryxel/domain';
+import {
   bootstrapIdentity,
   claimDurableJob,
   createDurableIntegrityJob,
@@ -45,6 +50,7 @@ import {
 import { Queue } from 'bullmq';
 import { Redis } from 'ioredis';
 import { buildApiServer } from '../apps/api/src/server.js';
+import { rollbackBeforeRethrowing } from './integration-cleanup.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const composePath = resolve(root, 'infra/compose.yml');
@@ -118,6 +124,63 @@ try {
     composeCommandTimeoutMs,
   );
   await assertPostgresUsesEphemeralTmpfs();
+  const roleUpgradeDatabase = createDatabase(databaseUrl, { max: 1 });
+  try {
+    await roleUpgradeDatabase.pool.query('DROP ROLE spryxel_worker');
+  } finally {
+    await roleUpgradeDatabase.close();
+  }
+  await runCompose(
+    [
+      'exec',
+      '--no-TTY',
+      'postgres-test',
+      '/bin/sh',
+      '/docker-entrypoint-initdb.d/10-create-app-role.sh',
+    ],
+    30_000,
+  );
+  const roleUpgradeProof = createDatabase(databaseUrl, { max: 1 });
+  try {
+    const workerRole = await roleUpgradeProof.pool.query<{
+      can_login: boolean;
+      superuser: boolean;
+      create_db: boolean;
+      create_role: boolean;
+      bypass_rls: boolean;
+      replication: boolean;
+      has_memberships: boolean;
+    }>(`
+      SELECT role.rolcanlogin AS can_login,
+             role.rolsuper AS superuser,
+             role.rolcreatedb AS create_db,
+             role.rolcreaterole AS create_role,
+             role.rolbypassrls AS bypass_rls,
+             role.rolreplication AS replication,
+             EXISTS (
+               SELECT 1 FROM pg_catalog.pg_auth_members membership
+               WHERE membership.member = role.oid
+             ) AS has_memberships
+      FROM pg_catalog.pg_roles role
+      WHERE role.rolname = 'spryxel_worker'
+    `);
+    const role = workerRole.rows[0];
+    if (
+      !role?.can_login ||
+      role.superuser ||
+      role.create_db ||
+      role.create_role ||
+      role.bypass_rls ||
+      role.replication ||
+      role.has_memberships
+    ) {
+      throw new Error(
+        'Existing-volume role reconciliation did not restore least-privilege worker login',
+      );
+    }
+  } finally {
+    await roleUpgradeProof.close();
+  }
   await runCompose(
     [
       'up',
@@ -163,14 +226,14 @@ try {
 
   const pristineMigrationStatus = await getMigrationStatus(databaseUrl);
   if (
-    pristineMigrationStatus.length !== 5 ||
+    pristineMigrationStatus.length !== 6 ||
     pristineMigrationStatus.some((migration) => migration.applied)
   ) {
     throw new Error('Pristine PostgreSQL did not report all migrations as unapplied');
   }
 
   const migrationStatus = await runMigrations(databaseUrl);
-  if (migrationStatus.length !== 5 || migrationStatus.some((migration) => !migration.applied)) {
+  if (migrationStatus.length !== 6 || migrationStatus.some((migration) => !migration.applied)) {
     throw new Error(
       'Disposable PostgreSQL migrations did not apply the technical and identity schemas',
     );
@@ -180,7 +243,7 @@ try {
     throw new Error('Migration runner was not idempotent');
   }
   const readStatus = await getMigrationStatus(databaseUrl);
-  if (readStatus.length !== 5 || readStatus.some((migration) => !migration.applied)) {
+  if (readStatus.length !== 6 || readStatus.some((migration) => !migration.applied)) {
     throw new Error('Migration status did not report every applied migration');
   }
 
@@ -756,6 +819,166 @@ try {
     }
     if (!idempotencyConflict)
       throw new Error('Same idempotency key with a different request was not rejected');
+
+    const prototypeKeySpecification = JSON.parse(
+      '{"__proto__":{"safe":true},"constructor":"persisted"}',
+    ) as unknown;
+    const prototypeKeyJob = await createDurable(
+      'durable-job-prototype-like-keys',
+      prototypeKeySpecification,
+    );
+    const prototypeKeyRows = await projectAdminDatabase.pool.query<{
+      has_proto: boolean;
+      has_constructor: boolean;
+    }>(
+      `SELECT specification ? '__proto__' AS has_proto,
+              specification ? 'constructor' AS has_constructor
+       FROM platform.asset_contract_version
+       WHERE contract_id = $1 AND version = 1`,
+      [prototypeKeyJob.job.contract.id],
+    );
+    if (!prototypeKeyRows.rows[0]?.has_proto || !prototypeKeyRows.rows[0]?.has_constructor) {
+      throw new Error('JSONB-valid prototype-like keys did not persist as ordinary contract keys');
+    }
+
+    let jsonbInvalidClientInputRejected = false;
+    try {
+      await createDurable('durable-job-jsonb-invalid-input', { value: '\u0000' });
+    } catch (error) {
+      jsonbInvalidClientInputRejected =
+        error instanceof AssetContractValidationError && error.code === 'invalid_specification';
+    }
+    if (!jsonbInvalidClientInputRejected) {
+      throw new Error('JSONB-invalid client input escaped the Asset Contract persistence boundary');
+    }
+
+    for (const byteLength of [maxContractBytes - 1, maxContractBytes]) {
+      const specification = contractSpecificationAtByteLength(byteLength);
+      const compiled = compileAssetContract({ skuId: 'SKU-001', specification });
+      const measuredBytes = Buffer.byteLength(compiled.canonicalSpecification, 'utf8');
+      const databaseRendering = await projectAdminDatabase.pool.query<{ bytes: string }>(
+        'SELECT octet_length($1::jsonb::text)::text AS bytes',
+        [compiled.canonicalSpecification],
+      );
+      if (
+        measuredBytes !== byteLength ||
+        Number(databaseRendering.rows[0]?.bytes ?? 0) <= maxContractBytes
+      ) {
+        throw new Error(
+          'Canonical and PostgreSQL JSONB size representations did not diverge at the regression boundary',
+        );
+      }
+      const boundaryJob = await createDurable(
+        `durable-job-byte-boundary-${byteLength}`,
+        specification,
+      );
+      if (boundaryJob.job.contract.specificationSha256 !== compiled.specificationSha256) {
+        throw new Error('Persisted Asset Contract hash did not remain bound to canonical bytes');
+      }
+    }
+
+    const oversizedSpecification = contractSpecificationAtByteLength(maxContractBytes + 1);
+    let oversizedCompilerRejected = false;
+    try {
+      compileAssetContract({ skuId: 'SKU-001', specification: oversizedSpecification });
+    } catch (error) {
+      oversizedCompilerRejected =
+        error instanceof AssetContractValidationError && error.code === 'specification_too_large';
+    }
+    if (!oversizedCompilerRejected) {
+      throw new Error('Compiler did not reject the first byte over the canonical envelope limit');
+    }
+    const oversizedCanonical = JSON.stringify(oversizedSpecification);
+    const oversizedClient = await appRuntimeDatabase.pool.connect();
+    let oversizedDatabaseRejected = false;
+    try {
+      await oversizedClient.query('BEGIN');
+      await oversizedClient.query(
+        `SELECT set_config('spryxel.subject_id', $1, true),
+                set_config('spryxel.tenant_id', $2, true),
+                set_config('spryxel.project_id', $3, true)`,
+        [durableScope.subjectId, durableScope.tenantId, durableScope.projectId],
+      );
+      await oversizedClient.query(
+        `SELECT * FROM platform.create_integrity_job($1, $2, $3, $4, $5)`,
+        [
+          createHash('sha256').update('oversized-direct-db').digest('hex'),
+          createHash('sha256').update(oversizedCanonical).digest('hex'),
+          'SKU-001',
+          oversizedCanonical,
+          createHash('sha256').update(oversizedCanonical).digest('hex'),
+        ],
+      );
+      await oversizedClient.query('COMMIT');
+    } catch (error) {
+      const code =
+        typeof error === 'object' && error !== null && 'code' in error ? error.code : undefined;
+      oversizedDatabaseRejected = code === '22023';
+      await oversizedClient.query('ROLLBACK').catch(() => undefined);
+    } finally {
+      oversizedClient.release();
+    }
+    if (!oversizedDatabaseRejected) {
+      throw new Error('PostgreSQL did not independently enforce the canonical byte limit');
+    }
+
+    const cursorBoundaryJobs = await Promise.all(
+      [1, 2, 3].map((index) => createDurable(`durable-job-microsecond-cursor-${index}`, { index })),
+    );
+    const cursorTimestamps = [
+      '2099-01-01T00:00:00.123001Z',
+      '2099-01-01T00:00:00.123002Z',
+      '2099-01-01T00:00:00.123003Z',
+    ];
+    const cursorUpdateValues = cursorBoundaryJobs.flatMap((entry, index) => [
+      entry.job.id,
+      cursorTimestamps[index],
+    ]);
+    await projectAdminDatabase.pool.query(
+      `UPDATE platform.durable_job AS job
+       SET created_at = cursor_values.created_at::timestamptz
+       FROM (VALUES ${cursorBoundaryJobs
+         .map((_, index) => `($${index * 2 + 1}::uuid, $${index * 2 + 2}::text)`)
+         .join(', ')}) AS cursor_values(id, created_at)
+       WHERE job.id = cursor_values.id`,
+      cursorUpdateValues,
+    );
+    const pagedCursorIds: string[] = [];
+    let cursor: string | undefined;
+    for (let pageNumber = 0; pageNumber < cursorBoundaryJobs.length; pageNumber += 1) {
+      const page = await listDurableJobs(appRuntimeDatabase, {
+        ...durableScope,
+        limit: 1,
+        ...(cursor ? { cursor } : {}),
+      });
+      const nextId = page.jobs[0]?.id;
+      if (!nextId)
+        throw new Error('Microsecond pagination ended before all durable Jobs were returned');
+      pagedCursorIds.push(nextId);
+      cursor = page.nextCursor;
+    }
+    const expectedCursorIds = cursorBoundaryJobs.map((entry) => entry.job.id);
+    if (
+      pagedCursorIds.length !== new Set(pagedCursorIds).size ||
+      expectedCursorIds.some((id) => !pagedCursorIds.includes(id))
+    ) {
+      throw new Error(
+        'Job pagination skipped or duplicated rows inside one PostgreSQL millisecond',
+      );
+    }
+    let oversizedCursorRejected = false;
+    try {
+      await listDurableJobs(appRuntimeDatabase, {
+        ...durableScope,
+        limit: 1,
+        cursor: 'x'.repeat(257),
+      });
+    } catch (error) {
+      oversizedCursorRejected =
+        error instanceof DurableJobRepositoryError && error.code === 'job_not_found';
+    }
+    if (!oversizedCursorRejected) throw new Error('Unbounded Job cursor was not rejected');
+
     const canonicalRows = await projectAdminDatabase.pool.query<{
       jobs: string;
       contracts: string;
@@ -1004,8 +1227,7 @@ try {
           throw new Error('Worker role gained direct Job/Attempt table privileges');
         }
       } catch (error) {
-        await jobRlsClient.query('ROLLBACK');
-        throw error;
+        await rollbackBeforeRethrowing(() => jobRlsClient.query('ROLLBACK'), error);
       } finally {
         jobRlsClient.release();
       }
@@ -1175,6 +1397,16 @@ try {
         },
       );
       await durableWorkerRuntime.start();
+      await new Promise((resolveWait) => setTimeout(resolveWait, 1_250));
+      if (
+        workerEvents.some(
+          (event) => event.includes('jobs.worker_error') || event.includes('jobs.queue_error'),
+        )
+      ) {
+        throw new Error(
+          'Healthy BullMQ worker emitted a Redis error during a long blocking idle wait',
+        );
+      }
       const integrityCompleted = await waitFor(
         () => getDurableJob(appRuntimeDatabase, { ...durableScope, jobId: durableJobId }),
         (job) => job?.status === 'succeeded',
@@ -2217,6 +2449,28 @@ process.stdout.write(
 process.stdout.write(
   'Disposable Compose teardown: PASS (isolated containers, volumes and networks removed).\n',
 );
+
+function contractSpecificationAtByteLength(byteLength: number): Record<string, string> {
+  const keys = Array.from({ length: 16 }, (_, index) => `k${String(index).padStart(4, '0')}`);
+  const emptyValues = Object.fromEntries(keys.map((key) => [key, '']));
+  const emptyCanonical = JSON.stringify(emptyValues);
+  if (!emptyCanonical) throw new Error('Unable to build canonical byte-boundary fixture');
+  let remainingBytes = byteLength - Buffer.byteLength(emptyCanonical, 'utf8');
+  if (remainingBytes < 0 || remainingBytes > keys.length * 4_096) {
+    throw new Error('Requested canonical byte-boundary fixture exceeds per-string constraints');
+  }
+  const specification: Record<string, string> = {};
+  for (const key of keys) {
+    const valueLength = Math.min(4_096, remainingBytes);
+    specification[key] = 'x'.repeat(valueLength);
+    remainingBytes -= valueLength;
+  }
+  const canonical = JSON.stringify(specification);
+  if (remainingBytes !== 0 || !canonical || Buffer.byteLength(canonical, 'utf8') !== byteLength) {
+    throw new Error('Canonical byte-boundary fixture did not match its requested size');
+  }
+  return specification;
+}
 
 function composeArgs(args: string[]): string[] {
   return [

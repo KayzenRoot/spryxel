@@ -117,7 +117,7 @@ export function compileAssetContract(draft: AssetContractDraft): CompiledAssetCo
     if (value === null || typeof value === 'boolean') return value;
     if (typeof value === 'string') {
       const normalized = value.normalize('NFC');
-      if (Buffer.byteLength(normalized, 'utf8') > 4_096) {
+      if (!isJsonbSafeString(normalized) || Buffer.byteLength(normalized, 'utf8') > 4_096) {
         throw new AssetContractValidationError('invalid_specification');
       }
       return normalized;
@@ -137,13 +137,14 @@ export function compileAssetContract(draft: AssetContractDraft): CompiledAssetCo
       if (prototype !== Object.prototype && prototype !== null) {
         throw new AssetContractValidationError('invalid_specification');
       }
-      const output: Record<string, JsonValue> = {};
+      const output = Object.create(null) as Record<string, JsonValue>;
       for (const key of Object.keys(value).sort(compareCanonicalKeys)) {
         const normalizedKey = key.normalize('NFC');
         if (
           !normalizedKey ||
+          !isJsonbSafeString(normalizedKey) ||
           Buffer.byteLength(normalizedKey, 'utf8') > 256 ||
-          normalizedKey in output
+          Object.hasOwn(output, normalizedKey)
         ) {
           throw new AssetContractValidationError('invalid_specification');
         }
@@ -189,6 +190,21 @@ function canonicalJson(value: JsonValue): string {
     .sort(compareCanonicalKeys)
     .map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key] as JsonValue)}`)
     .join(',')}}`;
+}
+
+function isJsonbSafeString(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const codeUnit = value.charCodeAt(index);
+    if (codeUnit === 0) return false;
+    if (codeUnit >= 0xd800 && codeUnit <= 0xdbff) {
+      const nextCodeUnit = value.charCodeAt(index + 1);
+      if (!(nextCodeUnit >= 0xdc00 && nextCodeUnit <= 0xdfff)) return false;
+      index += 1;
+    } else if (codeUnit >= 0xdc00 && codeUnit <= 0xdfff) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function compareCanonicalKeys(left: string, right: string): number {

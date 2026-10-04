@@ -96,4 +96,40 @@ describe('runtime configuration', () => {
       ConfigValidationError,
     );
   });
+
+  it('requires only the least-privilege worker database URL for a production worker', () => {
+    const workerConfig = parseRuntimeConfig(
+      {
+        NODE_ENV: 'production',
+        WORKER_DATABASE_URL: 'postgresql://worker:secret@localhost/app',
+        REDIS_URL: 'redis://localhost:6379/0',
+      },
+      'worker',
+    );
+    expect(workerConfig.databaseUrl).toBeUndefined();
+    expect(workerConfig.workerDatabaseUrl).toBe('postgresql://worker:secret@localhost/app');
+
+    expect(() =>
+      parseRuntimeConfig(
+        {
+          NODE_ENV: 'production',
+          REDIS_URL: 'redis://localhost:6379/0',
+        },
+        'worker',
+      ),
+    ).toThrow(ConfigValidationError);
+
+    expect(() =>
+      parseRuntimeConfig(
+        {
+          NODE_ENV: 'production',
+          WORKOS_API_KEY: 'sk_workos_secret',
+          WORKOS_CLIENT_ID: 'client_fixture',
+          WORKOS_ISSUER: 'https://auth.example.test',
+          WORKOS_TOKEN_AUDIENCE: 'https://api.example.test',
+        },
+        'api',
+      ),
+    ).toThrow(ConfigValidationError);
+  });
 });

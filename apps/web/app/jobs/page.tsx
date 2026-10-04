@@ -1,7 +1,8 @@
 import { GlobalShell } from '../components/global-shell';
+import { ProjectLoadFailure } from '../components/project-load-failure';
 import { requireWebSession } from '../../src/auth/session';
-import { fetchProjects } from '../../src/projects/api';
-import { assertJobApiError, fetchJobs, JobApiError } from '../../src/jobs/api';
+import { assertProjectApiError, fetchProjects, type ProjectApiError } from '../../src/projects/api';
+import { assertJobApiError, fetchJobs } from '../../src/jobs/api';
 import { JobList, JobLoadProblem } from './job-list';
 
 export default async function JobsPage({
@@ -14,21 +15,17 @@ export default async function JobsPage({
   const tenantId = typeof query.tenantId === 'string' ? query.tenantId : undefined;
   const projectId = typeof query.projectId === 'string' ? query.projectId : undefined;
   let projectList: Awaited<ReturnType<typeof fetchProjects>> | undefined;
-  let projectFailure: number | undefined;
+  let projectFailure: ProjectApiError | undefined;
   try {
     projectList = await fetchProjects(session, tenantId);
   } catch (error) {
-    try {
-      assertJobApiError(error);
-    } catch {
-      projectFailure = 503;
-    }
-    if (error instanceof JobApiError) projectFailure = error.status;
+    assertProjectApiError(error);
+    projectFailure = error;
   }
   const activeTenant = tenantId ?? projectList?.tenantId ?? '';
   let jobs: Awaited<ReturnType<typeof fetchJobs>> | undefined;
   let jobFailure: number | undefined;
-  if (activeTenant) {
+  if (projectList && activeTenant) {
     try {
       jobs = await fetchJobs(session, {
         tenantId: activeTenant,
@@ -85,10 +82,10 @@ export default async function JobsPage({
           </button>
         </form>
       ) : projectFailure ? (
-        <JobLoadProblem status={projectFailure} />
+        <ProjectLoadFailure error={projectFailure} resource="workspace" retryHref="/jobs" />
       ) : null}
       <section aria-label="Durable jobs" className="grid gap-3">
-        {jobFailure ? (
+        {projectFailure ? null : jobFailure ? (
           <JobLoadProblem status={jobFailure} />
         ) : jobs ? (
           <JobList jobs={jobs.jobs} tenantId={activeTenant} />

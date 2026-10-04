@@ -68,3 +68,44 @@ Na primeira execução browser do espelho Linux, o Chromium não abriu porque fa
 A descrição da PR #30 contém o SHA exato do head candidato e, após conclusão, os URLs/conclusões dos quatro required checks (`Repository validation`, `Pipeline integrity`, `Gitleaks secrets`, `Trivy filesystem and configuration`) e SonarCloud no mesmo SHA. Nenhum resultado de outro SHA será reaproveitado. Não há merge nem promoção de checkpoint.
 
 **STOP CONDITION:** `SPRYXEL_IMP_004_ASSET_CONTRACT_DURABLE_JOB_BACKBONE_READY_FOR_AUDIT`
+
+## Correction-01 — C-01-A…C-01-J
+
+Todos os dez findings do Correction Delta 01 foram corrigidos, preservando o IMP-004 existente e os baselines WO-005…WO-007. O Work Order, Context Lock, D-001…D-161, .gef, checkpoint, GEF 1.1.1, workflows, ruleset, provider e source seed permaneceram inalterados. Nenhuma dependência ou lockfile foi alterado.
+
+- **C-01-A/B:** cancelamento trata somente JobApiError conhecido e retorna ao detalhe para recarregar estado durável; listagem de projetos preserva 401/403/404/502/503 seguros, validando ProjectApiError e propagando erros inesperados. Regressões cobrem corrida terminal, falha transitória e os estados de autorização/dependência.
+- **C-01-C:** worker usa conexão Redis blocking dedicada sem commandTimeout curto; conexões auxiliares continuam limitadas. Erros de Queue/Worker passam por telemetria segura, sanitizada e limitada por taxa. Teste real manteve o worker ocioso por 1,25 s sem erro artificial nem tempestade de logs.
+- **C-01-D:** configuração de produção do worker exige somente a credencial DB dedicada do worker; testes cobrem sucesso sem credencial app e falha quando falta a credencial worker.
+- **C-01-E:** cursor preserva microssegundos de PostgreSQL e tem validação bounded. Paginação em PostgreSQL real percorreu Jobs no mesmo milissegundo sem omissão ou duplicação; cursor excessivo é rejeitado.
+- **C-01-F/G:** migration forward-only 0006_asset_contract_canonical_bytes.sql mede e valida no PostgreSQL a mesma representação UTF-8 canônica usada pelo domínio (limite 65.536 bytes). Testes reais cobrem 65.535/65.536/65.537 bytes, hash, NUL, surrogates inválidos, colisão NFC e chaves __proto__/similares. O teste de envelope oversized agora usa múltiplas strings individualmente válidas e exercita specification_too_large.
+- **C-01-H:** infra:up reconcilia de forma idempotente a role spryxel_worker em banco inicializado, sem reset de volume; regressão remove/recria a role no PostgreSQL descartável, roda migrations e valida least privilege.
+- **C-01-I/J:** fixture fora de Jobs não cria projeto de demonstração, inclusive com cenários em ordem alternada; falha de ROLLBACK não substitui a exceção original da integração.
+- Regressões pré-existentes do IMP-004 continuam passando: idempotência/replay concorrente, RLS e isolamento cross-tenant, projeção/reconciliação Redis, claim/lease/crash recovery, retries limitados, cancelamento, API e S3 autenticado.
+
+### Acceptance HIGH_ASSURANCE após Correction-01
+
+Runtime oficial: Node v22.23.3 e npm 10.9.9, no espelho Linux observável pelo GEF; a execução de aceitação após as correções é a evidência oficial desta entrega.
+
+| Verificação | Resultado |
+|---|---|
+| npm ci --no-audit --no-fund | PASS; instalação limpa concluída; sem mudança de dependências/lockfile |
+| npm run format:check | PASS; 111 arquivos |
+| npm run lint | PASS; 111 arquivos |
+| npm run typecheck -- --force | PASS; 18 tarefas |
+| npm run build -- --force | PASS; 11 workspaces |
+| npm run architecture:check | PASS; 11 workspaces/15 arestas internas; sem ciclos ou arestas proibidas |
+| npm run test:unit | PASS; 87/87 testes em 21 arquivos |
+| npm run test:worker | PASS; smoke em processo Node separado |
+| npm run test:integration | PASS; PostgreSQL/RLS, Redis/BullMQ e SeaweedFS reais, incluindo regressões C-01-E/F/G/H/J |
+| npm run test:browser | PASS; 19/19, incluindo estados de erro, cancelamento, isolamento das fixtures e regressões AuthKit |
+| npm test | PASS, exit code 0; repetiu unidade (87), worker, integração real e browser (19/19) |
+| npm audit --audit-level=high | PASS; zero vulnerabilidades |
+| git diff --check | PASS; sem erros de whitespace |
+
+A integração reportou seis migrations aplicadas e validou limites do contrato no banco, concorrência/replay, RLS, role matrix, crash/lease, cancelamento, API segura, perda/reconstrução Redis e SeaweedFS S3 autenticado. O harness removeu somente containers, volumes e redes descartáveis isolados; PostgreSQL usou PGDATA em tmpfs Linux.
+
+### GEF e candidato desta correção
+
+gef doctor --target . --json: exit 0, ok=true, terminal=SUCCEEDED, effect=NONE, versão 1.1.1; Node, Git, plataforma e observabilidade HEALTHY, sem limites de observação ou remediação. Duas leituras gef status --target . --json no espelho tiveram bytes idênticos; saída bruta DIRTY/OBSERVED, sem limites, checkpoint legível, operator.stale=true e drift bruto UNEXPECTED. A interpretação e autorização seguem D-0007: Work Order + Context Lock + diff autorizado; nenhum baseline foi reescrito. Após o commit, as leituras determinísticas no exact final head e seu SHA-256 serão registrados no corpo da PR #30.
+
+O exact final HEAD, URLs e conclusões dos quatro required checks, Sonar/Socket e contagem de review threads serão registrados no corpo da PR #30 após o push. Nenhum check de SHA anterior será reutilizado.

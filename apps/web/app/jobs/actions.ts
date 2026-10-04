@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { requireWebSession } from '../../src/auth/session';
-import { cancelJob } from '../../src/jobs/api';
+import { assertJobApiError, cancelJob } from '../../src/jobs/api';
 
 export async function cancelJobAction(formData: FormData): Promise<void> {
   const tenantId = formData.get('tenantId');
@@ -12,7 +12,11 @@ export async function cancelJobAction(formData: FormData): Promise<void> {
     redirect('/jobs');
   }
   const session = await requireWebSession();
-  await cancelJob(session, { tenantId, projectId, jobId });
+  try {
+    await cancelJob(session, { tenantId, projectId, jobId });
+  } catch (error) {
+    assertJobApiError(error);
+  }
   redirect(
     `/jobs/${encodeURIComponent(jobId)}?projectId=${encodeURIComponent(projectId)}&tenantId=${encodeURIComponent(tenantId)}`,
   );

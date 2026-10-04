@@ -46,12 +46,40 @@ describe('Asset Contract compiler and durable Job policy', () => {
     expect(() => compileAssetContract({ skuId: 'SKU-999', specification: {} })).toThrow(
       AssetContractValidationError,
     );
+    const oversizedEnvelope = Object.fromEntries(
+      Array.from({ length: 17 }, (_, index) => [`field-${index}`, 'x'.repeat(4_096)]),
+    );
     expect(() =>
-      compileAssetContract({ skuId: 'SKU-001', specification: { text: 'x'.repeat(65_537) } }),
-    ).toThrow(AssetContractValidationError);
+      compileAssetContract({ skuId: 'SKU-001', specification: oversizedEnvelope }),
+    ).toThrow(expect.objectContaining({ code: 'specification_too_large' }));
     expect(() =>
       compileAssetContract({ skuId: 'SKU-001', specification: { value: Number.NaN } }),
     ).toThrow(AssetContractValidationError);
+  });
+
+  it('rejects strings and keys PostgreSQL jsonb cannot represent', () => {
+    for (const value of ['\u0000', '\ud800', '\udc00']) {
+      expect(() => compileAssetContract({ skuId: 'SKU-001', specification: { value } })).toThrow(
+        AssetContractValidationError,
+      );
+      expect(() =>
+        compileAssetContract({ skuId: 'SKU-001', specification: { [value]: 1 } }),
+      ).toThrow(AssetContractValidationError);
+    }
+  });
+
+  it('accepts JSONB-valid prototype-like keys and rejects NFC-normalized collisions', () => {
+    const prototypeLikeKeys = JSON.parse(
+      '{"__proto__":{"safe":true},"constructor":"ok"}',
+    ) as unknown;
+    const compiled = compileAssetContract({ skuId: 'SKU-001', specification: prototypeLikeKeys });
+    expect(compiled.canonicalSpecification).toBe('{"__proto__":{"safe":true},"constructor":"ok"}');
+    expect(Object.getPrototypeOf(compiled.specification)).toBeNull();
+
+    const collidingKeys = Object.assign({}, { 'e\u0301': 1, é: 2 });
+    expect(() => compileAssetContract({ skuId: 'SKU-001', specification: collidingKeys })).toThrow(
+      expect.objectContaining({ code: 'invalid_specification' }),
+    );
   });
 
   it('enforces the finite state machine and bounded retry path', () => {

@@ -54,30 +54,48 @@ if (action === 'up') {
   }
 }
 
-await new Promise<void>((resolveRun, reject) => {
-  const child = spawn(
-    'docker',
-    [
-      'compose',
-      '--env-file',
-      envPath,
-      '--project-name',
-      'spryxel-local',
-      '--file',
-      composePath,
-      '--profile',
-      'infra',
-      action === 'up' ? 'up' : 'down',
-      ...(action === 'up' ? ['--build', '--detach', '--wait', '--wait-timeout', '90'] : []),
-    ],
-    { cwd: root, windowsHide: true, stdio: 'inherit' },
-  );
-  child.once('error', reject);
-  child.once('close', (code) => {
-    if (code === 0) resolveRun();
-    else reject(new Error(`Docker Compose ${action} failed with exit code ${code}`));
+const composePrefix = [
+  'compose',
+  '--env-file',
+  envPath,
+  '--project-name',
+  'spryxel-local',
+  '--file',
+  composePath,
+  '--profile',
+  'infra',
+];
+
+async function runCompose(args: string[], operation: string): Promise<void> {
+  await new Promise<void>((resolveRun, reject) => {
+    const child = spawn('docker', [...composePrefix, ...args], {
+      cwd: root,
+      windowsHide: true,
+      stdio: 'inherit',
+    });
+    child.once('error', reject);
+    child.once('close', (code) => {
+      if (code === 0) resolveRun();
+      else reject(new Error(`Docker Compose ${operation} failed with exit code ${code}`));
+    });
   });
-});
+}
+
+if (action === 'up') {
+  await runCompose(['up', '--build', '--detach', '--wait', '--wait-timeout', '90'], 'up');
+  await runCompose(
+    [
+      'exec',
+      '--no-TTY',
+      'postgres',
+      '/bin/sh',
+      '/docker-entrypoint-initdb.d/10-create-app-role.sh',
+    ],
+    'restricted database role provisioning',
+  );
+} else {
+  await runCompose(['down'], 'down');
+}
 
 process.stdout.write(
   action === 'up'
