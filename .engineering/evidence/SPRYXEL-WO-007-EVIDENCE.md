@@ -49,7 +49,7 @@
 - Correção do harness: `infra/compose.yml`, `infra/postgres/Dockerfile`, `scripts/run-integration.ts`, `scripts/postgres-test-harness.test.ts`, `.engineering/correction-deltas/SPRYXEL-WO-007-CORRECTION-01.md`.
 - Domínio/contratos/repositório/schema: `packages/domain/src`, `packages/contracts/src`, `packages/db/src/index.ts`, `packages/db/src/migrations/0004_projects.sql`.
 - API: `apps/api/src/server.ts`.
-- Web: `apps/web/app`, `apps/web/src/auth`, `apps/web/src/projects`, `apps/web/proxy.ts`, `apps/web/next.config.ts`, `apps/web/tsconfig.json`.
+- Web: `apps/web/app`, `apps/web/src/auth`, `apps/web/src/projects` (inclui regressão `api.test.ts`), `apps/web/proxy.ts`, `apps/web/next.config.ts`, `apps/web/tsconfig.json`.
 - Integração de testes/arquitetura: `scripts/run-integration.ts`, `scripts/architecture-guard.ts`, `scripts/architecture-guard.test.ts`, `scripts/run-browser-api.ts`, `scripts/check-architecture.ts`, `playwright.config.ts`.
 - Evidência: este arquivo. Arquivos de manifest/lock, decisões, checkpoint, Context Lock, workflows, ruleset, provider e source seed não foram alterados.
 
@@ -65,7 +65,7 @@ Ambiente oficial: Node `v22.23.3`; npm `10.9.9`.
 | `npm run typecheck` | PASS |
 | `npm run build` | PASS |
 | `npm run architecture:check` | PASS; inclui inspeção dos 14 arquivos da aplicação Web |
-| `npm run test:unit` (via `npm test`) | PASS; 71/71 testes |
+| `npm run test:unit` (via `npm test`) | PASS; 73/73 testes (19 arquivos) |
 | `npm run test:worker` (via `npm test`) | PASS; worker smoke |
 | `npm run test:integration` (via `npm test`) | PASS; serviços reais PostgreSQL/migrations/RLS, Redis/BullMQ e SeaweedFS S3 autenticado |
 | `npm run test:browser` (via `npm test`) | PASS; Playwright 10/10 |
@@ -83,6 +83,13 @@ A aceitação local de formatação usa apenas o parâmetro CRLF necessário ao 
 - O comparador do checker agora usa `localeCompare`. A migration centraliza leitura de contexto, membership ativa, autorização OWNER/ADMIN e identificação do evento `project.created` em funções SQL explícitas, com `search_path` restrito e `EXECUTE` concedido somente a `spryxel_app`; as expressões de RLS continuam fail-closed e a integração real pós-alteração passou.
 - Uma tentativa focada executada em paralelo com `npm run test:integration` colidiu nos builds do Next (`Another next build process is already running`). Essa tentativa foi descartada como evidência de acceptance. Depois a sequência completa abaixo foi executada serialmente e passou.
 - A análise Sonar e os quatro required checks devem ser avaliados novamente no novo exact head; o resultado falho de `f73606a` não é reutilizado para o candidato posterior.
+
+## Correções de revisão de código
+
+- A revisão no head `083b279f2b6d128b242d81d2b91cd5fc9b6155b2` identificou que respostas JSON inválidas poderiam virar um estado degradado sem classificação e que o timeout do coletor diagnóstico não escalava o filho para SIGKILL.
+- O cliente da API agora mapeia JSON inválido para `ProjectApiError(502)`; Home e Projects mostram o estado degradado apenas para erros tipados da API e repropagam erros inesperados para o tratamento normal do Next.
+- `captureOutput` agora envia SIGKILL após o período de tolerância; regressão do harness verifica a escalada dentro da função de diagnóstico.
+- Regressão `apps/web/src/projects/api.test.ts` comprova que resposta JSON inválida gera `ProjectApiError(502)`. Após a execução HIGH_ASSURANCE serial, format/lint/unit foram repetidos após limpeza de warning de import: PASS, 73/73 testes. Nenhum resultado de `083b279` será reutilizado como validação do commit posterior.
 
 ## Segurança, compatibilidade e limites
 
