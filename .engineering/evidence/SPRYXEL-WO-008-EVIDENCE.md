@@ -215,3 +215,30 @@ Uma primeira tentativa do agregado teve uma falha transitória de navegação em
 O SonarCloud do head predecessor `65cfa42b2b1b0d478e021f93819e78768fd2d9f9` falhou o Quality Gate por 9,2% de duplicação ([resultado histórico](https://github.com/KayzenRoot/spryxel/runs/111452403358)); a migration foi refatorada para retirar cópias integrais de rotinas SQL e essa falha não será reutilizada como resultado do candidato atual. A descrição viva da [PR #30](https://github.com/KayzenRoot/spryxel/pull/30) carregará o SHA exato final e os IDs/URLs/conclusões dos quatro required checks, SonarCloud e Socket, além das threads pendentes. Checks de `65cfa42b2b1b0d478e021f93819e78768fd2d9f9`, `ba8cd741b86533ef8e5e1f72e07f2c0d7caa692e` ou qualquer SHA anterior não serão reutilizados. Os IDs de checks só são criados após o commit que os aciona; por isso o ciclo do exact head será documentado na PR sem alegar que o commit de evidência contém resultados que ainda não existiam quando foi criado.
 
 **STOP CONDITION:** `SPRYXEL_IMP_004_ASSET_CONTRACT_DURABLE_JOB_BACKBONE_READY_FOR_AUDIT`
+
+## Correction-04 — isolamento de fixtures paralelas (13/10/2026)
+
+**Estado deste delta: IMPLEMENTED / ACCEPTANCE PENDING / CORRECTION REQUIRED.** Este registro não certifica APPROVED, não promove checkpoint e não substitui os acceptance runs HIGH_ASSURANCE exigidos pela Work Order.
+
+### Identidade e escopo
+
+- Work Order: `SPRYXEL-WO-008 / SPRYXEL-IMP-004`, risco HIGH_ASSURANCE, issue #29, PR #30.
+- Base autorizada: `main@08bd429bb924e26f7d5266ee9b556cc8da2c8b8c`.
+- Correction Delta: `.engineering/correction-deltas/SPRYXEL-WO-008-CORRECTION-04.md`.
+- Evidência de revisão da correção C-03-A é preservada; C-04-A/B ainda requerem aceitação canônica.
+- Mudanças de código/teste: `scripts/run-browser-api.ts` e `apps/web/app/page.spec.ts`, commits `785c647e6d95a90504351aed8a966427e1dcc7d4`, `6c21ed2323ccb07cf1a67d0bce7e2898d1b98d29` e ajuste de espaçamento `c8dc6f1faa7411c0026e7df73dc3cde019ce25dd`.
+
+### Correção implementada, ainda sem prova de runtime
+
+- A fixture `ensureJobsFixture` admite `jobs-populated-*` mantendo o estado inicial `queued` e identidade derivada de cada scope. Cada scope determina subject, tenant, projeto, job e URLs diferentes no test harness não produtivo.
+- Os dois testes antes compartilhados foram isolados em `jobs-populated-cancellable` e `jobs-populated-overview`, impedindo que o cancelamento de um altere o Job observado pelo outro.
+- Um novo teste explícito abre dois contextos independentes simultaneamente, usa scopes `jobs-populated-cancel-isolation` e `jobs-populated-read-isolation`, verifica URLs distintas, cancela o primeiro Job e exige que o segundo continue `queued` após reload.
+- `playwright.config.ts` mantém `fullyParallel: true`, `retries: 0`, sem override global de workers; não houve sleeps, reconfiguração de testes, mudança de código produtivo, workflow, ruleset, provider, GEF/.gef, Work Order, Context Lock, D-001…D-161 ou checkpoint canônico.
+- **Validação funcional ainda não executada sobre estes commits**: `npm run test:browser` duas vezes sem flags especiais; `npm test` sem flags especiais; instalação limpa, format, lint, typecheck, build, arquitetura, integração real PostgreSQL/RLS + Redis/BullMQ + SeaweedFS, audit, GEF e diff-check. O resultado serial 19/19 anterior é histórico e não comprova esta correção.
+- Os checks hospedados do candidato **antes deste commit de Evidence Bundle** foram PASS em `c8dc6f1faa7411c0026e7df73dc3cde019ce25dd` (4 required, SonarCloud, 2 Socket; 0 review threads pendentes). São evidencia de um SHA anterior, **não** do futuro HEAD final deste commit. Os resultados do HEAD final e URLs ficam na descrição viva da PR após seu push.
+
+### Gate restante
+
+**CORRECTION REQUIRED** até a aceitação HIGH_ASSURANCE completa e determinística, incluindo o paralelismo canônico e a reauditoria independente. Sem `APPROVED`, não promover checkpoint, não fazer merge e não iniciar Credit Ledger/CostGuard.
+
+**STOP CONDITION ainda não atingida:** `SPRYXEL_IMP_004_ASSET_CONTRACT_DURABLE_JOB_BACKBONE_READY_FOR_AUDIT`.
