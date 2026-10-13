@@ -157,7 +157,6 @@ test('Jobs Center lists durable state and reload preserves details and cancellat
   expect(tenantId).toMatch(/^[0-9a-f-]{36}$/i);
 });
 
-
 test('concurrent Jobs sessions isolate cancellation from independent overview state', async ({
   browser,
 }) => {
