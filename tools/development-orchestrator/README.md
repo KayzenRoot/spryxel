@@ -38,6 +38,9 @@ The example manifest contains real issue numbers but is **intentionally NOT ADMI
 5. Reviewer/audit and protected-GitHub merge gate: all required CI contexts on final HEAD, independent verdict, 0 unresolved blockers, separately authorized checkpoint promotion.
 6. Dashboard for agent wall time, token usage, PR cycle time, failed attempts and regressions. No assumed percentage speedups.
 
+## ChatGPT-first review routing and nonblocking closeout
+Owner direction #62: after every Codex batch, ChatGPT reviews returned PRs and fixes scoped corrections directly through GitHub wherever safe and verifiable. P0 security/data/cost and P1 required correctness/CI/acceptance remain blocking. P2 only if **not required by admitted WO/DoD**, may be tracked to explicit module closeout; P3 optional backlog. Local Codex rerun is last resort for environment-only tests or complex fixes, grouped into one Correction Delta. See `REVIEW-ROUTING.md`, `REVIEW-REPORT-TEMPLATE.md` and test-speed #61. Neither suppression of required checks nor premature merge is permitted.
+
 ## Risk and batching
 Default 3 parallel standard-low agents; bounded maximum 4. Never split a HIGH_ASSURANCE financial/security/auth/migration work across builders concurrently. Shared contracts, database migrations, root package changes, security, branch protection, and GEF require explicit exclusive locks and suitable risk evidence. Do not secretly disable CI or waive tests. Source hierarchy always supersedes the planner. Site graphics and legal docs are parallel *only after shared route/i18n/theme contracts are frozen*, and legal text requires qualified review before public launch.
 
