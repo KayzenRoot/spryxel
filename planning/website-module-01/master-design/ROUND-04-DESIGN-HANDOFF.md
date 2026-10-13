@@ -5,7 +5,7 @@ Sources: issue #70, master design PR #75, Round 03 previews, and canonical .engi
 
 ## Documents
 - ROUND-04-DESIGN-TOKENS.plan.json: 15 public semantic token roles, two theme samples, typography, spacing, breakpoints and motion.
-- ROUND-04-COMPONENT-CONTRACTS.plan.json: 18 component slots, owners, dependencies, proposed APIs, state matrices and test criteria.
+- ROUND-04-COMPONENT-CONTRACTS.plan.json: 19 component slots, owners, dependencies, proposed APIs, state matrices and test criteria.
 - ROUND-04-REVIEW-GATES.md: P1 design freeze blockers, P2 refinements, owner signoff and test matrix.
 - Round 03 editable HTML/CSS and full-page PNGs live in the user-facing conversation ZIP, **not committed** to GitHub as binaries. SHA and provenance are recorded in ROUND-03-VISUAL-CANDIDATE.md. A draft screenshot is NOT an application component or approved final brand vector.
 
