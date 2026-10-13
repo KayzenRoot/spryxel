@@ -15,7 +15,7 @@ export function simulateContinuousDispatch(manifest){
  const tasks=new Map(manifest.workOrders.filter(x=>allowed.has(x.id)).map(x=>[x.id,x]));
  const all=[...tasks.values()];
  // R0 budgets in planBatch are *per wave*. Real dispatcher must also enforce per-prompt absolute caps.
- if(manifest.maxTotalTokenBudget!==undefined){
+ {
   guard(Number.isSafeInteger(manifest.maxTotalTokenBudget)&&manifest.maxTotalTokenBudget>0,'invalid maxTotalTokenBudget');
   guard(all.reduce((v,t)=>v+t.tokenBudget,0)<=manifest.maxTotalTokenBudget,'TOTAL_TOKEN_BUDGET_EXCEEDED; adjust tasks or admission');
  }
