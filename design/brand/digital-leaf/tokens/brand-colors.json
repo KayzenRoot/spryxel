@@ -1,40 +1,24 @@
 {
-  "$schema": "https://design-tokens.github.io/community-group/format/",
-  "name": "Spryxel Digital Leaf candidate brand colors",
-  "status": "DRAFT_NOT_APPROVED",
+  "name": "Spryxel Digital Leaf - owner reference palette",
+  "status": "OWNER_DIRECTION_CONFIRMED_VECTOR_REVIEW_PENDING",
   "notProductUiTokens": true,
-  "colors": {
-    "lime": {
-      "value": "#C8FF3D",
-      "description": "Bright leaf highlight"
-    },
-    "limeAccent": {
-      "value": "#BDFF37"
-    },
-    "mint": {
-      "value": "#70F4A7"
-    },
-    "turquoise": {
-      "value": "#23DBD3"
-    },
-    "azure": {
-      "value": "#12A9CD"
-    },
-    "ink": {
-      "value": "#102126"
-    },
-    "white": {
-      "value": "#FFFFFF"
-    }
+  "reference": "2026-10-13 owner brand board attached in conversation, not yet present in GitHub as binary",
+  "palette": {
+    "lime": "#A3FF00",
+    "cyan": "#00E5FF",
+    "orange": "#FF8A00",
+    "pink": "#FF2D55",
+    "violet": "#7B2DFF",
+    "mint": "#00FFC8",
+    "yellow": "#FFD400"
   },
-  "themes": {
-    "dark": {
-      "background": "#081319",
-      "foreground": "#FFFFFF"
-    },
-    "light": {
-      "background": "#F7FAFC",
-      "foreground": "#102126"
-    }
-  }
+  "dark": "#081319",
+  "light": "#F7FAFC",
+  "tagline": "CREATE. PLAY. BUILD.",
+  "primaryMotif": "two luminous glass leaves: short amber/lime left, tall lime/cyan right",
+  "notes": [
+    "Do not silently change canonical UI tokens",
+    "SVG drafts need visual approval against original board",
+    "Prepare raster/favicon/social files only after review"
+  ]
 }
