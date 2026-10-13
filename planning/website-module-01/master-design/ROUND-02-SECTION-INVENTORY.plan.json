@@ -1,0 +1,211 @@
+{
+  "name": "Spryxel Module01 Round02 section inventory",
+  "schemaVersion": "planning-0.2",
+  "status": "DRAFT_NOT_ADMITTED",
+  "references": {
+    "layout": "Option07 3D FOCADO EM WORLDS from painel_de_marca_e_interfaces_spryxel.png",
+    "brand": "Digital Leaf Option05 from IMG_9281.jpeg",
+    "spec": "ROUND-02-SECTIONS-FOOTER.md",
+    "locales": "ROUND-02-COPY-DRAFT.json"
+  },
+  "requiredLocales": [
+    "en",
+    "pt-BR",
+    "es"
+  ],
+  "themes": [
+    "dark",
+    "light"
+  ],
+  "viewportCssPx": [
+    320,
+    375,
+    390,
+    768,
+    1024,
+    1440,
+    1920
+  ],
+  "sections": [
+    {
+      "id": "site-header",
+      "owner": "A5",
+      "dependsOn": [
+        "G1",
+        "G2"
+      ],
+      "featureStatus": "REQUIRES_INTEGRATION",
+      "action": "Sign in only to verified WorkOS entry; other links to published routes",
+      "desktop": "sticky decorative glass navigation; opaque controls",
+      "mobile": "compact brand + lang/theme/menu; accessible drawer"
+    },
+    {
+      "id": "hero",
+      "owner": "A1",
+      "artOwner": "A3",
+      "dependsOn": [
+        "G2"
+      ],
+      "featureStatus": "DIRECTION_ONLY",
+      "action": "#asset-types and #how-it-works",
+      "desktop": "copy left, approved 3D Worlds art right, graphic Pixel/2D cues, not false 3D model claim",
+      "mobile": "copy before licensed static cropped art; primary CTA visible"
+    },
+    {
+      "id": "asset-types",
+      "owner": "A1",
+      "dependsOn": [
+        "G2",
+        "A6"
+      ],
+      "featureStatus": "PRELAUNCH_SCOPE",
+      "cards": [
+        "Characters & NPCs",
+        "Sprites & Pixel Art",
+        "Mobs & Creatures",
+        "Maps & Tilesets",
+        "Items & Props",
+        "UI & HUD"
+      ],
+      "desktop": "3 x 2 feature tiles",
+      "mobile": "1 column 320px, 2 if readable",
+      "action": "detail links only if valid; otherwise static cards tagged in development"
+    },
+    {
+      "id": "how-it-works",
+      "owner": "A1",
+      "dependsOn": [
+        "G2",
+        "A6"
+      ],
+      "featureStatus": "PLANNED_WORKFLOW",
+      "steps": [
+        "Project",
+        "Style reference",
+        "Create",
+        "Review & refine",
+        "Export"
+      ],
+      "desktop": "five cards connected with static stepper",
+      "mobile": "single-column numbered ordered list",
+      "action": "anchors and truthful roadmap copy"
+    },
+    {
+      "id": "showcase",
+      "owner": "A1",
+      "artOwner": "A3",
+      "dependsOn": [
+        "G2",
+        "A6"
+      ],
+      "featureStatus": "LICENSE_OR_GATED",
+      "desktop": "2 spotlight + 3 small concept tiles",
+      "mobile": "one tile wide, no required carousel",
+      "action": "label concept illustrations or omit until licensed"
+    },
+    {
+      "id": "creator-types",
+      "owner": "A1",
+      "dependsOn": [
+        "G2",
+        "A6"
+      ],
+      "featureStatus": "PLANNED_POSITIONING",
+      "cards": [
+        "Indie developers",
+        "Pixel artists",
+        "Small studios"
+      ],
+      "desktop": "3 columns",
+      "mobile": "stacked cards",
+      "action": "link only to approved info"
+    },
+    {
+      "id": "quality-rights",
+      "owner": "A1",
+      "dependsOn": [
+        "G2",
+        "A6"
+      ],
+      "featureStatus": "NEEDS_CLAIM_REVIEW",
+      "desktop": "quiet high contrast section, principles not fake trust badges",
+      "mobile": "text-first",
+      "action": "no unverified rights or compliance badges"
+    },
+    {
+      "id": "faq",
+      "owner": "A4",
+      "copyOwner": "A6",
+      "dependsOn": [
+        "G2"
+      ],
+      "featureStatus": "CONTENT_REVIEW",
+      "desktop": "accessible two-column intro + questions",
+      "mobile": "native expandable details",
+      "action": "published routes and policy links only"
+    },
+    {
+      "id": "final-cta",
+      "owner": "A1",
+      "dependsOn": [
+        "G2",
+        "A6"
+      ],
+      "featureStatus": "NO_FALSE_SIGNUP",
+      "desktop": "banner with safe static 3D Worlds motif",
+      "mobile": "full width content",
+      "action": "Explore #asset-types; How it works #how-it-works"
+    },
+    {
+      "id": "site-footer",
+      "owner": "A5",
+      "copyOwner": "A6",
+      "dependsOn": [
+        "G1",
+        "G2"
+      ],
+      "featureStatus": "LEGAL_CONTENT_GATE",
+      "desktop": "four columns + bottom legal bar",
+      "mobile": "one/two column reflow",
+      "action": "Product/Resources/Company/Legal; cookie settings opens preferences; no unverified contacts"
+    }
+  ],
+  "footerMustHave": [
+    "Terms",
+    "Privacy",
+    "Cookie Policy",
+    "Cookie Settings button",
+    "verified contact if exists",
+    "legitimate socials only",
+    "locale and theme"
+  ],
+  "globalGates": [
+    "G0 Sequencing Decision Delta before implementation",
+    "G1 route+locale owner frozen",
+    "G2 full-page master owner signoff",
+    "WorkOS sign-in CTA verified or gated",
+    "relevant privacy/cookie legal review",
+    "independent exact-head CI/test audit"
+  ],
+  "notApproved": [
+    "prices, free trial, unlimited credits",
+    "user counts/asset totals/testimonials",
+    "3D/video generator availability",
+    "engine integrations",
+    "unverified social links, copyright ownership details"
+  ],
+  "ownership": {
+    "A1": "landing cards/sections/presentation only",
+    "A2": "legal/consent isolated components",
+    "A3": "art assets, hero enhancement with static fallback",
+    "A4": "FAQ/SEO semantics",
+    "A5": "header/footer isolated components",
+    "A6": "EXCLUSIVE WRITER of public locale dictionaries",
+    "A7": "WorkOS public CTA adapter only",
+    "B1": "ROOT route/layout integration only after independent lanes",
+    "B2": "release review/no automatic merge"
+  },
+  "noLiveDispatch": true,
+  "noMerge": true,
+  "noCheckpointPromotion": true
+}
