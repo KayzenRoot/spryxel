@@ -1,12 +1,12 @@
 # SPRYXEL-WO-008 — Pacote de Evidências
 
-**Estado:** `C-03-A implementado; aceitação local concluída; validação hospedada do exact head pendente`
+**Estado do candidato atual (Correction-04, 13/10/2026):** `IMPLEMENTED / ACCEPTANCE PENDING / CORRECTION REQUIRED`. A aceitação HIGH_ASSURANCE canônica com Playwright paralelo ainda **não foi executada** neste candidato; resultados locais C-01…C-03 são históricos.
 **Work Order / incremento:** `SPRYXEL-WO-008` / `SPRYXEL-IMP-004`
 **Risco:** `HIGH_ASSURANCE`
 **Issue / PR:** [#29](https://github.com/KayzenRoot/spryxel/issues/29) / [#30](https://github.com/KayzenRoot/spryxel/pull/30)
 **Base autorizada:** `main@08bd429bb924e26f7d5266ee9b556cc8da2c8b8c`
 **Head remoto de partida desta reexecução:** `dbbdcecade592cbfbe0ce4839bcc8464a764ccda`
-**Head candidato final:** pendente do commit desta correção; nenhum check de SHA anterior será reutilizado. IDs/URLs hospedados serão publicados na PR #30 após os resultados do exact head.
+**HEAD candidato e checks hospedados do candidato atual:** consultar a atestação viva na [PR #30](https://github.com/KayzenRoot/spryxel/pull/30). O Evidence Bundle não se autorreferencia: sua própria atualização gera novo commit/HEAD; checks anteriores permanecem históricos e não substituem aceitação local.
 
 ## Autoridade e preflight
 
