@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {simulateContinuousDispatch} from './continuous-scheduler.mjs';
 const sha='a'.repeat(40);
 const t=(id,estimatedMinutes=20,opts={})=>({id,issue:200,status:'ADMITTED_FOR_EXECUTION',risk:'STANDARD',baseSha:sha,contextLock:'FRESH',dependsOn:[],ownsPaths:['test/'+id],exclusiveLocks:[],priority:2,estimatedMinutes,tokenBudget:1000,...opts});
-const manifest=arr=>({schemaVersion:1,repository:'KayzenRoot/spryxel',baseSha:sha,maxParallel:2,maxBatchTokens:4000,completedWorkOrders:[],workOrders:arr});
+const manifest=arr=>({schemaVersion:1,repository:'KayzenRoot/spryxel',baseSha:sha,maxParallel:2,maxBatchTokens:4000,maxTotalTokenBudget:10000,completedWorkOrders:[],workOrders:arr});
 test('event-driven refill avoids synchronized wave barrier',()=>{
  const m=manifest([t('a',100),t('b',10),t('c',80),t('d',80,{dependsOn:['b']})]);
  const x=simulateContinuousDispatch(m);
