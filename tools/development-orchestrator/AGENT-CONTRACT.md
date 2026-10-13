@@ -25,3 +25,6 @@ Source scout and architect may research independently. Builders only edit assign
 `planner.mjs` is a pure, read-only simulation. The example JSON is not a verified GitHub query. A future GitHub source adapter MUST verify all entries, SHA, Context Locks, dependency receipts, protected paths and current PR states *before dispatch*; JSON `ADMITTED_FOR_EXECUTION` by itself is not sufficient evidence.
 
 No default license to alter branch protection, GEF, canonical sources, Actions permissions or billing/GPU systems. No secret exposure. No automatic recurring agent work from ChatGPT in this PR.
+
+## Review hand-off requirement (#62)
+Every finished agent batch must return exact GitHub PR HEADs, diff/evidence and P0/P1/P2/P3 findings. ChatGPT takes correction ownership for changes safely possible through GitHub; all fixes get an exact new HEAD and validation. Codex is called again only if required by a documented local-only or complex P1 blocker. P2 is tracked to module closeout only if not in current admitted DoD; P0/P1 may not be waived. See `REVIEW-ROUTING.md`.
