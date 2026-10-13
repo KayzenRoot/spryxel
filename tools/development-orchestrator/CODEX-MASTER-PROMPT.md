@@ -41,12 +41,20 @@ For each task, print `id, issue, WO, Context Lock, frozen shared contract versio
 - Profile repetitive root `npm test` build phases. An optimization that builds once and runs each test stage must first demonstrate semantic equivalence on same SHA; until then use approved commands.
 - Push independent PR branches; gather all exact HEAD required workflow checks, security scans, reviewer threads, timing, token usage and actual completion receipts.
 
+**PHASE 3.5: HAND OFF ALL RESULTS TO CHATGPT-FIRST REVIEW**
+- After **every** master prompt / agent batch, produce one review packet with each WO, PR, exact final HEAD, diff, tests, known failures, review findings and pending tasks. Do not automatically request another Codex session for small fixes.
+- ChatGPT performs objective review, classifies P0/P1/P2/P3 under `tools/development-orchestrator/REVIEW-ROUTING.md` and fixes every feasible issue **directly on the scoped GitHub PR branch**, then rechecks exact HEAD evidence.
+- P0/P1 required functionality/security/acceptance defects remain blockers. P2 nonblocking polish is tracked to explicit module closeout with linked issue, owner and no DoD conflict; P3 optional enhancements to future backlog. Deferral is NOT permission to suppress valid review threads or required checks.
+- Only return to Codex for remaining **necessary local/runtime-only acceptance tests or complex corrections**, consolidated into one exact-SHA Correction Delta. Never use Codex to fix a typo or regenerate completed work when ChatGPT can do so safely.
+- While one task is waiting on unavailable local tests, refill **other admitted independent agent lanes** only; do not prematurely unlock dependent WOs.
+
 **PHASE 4: INDEPENDENT AUDIT AND STOP**
 - Give each PR to an independent reviewer that compares implementation against the admitted WO + Context Lock. Verdict `APPROVED`, `CORRECTION REQUIRED` or `BLOCKED` in pt-BR, with exact SHAs/evidence.
 - If a review requires edits, reopen **only that worktree/PR**, re-run targeted feedback then reprove final exact-HEAD acceptance. Do not trust outdated passed checks.
 - Never force push, disable a protected check, self-approve, merge or promote checkpoints. Request explicit owner-governed promotion/merge authorization and validate post-merge before unlocking dependencies.
 
 **FINAL REPORT FORMAT**
+Attach a ChatGPT-first correction ownership matrix: `finding | severity | ChatGPT direct fix commit | required local run | Codex escalation reason | tracked closeout`. The reviewer must use the report template `REVIEW-REPORT-TEMPLATE.md`.
 A concise table: `WO | issue | agent | branch/PR | exact HEAD | tests | CI | verdict | elapsed wall time | tokens spent/estimated | pending blockers`. Include measured serial-vs-concurrent savings only if an equivalent baseline was actually collected. Mark estimates unmeasured. End with `STOP CONDITION` per Work Order.
 
 ## Template acceptance
