@@ -1,3 +1,5 @@
+> **Master Design Round02 ready for review:** `master-design/ROUND-02-SECTIONS-FOOTER.md` refines all sections below the hero, complete functional footer and cookie settings; `master-design/ROUND-02-COPY-DRAFT.json` has consistent EN/pt-BR/es editorial candidates; `master-design/ROUND-02-SECTION-INVENTORY.plan.json` maps sections to agent ownership and publication gates. ALL DRAFT / NOT ADMITTED; still no approved full-page master render or official final Digital Leaf vector. The next visual Round03 should produce explicit desktop dark/light and mobile full-page references, subject to owner approval.
+
 > **Reference audit/approval:** `master-design/REFERENCE-AUDIT-v01.md` pins the exact previous selection by filename, crop, dimensions and SHA256. The real brand Option05 and homepage Option07 design **direction** were selected, but full-page production master screenshots were never confirmed as approved or committed. Binary originals are preserved in the downloadable reference pack, not yet in GitHub. No new homepage brand image has authority over the owner's original.
 
 # Spryxel Module 01 — Public website / homepage: 12 candidate Work Orders
