@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "repository": "KayzenRoot/spryxel",
+  "baseSha": "08bd429bb924e26f7d5266ee9b556cc8da2c8b8c",
+  "maxParallel": 3,
+  "maxBatchTokens": 12000,
+  "completedWorkOrders": [],
+  "workOrders": [
+    {
+      "id": "SPRYXEL-PMOD-01-WEB",
+      "issue": 54,
+      "status": "PLANNING",
+      "risk": "STANDARD",
+      "baseSha": "08bd429bb924e26f7d5266ee9b556cc8da2c8b8c",
+      "contextLock": "MISSING",
+      "dependsOn": [],
+      "ownsPaths": [
+        "apps/web/app"
+      ],
+      "exclusiveLocks": [
+        "WEB_CONTRACT"
+      ],
+      "priority": 1,
+      "estimatedMinutes": 90,
+      "tokenBudget": 4000
+    },
+    {
+      "id": "SPRYXEL-BRAND-002",
+      "issue": 53,
+      "status": "PLANNING",
+      "risk": "STANDARD",
+      "baseSha": "08bd429bb924e26f7d5266ee9b556cc8da2c8b8c",
+      "contextLock": "MISSING",
+      "dependsOn": [],
+      "ownsPaths": [
+        "design/brand/digital-leaf"
+      ],
+      "exclusiveLocks": [
+        "BRAND_REFERENCE"
+      ],
+      "priority": 1,
+      "estimatedMinutes": 75,
+      "tokenBudget": 4000
+    },
+    {
+      "id": "SPRYXEL-WO-008",
+      "issue": 29,
+      "status": "BLOCKED",
+      "risk": "HIGH_ASSURANCE",
+      "baseSha": "08bd429bb924e26f7d5266ee9b556cc8da2c8b8c",
+      "contextLock": "FRESH",
+      "dependsOn": [],
+      "ownsPaths": [
+        "apps/worker",
+        "packages/db"
+      ],
+      "exclusiveLocks": [
+        "HIGH_ASSURANCE",
+        "DB_MIGRATIONS"
+      ],
+      "priority": 1,
+      "estimatedMinutes": 120,
+      "tokenBudget": 11000
+    }
+  ]
+}
