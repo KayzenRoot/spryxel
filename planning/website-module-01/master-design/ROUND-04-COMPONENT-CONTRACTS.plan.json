@@ -491,6 +491,38 @@
         "A6"
       ],
       "status": "DESIGN_CONTRACT_PROPOSED"
+    },
+    {
+      "id": "PublicCopyDictionary",
+      "owner": "A6",
+      "proposedExclusiveRoot": "apps/web/content/public-locales/",
+      "publicInterface": [
+        "locale: en|pt-BR|es",
+        "dictionary: typed key map shared via G1",
+        "namespace: header/hero/assets/workflow/gallery/audience/faq/CTA/footer/consent/auth/SEO",
+        "fallbackLocale: en",
+        "translatableStrings: owned and versioned"
+      ],
+      "requiredStates": [
+        "en canonical",
+        "pt-BR complete",
+        "es complete",
+        "missing key fails review",
+        "pseudo-expanded text ~40%",
+        "invalid locale safe fallback"
+      ],
+      "acceptance": [
+        "A6 is sole writer of public-site locale dictionaries; other builders consume readonly types",
+        "28 Round02 editorial keys mapped without missing/dangling labels before extending legal strings",
+        "No hardcoded untranslated control, consent, error, ALT or SEO text is accepted",
+        "Pluralization, expansion and character normalization checked at 320px and desktop",
+        "Legal policy translations require qualified human review before public deployment"
+      ],
+      "dependsOn": [
+        "G1",
+        "G2"
+      ],
+      "status": "DESIGN_CONTRACT_PROPOSED"
     }
   ],
   "validation": {
