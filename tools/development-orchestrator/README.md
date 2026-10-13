@@ -19,9 +19,13 @@ A coordinator must NOT hand five agents five overlapping PRs. Parallelism starts
 ## R0 implemented here
 `planner.mjs` is a **zero-dependency Node.js >=22, pure read-only JSON input planner**. It validates task status, dependencies, cycles, SHA, Context Lock, path ownership, governance locks, HIGH_ASSURANCE isolation, parallel count and token budgets. It prints deterministic scheduling waves, blocked reasons, and *simulation* estimates. It cannot log in, call Codex, run a workflow, or merge.
 
+**R0 latency optimization:** `continuous-scheduler.mjs` simulates an **event-driven free-slot refill** instead of forcing all agents to finish one wave before dispatching another; uses critical-path priority, file/risk locks and explicit whole-prompt `maxTotalTokenBudget` fail-closed budget. Both planners are purely virtual-time, not real Codex throughput measurements. See test-policy proposal `FAST-FEEDBACK-PROPOSAL.md` and issue #61.
+
 ```bash
 node --test tools/development-orchestrator/planner.test.mjs
 node tools/development-orchestrator/planner.mjs tools/development-orchestrator/manifest.example.json
+node --test tools/development-orchestrator/continuous-scheduler.test.mjs
+node tools/development-orchestrator/continuous-scheduler.mjs tools/development-orchestrator/manifest.synthetic.json
 ```
 
 The example manifest contains real issue numbers but is **intentionally NOT ADMITTED**. The planner refuses to start the website/brand planning or the blocked WO-008. There is no automatic success claim.
