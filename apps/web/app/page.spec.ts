@@ -132,7 +132,7 @@ test('Home to Projects to Create to Open keeps a canonical project context', asy
 test('Jobs Center lists durable state and reload preserves details and cancellation', async ({
   page,
 }) => {
-  await authenticateWorkspacePage(page, 'jobs-populated');
+  await authenticateWorkspacePage(page, 'jobs-populated-cancellable');
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Recent jobs' })).toBeVisible();
   await expect(page.getByText('queued', { exact: true }).first()).toBeVisible();
@@ -155,6 +155,50 @@ test('Jobs Center lists durable state and reload preserves details and cancellat
   await expect(page.getByText('Status: cancelled.')).toBeVisible();
   expect(projectId).toBeTruthy();
   expect(tenantId).toMatch(/^[0-9a-f-]{36}$/i);
+});
+
+
+test('concurrent Jobs sessions isolate cancellation from independent overview state', async ({
+  browser,
+}) => {
+  const [cancelContext, overviewContext] = await Promise.all([
+    browser.newContext(),
+    browser.newContext(),
+  ]);
+  try {
+    const [cancelPage, overviewPage] = await Promise.all([
+      cancelContext.newPage(),
+      overviewContext.newPage(),
+    ]);
+    await Promise.all([
+      authenticateWorkspacePage(cancelPage, 'jobs-populated-cancel-isolation'),
+      authenticateWorkspacePage(overviewPage, 'jobs-populated-read-isolation'),
+    ]);
+    await Promise.all([cancelPage.goto('/jobs'), overviewPage.goto('/jobs')]);
+
+    const cancelLink = cancelPage.getByRole('link', { name: /SKU-001 · contract v1/ });
+    const overviewLink = overviewPage.getByRole('link', { name: /SKU-001 · contract v1/ });
+    const [cancelHref, overviewHref] = await Promise.all([
+      cancelLink.getAttribute('href'),
+      overviewLink.getAttribute('href'),
+    ]);
+    expect(cancelHref).toBeTruthy();
+    expect(overviewHref).toBeTruthy();
+    expect(cancelHref).not.toBe(overviewHref);
+
+    await Promise.all([
+      openJobDetails(cancelPage, cancelLink),
+      openJobDetails(overviewPage, overviewLink),
+    ]);
+    await cancelPage.getByRole('button', { name: 'Cancel job' }).click();
+    await expect(cancelPage.getByText('Status: cancelled.')).toBeVisible();
+
+    await overviewPage.reload();
+    await expect(overviewPage.getByText('Status: queued.')).toBeVisible();
+    await expect(overviewPage.getByRole('button', { name: 'Cancel job' })).toBeVisible();
+  } finally {
+    await Promise.all([cancelContext.close(), overviewContext.close()]);
+  }
 });
 
 test('a terminal cancellation race redirects to the refreshed durable Job', async ({ page }) => {
@@ -234,7 +278,7 @@ test('Jobs page preserves project authorization and dependency failures', async 
 test('Project Overview shows recent jobs and all admitted states remain readable', async ({
   page,
 }) => {
-  await authenticateWorkspacePage(page, 'jobs-populated');
+  await authenticateWorkspacePage(page, 'jobs-populated-overview');
   await page.goto('/jobs');
   const projectId = await page.locator('#jobs-project-filter option').nth(1).getAttribute('value');
   const tenantId = await page.locator('input[name="tenantId"]').first().inputValue();
