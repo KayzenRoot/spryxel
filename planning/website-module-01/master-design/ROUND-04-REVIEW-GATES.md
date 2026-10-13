@@ -2,6 +2,21 @@
 
 **Verdict at creation: DESIGN CORRECTION REQUIRED for final visual master; Round04 proposal READY FOR OWNER REVIEW.** No application code changed; no release tests/functional behavior claimed.
 
+## Contrast spot-check on Round03 **opaque surface** samples (local math, not complete WCAG audit)
+
+Calculated sRGB WCAG contrast ratios of text versus **opaque card surface**, without assuming semi-transparent hero backgrounds; thresholds: >=4.5:1 normal text, >=3:1 large text, and suitable UI/focus indicators separately.
+
+| Theme | Card surface | Text | Ratio | Implication |
+| --- | --- | --- | ---: | --- |
+| dark | #0e1e25 | primary #f3faf7 | 16.11:1 | PASS normal-text threshold on this surface |
+| dark | #0e1e25 | secondary #a7bac0 | 8.47:1 | PASS on this surface |
+| dark | #0e1e25 | muted #6d8990 | 4.57:1 | Narrow PASS on this surface, recheck tiny sizes / transparency |
+| light | #ffffff | primary #11252c | 15.85:1 | PASS on this surface |
+| light | #ffffff | secondary #4b656d | 6.21:1 | PASS on this surface |
+| light | #ffffff | muted #6b8389 | **4.01:1** | **FAIL normal-text threshold**, decorative-only pending stronger text token |
+
+This analysis is **not a claim that every page/card/transparent overlay meets WCAG 2.2 AA**. Real browser contrast, zoom and focus audits still required. It shows a specific proposed muted-light value must be adjusted before publishing meaningful labels, especially small footer/microcopy. Preserve color-role semantics in both themes, no naive blanket conversion to #A3FF00.
+
 ## P1: must fix before owner freezes master reference
 | ID | Found in Round03 local HTML/CSS | Why it matters | Route | Owner and evidence |
 | --- | --- | --- | --- | --- |
