@@ -1,3 +1,5 @@
+> **REFERENCE AUDIT v0.1:** Before accepting a new generated illustration, check `master-design/REFERENCE-AUDIT-v01.md` for original `IMG_9281.jpeg` brand board and `painel_de_marca_e_interfaces_spryxel.png` actual chosen **Option07 / 3D FOCADO EM WORLDS** tile (bottom row, second column). Number 07 appears on *other boards with different artwork*; do not confuse them. The latest tall generated mockups have false price/stat/feature placeholders and are NOT masters. Refinement: floating worlds as atmospheric hero, **Pixel/2D game asset families visible within first fold**, no misleading V1 capabilities.
+
 # Spryxel Homepage Master Design Contract — G2 (PROPOSED)
 
 > Visual master contract for Module 01, NOT a finished reference image, Figma file, vector logo, or approval.
