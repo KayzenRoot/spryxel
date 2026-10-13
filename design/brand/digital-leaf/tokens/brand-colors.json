@@ -1,0 +1,40 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "name": "Spryxel Digital Leaf candidate brand colors",
+  "status": "DRAFT_NOT_APPROVED",
+  "notProductUiTokens": true,
+  "colors": {
+    "lime": {
+      "value": "#C8FF3D",
+      "description": "Bright leaf highlight"
+    },
+    "limeAccent": {
+      "value": "#BDFF37"
+    },
+    "mint": {
+      "value": "#70F4A7"
+    },
+    "turquoise": {
+      "value": "#23DBD3"
+    },
+    "azure": {
+      "value": "#12A9CD"
+    },
+    "ink": {
+      "value": "#102126"
+    },
+    "white": {
+      "value": "#FFFFFF"
+    }
+  },
+  "themes": {
+    "dark": {
+      "background": "#081319",
+      "foreground": "#FFFFFF"
+    },
+    "light": {
+      "background": "#F7FAFC",
+      "foreground": "#102126"
+    }
+  }
+}
