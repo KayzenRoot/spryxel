@@ -1,3 +1,5 @@
+> **Reference audit/approval:** `master-design/REFERENCE-AUDIT-v01.md` pins the exact previous selection by filename, crop, dimensions and SHA256. The real brand Option05 and homepage Option07 design **direction** were selected, but full-page production master screenshots were never confirmed as approved or committed. Binary originals are preserved in the downloadable reference pack, not yet in GitHub. No new homepage brand image has authority over the owner's original.
+
 # Spryxel Module 01 — Public website / homepage: 12 candidate Work Orders
 
 > **PLANNING ONLY / NOT ADMITTED / NO CODE AUTHORIZED / NO MERGE.** Created in response to owner's 2026-10-13 Module 01 planning request.
