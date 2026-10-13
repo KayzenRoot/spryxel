@@ -1,51 +1,27 @@
-# Domain Docs
+# Domain Docs — Spryxel
 
-How the engineering skills should consume this repo's domain documentation when exploring the codebase.
+This file adapts general-purpose agent skills to Spryxel's **existing canonical Source Pack**. It does not create a new domain authority or alter any approved decision.
 
-## Before exploring, read these
+## Read the actual authority first
 
-- **`GLOSSARY.md`** at the repo root, or
-- **`GLOSSARY-MAP.md`** at the repo root if it exists: it points at one `GLOSSARY.md` per context. Read each one relevant to the topic.
-- **`docs/adr/`**: read ADRs that touch the area you're about to work in. In multi-context repos, also check `src/<context>/docs/adr/` for context-scoped decisions.
+1. `.engineering/CHECKPOINT.json` and `.engineering/CHECKPOINT.md` for approved implementation state.
+2. `.engineering/SOURCE-HIERARCHY.md` for precedence and stale-context rules.
+3. `.engineering/DECISIONS-LEDGER.md` and approved ADRs, if present, for normative decisions.
+4. `.engineering/SCOPE.md`, `.engineering/DEFINITION-OF-DONE.md`, `.engineering/ARCHITECTURE.md`, and `.engineering/REQUIREMENTS.md`.
+5. The specialized `.engineering/` documents relevant to the task, such as API Contracts, Data Model, Security, UI/UX, Integration Contracts, Test Plan, or Deployment.
+6. For execution/review, the active versioned Work Order, Context Lock, Correction Delta, Evidence Bundle and exact Git base/HEAD.
 
-If any of these files don't exist, **proceed silently**. Don't flag their absence; don't suggest creating them upfront. The `/domain-modeling` skill (reached via `/grill-with-docs` and `/improve-codebase-architecture`) creates them lazily when terms or decisions actually get resolved.
+Repository Git/code/tests/runtime evidence controls claims about what actually exists or has passed. It **does not silently override normative decisions**. If an authority is missing, inaccessible or conflicts with the task, surface the blocker; do not substitute a generic example.
 
-## File structure
+## Domain language
 
-Single-context repo (most repos):
+Use the definitions and bounded module names from Spryxel's canonical docs and approved Decisions Ledger. Optional `GLOSSARY.md`, `GLOSSARY-MAP.md`, or `docs/adr/` files may add context **only if they exist** and do not conflict with the Source Hierarchy.
 
-```
-/
-├── GLOSSARY.md
-├── docs/adr/
-│   ├── 0001-event-sourced-orders.md
-│   └── 0002-postgres-for-write-model.md
-└── src/
-```
+Do not assume a root `GLOSSARY.md`, `docs/adr/`, or a single `src/` folder. Spryxel uses `apps/`, `packages/`, `infra/`, `scripts/`, and the `.engineering/` Source Pack. Generic skill examples involving ordering, billing, or illustrative ADR numbers are **examples, not Spryxel decisions**.
 
-Multi-context repo (presence of `GLOSSARY-MAP.md` at the root):
+## Agent skill boundaries
 
-```
-/
-├── GLOSSARY-MAP.md
-├── docs/adr/                          ← system-wide decisions
-└── src/
-    ├── ordering/
-    │   ├── GLOSSARY.md
-    │   └── docs/adr/                  ← context-specific decisions
-    └── billing/
-        ├── GLOSSARY.md
-        └── docs/adr/
-```
-
-## Use the glossary's vocabulary
-
-When your output names a domain concept (in an issue title, a refactor proposal, a hypothesis, a test name), use the term as defined in `GLOSSARY.md`. Don't drift to synonyms the glossary explicitly avoids.
-
-If the concept you need isn't in the glossary yet, that's a signal: either you're inventing language the project doesn't use (reconsider) or there's a real gap (note it for `/domain-modeling`).
-
-## Flag ADR conflicts
-
-If your output contradicts an existing ADR, surface it explicitly rather than silently overriding:
-
-> _Contradicts ADR-0007 (event-sourced orders), but worth reopening because…_
+- Never generate or update a glossary, ADR, architecture, checkpoint, or Work Order merely because a skill template expects one. Such changes require a separately authorized, scoped increment.
+- If a proposed name, dependency, endpoint, table, feature, or ADR conflicts with an approved decision, report the exact conflict and stop that change until formally resolved.
+- Treat generated domain-model suggestions as advisory and verify them against Scope, Requirements, Architecture, Git and acceptance evidence before proposing implementation.
+- A skill cannot promote checkpoints, waive HIGH_ASSURANCE gates, or approve/merge an in-progress implementation solely because the hosted CI is green.
