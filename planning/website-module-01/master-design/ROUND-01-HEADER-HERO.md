@@ -1,3 +1,6 @@
+> **REFERENCE LOCK (audit v0.1):** Original logo `IMG_9281.jpeg` (SHA256 `ccea6a42...`), exact selected layout board `painel_de_marca_e_interfaces_spryxel.png` (SHA256 `8e86b97c...`), **bottom row, SECOND column: 7 / 3D FOCADO EM WORLDS**. Other boards number "07" differently; only this named board is the agreed reference. See `REFERENCE-AUDIT-v01.md`. These originals currently live in a downloadable conversation reference package, not GitHub binary objects; PR #52 SVGs are not pixel-faithful to the original. 
+> **DESIGN REFINEMENT RECOMMENDED (no new option):** Keep the floating-world art as the hero, but give equal commercial weight to **actual V1 Pixel/2D game asset creation**. Immediately below the hero CTA, show approved category cards for Characters, Sprites, Mobs, Maps/Tilesets, Items/Props and UI/HUD; tag anything not implemented as PLANNED. This is an extension of Option07, not a brand reset. Distinguish creative public page from the smaller studio dashboard reference. Do not copy generated concept's unverified 3D/video features, free signup, pricing, partner logos, metrics, fictitious copyright or cookie identity into implementation.
+
 # MASTER DESIGN | Round 01: Header + Hero (OWNER REVIEW)
 
 > **STATUS: DESIGN CANDIDATE / NOT FROZEN / NOT IMPLEMENTED.**
