@@ -6,10 +6,10 @@ Read in order: `.engineering/CHECKPOINT.json`, Decisions Ledger/ADRs, Scope, Def
 ## Executor boundary
 Codex executes only an explicitly admitted Work Order and its current Context Lock. Inspect the exact base before mutation. Do not invent missing product decisions or provider selections.
 
-## Current execution
-`SPRYXEL-WO-007 / SPRYXEL-IMP-003` is COMPLETE after objective HIGH_ASSURANCE audit, canonical promotion, squash merge and post-merge validation. Its historical Context Lock is stale/closed.
+## Current execution and admission
+The current completed increment and next legal stage are defined by `.engineering/CHECKPOINT.json` and `.engineering/CHECKPOINT.md`, not by this agent guidance. Re-read them at task start.
 
-The next legal slice is Asset Contract + durable Job backbone, but it is NOT_ADMITTED until a new Work Order and fresh Context Lock are created from the current main base.
+For work already admitted on an open PR, also read its versioned Work Order, Context Lock, Correction Delta(s), Evidence Bundle, and exact current PR HEAD. Do not treat an open PR or passing hosted checks as approval. An in-progress increment remains gated until objective audit, canonical checkpoint promotion, merge, and post-merge validation. Never start its successor before those gates are satisfied.
 
 ## Safety
 No force-push, history rewrite, destructive GitHub mutation, visibility change or checkpoint self-promotion. Critical source/base drift makes an execution Context Lock STALE. Missing required permissions means BLOCKED, not weakened controls.
@@ -32,4 +32,4 @@ Use `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, and `won
 
 ### Domain docs
 
-This repository uses a single-context domain layout. Read relevant glossary and ADR material before domain changes; follow the actual paths recorded in `docs/agents/domain.md`.
+Follow `.engineering/SOURCE-HIERARCHY.md` and the canonical `.engineering/` Source Pack for domain vocabulary and decisions. See `docs/agents/domain.md` for Spryxel-specific paths; generic skills examples must never replace an approved decision.
