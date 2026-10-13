@@ -1,48 +1,31 @@
-# Spryxel Digital Leaf — brand source pack (DRAFT)
+# Spryxel Digital Leaf — owner-referenced brand pack
 
-> **DESIGN CANDIDATE / NOT APPROVED FOR PUBLIC PRODUCTION USE**  
-> Parent: [SPRYXEL-BRAND-001 / issue #51](https://github.com/KayzenRoot/spryxel/issues/51); see also PMOD-01 #35.  
-> This branch is isolated from WO-008/PR #30 and the protected `main`.
+> Status: two-leaf vector DRAFT; approved visual direction, NOT final pixel-exact source / not authorized for public use. Issue #51 and PMOD-01 #35.
+> Separate branch: design/spryxel-brand-001-digital-leaf; main, WO-008 and PR #30 remain untouched.
 
-## Identity direction
-- **Spryxel** is the product name. **Digital Leaf** is the selected logo *direction* (option 05), never the hexagon/portal direction.
-- Express creativity, growth and connected game-asset production with a translucent, digital leaf.
-- Color direction: vivid lime and turquoise/teal, dark-first, fully viable on light backgrounds.
-- A 3D/glass treatment is **presentation only**. Keep a clean, robust flat mark for favicons, merchandise, avatars and monochrome reproduction.
-- This draft is a *new editable interpretation* of the verbal description. The original user-selected visual reference is not supplied in this repository, so **fidelity to that exact prior image is unverified**.
+## Supplied source of truth
+The owner supplied a 1179×775 Digital Leaf brand board in conversation dated 2026-10-13. The image is **not committed as a repo binary**. The board is the visual benchmark; this repo's hand-drawn SVGs are design **candidates**, not exact artwork replicas.
+Two asymmetrical luminous glass leaves share a lower point: small amber/yellow/lime left leaf and large lime/cyan/turquoise right leaf. Brand name: **Spryxel**. Tagline: **CREATE. PLAY. BUILD.**
+Board demonstrates dark/light, horizontal logo, app icon, favicon, video/marketing. Suggested fonts: Exo 2/Exo 2 Bold, Inter/Sora, Orbitron heading. Do not bundle font files.
 
-## Versioned folder layout
-```
-design/brand/digital-leaf/
-  README.md                 design/provenance/status/QA
-  sources/
-    digital-leaf-symbol.svg
-    digital-leaf-symbol-mono-dark.svg
-    digital-leaf-symbol-mono-light.svg
-  tokens/
-    brand-colors.json      candidate brand palette, not app UI tokens
-  exports/
-    README.md              raster, favicon and social export targets / QA
-  social/
-    launch-copy.md         early-launch messaging (EN, pt-BR, es)
-```
+## Canonical reference palette (brand only, pending sampling confirmation)
+- Lime #A3FF00; cyan #00E5FF; orange #FF8A00; pink #FF2D55; violet #7B2DFF; mint #00FFC8; yellow #FFD400.
+- Product UI canon under .engineering/UI-UX.md currently uses spectral-violet and electric-teal. Brand direction does NOT overwrite approved UI tokens without reviewed Decision Delta.
 
-## Relationship to the product design system
-Canonical product UX currently specifies graphite/slate foundations, spectral-violet primary and electric-teal secondary in `.engineering/UI-UX.md`. The lime/turquoise *brand* palette here does **not** override those approved tokens. A later separately-reviewed Decision Delta may reconcile the logo and the application design system.
+## Versioned deliverables
+- sources/digital-leaf-symbol.svg: transparent dual-leaf COLOR DRAFT replacing prior incorrect single leaf
+- sources/digital-leaf-symbol-mono-dark.svg: monochrome dark symbol for light backgrounds
+- sources/digital-leaf-symbol-mono-light.svg: monochrome light symbol for dark backgrounds
+- tokens/brand-colors.json: screenshot-referenced color chips and tagline, NOT UI tokens
+- exports/README.md: planned PNG, WebP, favicon ICO/SVG and social sizes (raster files not yet committed)
+- social/launch-copy.md: EN/pt-BR/es first-post and profile bio drafts; unreviewed
 
-## Usage and rights
-- These SVGs are clean, self-contained vector source candidates (no scripts, remote calls, font files or external image embeds).
-- Brand art is created here as original repository design work, with author/owner approval and pre-launch trademark/name/handle clearance still required.
-- Do not treat concept colors, typography, mark dimensions or public launch claims as frozen.
-- Use explicit backgrounds behind white/black mono candidates; do not ship the glossy mark as a monochrome replacement.
+## Release gates
+- [ ] Compare two-leaf vectors with original board; refine proportions, neon/glass facets, vein highlights; owner approves final symbol.
+- [ ] Produce outlined-letter Spryxel wordmark, two-leaf x detail, lockups horizontal/stacked; audit licenses.
+- [ ] Derive PNG/WebP/ICO in actual transparent/dark/light/mono variants; inspect 16/32/48px plus full-res, color, alpha and contrast.
+- [ ] Add polished X/Twitter 1500x500 cover, square profile avatar, OG 1200x630, reusable media templates.
+- [ ] Review copyright, trademark, social handle/domain availability and all launch copy against actual working features.
+- [ ] Prepare high resolution board reference image in repo after an authorized binary transfer, not a made-up GitHub URL.
 
-## Required approval checks
-- [ ] Compare candidate against the actual user-selected **Digital Leaf** reference and approve/revise.
-- [ ] Create and approve *wordmark* / horizontal and vertical lockups with outlined vector typography and optical kerning.
-- [ ] Check small-size readability at 16/32/48 px, safe area, minimum width, pixel rendering, contrast on both themes.
-- [ ] Export PNG/WebP and ICO/favicon / app icons and validate dimensions, alpha channel and metadata.
-- [ ] Approve social templates (X/Twitter avatar/header, Open Graph, future channels).
-- [ ] Approve EN/pt-BR/es copy and review screenshots/claimed capabilities against verified product state.
-- [ ] Record logo source, revision, licenses, no external visual infringement, trademark/name/handle checks before publicity.
-
-**Stop condition:** `SPRYXEL_BRAND_001_DESIGN_PACK_READY_FOR_REVIEW`, not "production approved".
+Design review is independent of WO-008; merging final art requires normal safeguards. STOP CONDITION: SPRYXEL_BRAND_001_DESIGN_PACK_READY_FOR_REVIEW.
