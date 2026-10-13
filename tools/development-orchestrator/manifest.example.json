@@ -62,5 +62,6 @@
       "estimatedMinutes": 120,
       "tokenBudget": 11000
     }
-  ]
+  ],
+  "maxTotalTokenBudget": 20000
 }
