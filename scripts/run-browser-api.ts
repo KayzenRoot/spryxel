@@ -79,6 +79,7 @@ function ensureJobsFixture(
 ): SafeJob | undefined {
   const fixtureStatus =
     scope === 'jobs-populated' ||
+    scope.startsWith('jobs-populated-') ||
     scope === 'jobs-mobile' ||
     scope === 'jobs-cancel-raced' ||
     scope === 'jobs-cancel-unavailable'
