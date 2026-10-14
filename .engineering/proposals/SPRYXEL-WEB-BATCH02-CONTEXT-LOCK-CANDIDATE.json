@@ -32,7 +32,7 @@
   "proposedDecisions": [
     {
       "path": ".engineering/proposals/D-162-WEB-BATCH02-OFFMAIN-CANDIDATE.md",
-      "gitBlobSha": "e11b18931facfca8b663d4e75dad1c5dedb45e1b"
+      "gitBlobSha": "ef5c5ef50a56d1dd8a3576689fb0b5f9fa6b53fa"
     },
     {
       "path": ".engineering/proposals/WEB-BATCH02-G1-CONTRACT-CANDIDATE.md",
@@ -100,11 +100,54 @@
   ],
   "riskReview": {
     "wo008PullRequest": 30,
-    "wo008Head": "4a7d696b72ffab6f1569510d1059f42964864626",
-    "wo008ChangedFileCount": 52,
+    "wo008Head": "5947f86439996c42e70486f18e527e2f1a93927d",
+    "wo008ChangedFileCount": 54,
     "directWritablePathOverlapCount": 0,
-    "indirectFutureIntegrationRisk": "WO008 edits old protected app/page.tsx and projects/[projectId]/page.tsx, SSR PR80 moves these into (workspace), so later merge may need independent HIGH_ASSURANCE reconciliation",
-    "notAnAuthorizationToMerge": true
+    "indirectFutureIntegrationRisk": "Exact merge-tree of WO-008 #30 at 5947f86439996c42e70486f18e527e2f1a93927d with SSR PR #80 at 9e34e76ce8e451a47999cdd354921b5fed0c08c9 reports content conflicts in apps/web/app/(workspace)/page.tsx and apps/web/app/(workspace)/projects/[projectId]/page.tsx after protected route relocation; independent HIGH_ASSURANCE semantic resolution and regressions remain required.",
+    "notAnAuthorizationToMerge": true,
+    "historicalPreC04BReadback": {
+      "wo008Head": "4a7d696b72ffab6f1569510d1059f42964864626",
+      "changedFileCount": 52,
+      "status": "HISTORICAL_SUPERSEDED"
+    },
+    "wo008CodeTestedHead": "2e6b394c991a7a96eb8749ec9870d6dc5dd8188d",
+    "wo008FinalEvidenceOnlyCommitPath": ".engineering/evidence/SPRYXEL-WO-008-EVIDENCE.md",
+    "wo008LocalEvidence": {
+      "source": "https://github.com/KayzenRoot/spryxel/pull/30#issuecomment-6178472121",
+      "status": "REPORTED_ON_RECORD_NOT_INDEPENDENTLY_RERUN",
+      "summary": "R4 reports 94/94 unit tests, real PostgreSQL 18.6 FORCE RLS plus Redis/BullMQ and SeaweedFS integration, two standard Playwright runs 20/20, npm test and related checks on the code-tested SHA."
+    },
+    "wo008HostedChecks": {
+      "head": "5947f86439996c42e70486f18e527e2f1a93927d",
+      "status": "7_OF_7_SUCCESS",
+      "reviewThreads": "13_OF_13_RESOLVED",
+      "formalApprovedReview": false
+    },
+    "wo008Sonar": {
+      "status": "SONAR_TRIAGE_NOT_AVAILABLE",
+      "qualityGate": "PASS",
+      "newIssues": 74,
+      "accepted": 0,
+      "hotspots": 0,
+      "newCodeCoveragePercent": 0.0,
+      "duplicatedLinesPercent": 1.7,
+      "issueMetadataRequest": "HTTP 403 CloudFront",
+      "url": "https://sonarcloud.io/dashboard?id=KayzenRoot_spryxel&pullRequest=30"
+    },
+    "wo008ConcurrencyEvidence": {
+      "standardSuiteRuns": "2 x 20/20, one auto-selected worker each",
+      "twoConcurrentBrowserContexts": true,
+      "multiWorkerSuiteRun": "NOT_RUN"
+    },
+    "wo008DistinctStaticReview": {
+      "reviewedHead": "5947f86439996c42e70486f18e527e2f1a93927d",
+      "process": "distinct read-only agent /root/wo008_independent_review",
+      "githubFormalReview": false,
+      "testsRun": false,
+      "initialMediumFinding": "ordinary reconciliation terminalizing a live-lease cancel_requested Job; withdrawn after source-flow recheck",
+      "additionalGucCheck": "worker can set finish_job_safe_point, but reconciliation leaves valid lease set; durable_job_active_lease_check rejects Job update and statement rollback includes Attempt update",
+      "finalStaticDisposition": "no reproducible cancellation terminalization defect remains from this path; no confirmed HIGH/CRITICAL finding"
+    }
   },
   "authorizedMutationClasses": {
     "publicShellPresentation": true,
