@@ -135,7 +135,20 @@
     "source": "Owner explicit 'Autorizo pode continuar' to prepare isolated branch work while PR30 remains open with no merges and no auth/backend/Blender/payment",
     "offMainPreparation": true,
     "workOrderExecutable": false,
-    "merge": false
+    "merge": false,
+    "governanceOnlyMergeConditionalApproval": {
+      "granted": true,
+      "date": "2026-10-14",
+      "scope": "User explicitly authorized governance-only merge AFTER independent audit, while forbidding merges of #30 #76 #80 or product Batch02",
+      "effectiveNow": false,
+      "blockedBy": "WO-008 FRESH lock uses main executionBase sha 08bd429...; any main merge would mutate SHA and invalidate source preflight. PR82 has no independent GitHub reviewer submission yet and currently only proposals.",
+      "requires": [
+        "independent reviewer verdict on normative change",
+        "WO008 closed/promoted or separately authorized recompiled HIGH_ASSURANCE work order on new base",
+        "separate canonical D162/G1/AGENTS/Checkpoint approved delta as necessary",
+        "all exact-head required checks and ruleset compliance"
+      ]
+    }
   },
   "formalAdmission": {
     "d162ApprovedAndPromoted": false,
@@ -145,7 +158,10 @@
     "canonicalFreshContextLockPublished": false,
     "branchCreationAuthorizedByCanonicalSource": false,
     "executeNow": false,
-    "mergeAuthorized": false
+    "mergeAuthorized": false,
+    "governanceMergeOwnerAuthorizedConditionally": true,
+    "governanceMergeSafeNow": false,
+    "blockingActiveWo008Lock": true
   },
   "hardOutOfScope": [
     "main and existing #30 #76 #80 branches",
@@ -168,7 +184,7 @@
     "new dependency/permissions/CI/policy drift"
   ],
   "stopOnStale": true,
-  "stopReason": "STOP. Owner approved off-main PREPARATION only; D-162 is proposal not canonical, G1 not frozen, WO not admitted, no FRESH lock or independent security audit. AGENTS.md prohibits Codex source mutation now.",
+  "stopReason": "STOP: conditional owner authorization for governance-only merge recorded, but immediate merge is NO-GO because WO008 active FRESH context lock has executionBase.sha main@08bd429 and critical source hashes. Even proposals-only merge changes main SHA. No independent PR82 review, and proposal files do not promote D162/Checkpoint/AGENTS.",
   "currentStopCondition": "SPRYXEL_WEB_BATCH02_OWNER_SCOPED_APPROVAL_PACK_READY_FOR_INDEPENDENT_ADMISSION",
   "futureExecutableStopCondition": "SPRYXEL_WEB_STATIC_BATCH_02_DRAFT_STACKED_PR_READY_FOR_CHATGPT_FIRST_REVIEW",
   "preparedExecutionBranch": {
