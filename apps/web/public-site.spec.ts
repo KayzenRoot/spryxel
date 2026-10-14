@@ -33,6 +33,27 @@ test('localized public pages render with language-specific metadata and landmark
   await expect(page.locator('html')).toHaveAttribute('lang', 'pt-BR');
 });
 
+test('localized public responses set the root HTML language before client hydration', async ({
+  page,
+}) => {
+  for (const locale of locales) {
+    const response = await page.request.get(`/${locale}`);
+    expect(response.status(), `/${locale} should render`).toBe(200);
+    const html = await response.text();
+    expect(html).toMatch(new RegExp(`<html\\b[^>]*\\blang=["']${locale}["']`, 'i'));
+  }
+
+  const portugueseFaq = await page.request.get('/pt-BR/faq');
+  expect(portugueseFaq.status()).toBe(200);
+  expect(await portugueseFaq.text()).toMatch(/<html\b[^>]*\blang=["']pt-BR["']/i);
+
+  const spanishPrivacy = await page.request.get('/es/privacy');
+  expect(spanishPrivacy.status()).toBe(200);
+  const privacyHtml = await spanishPrivacy.text();
+  expect(privacyHtml).toMatch(/<html\b[^>]*\blang=["']es["']/i);
+  expect(privacyHtml).toMatch(/<meta[^>]*name="robots"[^>]*content="noindex, nofollow"/);
+});
+
 test('public navigation keeps the current page when switching locales', async ({ page }) => {
   await page.goto('/es/features');
 
@@ -60,6 +81,29 @@ test('public theme toggle changes the theme and preserves the selected preferenc
   await expect(page.locator('html')).toHaveAttribute('data-theme', nextTheme);
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', nextTheme);
+});
+
+test('theme preference survives document navigation between public and workspace roots', async ({
+  page,
+}) => {
+  await page.setExtraHTTPHeaders({
+    'x-spryxel-e2e-auth': 'spryxel-local-browser-e2e-only:cross-root-theme',
+  });
+  await page.goto('/en');
+
+  await page.getByRole('button', { name: /switch to light theme/i }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'Welcome back, Browser test user',
+  );
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+
+  await page.goto('/es');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'es');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
 });
 
 test('public homepage fits a mobile viewport without horizontal overflow', async ({ page }) => {
@@ -96,7 +140,9 @@ test('unverified legal/contact pages are not indexable and display complete draf
     for (const slug of ['/contact', '/terms', '/privacy', '/cookies']) {
       const response = await page.request.get(`/${locale}${slug}`);
       expect(response.status()).toBe(200);
-      expect(await response.text()).toMatch(/<meta[^>]*name="robots"[^>]*content="noindex, nofollow"/);
+      expect(await response.text()).toMatch(
+        /<meta[^>]*name="robots"[^>]*content="noindex, nofollow"/,
+      );
     }
   }
 

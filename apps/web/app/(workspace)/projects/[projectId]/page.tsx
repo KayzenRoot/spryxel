@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
-import { GlobalShell } from '../../components/global-shell';
-import { ProjectLoadFailure } from '../../components/project-load-failure';
-import { requireWebSession } from '../../../src/auth/session';
-import { assertProjectApiError, fetchProject } from '../../../src/projects/api';
+import { requireWebSession } from '../../../../src/auth/session';
+import { assertProjectApiError, fetchProject } from '../../../../src/projects/api';
+import { GlobalShell } from '../../../components/global-shell';
+import { ProjectLoadFailure } from '../../../components/project-load-failure';
 
 export default async function ProjectOverviewPage({
   params,
