@@ -88,3 +88,20 @@ test('public routes stay open while workspace routes keep their AuthKit boundary
   expect([302, 307]).toContain(workspaceResponse.status());
   expect(workspaceResponse.headers().location).toContain('authorize');
 });
+
+test('unverified legal/contact pages are not indexable and display complete draft warnings', async ({
+  page,
+}) => {
+  for (const locale of locales) {
+    for (const slug of ['/contact', '/terms', '/privacy', '/cookies']) {
+      const response = await page.request.get(`/${locale}${slug}`);
+      expect(response.status()).toBe(200);
+      expect(await response.text()).toMatch(/<meta[^>]*name="robots"[^>]*content="noindex, nofollow"/);
+    }
+  }
+
+  await page.goto('/en/terms');
+  await expect(page.getByText(/This outline is not final terms/)).toBeVisible();
+  await page.goto('/pt-BR/privacy');
+  await expect(page.getByText(/Esta estrutura de privacidade não é um aviso final/)).toBeVisible();
+});
