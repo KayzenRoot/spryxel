@@ -2,7 +2,7 @@
 
 **Repository:** `KayzenRoot/spryxel`  
 **Active PR:** [#30](https://github.com/KayzenRoot/spryxel/pull/30), HIGH_ASSURANCE, WO-008 / IMP-004  
-**Expected HEAD at start:** `4a7d696b72ffab6f1569510d1059f42964864626`  
+**Expected HEAD at start:** `2e6b394c991a7a96eb8749ec9870d6dc5dd8188d`  
 **Protected canonical main:** `08bd429bb924e26f7d5266ee9b556cc8da2c8b8c`  
 **Corrective authority:** `.engineering/correction-deltas/SPRYXEL-WO-008-CORRECTION-04.md` on #30, and its **FRESH** `.engineering/context-locks/SPRYXEL-WO-008.json`.  
 **Intent:** exact remaining C-04-B evidence only; **do not do another feature/coding pass** without a real reproducible failing acceptance.  
@@ -12,9 +12,22 @@
 
 This is the shortest path to safely unblocking the owner-approved G0/D-162 website governance exception and Batch02. A merge of any unrelated proposal into `main` **now** would change `executionBase.sha` of the currently FRESH WO008 Context Lock and invalidate its HIGH_ASSURANCE evidence. The site Batch02 therefore stays blocked until WO008 is objectively reviewed and closed. The four required GitHub workflows and Sonar/Socket already passed on exact #30 HEAD but **do not run the full functional suites**. Correction C-04-A isolated mutable `jobs-populated-*` fixtures and added an explicit two-context regression; C-04-B still lacks default-parallel acceptance.
 
+## Recorded first-failure correction (read before any retest)
+
+Codex's first acceptance run is recorded in [PR #30 comment #6176451178](https://github.com/KayzenRoot/spryxel/pull/30#issuecomment-6176451178). Integration exited 1 because a `umask 0077` checkout had `infra/postgres/create-app-role.sh` at `0600`; a plain Docker COPY propagated this root-owned unreadable file into an image starting as the unprivileged `postgres` user. The **mode is 100644 in Git**.
+
+ChatGPT made a *minimal in-scope GitHub correction* on the authorized PR #30 branch:
+- `2f55b36`: `infra/postgres/Dockerfile` uses `COPY --chmod=0644` and `chmod 0644` after sed to preserve a **non-executable, readable** init hook.
+- `2e6b394`: `scripts/postgres-test-harness.test.ts` verifies that the Dockerfile enforces both permissions.
+- No modifications to `create-app-role.sh`, SQL role grants, tenant RLS, Work Order, Context Lock, `main`, CI or commercial providers.
+
+**BEFORE other integration acceptance:** verify the actual built PostgreSQL image contains the init hook as 0644, readable by `postgres`, and initializes correctly even when the source checkout uses umask 0077. Do not fix by making test-only source globally world-writable, running PostgreSQL as root, granting DB broad privileges, setting the file to executable, mutating the test harness or ignoring the failure. Docker permission normalization is an actual source fix, NOT validated solely by the new static unit assertion.
+
+**Avoid rerunning the stale original prompt** at the predecessor SHA: this file now expects the new SHA, and all new runtime results must be attributed to the current exact HEAD. The previous successful pre-block checks are evidence of the predecessor, NOT of this corrected source.
+
 ## Preflight (fail-closed)
 
-1. Read completely the current immutable WO008 Work Order, `Correction-04`, its FRESH Context Lock, current Evidence Bundle, Source Hierarchy, Checkpoint and the PR #30 body. Confirm exact current head `4a7d696b72ffab6f1569510d1059f42964864626`, `main@08bd429bb924e26f7d5266ee9b556cc8da2c8b8c`, no unexpected protected-source drift, current GEF `@gef-bootstrap/cli@1.1.1`.
+1. Read completely the current immutable WO008 Work Order, `Correction-04`, its FRESH Context Lock, current Evidence Bundle, Source Hierarchy, Checkpoint and the PR #30 body. Confirm exact current head `2e6b394c991a7a96eb8749ec9870d6dc5dd8188d`, `main@08bd429bb924e26f7d5266ee9b556cc8da2c8b8c`, no unexpected protected-source drift, current GEF `@gef-bootstrap/cli@1.1.1`.
 2. Use the authorized `codex/spryxel-wo-008-imp-004-asset-contract-jobs` branch and a clean permitted worktree. Do not reset/force-push, cherry-pick PR82 governance, touch PRs #75/#76/#80/#82, or merge.
 3. Confirm local Node 22/npm10 runtime, npm dependencies and legitimate local/test credentials available for **real** PostgreSQL 18.6 with FORCE RLS, Redis/BullMQ, SeaweedFS. If absent, document exact infrastructure blocker as `NOT_RUN`; do not substitute mocks for required live integrations, fake results or loosen config.
 4. Confirm `playwright.config.ts` still uses `fullyParallel:true`, `retries:0`, **no workers=1 override**, test-only fixture cannot run in production.
@@ -23,7 +36,7 @@ This is the shortest path to safely unblocking the owner-approved G0/D-162 websi
 
 - `npm ci --no-audit --no-fund` clean installation, document runtime.
 - `npm run format:check`, `npm run lint`, `npm run typecheck -- --force`, `npm run build -- --force`, `npm run architecture:check`.
-- `npm run test:unit`, `npm run test:worker`, `npm run test:integration` with the REAL services/RLS/runtime restrictions.
+- `npm run test:unit`, `npm run test:worker`, `npm run test:integration` with the REAL services/RLS/runtime restrictions. Ensure `scripts/postgres-test-harness.test.ts` executes, and **record the built PostgreSQL hook mode/owner and successful init under the restrictive umask**.
 - **`npm run test:browser` EXACTLY, twice consecutively** on same final code, with repository default workers/parallel config. Record both exit codes, complete passed/failed counts, worker count, seed/port and concurrency; no runner serialization, no sleep/retries to conceal races.
 - **`npm test` EXACTLY, with default browser workers**, including unit, worker, real integration and browser. Record exit and test counts.
 - `npm audit --audit-level=high`, `git diff --check`; GEF 1.1.1 doctor and two read-only status snapshots, with D-0007 drift reconciliation, not forced GEF baseline rewrite.
