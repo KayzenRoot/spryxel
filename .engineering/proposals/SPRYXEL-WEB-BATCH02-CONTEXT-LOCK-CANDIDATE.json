@@ -170,5 +170,14 @@
   "stopOnStale": true,
   "stopReason": "STOP. Owner approved off-main PREPARATION only; D-162 is proposal not canonical, G1 not frozen, WO not admitted, no FRESH lock or independent security audit. AGENTS.md prohibits Codex source mutation now.",
   "currentStopCondition": "SPRYXEL_WEB_BATCH02_OWNER_SCOPED_APPROVAL_PACK_READY_FOR_INDEPENDENT_ADMISSION",
-  "futureExecutableStopCondition": "SPRYXEL_WEB_STATIC_BATCH_02_DRAFT_STACKED_PR_READY_FOR_CHATGPT_FIRST_REVIEW"
+  "futureExecutableStopCondition": "SPRYXEL_WEB_STATIC_BATCH_02_DRAFT_STACKED_PR_READY_FOR_CHATGPT_FIRST_REVIEW",
+  "preparedExecutionBranch": {
+    "name": "feat/web-static-batch-02-polish",
+    "headShaAtCreation": "9e34e76ce8e451a47999cdd354921b5fed0c08c9",
+    "emptyBranch": true,
+    "createdBy": "ChatGPT via GitHub, using owner's scoped preparation authorization",
+    "sourceMutations": 0,
+    "prCreated": false,
+    "executionAllowed": false
+  }
 }
