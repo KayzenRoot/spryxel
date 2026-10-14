@@ -735,7 +735,17 @@
 }
 
 .public-site .public-legal-heading .public-badge {
+  display: block;
+  max-width: 100%;
   margin-bottom: 2rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: normal;
+  line-height: 1.55;
+  text-transform: none;
+  overflow-wrap: anywhere;
 }
 
 .public-site .public-legal-heading h1 {
