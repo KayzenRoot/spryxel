@@ -230,7 +230,7 @@ function LegalPage({
     <LegalPageLayout
       title={page.title}
       intro={page.intro}
-      draftNotice={page.draftNotice.split('—')[0]?.trim() ?? page.draftNotice}
+      draftNotice={page.draftNotice}
       sections={page.sections.map(({ title, body }) => ({ heading: title, paragraphs: [body] }))}
     />
   );
