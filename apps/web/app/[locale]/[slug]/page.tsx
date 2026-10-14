@@ -20,7 +20,12 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale: localeParam, slug } = await params;
   if (!isPublicLocale(localeParam) || !publicPageSlugs.includes(slug as PublicPageSlug)) notFound();
-  return getPublicMetadata(localeParam, slug as PublicPageSlug);
+  const metadata = getPublicMetadata(localeParam, slug as PublicPageSlug);
+  // Contact details and legal text are unfinished drafts. Never index them as final policies.
+  if (slug === 'contact' || slug === 'terms' || slug === 'privacy' || slug === 'cookies') {
+    return { ...metadata, robots: { index: false, follow: false } };
+  }
+  return metadata;
 }
 
 export default async function LocalizedPublicPage({ params }: Props) {
