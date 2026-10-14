@@ -1,11 +1,55 @@
 # SPRYXEL-WO-008 — Pacote de Evidências
 
-**Estado do candidato atual (Correction-04, 13/10/2026):** `IMPLEMENTED / ACCEPTANCE PENDING / CORRECTION REQUIRED`. A aceitação HIGH_ASSURANCE canônica com Playwright paralelo ainda **não foi executada** neste candidato; resultados locais C-01…C-03 são históricos.
+## Aceitação final C-04B — 14/10/2026
+
+**Resultado local:** gates funcionais C-04B PASS no código `2e6b394c991a7a96eb8749ec9870d6dc5dd8188d`. Como o Evidence Bundle é versionado antes de disparar seus próprios checks, o SHA final e os resultados hospedados são apresentados na atestação viva da PR #30. A PR fica aberta e sem merge.
+
+- **Base/branch:** `main@08bd429bb924e26f7d5266ee9b556cc8da2c8b8c`; `codex/spryxel-wo-008-imp-004-asset-contract-jobs`.
+- **Context Lock:** `FRESH`, HIGH_ASSURANCE, `39/39` fingerprints críticos correspondem à base; nenhuma fonte protegida foi modificada. Work Order/Correction-04 lidos integralmente.
+- **Runtime:** Node `v22.23.3`, npm `10.9.9`; Docker Engine `28.4.0`; checkout Linux com `umask 0077`.
+- **Inventário no HEAD de teste:** `infra/postgres/Dockerfile` e `scripts/postgres-test-harness.test.ts` são as duas alterações do delta de código C-04B. AuthKit/WorkOS, proxy, rotas protegidas, backend de produto, workflows, `.gef`, checkpoint, Work Order, Context Lock, ledger de decisões e GEF não foram editados.
+
+### Verificação da imagem PostgreSQL sob umask restritivo
+
+`infra/postgres/create-app-role.sh` permaneceu Git `100644`, mas materializou `0600` no checkout com `umask 0077`. Build sem cache pelo Docker Compose gerou `spryxel/postgres-test:18.6-alpine3.24`, image ID `sha256:d96528a1ca5a43b0733b87b8504a919b6c4b208c87d2e63cc217a32d16952324`. Na imagem/serviço, o hook `/docker-entrypoint-initdb.d/10-create-app-role.sh` é `0644`, `root:root` (`0:0`), legível e não executável pelo usuário OS `postgres` UID `70`. O container iniciou saudável com PostgreSQL `18.6`; log confirmou `sourcing` do hook e consulta real confirmou `spryxel_app,spryxel_worker`. A prova terminou com `docker compose down --volumes --remove-orphans` no projeto aleatório isolado, sem recursos residuais.
+
+### Comandos funcionais no HEAD `2e6b394c991a7a96eb8749ec9870d6dc5dd8188d`
+
+| Comando | Resultado, exit e duração | Escopo/prova |
+|---|---|---|
+| `npm ci --no-audit --no-fund` | PASS, `0`, 13 s | Instalação limpa, 227 pacotes, Node 22.23.3/npm 10.9.9; sem alteração de manifests/lockfile. |
+| `npm run format:check` | PASS, `0`, 480 ms | Biome: 113 arquivos. |
+| `npm run lint` | PASS, `0`, 625 ms | Biome: 113 arquivos. |
+| `npm run typecheck -- --force` | PASS, `0`, 19.639 s | Turbo: 18/18 tarefas sem cache. |
+| `npm run build -- --force` | PASS, `0`, 28.715 s | Turbo: 11/11 workspaces; rotas protegidas e callback incluídos no build. |
+| `npm run architecture:check` | PASS, `0`, 1.253 s | 11 workspaces, 15 arestas internas, 21 arquivos Web; sem ciclos/arestas proibidas. |
+| `npm run test:unit` | PASS, `0`, 5.215 s | Vitest: 22 arquivos, 94/94; inclui `scripts/postgres-test-harness.test.ts` e a regressão estática do modo Docker. |
+| `npm run test:worker` | PASS, `0`, 992 ms | Smoke em processo Node separado, um consumidor bounded. |
+| `npm run test:integration` | PASS, `0`, 108.789 s | PostgreSQL 18.6/RLS + Redis 8.10.2/BullMQ + SeaweedFS 4.48 reais; migrations, cross-tenant, roles, idempotência, claim/recovery, cancelamento, API e S3 autenticado. PGDATA em tmpfs Linux; teardown scoped PASS. |
+| `npm run test:browser` — execução canônica 1 | PASS, `0`, 25.824 s | 20/20; Playwright reportou 1 worker automático, configuração `fullyParallel: true`, `retries: 0`, sem override. Portas padrão: web `3100`, API `3201`. |
+| `npm run test:browser` — execução canônica 2 consecutiva | PASS, `0`, 26.332 s | 20/20; mesmos workers/defaults/portas. O teste `concurrent Jobs sessions isolate cancellation from independent overview state` passou nas duas execuções. Scopes/IDs das fixtures são determinísticos; sem seed aleatória. |
+| `npm test` | PASS, `0`, 68.625 s | Comando agregado padrão; unit 94/94, worker, integração real e browser 20/20; nenhum override de workers. |
+| `npm audit --audit-level=high` | PASS, `0`, 461 ms | Zero vulnerabilidades reportadas. |
+| `git diff --check` | PASS, exit `0` | Executado sobre o diff de evidência; sem erros de whitespace. |
+
+Uma primeira tentativa de bootstrap via `npx -c` retornou `EUSAGE` no `npm exec` do Playwright antes de iniciar specs (`0` testes). O comando equivalente de consulta falhou no ambiente do wrapper, enquanto os comandos canônicos executados diretamente pelos binários fixados Node 22/npm 10 passaram; não houve alteração no código/configuração nem override de Playwright por causa dessa tentativa. Apenas as duas execuções diretas acima contam como aceitação browser.
+
+### GEF, status de publicação e gates pendentes
+
+`npm run gef:doctor` no worktree de execução saiu `0`, `ok=true`, `effect=NONE`, mas reportou `GIT_DIRECTORY_NOT_A_DIRECTORY` e `WORKING_TREE_NOT_OBSERVED`; essa leitura degradada não é contabilizada como PASS. No mirror Git observável, com o mesmo HEAD e esta versão sincronizada do Evidence Bundle, GEF `@gef-bootstrap/cli@1.1.1` reportou doctor read-only exit `0`, `ok=true`, `effect=NONE`, `repository.observable=HEALTHY` e nenhum limite de observação. Duas chamadas `gef status --target . --json` read-only saíram `0` e foram byte-idênticas; status `DIRTY/OBSERVED`, sem limites, `operator.stale=true`, drift bruto `UNEXPECTED` (`changed=true`). Conforme D-0007, o drift é reconciliado contra WO-008 + Context Lock FRESH + delta Git autorizado; nenhum baseline ou arquivo `.gef` foi editado. O digest SHA-256 exato das leituras finais será publicado na PR para evitar autorreferência do Evidence Bundle.
+
+Os sete checks hospedados observados no HEAD de código `2e6b394c991a7a96eb8749ec9870d6dc5dd8188d` estavam PASS (4 required workflows, SonarCloud e 2 Socket), 13 threads e 0 unresolved. Eles não substituem a checagem do commit final de evidências. `npm audit` local passou. Nesta aceitação, `npm test` e os browsers usaram comandos/configuração padrão, sem serialização ou `--workers=1`.
+
+**STOP CONDITION:** C-04B local passa, mas só será `SPRYXEL_IMP_004_ASSET_CONTRACT_DURABLE_JOB_BACKBONE_READY_FOR_AUDIT` após evidência commitada, checks hospedados no exact final HEAD e confirmação final de zero threads pendentes. Sem merge/promoção de checkpoint.
+
+## Registro histórico anterior — Correction-04, 13/10/2026
+
+**Estado histórico do candidato anterior:** `IMPLEMENTED / ACCEPTANCE PENDING / CORRECTION REQUIRED`. Naquele candidato, a aceitação HIGH_ASSURANCE canônica com Playwright paralelo ainda não tinha sido executada; os resultados locais C-01…C-03 eram históricos.
 **Work Order / incremento:** `SPRYXEL-WO-008` / `SPRYXEL-IMP-004`
 **Risco:** `HIGH_ASSURANCE`
 **Issue / PR:** [#29](https://github.com/KayzenRoot/spryxel/issues/29) / [#30](https://github.com/KayzenRoot/spryxel/pull/30)
 **Base autorizada:** `main@08bd429bb924e26f7d5266ee9b556cc8da2c8b8c`
-**Head remoto de partida desta reexecução:** `dbbdcecade592cbfbe0ce4839bcc8464a764ccda`
+**Head inicial da aceitação documentada acima:** `2e6b394c991a7a96eb8749ec9870d6dc5dd8188d`.
 **HEAD candidato e checks hospedados do candidato atual:** consultar a atestação viva na [PR #30](https://github.com/KayzenRoot/spryxel/pull/30). O Evidence Bundle não se autorreferencia: sua própria atualização gera novo commit/HEAD; checks anteriores permanecem históricos e não substituem aceitação local.
 
 ## Autoridade e preflight
