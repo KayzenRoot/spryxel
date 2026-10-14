@@ -29,12 +29,22 @@
     "maxAutomaticRetries": 0,
     "executeLastSonarPromptNow": false
   },
-  "runState": "SAFE_DISABLED_AWAITING_GITHUB_AGENT_ACCESS_AND_WO_ADMISSION",
+  "runState": "BLOCKED_GITHUB_COPILOT_FREE_EXTERNAL_ENTITLEMENT",
   "limitations": [
     "ChatGPT GitHub connector can post issue comments but cannot itself create/continue existing Codex Cloud UI task",
     "Do not claim comment @codex actually dispatched until Codex posts a task/session response",
     "Never add token, OAuth secret, API key to repository",
     "No edits to active #30, #75 or #76 by this configuration"
   ],
-  "lastUserRequest": "Configure future direct dispatch; user is independently submitting previously generated Codex correction now."
+  "lastUserRequest": "Configure future direct dispatch; user is independently submitting previously generated Codex correction now.",
+  "entitlementCheck": {
+    "date": "2026-10-14",
+    "source": "Owner GitHub settings screenshots",
+    "plan": "GitHub Copilot Free",
+    "cloudAgent": "Disabled",
+    "codexThirdParty": "Not available/visible in screenshot",
+    "requirePaidCopilotForNativeDelegation": true,
+    "existingChatCodexCloudAccessibleSeparately": true,
+    "doNotPurchaseOrDispatch": true
+  }
 }
