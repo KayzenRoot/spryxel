@@ -1,7 +1,7 @@
 {
   "schemaVersion": "SPRYXEL_WEB_BATCH02_CONTEXT_CANDIDATE_V1",
   "kind": "spryxel.context-lock.candidate",
-  "status": "BLOCKED_PENDING_G0_G1_INDEPENDENT_AUDIT_AND_ADMITTED_CONTEXT_LOCK",
+  "status": "OWNER_APPROVED_SCOPE_PREPARATION_PENDING_G0_G1_NORMATIVE_INDEPENDENT_AUDIT_CONTEXT_LOCK",
   "workOrderId": "SPRYXEL-WEB-BATCH-02",
   "trackingIssue": 81,
   "repository": "KayzenRoot/spryxel",
@@ -44,12 +44,13 @@
     "decisionStatus": "G0 #63 / G1 #64 / G2 #70 not formally frozen",
     "requiredIndependentApproval": true,
     "requiredAdmissionSatisfied": false,
-    "ownerCurrentSpecificApproval": false,
+    "ownerCurrentSpecificApproval": true,
     "independentAuditComplete": false,
     "freshCanonicalContextLockExists": false,
     "canonicalG0SequenceExceptionApproved": false,
     "g1ContractFrozen": false,
-    "activeWo008RemainsProtected": true
+    "activeWo008RemainsProtected": true,
+    "ownerScopeApprovalClarification": "Owner 2026-10-14 explicitly authorized to PREPARE independent Batch02 off-main branch while PR30 remains open, with NO merges, backend, auth, Blender, payments. This is NOT formal WO admission, not G1 freeze, not approval to change canonical source."
   },
   "lanes": [
     {
@@ -133,7 +134,8 @@
     "independentAuditorApproved": false,
     "canonicalCheckpointPromoted": false,
     "mergeAuthorized": false,
-    "dispatched": false
+    "dispatched": false,
+    "ownerApprovedOffMainPreparation": true
   },
   "freshness": {
     "staleIf": [
@@ -150,5 +152,10 @@
   "noAnimation": true,
   "noPayments": true,
   "noCodexDispatchedByChatGPT": true,
-  "preflightStopReason": "STOP before execution. CHECKPOINT.json requires Asset Contract durable Job Work Order as next legal slice; AGENTS.md requires admitted WO + fresh Context Lock; G0 #63/G1 #64 not approved; no authorized exception yet. Candidate is documentary, not an execution credential."
+  "preflightStopReason": "STOP before execution. CHECKPOINT.json requires Asset Contract durable Job Work Order as next legal slice; AGENTS.md requires admitted WO + fresh Context Lock; G0 #63/G1 #64 not approved; no authorized exception yet. Candidate is documentary, not an execution credential.",
+  "sourceRisk": {
+    "pr30ChangedPaths": 52,
+    "directOverlapWithFourBatch02WritablePaths": 0,
+    "indirectIntegrationConflict": "PR30 changes apps/web/app/page.tsx and apps/web/app/projects/[projectId]/page.tsx which PR80 relocated into (workspace), so eventual integration may require HIGH_ASSURANCE conflict reconciliation; no merge granted."
+  }
 }
