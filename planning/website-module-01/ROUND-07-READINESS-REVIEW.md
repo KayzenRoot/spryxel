@@ -1,3 +1,5 @@
+> **ROUND 08 now prepared, still NOT ADMITTED:** `governance/ROUND-08-G0-DECISION-BRIEF.md` records owner-facing additive-first public-site sequencing alternatives, `contracts/ROUND-08-G1-SSR-ARCHITECTURE.md` evaluates Next.js 16 multiple-root SSR language with existing protected `/`, `ROUND-08-ASSET-IMPORT-RECEIPT.md` records verified reference ZIP extraction and **no GitHub binary upload**, and `tools/import-round08.py` stages exactly eight original/candidate files into a non-main git branch after digest checks. Actual reference import ZIP is in the chat download, not GitHub. G0 formal decision, G1 security-reviewed runtime proof, #53 faithful logo and #70 four-master owner approval remain pending. No implementation or authorization can be inferred.
+
 # Spryxel Module 01 | Round 07 readiness, audit and owner decision register
 
 > **STATE: PLANNING HANDOFF PREPARED / IMPLEMENTATION NOT ADMITTED / MASTER NOT FROZEN.**
