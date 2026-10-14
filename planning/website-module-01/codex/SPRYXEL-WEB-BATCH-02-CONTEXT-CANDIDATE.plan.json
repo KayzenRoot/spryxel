@@ -1,7 +1,7 @@
 {
   "schemaVersion": "SPRYXEL_WEB_BATCH02_CONTEXT_CANDIDATE_V1",
   "kind": "spryxel.context-lock.candidate",
-  "status": "NOT_ADMITTED_NOT_FRESH_NOT_EXECUTION_AUTHORITY",
+  "status": "BLOCKED_PENDING_G0_G1_INDEPENDENT_AUDIT_AND_ADMITTED_CONTEXT_LOCK",
   "workOrderId": "SPRYXEL-WEB-BATCH-02",
   "trackingIssue": 81,
   "repository": "KayzenRoot/spryxel",
@@ -42,8 +42,14 @@
     },
     "gef": "@gef-bootstrap/cli@1.1.1",
     "decisionStatus": "G0 #63 / G1 #64 / G2 #70 not formally frozen",
-    "requiredIndependentApproval": false,
-    "requiredAdmissionSatisfied": false
+    "requiredIndependentApproval": true,
+    "requiredAdmissionSatisfied": false,
+    "ownerCurrentSpecificApproval": false,
+    "independentAuditComplete": false,
+    "freshCanonicalContextLockExists": false,
+    "canonicalG0SequenceExceptionApproved": false,
+    "g1ContractFrozen": false,
+    "activeWo008RemainsProtected": true
   },
   "lanes": [
     {
@@ -143,5 +149,6 @@
   "noBlender": true,
   "noAnimation": true,
   "noPayments": true,
-  "noCodexDispatchedByChatGPT": true
+  "noCodexDispatchedByChatGPT": true,
+  "preflightStopReason": "STOP before execution. CHECKPOINT.json requires Asset Contract durable Job Work Order as next legal slice; AGENTS.md requires admitted WO + fresh Context Lock; G0 #63/G1 #64 not approved; no authorized exception yet. Candidate is documentary, not an execution credential."
 }
