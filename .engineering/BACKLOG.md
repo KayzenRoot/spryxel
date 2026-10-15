@@ -109,3 +109,11 @@ The next NECESSARY slice is Asset Contract + durable Job backbone. It remains NO
 `SPRYXEL-WO-007 / SPRYXEL-IMP-003` is COMPLETE on `main@67debfaca7cae164872a06a30faebb43daf34425` after objective HIGH_ASSURANCE audit, canonical promotion, squash merge and post-merge validation. Projects + canonical shell/Home are now canonical.
 
 The next NECESSARY implementation slice is Asset Contract + durable Job backbone. It remains NOT_ADMITTED until a new Work Order and fresh Context Lock are created from the current main base.
+
+## SPRYXEL-WO-008 / IMP-004 approval pending merge
+
+`SPRYXEL-WO-008 — Asset Contract + durable Job backbone` is independently `APPROVED` on code head `fe54bfac66bcb85c10d56c4c8a0c9c7526bec624`, after Node 22.23.3/npm 10.9.9 acceptance and exact-head hosted checks. The checkpoint is promoted only to `APPROVED_PENDING_MERGE`; protected squash merge and exact-main post-merge validation remain required before the backlog status becomes COMPLETE.
+
+The accepted implementation keeps PostgreSQL canonical for immutable Asset Contracts and durable Jobs/Attempts; Redis/BullMQ remains transient/reconstructable; worker identity is separate and least-privilege. Known evidence limits: Sonar details for 76 findings are unavailable despite a passing Quality Gate, and the Jobs Center has a LOW next-cursor navigation limitation. Neither is concealed in the independent audit.
+
+Credit Ledger + CostGuard authorization is the next NECESSARY increment only after WO-008 closeout. It remains NOT_ADMITTED; do not implement it under this WO.

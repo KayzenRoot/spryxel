@@ -69,5 +69,98 @@ export const projectResponseSchema = z
   .strict();
 
 export const idempotencyKeyPattern = /^[A-Za-z0-9._:-]{1,128}$/;
+
+export const durableJobStatusSchema = z.enum([
+  'queued',
+  'running',
+  'cancel_requested',
+  'succeeded',
+  'failed',
+  'cancelled',
+]);
+export const jobAttemptSchema = z
+  .object({
+    id: z.string().regex(projectIdPattern),
+    executorKind: z.literal('spryxel.asset_contract.integrity_worker'),
+    executorVersion: z.literal('v1'),
+    attemptNumber: z.number().int().min(1).max(3),
+    status: z.enum(['running', 'succeeded', 'failed', 'cancelled', 'expired']),
+    startedAt: z.iso.datetime(),
+    completedAt: z.iso.datetime().nullable(),
+    failureCode: z
+      .enum([
+        'contract_integrity_mismatch',
+        'attempts_exhausted',
+        'execution_timeout',
+        'lease_expired',
+      ])
+      .nullable(),
+  })
+  .strict();
+export const safeJobSchema = z
+  .object({
+    id: z.string().regex(projectIdPattern),
+    projectId: z.string().regex(projectIdPattern),
+    operationType: z.literal('asset_contract.integrity_check.v1'),
+    status: durableJobStatusSchema,
+    retryable: z.boolean(),
+    cancelEligible: z.boolean(),
+    attemptCount: z.number().int().min(0).max(3),
+    maxAttempts: z.number().int().min(1).max(3),
+    resultCode: z.literal('integrity_passed').nullable(),
+    failureCode: z
+      .enum(['contract_integrity_mismatch', 'attempts_exhausted', 'execution_timeout'])
+      .nullable(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+    contract: z
+      .object({
+        id: z.string().regex(projectIdPattern),
+        version: z.number().int().min(1),
+        schemaVersion: z.literal('asset-contract.v1'),
+        skuId: z.string().regex(/^SKU-(?:MAP-|UI-)?[0-9]{3}$/),
+        specificationSha256: z.string().regex(/^[0-9a-f]{64}$/),
+        executionBounds: z
+          .object({
+            maxCandidates: z.literal(1),
+            maxRetries: z.literal(2),
+            maxRepairs: z.literal(0),
+            maxWallTimeMs: z.literal(5_000),
+          })
+          .strict(),
+      })
+      .strict(),
+    attempts: z.array(jobAttemptSchema).max(3),
+  })
+  .strict();
+export const jobListResponseSchema = z
+  .object({
+    jobs: z.array(safeJobSchema).max(50),
+    nextCursor: z.string().max(256).optional(),
+  })
+  .strict();
+export const jobResponseSchema = z.object({ job: safeJobSchema }).strict();
+export const jobCancelResponseSchema = z.object({ job: safeJobSchema }).strict();
+export const jobListQuerySchema = z
+  .object({
+    limit: z.coerce.number().int().min(1).max(50).default(20),
+    cursor: z
+      .string()
+      .regex(/^[A-Za-z0-9_-]{1,256}$/)
+      .optional(),
+    projectId: z.string().regex(projectIdPattern).optional(),
+  })
+  .strict();
+export const projectJobListQuerySchema = z
+  .object({
+    limit: z.coerce.number().int().min(1).max(50).default(20),
+    cursor: z
+      .string()
+      .regex(/^[A-Za-z0-9_-]{1,256}$/)
+      .optional(),
+  })
+  .strict();
+
 export type Project = z.infer<typeof projectSchema>;
 export type ProjectRole = z.infer<typeof projectRoleSchema>;
+export type SafeJob = z.infer<typeof safeJobSchema>;

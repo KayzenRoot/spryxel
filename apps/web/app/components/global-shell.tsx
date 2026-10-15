@@ -34,6 +34,9 @@ export function GlobalShell({
               <Link className="rounded-control px-3 py-2 text-sm hover:bg-hover" href="/projects">
                 Projects
               </Link>
+              <Link className="rounded-control px-3 py-2 text-sm hover:bg-hover" href="/jobs">
+                Jobs
+              </Link>
               <span
                 aria-disabled="true"
                 className="rounded-control px-3 py-2 text-sm text-text-disabled"

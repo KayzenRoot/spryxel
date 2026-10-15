@@ -5,6 +5,8 @@ import { GlobalShell } from './components/global-shell';
 import { ProjectLoadFailure } from './components/project-load-failure';
 import { requireWebSession } from '../src/auth/session';
 import { assertProjectApiError, fetchProjects, type ProjectApiError } from '../src/projects/api';
+import { assertJobApiError, fetchJobs } from '../src/jobs/api';
+import { JobList, JobLoadProblem } from './jobs/job-list';
 
 export default async function HomePage({
   searchParams,
@@ -23,6 +25,19 @@ export default async function HomePage({
   } catch (error) {
     assertProjectApiError(error);
     projectState = { kind: 'failed', error };
+  }
+  let recentJobs: Awaited<ReturnType<typeof fetchJobs>> | undefined;
+  let jobsFailure: number | undefined;
+  if (projectState.kind === 'loaded') {
+    try {
+      recentJobs = await fetchJobs(session, {
+        tenantId: projectState.projectList.tenantId,
+        limit: 5,
+      });
+    } catch (error) {
+      assertJobApiError(error);
+      jobsFailure = error.status;
+    }
   }
 
   return (
@@ -112,10 +127,18 @@ export default async function HomePage({
         <h2 id="jobs-title" className="text-lg font-semibold">
           Recent jobs
         </h2>
-        <p className="mt-2 text-sm leading-6 text-text-secondary">
-          Durable jobs are not available in this increment. No job status is being inferred or
-          fabricated.
-        </p>
+        {jobsFailure ? (
+          <JobLoadProblem status={jobsFailure} />
+        ) : recentJobs ? (
+          <JobList
+            jobs={recentJobs.jobs}
+            tenantId={projectState.kind === 'loaded' ? projectState.projectList.tenantId : ''}
+          />
+        ) : (
+          <p className="mt-2 text-sm leading-6 text-text-secondary">
+            Workspace jobs are unavailable until the workspace can be loaded.
+          </p>
+        )}
       </section>
     </GlobalShell>
   );

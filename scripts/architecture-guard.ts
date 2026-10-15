@@ -1,4 +1,12 @@
-const admittedProjectTables = new Set(['platform.project', 'platform.project_create_idempotency']);
+const admittedProductTables = new Set([
+  'platform.project',
+  'platform.project_create_idempotency',
+  'platform.asset_contract',
+  'platform.asset_contract_version',
+  'platform.durable_job',
+  'platform.job_create_idempotency',
+  'platform.job_attempt',
+]);
 
 const outOfScopeProductTableTokens = new Set([
   'user',
@@ -26,7 +34,7 @@ export function findOutOfScopeProductTables(sql: string): string[] {
     const name = match[2]?.toLowerCase();
     if (!name) continue;
     const qualifiedName = schema ? `${schema}.${name}` : name;
-    if (admittedProjectTables.has(qualifiedName)) continue;
+    if (admittedProductTables.has(qualifiedName)) continue;
     if (name.split('_').some((token) => outOfScopeProductTableTokens.has(token))) {
       violations.add(qualifiedName);
     }
