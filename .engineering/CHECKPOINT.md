@@ -54,16 +54,17 @@ GEF: `@gef-bootstrap/cli@1.1.1`
 
 ## Próxima ação legal
 
-O próximo incremento NECESSARY após o closeout completo de WO-008 será `Credit Ledger + CostGuard authorization foundation`; permanece `NOT_ADMITTED` até WO-008 ser squash-mergeada sob o ruleset ativo e validada no SHA resultante de `main`, seguida de Work Order/Context Lock próprios. Não iniciar WO-009 nesta aceitação.
+O próximo incremento NECESSARY é `Credit Ledger + CostGuard authorization foundation`; permanece `NOT_ADMITTED` até a abertura de Work Order e Context Lock próprios sobre o `main` atual. Não há autorização para iniciar WO-009 nesta ordem.
 
-## SPRYXEL-WO-008 / IMP-004 — decisão independente e promoção pendente
+## SPRYXEL-WO-008 / IMP-004 — COMPLETE
 
 - Base autorizada: `main@08bd429bb924e26f7d5266ee9b556cc8da2c8b8c`.
-- Candidato de código auditado/testado: `fe54bfac66bcb85c10d56c4c8a0c9c7526bec624`.
-- Veredito independente HIGH_ASSURANCE: `APPROVED`; auditoria e matriz AC1–AC63 em `.engineering/evidence/SPRYXEL-WO-008-INDEPENDENT-AUDIT.md`.
-- Checkpoint em `SPRYXEL_WO_008_APPROVED_PENDING_MERGE`; a aprovação não equivale a merge nem a `COMPLETE`.
-- Aceitação local Node `22.23.3` / npm `10.9.9`: format, lint, typecheck 18/18, build 11/11, architecture, 94/94 unitários, worker smoke, integração PostgreSQL/FORCE RLS + Redis/BullMQ + SeaweedFS real, Playwright 20/20, audit sem vulnerabilidades; comandos e logs no Evidence Bundle.
-- Candidate checks: Repository validation `116220412296`, Pipeline integrity `116220412316`, Gitleaks `116220412460`, Trivy `116220412164`, Sonar `116220592964`, Socket Project Report `116220432390`, Socket PR Alerts `116220450449`: SUCCESS. 14/14 threads resolvidas.
-- Sonar Quality Gate: PASS; 76 issues novos, 0 hotspots, cobertura nova 0.0%, duplicação 1.7%. Detalhes completos `NOT_AVAILABLE` (HTTP 403); 50 annotations não equivalem a 76 classificações. Nenhum blocker HIGH/CRITICAL foi demonstrado; não alegamos classificação integral.
-- Limitação UX LOW registrada: Jobs Center informa os 50 resultados recentes, mas não oferece navegação para o próximo cursor. WorkOS/staging real não foi testado.
-- `promotionHeadSha`, merge SHA e checks pós-merge só serão preenchidos no closeout depois do squash merge e readback de checks no `main` exato.
+- Candidato de código aprovado: `fe54bfac66bcb85c10d56c4c8a0c9c7526bec624`.
+- Promotion head: `2e3d9cdd09ed1ff31655183e54f6d23bd3c0716e`.
+- PR #30 squash-merged sem bypass em `main@75054119d4f0f110ed766b8094f1d3c1f17e59f3`.
+- HIGH_ASSURANCE audit: APPROVED; matriz AC1–AC63 e limites em `.engineering/evidence/SPRYXEL-WO-008-INDEPENDENT-AUDIT.md`.
+- Validação local no candidato, Node `22.23.3` / npm `10.9.9`: format/lint, typecheck 18/18, build 11/11, architecture, 94/94 unitários, worker smoke, PostgreSQL/FORCE RLS + Redis/BullMQ + SeaweedFS reais, Playwright 20/20, npm audit sem vulnerabilidades e `git diff --check`: PASS. A árvore do main pós-merge é idêntica à árvore testada.
+- Checks pós-merge em `main@75054119…`: Repository validation `116394735439`, Pipeline integrity `116394679485`, Gitleaks `116394677268`, Trivy `116394678499`, SonarCloud `116394955206`, Socket Project Report `116394711114`: SUCCESS.
+- Sonar PR #30: 76 issues novos, 0 hotspots, 1.7% duplicação, Quality Gate PASS; detalhe completo indisponível por HTTP 403 e não tratado como blocker isolado. Auditor não demonstrou blocker HIGH/CRITICAL.
+- Limitação UX residual LOW: Jobs Center mostra os 50 resultados mais recentes, sem navegação ao próximo cursor; a API é bounded/paginada. WorkOS/staging real não foi testado.
+- D-001…D-161, WorkOS/AuthKit, GEF 1.1.1, regras e `.gef` foram preservados. Não houve implementação de WO-009.

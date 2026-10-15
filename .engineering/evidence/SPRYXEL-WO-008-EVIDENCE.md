@@ -336,3 +336,13 @@ As seções de aceitação local C-05 acima registram o estado intermediário ex
 - A auditoria independente concluiu `APPROVED` para o candidato de código. A promoção marca somente `APPROVED_PENDING_MERGE`; a conclusão `COMPLETE` requer os checks pós-merge no SHA resultante de `main`.
 
 **STOP da aceitação final:** `SPRYXEL_WO008_FINAL_AUDIT_APPROVED_AND_PROTECTED_CLOSEOUT`.
+
+
+## Closeout pós-merge — 15/10/2026
+
+- Auditoria independente: APPROVED no candidato `fe54bfac66bcb85c10d56c4c8a0c9c7526bec624`.
+- Promotion head: `2e3d9cdd09ed1ff31655183e54f6d23bd3c0716e`.
+- PR #30: squash merge protegido em `main@75054119d4f0f110ed766b8094f1d3c1f17e59f3`, sem bypass; árvore de código idêntica à testada.
+- Checks pós-merge no SHA exato: Repository validation `116394735439`, Pipeline integrity `116394679485`, Gitleaks `116394677268`, Trivy `116394678499`, SonarCloud `116394955206`, Socket Project Report `116394711114`: SUCCESS.
+- Sonar main: Quality Gate PASS, 166 issues novos, 0 hotspots, cobertura 0.0%, duplicação 0.7%. O escopo main difere do PR; classificação individual segue `NOT_AVAILABLE`.
+- Resultado canônico: WO-008 COMPLETE. Credit Ledger + CostGuard permanece NOT_ADMITTED até Work Order/Context Lock próprio.

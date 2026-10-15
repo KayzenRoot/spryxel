@@ -136,10 +136,8 @@ Identity/Tenancy from WO-006 remains preserved. Asset Contract/Job backbone and 
 
 The canonical implemented surface now includes the technical foundation, Identity/Tenancy security baseline, durable tenant-owned Projects, and the authenticated Global Shell/Home/Projects/Project Overview product surface. Asset Contract/Job backbone and every later product slice remain NOT_ADMITTED until their own Work Orders and Context Locks.
 
-## SPRYXEL-WO-008 / IMP-004 — aprovação pendente de merge
+## SPRYXEL-WO-008 / IMP-004 — COMPLETE
 
-A auditoria independente aprovou o incremento `Asset Contract + durable Job backbone` no candidato `fe54bfac66bcb85c10d56c4c8a0c9c7526bec624`. O estado canônico permanece `APPROVED_PENDING_MERGE` até o squash merge protegido e validação no `main` resultante.
+`Asset Contract + durable Job backbone` foi aprovado independentemente e integrado em `main@75054119d4f0f110ed766b8094f1d3c1f17e59f3` via PR #30, squash merge protegido e validação pós-merge exata. A árvore foi testada em Node 22.23.3/npm 10.9.9 e é idêntica à árvore mesclada. O incremento mantém Asset Contract e Job/Attempt duráveis em PostgreSQL, Redis/BullMQ como projeção transitória reconstruível e worker separado least-privilege.
 
-O incremento implementa Asset Contract versionado/imutável, Job/Attempt duráveis e idempotência canônicos em PostgreSQL, fila Redis/BullMQ transitória e reconstruível, worker separado de menor privilégio e superfícies Jobs/Home/Project Overview. Não admite geração/inferência, pagamentos, créditos, CostGuard, Blender, GPU ou execução de provider.
-
-Limites registrados: a página Jobs ainda não navega além dos primeiros 50 resultados embora a API retorne `nextCursor` (LOW); os 76 detalhes Sonar não foram disponibilizados (Quality Gate PASS; nenhuma severidade foi inferida a partir das 50 annotations parciais); WorkOS/staging real não foi testado. Esses pontos constam da auditoria e do Evidence Bundle.
+Limites mantidos no Evidence Bundle: Jobs Center não navega além dos 50 itens mais recentes (LOW); Sonar Quality Gate passou, mas classificação detalhada dos issues não estava disponível; WorkOS/staging real não foi testado. Nenhum trabalho de WO-009 está admitido.

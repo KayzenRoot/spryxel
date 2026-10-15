@@ -1,10 +1,10 @@
 {
   "schemaVersion": 2,
   "status": "CANONICAL",
-  "phase": "ASSET_CONTRACT_DURABLE_JOB_BACKBONE_APPROVED",
-  "stopState": "SPRYXEL_WO_008_APPROVED_PENDING_MERGE",
+  "phase": "ASSET_CONTRACT_DURABLE_JOB_BACKBONE_COMPLETE",
+  "stopState": "SPRYXEL_WO_008_COMPLETE",
   "completedThroughModule": "SPRYXEL_IMP_004_ASSET_CONTRACT_DURABLE_JOB_BACKBONE",
-  "nextLegalStage": "CREDIT_LEDGER_COSTGUARD_WORK_ORDER_REQUIRED_AFTER_WO_008_CLOSEOUT",
+  "nextLegalStage": "CREDIT_LEDGER_COSTGUARD_WORK_ORDER_REQUIRED",
   "v11": {
     "gefVersion": "1.1.1",
     "gefReleaseSourceSha": "1dc030f1358eab0347043a3d54c7fc311c7c2123",
@@ -15,8 +15,8 @@
     "auditVerdict": "APPROVED",
     "correctionDelta01": "SATISFIED",
     "correctionDelta02": "SATISFIED",
-    "postMergeValidation": "PENDING",
-    "productImplementation": "ASSET_CONTRACT_DURABLE_JOB_BACKBONE_APPROVED_PENDING_MERGE",
+    "postMergeValidation": "PASS",
+    "productImplementation": "ASSET_CONTRACT_DURABLE_JOB_BACKBONE_COMPLETE",
     "productBaseline": "CANONICAL_PRODUCT_MASTER_V0_6_0_DECOMPOSED",
     "planningCompletedThrough": "SPR-PLAN-007",
     "implementationCompletedThrough": "SPRYXEL-IMP-004",
@@ -74,7 +74,20 @@
       "jobAttemptState": "POSTGRESQL_CANONICAL",
       "queueProjection": "REDIS_BULLMQ_TRANSIENT_RECONSTRUCTABLE",
       "workerIdentity": "SEPARATE_LEAST_PRIVILEGE",
-      "promotionState": "APPROVED_PENDING_MERGE"
-    }
+      "promotionState": "COMPLETE"
+    },
+    "promotionHeadSha": "2e3d9cdd09ed1ff31655183e54f6d23bd3c0716e",
+    "mergedMainSha": "75054119d4f0f110ed766b8094f1d3c1f17e59f3",
+    "postMergeRequiredChecks": {
+      "repositoryValidation": 116394735439,
+      "pipelineIntegrity": 116394679485,
+      "gitleaksSecrets": 116394677268,
+      "trivyFilesystemAndConfiguration": 116394678499
+    },
+    "postMergeSonarCloud": {
+      "checkRun": 116394955206,
+      "conclusion": "PASS"
+    },
+    "postMergeSocketProjectReport": 116394711114
   }
 }

@@ -1,6 +1,6 @@
 # SPRYXEL-WO-008 — Proposed Checkpoint Delta
 
-**Status:** ACCEPTED_BY_INDEPENDENT_AUDIT; PROMOTED_PENDING_PROTECTED_MERGE.
+**Status:** ACCEPTED_BY_INDEPENDENT_AUDIT; PROMOTED_AND_POST_MERGE_VALIDATED.
 
 ## Preconditions satisfied for promotion
 
@@ -23,14 +23,23 @@
 
 ## Gate de merge
 
-Este commit de promoção não é evidência de merge. PR #30 só pode receber squash merge se:
+O commit de promoção não era evidência de merge. A PR #30 recebeu squash merge protegido somente após:
 
 - os quatro required checks passam no exact promotion head, sem reutilizar checks de SHA anterior;
 - Sonar Quality Gate e checks de segurança do candidato passam;
 - não há review thread pendente nem novo blocker demonstrado.
 
-Após squash merge, aceitação pós-merge deve ser coletada no SHA exato de `main`; checks do candidato não substituem essa evidência. Só então a WO-008 pode ser marcada COMPLETE.
+PR #30 foi squash-mergeada em `main@75054119d4f0f110ed766b8094f1d3c1f17e59f3`; o tree `c90aaf22290fd04f19bd8b8d61ecf39d3ae2b006` é idêntico ao tree da promoção. No SHA exato passaram Repository validation `116394735439`, Pipeline integrity `116394679485`, Gitleaks `116394677268`, Trivy `116394678499`, SonarCloud `116394955206` e Socket Project Report `116394711114`. A WO-008 está COMPLETE; credit ledger/costguard permanece NOT_ADMITTED.
 
 ## Fora de escopo preservado
 
 Nenhuma implementação de Credit Ledger/CostGuard, inferência/modelo/GPU, execução por provider, Asset/DNA/QA/export downstream, WorkOS/provider, ruleset/workflow, `.gef`, Decision Ledger ou source seed foi incluída nesta promoção documental.
+
+
+## Fechamento pós-merge (15/10/2026)
+
+- Promotion head: `2e3d9cdd09ed1ff31655183e54f6d23bd3c0716e`.
+- Squash merge: `main@75054119d4f0f110ed766b8094f1d3c1f17e59f3`.
+- Verificação de árvore: promoção e `main` pós-merge compartilham tree `c90aaf22290fd04f19bd8b8d61ecf39d3ae2b006`.
+- Checks pós-merge no exact `main`: Repository validation `116394735439`, Pipeline integrity `116394679485`, Gitleaks `116394677268`, Trivy `116394678499`, SonarCloud `116394955206`, Socket Project Report `116394711114`: SUCCESS.
+- Estado canônico: `SPRYXEL_WO_008_COMPLETE`; próxima sequência NECESSARY Credit Ledger + CostGuard authorization, `NOT_ADMITTED` até novo Work Order/Context Lock.
