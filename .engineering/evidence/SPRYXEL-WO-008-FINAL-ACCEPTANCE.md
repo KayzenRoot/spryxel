@@ -61,6 +61,24 @@ Limitações registradas sem ocultação:
 1. A interface Jobs busca os 50 resultados mais recentes e informa esse limite, mas não oferece navegação ao próximo cursor; a API permanece bounded/cursor-paginada. O auditor classificou essa limitação UX como LOW e não bloqueante para os critérios desta Work Order. Referências: `apps/web/app/jobs/page.tsx:30,95`.
 2. A severidade/status completos dos 76 issues Sonar são `NOT_AVAILABLE`; apenas Quality Gate, métricas e 50 annotations parciais foram observados.
 3. WorkOS/staging real e a integração semântica futura da PR #80 não foram testados por este batch.
-4. As evidências locais foram executadas no HEAD de código `fe54bfac…`. A promoção documental não muda código; ainda assim, os checks hospedados serão novamente exigidos no HEAD de promoção antes do squash merge, e checks pós-merge serão coletados no SHA resultante de `main`.
+4. As evidências locais foram executadas no HEAD de código `fe54bfac…`; o tree do merge protegido em `main` é idêntico (`c90aaf22…`). Os checks hospedados passaram tanto no HEAD de promoção quanto no SHA exato pós-merge.
 
 **Decisão:** `APPROVED`; não há defeito material reproduzido nem finding HIGH/CRITICAL demonstrado que exija correção. A PR só pode ser squash-mergeada após a promoção documental receber os checks exatos e threads resolvidas; o checkpoint só será marcado `COMPLETE` após validar o `main` pós-merge.
+
+
+## Fechamento pós-merge em `main`
+
+PR #30 foi squash-mergeada sem bypass em `2026-10-15T11:22:09Z`. Promotion head `2e3d9cdd09ed1ff31655183e54f6d23bd3c0716e`; merge SHA `75054119d4f0f110ed766b8094f1d3c1f17e59f3`; parent/base `08bd429bb924e26f7d5266ee9b556cc8da2c8b8c`. A árvore pós-merge é `c90aaf22290fd04f19bd8b8d61ecf39d3ae2b006`, igual à árvore do HEAD promovido, portanto o código validado localmente não mudou.
+
+| Check em `main@75054119…` | ID | Conclusão |
+|---|---:|---|
+| Repository validation | `116394735439` | SUCCESS |
+| Pipeline integrity | `116394679485` | SUCCESS |
+| Gitleaks secrets | `116394677268` | SUCCESS |
+| Trivy filesystem and configuration | `116394678499` | SUCCESS |
+| SonarCloud Code Analysis | `116394955206` | SUCCESS / Quality Gate PASS |
+| Socket Security: Project Report | `116394711114` | SUCCESS |
+
+O resumo Sonar da branch `main` reporta 166 issues novos, 0 aceitos, 0 hotspots, cobertura nova 0.0% e duplicação 0.7%. Esse escopo é a análise da branch principal, distinto dos 76 issues e 1.7% de duplicação no check de PR #30; a classificação individual permanece `NOT_AVAILABLE` e não foi inferida.
+
+**Estado final da Work Order:** `SPRYXEL_WO_008_COMPLETE`. O seguinte incremento NECESSARY, Credit Ledger + CostGuard authorization, permanece `NOT_ADMITTED`; nenhum WO-009 foi iniciado.

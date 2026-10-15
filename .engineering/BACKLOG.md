@@ -110,10 +110,10 @@ The next NECESSARY slice is Asset Contract + durable Job backbone. It remains NO
 
 The next NECESSARY implementation slice is Asset Contract + durable Job backbone. It remains NOT_ADMITTED until a new Work Order and fresh Context Lock are created from the current main base.
 
-## SPRYXEL-WO-008 / IMP-004 approval pending merge
+## SPRYXEL-WO-008 / IMP-004 completion
 
-`SPRYXEL-WO-008 — Asset Contract + durable Job backbone` is independently `APPROVED` on code head `fe54bfac66bcb85c10d56c4c8a0c9c7526bec624`, after Node 22.23.3/npm 10.9.9 acceptance and exact-head hosted checks. The checkpoint is promoted only to `APPROVED_PENDING_MERGE`; protected squash merge and exact-main post-merge validation remain required before the backlog status becomes COMPLETE.
+`SPRYXEL-WO-008 — Asset Contract + durable Job backbone` is COMPLETE on `main@75054119d4f0f110ed766b8094f1d3c1f17e59f3`. Independent HIGH_ASSURANCE audit APPROVED candidate `fe54bfac66bcb85c10d56c4c8a0c9c7526bec624`; promotion head `2e3d9cdd09ed1ff31655183e54f6d23bd3c0716e`; PR #30 was protected squash-merged; exact-main post-merge checks passed.
 
-The accepted implementation keeps PostgreSQL canonical for immutable Asset Contracts and durable Jobs/Attempts; Redis/BullMQ remains transient/reconstructable; worker identity is separate and least-privilege. Known evidence limits: Sonar details for 76 findings are unavailable despite a passing Quality Gate, and the Jobs Center has a LOW next-cursor navigation limitation. Neither is concealed in the independent audit.
+Post-merge IDs: Repository validation `116394735439`, Pipeline integrity `116394679485`, Gitleaks `116394677268`, Trivy `116394678499`, SonarCloud `116394955206`, Socket Project Report `116394711114`. Candidate test tree and merged tree are identical. The independent audit records the LOW Jobs Center cursor navigation limitation and incomplete Sonar issue classification (Quality Gate PASS); neither is concealed.
 
-Credit Ledger + CostGuard authorization is the next NECESSARY increment only after WO-008 closeout. It remains NOT_ADMITTED; do not implement it under this WO.
+Credit Ledger + CostGuard authorization is next NECESSARY but remains NOT_ADMITTED pending its own Work Order and Context Lock. No WO-009 work was started.
