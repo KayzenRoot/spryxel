@@ -37,7 +37,9 @@ import {
   markSessionRevocationRetryable,
   probePostgres,
   reconcileDurableJobs,
+  RuntimeDatabaseRoleError,
   runMigrations,
+  WorkerRuntimeRoleError,
 } from '@spryxel/db';
 import type { AuthenticatedPrincipal, IdentitySessionProviderPort } from '@spryxel/identity';
 import { createRunId, waitFor } from '@spryxel/testkit';
@@ -50,17 +52,23 @@ import {
 import { Queue } from 'bullmq';
 import { Redis } from 'ioredis';
 import { buildApiServer } from '../apps/api/src/server.js';
+import { runCreditLedgerIntegration } from './credit-ledger-integration.js';
 import { rollbackBeforeRethrowing } from './integration-cleanup.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const composePath = resolve(root, 'infra/compose.yml');
 const tempDirectory = await mkdtemp(resolve(tmpdir(), 'spryxel-wo007-imp003-'));
 const envPath = resolve(tempDirectory, 'test.env');
+const composeOverridePath = resolve(tempDirectory, 'compose.override.yml');
 const projectName = createRunId('spryxel-wo007-test');
 const composeWaitTimeoutSeconds = 90;
 const composeCommandTimeoutMs = 105_000;
 const composeCleanupTimeoutMs = 30_000;
 const diagnosticCommandTimeoutMs = 10_000;
+const seaweedfsTestVolumeLimit = 8;
+const integrationDatabaseConnectionTimeoutMs = 15_000;
+// A cold local Docker/PostgreSQL start can delay the runtime-role handshake; expiry remains a hard failure.
+const privilegedApiStartupFailureTimeoutMs = 30_000;
 const maxCapturedOutputCharacters = 8_000;
 const maxFailureDiagnosticsCharacters = 16_000;
 const secrets = {
@@ -110,6 +118,11 @@ let workerDatabase: ReturnType<typeof createDatabase> | undefined;
 try {
   await writeFile(envPath, `${envContent}\n`, { mode: 0o600, flag: 'wx' });
   await chmodBestEffort(envPath);
+  await writeFile(
+    composeOverridePath,
+    `services:\n  seaweedfs:\n    command:\n      - server\n      - -s3\n      - -filer\n      - -s3.config=/tmp/spryxel-s3-identities.json\n      - -s3.port=8333\n      - -s3.port.grpc=0\n      - -s3.port.https=0\n      - -s3.port.iceberg=0\n      - -s3.iam=false\n      - -s3.port.lance=0\n      - -volume.max=${seaweedfsTestVolumeLimit}\n      - -master.volumeSizeLimitMB=256\n      - -ip=seaweedfs\n`,
+    { mode: 0o600, flag: 'wx' },
+  );
   await runCompose(['config', '--quiet'], 30_000);
   await runCompose(
     [
@@ -226,14 +239,14 @@ try {
 
   const pristineMigrationStatus = await getMigrationStatus(databaseUrl);
   if (
-    pristineMigrationStatus.length !== 8 ||
+    pristineMigrationStatus.length !== 9 ||
     pristineMigrationStatus.some((migration) => migration.applied)
   ) {
     throw new Error('Pristine PostgreSQL did not report all migrations as unapplied');
   }
 
   const migrationStatus = await runMigrations(databaseUrl);
-  if (migrationStatus.length !== 8 || migrationStatus.some((migration) => !migration.applied)) {
+  if (migrationStatus.length !== 9 || migrationStatus.some((migration) => !migration.applied)) {
     throw new Error(
       'Disposable PostgreSQL migrations did not apply the technical and identity schemas',
     );
@@ -243,7 +256,7 @@ try {
     throw new Error('Migration runner was not idempotent');
   }
   const readStatus = await getMigrationStatus(databaseUrl);
-  if (readStatus.length !== 8 || readStatus.some((migration) => !migration.applied)) {
+  if (readStatus.length !== 9 || readStatus.some((migration) => !migration.applied)) {
     throw new Error('Migration status did not report every applied migration');
   }
 
@@ -259,6 +272,11 @@ try {
     const expectedTables = [
       'platform.asset_contract',
       'platform.asset_contract_version',
+      'platform.credit_event',
+      'platform.credit_ledger_entry',
+      'platform.credit_lot',
+      'platform.credit_reservation',
+      'platform.credit_wallet',
       'platform.durable_job',
       'platform.external_auth_identity',
       'platform.identity_subject',
@@ -279,7 +297,10 @@ try {
     await database.close();
   }
 
-  runtimeDatabase = createDatabase(appDatabaseUrl, { max: 2 });
+  runtimeDatabase = createDatabase(appDatabaseUrl, {
+    max: 2,
+    connectionTimeoutMillis: integrationDatabaseConnectionTimeoutMs,
+  });
   const appRuntimeDatabase = runtimeDatabase;
   await appRuntimeDatabase.validateRuntimeRole();
   const runtimeRole = await appRuntimeDatabase.pool.query<{
@@ -298,7 +319,11 @@ try {
     throw new Error('Normal API connection did not use the restricted NOBYPASSRLS role');
   }
   await assertApiStartupRejected(await availablePort());
-  workerDatabase = createDatabase(workerDatabaseUrl, { max: 2 }, 'worker');
+  workerDatabase = createDatabase(
+    workerDatabaseUrl,
+    { max: 2, connectionTimeoutMillis: integrationDatabaseConnectionTimeoutMs },
+    'worker',
+  );
   await workerDatabase.validateRuntimeRole();
   const workerRole = await workerDatabase.pool.query<{
     current_user: string;
@@ -315,6 +340,7 @@ try {
       'Worker runtime connection did not use the separate restricted NOBYPASSRLS role',
     );
   }
+  await assertColumnLevelCreditPrivilegesRejected(databaseUrl, appDatabaseUrl, workerDatabaseUrl);
   let workerIdentityReadDenied = false;
   try {
     await workerDatabase.pool.query('SELECT id FROM platform.identity_subject');
@@ -792,9 +818,11 @@ try {
     );
     const durableJobId = concurrentDurableJobs[0]?.job.id;
     const contractId = concurrentDurableJobs[0]?.job.contract.id;
+    const contractVersion = concurrentDurableJobs[0]?.job.contract.version;
     if (
       !durableJobId ||
       !contractId ||
+      contractVersion === undefined ||
       !/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
         durableJobId,
       ) ||
@@ -803,6 +831,18 @@ try {
     ) {
       throw new Error('Concurrent same-key Job creation did not persist exactly one UUIDv7 Job');
     }
+    await runCreditLedgerIntegration({
+      databaseUrl,
+      appDatabaseUrl,
+      workerDatabaseUrl,
+      identityA,
+      identityB,
+      memberIdentity: { subjectId: memberIdentity.subjectId, tenantId: identityA.tenantId },
+      projectA: mainProjectId,
+      integrityJobId: durableJobId,
+      contractId,
+      contractVersion,
+    });
     const semanticReplay = await createDurable('durable-job-same-key', {
       dimensions: { width: 24, height: 16 },
       label: 'integration-private-contract-body',
@@ -2780,8 +2820,9 @@ try {
   await s3.send(new DeleteBucketCommand({ Bucket: bucket }));
 } catch (error) {
   const diagnostics = await collectIntegrationDiagnostics();
+  const primaryErrorStack = error instanceof Error && error.stack ? error.stack : String(error);
   primaryError = new Error(
-    `${String(error)}; infrastructure diagnostics before cleanup:\n${diagnostics}`,
+    `${redact(primaryErrorStack, allSecrets)}; infrastructure diagnostics before cleanup:\n${diagnostics}`,
   );
 } finally {
   const cleanupErrors: unknown[] = [];
@@ -2821,13 +2862,16 @@ try {
 
 if (primaryError) throw new Error(redact(String(primaryError), allSecrets));
 process.stdout.write(
-  'Real-service integration: PASS (PostgreSQL migrations/RLS, immutable Asset Contract/hash/caps, immutable Attempt executor kind/version claim provenance, duplicate-delivery single Attempt, crash/retry with distinct stable-contract Attempts, app/worker provenance UPDATE denied, concurrent Job idempotency/replay/conflict, missing-context and cross-tenant Contract/Job/Attempt RLS, worker/API function and no-direct-table privilege boundary, atomic claim/Attempt, crash/lease recovery and max attempts, queued/running cancellation, safe list/detail/cancel API, Redis loss/rebuild/minimal BullMQ reference/duplicate delivery, pooled tenant/project context isolation, WO-006 identity/session regressions, authenticated SeaweedFS S3 and health/readiness).\n',
+  'Real-service integration: PASS (Credit Ledger reserve/commit/release/compensate, double-spend/overcommit denial, replay after lost response/reconnect, immutable postings and reconciliation; CostGuard default-DENY; column-level app/worker ACL rejection; PostgreSQL migrations/FORCE RLS; immutable Asset Contract/hash/caps; Job idempotency, conflict, crash/lease recovery and max attempts; safe API; Redis/BullMQ recovery; WO-006 identity/session regressions; authenticated SeaweedFS S3 and readiness).\n',
 );
 process.stdout.write(
   'Migration/queue regressions: PASS (pristine PostgreSQL reports unapplied; two BullMQ probes leave no disposable queue keys).\n',
 );
 process.stdout.write(
   'PostgreSQL PGDATA storage: PASS (Docker confirmed Linux tmpfs; no volume or bind mount covers PGDATA).\n',
+);
+process.stdout.write(
+  `SeaweedFS integration capacity: PASS (test-only cap ${seaweedfsTestVolumeLimit}; each volume remains limited to 256 MB).\n`,
 );
 process.stdout.write(
   'Disposable Compose teardown: PASS (isolated containers, volumes and networks removed).\n',
@@ -2864,6 +2908,8 @@ function composeArgs(args: string[]): string[] {
     projectName,
     '--file',
     composePath,
+    '--file',
+    composeOverridePath,
     '--profile',
     'test',
     ...args,
@@ -3158,7 +3204,7 @@ async function assertApiStartupRejected(port: number): Promise<void> {
     new Promise<never>((_resolve, reject) => {
       timer = setTimeout(
         () => reject(new Error('Privileged API startup did not fail promptly')),
-        10_000,
+        privilegedApiStartupFailureTimeoutMs,
       );
     }),
   ])
@@ -3186,6 +3232,142 @@ async function assertApiStartupRejected(port: number): Promise<void> {
   if (served) throw new Error('API served health requests with a privileged DATABASE_URL');
   if (allSecrets.some((secret) => output.includes(secret))) {
     throw new Error('Privileged startup diagnostics exposed a database credential');
+  }
+}
+
+async function assertColumnLevelCreditPrivilegesRejected(
+  ownerDatabaseUrl: string,
+  appDatabaseUrl: string,
+  workerDatabaseUrl: string,
+): Promise<void> {
+  const owner = createDatabase(ownerDatabaseUrl, { max: 1 });
+  const appProbe = createDatabase(appDatabaseUrl, { max: 1 });
+  const workerProbe = createDatabase(workerDatabaseUrl, { max: 1 }, 'worker');
+
+  try {
+    await owner.pool.query('GRANT SELECT (id) ON platform.credit_event TO spryxel_app');
+    try {
+      const proof = await owner.pool.query<{
+        has_table_select: boolean;
+        has_any_column_select: boolean;
+      }>(`SELECT
+            pg_catalog.has_table_privilege('spryxel_app', 'platform.credit_event', 'SELECT') AS has_table_select,
+            pg_catalog.has_any_column_privilege('spryxel_app', 'platform.credit_event', 'SELECT') AS has_any_column_select`);
+      if (proof.rows[0]?.has_table_select || !proof.rows[0]?.has_any_column_select) {
+        throw new Error(
+          'Column-level SELECT fixture did not isolate a grant invisible to has_table_privilege',
+        );
+      }
+
+      let appRejected = false;
+      try {
+        await appProbe.validateRuntimeRole();
+      } catch (error) {
+        appRejected = error instanceof RuntimeDatabaseRoleError;
+      }
+      if (!appRejected) {
+        throw new Error('App runtime-role validation accepted a column-level credit ledger grant');
+      }
+    } finally {
+      await owner.pool.query('REVOKE SELECT (id) ON platform.credit_event FROM spryxel_app');
+    }
+
+    await owner.pool.query(
+      'GRANT UPDATE (status) ON platform.credit_reservation TO spryxel_worker',
+    );
+    try {
+      const proof = await owner.pool.query<{
+        has_table_update: boolean;
+        has_any_column_update: boolean;
+      }>(`SELECT
+            pg_catalog.has_table_privilege('spryxel_worker', 'platform.credit_reservation', 'UPDATE') AS has_table_update,
+            pg_catalog.has_any_column_privilege('spryxel_worker', 'platform.credit_reservation', 'UPDATE') AS has_any_column_update`);
+      if (proof.rows[0]?.has_table_update || !proof.rows[0]?.has_any_column_update) {
+        throw new Error(
+          'Column-level UPDATE fixture did not isolate a grant invisible to has_table_privilege',
+        );
+      }
+
+      let workerRejected = false;
+      try {
+        await workerProbe.validateRuntimeRole();
+      } catch (error) {
+        workerRejected = error instanceof WorkerRuntimeRoleError;
+      }
+      if (!workerRejected) {
+        throw new Error(
+          'Worker runtime-role validation accepted a column-level credit ledger grant',
+        );
+      }
+    } finally {
+      await owner.pool.query(
+        'REVOKE UPDATE (status) ON platform.credit_reservation FROM spryxel_worker',
+      );
+    }
+
+    await owner.pool.query(
+      'GRANT SELECT (tenant_id) ON platform.credit_wallet_summary TO spryxel_worker',
+    );
+    try {
+      const proof = await owner.pool.query<{
+        has_table_select: boolean;
+        has_any_column_select: boolean;
+      }>(`SELECT
+            pg_catalog.has_table_privilege('spryxel_worker', 'platform.credit_wallet_summary', 'SELECT') AS has_table_select,
+            pg_catalog.has_any_column_privilege('spryxel_worker', 'platform.credit_wallet_summary', 'SELECT') AS has_any_column_select`);
+      if (proof.rows[0]?.has_table_select || !proof.rows[0]?.has_any_column_select) {
+        throw new Error(
+          'Worker summary column SELECT fixture did not isolate a grant invisible to has_table_privilege',
+        );
+      }
+
+      let workerRejected = false;
+      try {
+        await workerProbe.validateRuntimeRole();
+      } catch (error) {
+        workerRejected = error instanceof WorkerRuntimeRoleError;
+      }
+      if (!workerRejected) {
+        throw new Error('Worker runtime-role validation accepted summary column SELECT');
+      }
+    } finally {
+      await owner.pool.query(
+        'REVOKE SELECT (tenant_id) ON platform.credit_wallet_summary FROM spryxel_worker',
+      );
+    }
+
+    await owner.pool.query(
+      'GRANT UPDATE (tenant_id) ON platform.credit_wallet_summary TO spryxel_app',
+    );
+    try {
+      const proof = await owner.pool.query<{
+        has_table_update: boolean;
+        has_any_column_update: boolean;
+      }>(`SELECT
+            pg_catalog.has_table_privilege('spryxel_app', 'platform.credit_wallet_summary', 'UPDATE') AS has_table_update,
+            pg_catalog.has_any_column_privilege('spryxel_app', 'platform.credit_wallet_summary', 'UPDATE') AS has_any_column_update`);
+      if (proof.rows[0]?.has_table_update || !proof.rows[0]?.has_any_column_update) {
+        throw new Error(
+          'App summary column UPDATE fixture did not isolate a grant invisible to has_table_privilege',
+        );
+      }
+
+      let appRejected = false;
+      try {
+        await appProbe.validateRuntimeRole();
+      } catch (error) {
+        appRejected = error instanceof RuntimeDatabaseRoleError;
+      }
+      if (!appRejected) {
+        throw new Error('App runtime-role validation accepted summary column UPDATE');
+      }
+    } finally {
+      await owner.pool.query(
+        'REVOKE UPDATE (tenant_id) ON platform.credit_wallet_summary FROM spryxel_app',
+      );
+    }
+  } finally {
+    await Promise.all([owner.close(), appProbe.close(), workerProbe.close()]);
   }
 }
 

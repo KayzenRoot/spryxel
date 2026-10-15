@@ -6,6 +6,11 @@ const admittedProductTables = new Set([
   'platform.durable_job',
   'platform.job_create_idempotency',
   'platform.job_attempt',
+  'platform.credit_wallet',
+  'platform.credit_lot',
+  'platform.credit_reservation',
+  'platform.credit_event',
+  'platform.credit_ledger_entry',
 ]);
 
 const outOfScopeProductTableTokens = new Set([

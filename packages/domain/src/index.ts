@@ -361,3 +361,5 @@ export type DurableJobRepositoryPort = {
 };
 
 export type CreatedDurableJob = { job: SafeJob; replayed: boolean };
+
+export * from './credit-ledger.js';

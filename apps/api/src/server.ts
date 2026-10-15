@@ -8,6 +8,7 @@ import {
   type Database,
   finalizeSessionRevocation,
   getSessionRevocationIntent,
+  getCreditSummary,
   getProject,
   getDurableJob,
   IdentityRepositoryError,
@@ -21,6 +22,7 @@ import {
 } from '@spryxel/db';
 import {
   canCreateProject,
+  type CreditSummary,
   type DurableJobRepositoryPort,
   type ProjectRepositoryPort,
 } from '@spryxel/domain';
@@ -31,6 +33,7 @@ import type {
 } from '@spryxel/identity';
 import {
   idempotencyKeyPattern,
+  creditSummaryResponseSchema,
   jobListQuerySchema,
   projectJobListQuerySchema,
   projectCreateRequestSchema,
@@ -56,7 +59,12 @@ export type ApiServerDependencies = {
   logger?: import('fastify').FastifyBaseLogger | undefined;
   projectRepository?: ProjectRepositoryPort | undefined;
   jobRepository?: DurableJobRepositoryPort | undefined;
+  creditSummaryRepository?: CreditSummaryRepositoryPort | undefined;
   sessionProvider?: IdentitySessionProviderPort | undefined;
+};
+
+export type CreditSummaryRepositoryPort = {
+  get(input: { subjectId: string; tenantId: string }): Promise<CreditSummary>;
 };
 
 type ProjectRequestContext = {
@@ -149,6 +157,14 @@ export function buildApiServer(config: RuntimeConfig, dependencies: ApiServerDep
             getDurableJob(database, input),
           cancel: (input: Parameters<DurableJobRepositoryPort['cancel']>[0]) =>
             cancelDurableJob(database, input),
+        }
+      : undefined);
+  const creditSummaryRepository =
+    dependencies.creditSummaryRepository ??
+    (database
+      ? {
+          get: (input: { subjectId: string; tenantId: string }) =>
+            getCreditSummary(database, input),
         }
       : undefined);
   const sessionProvider =
@@ -261,6 +277,50 @@ export function buildApiServer(config: RuntimeConfig, dependencies: ApiServerDep
       return reply.send({ tenantId: context.tenantId, role: context.role, projects });
     } catch (error) {
       return handleProjectRepositoryError(request, reply, error);
+    }
+  });
+
+  app.get('/api/v1/credits', { preHandler: authenticateRequest }, async (request, reply) => {
+    if (!identityRepository || !creditSummaryRepository) {
+      return projectProblem(
+        reply,
+        503,
+        'credit_summary_unavailable',
+        'Credit summary is unavailable',
+        request.id,
+      );
+    }
+    const context = await resolveProjectContext(request, reply);
+    if (!context) return;
+    try {
+      const summary = await creditSummaryRepository.get({
+        subjectId: context.subjectId,
+        tenantId: context.tenantId,
+      });
+      if (summary.tenantId !== context.tenantId) {
+        throw new Error('credit_summary_tenant_mismatch');
+      }
+      const response = creditSummaryResponseSchema.safeParse({ ...summary, requestId: request.id });
+      if (!response.success) throw new Error('credit_summary_projection_invalid');
+      return reply.send(response.data);
+    } catch (error) {
+      request.log.error(
+        {
+          event: 'credits.summary_unavailable',
+          requestId: request.id,
+          subjectId: context.subjectId,
+          tenantId: context.tenantId,
+          errorType: safeErrorType(error),
+        },
+        'credit summary lookup unavailable',
+      );
+      return projectProblem(
+        reply,
+        503,
+        'credit_summary_unavailable',
+        'Credit summary is unavailable',
+        request.id,
+      );
     }
   });
 

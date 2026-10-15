@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  creditSummaryResponseSchema,
   healthResponseSchema,
   projectCreateRequestSchema,
   readinessResponseSchema,
@@ -96,6 +97,44 @@ describe('safe durable Job boundary', () => {
       safeJobSchema.parse({
         ...projection,
         contract: { ...projection.contract, specification: { secret: true } },
+      }),
+    ).toThrow();
+  });
+});
+
+describe('safe credit summary boundary', () => {
+  const tenantId = '0190f000-0000-7000-8000-000000000001';
+
+  it('accepts bounded integer strings and rejects unsafe or internal financial data', () => {
+    const summary = {
+      tenantId,
+      asOf: '2026-10-04T00:00:00.000Z',
+      requestId: 'credit-read-123',
+      balances: {
+        availableCredits: '0',
+        reservedCredits: '9007199254740993',
+        committedCredits: '9223372036854775807',
+      },
+      counters: { openReservations: 0, ledgerEntries: 3 },
+    };
+    expect(creditSummaryResponseSchema.parse(summary)).toEqual(summary);
+    expect(() =>
+      creditSummaryResponseSchema.parse({
+        ...summary,
+        balances: { ...summary.balances, availableCredits: '-1' },
+      }),
+    ).toThrow();
+    expect(() =>
+      creditSummaryResponseSchema.parse({
+        ...summary,
+        balances: { ...summary.balances, availableCredits: '9223372036854775808' },
+      }),
+    ).toThrow();
+    expect(() => creditSummaryResponseSchema.parse({ ...summary, walletId: tenantId })).toThrow();
+    expect(() =>
+      creditSummaryResponseSchema.parse({
+        ...summary,
+        counters: { ...summary.counters, ledgerEntries: Number.MAX_SAFE_INTEGER + 1 },
       }),
     ).toThrow();
   });
