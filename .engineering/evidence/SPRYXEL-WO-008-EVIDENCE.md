@@ -286,3 +286,39 @@ O SonarCloud do head predecessor `65cfa42b2b1b0d478e021f93819e78768fd2d9f9` falh
 **CORRECTION REQUIRED** até a aceitação HIGH_ASSURANCE completa e determinística, incluindo o paralelismo canônico e a reauditoria independente. Sem `APPROVED`, não promover checkpoint, não fazer merge e não iniciar Credit Ledger/CostGuard.
 
 **STOP CONDITION ainda não atingida:** `SPRYXEL_IMP_004_ASSET_CONTRACT_DURABLE_JOB_BACKBONE_READY_FOR_AUDIT`.
+
+## Correction-05 — validação de cursor de paginação
+
+**Estado:** finding `SPRYXEL-WO008-F-01` reproduzido, correção implementada e aceitação local concluída no source tree final; checks hospedados do commit exato aguardam o push.
+
+**Correction Delta:** `.engineering/correction-deltas/SPRYXEL-WO-008-CORRECTION-05.md`
+**Base / HEAD de reprodução:** `main@08bd429bb924e26f7d5266ee9b556cc8da2c8b8c` / `5947f86439996c42e70486f18e527e2f1a93927d`.
+
+### Finding reproduzido antes da edição
+
+Com PostgreSQL 18.6 descartável, oito migrations, role `spryxel_app` e chamadas autenticadas à rota Fastify real, dois cursores chegaram aos casts do PostgreSQL e retornaram HTTP `503 job_store_unavailable`: um UUID textual de 36 hífens e uma data `2024-02-31T00:00:00Z`, normalizada pelo `Date.parse` para 2024-03-02. Nenhum arquivo do produto havia sido editado nessa reprodução. Uma sonda adicional do PostgreSQL confirmou que `0000-01-01T00:00:00Z` falha no cast para `timestamptz`, embora o round-trip JavaScript preserve ano `0000`. O container/volume/rede temporários foram removidos; credenciais aleatórias não foram impressas nem mantidas.
+
+### Correção e regressões
+
+`decodeJobCursor` agora exige grupos hexadecimais e hífens nas posições UUID aceitas pelo PostgreSQL. Também compara o prefixo UTC até segundos com a saída ISO normalizada e rejeita explicitamente ano `0000`, que JavaScript preserva mas PostgreSQL recusa. A fração original (até microssegundos) continua intacta e é enviada ao PostgreSQL; os testes existentes de paginação no mesmo milissegundo permaneceram passando. A integração envia os três cursores malformados (UUID, calendário normalizado e ano zero) às rotas global e project-scoped e exige HTTP 404 `job_not_found`, antes de casts SQL ou do falso 503.
+
+### Aceitação local pós-correção
+
+Ambiente: Node `v24.19.0`, npm `11.9.0`, Docker `28.4.0`, Docker Compose `2.40.3`; PostgreSQL/RLS, Redis/BullMQ e SeaweedFS reais no harness descartável. O projeto declara compatibilidade com Node 22; a acceptance histórica Node 22/npm 10 segue registrada acima, mas esta correção local foi executada no runtime disponível desta sessão. O teste integrado autentica pelo adaptador de teste; **não** é evidência de chamada real ao WorkOS.
+
+| Comando | Resultado desta correção |
+|---|---|
+| Reprodução pré-edição com API autenticada + PostgreSQL descartável | **REPRODUZIDO**; dois casos HTTP 503. Sonda SQL separada confirmou ano zero rejeitado; harness exit 0, teardown exit 0 |
+| `npm exec vitest -- run packages/db/src/index.test.ts apps/api/src/server.test.ts` | PASS; 16/16 testes; exit 0; 1 s |
+| `npm run test:integration` | PASS; PostgreSQL/RLS, Redis/BullMQ e SeaweedFS reais; migrations, isolamento de tenant, idempotência, leases, cancelamento e 3 cursores × 2 rotas; PGDATA em tmpfs; teardown descartável PASS; exit 0; 39 s |
+| `npm run format:check` | PASS; 113 arquivos; exit 0 |
+| `npm run lint` | PASS; 113 arquivos; exit 0 |
+| `npm run typecheck` | PASS; 18/18 tarefas; exit 0; 5 s |
+| `npm run build` | PASS; 11/11 tarefas; exit 0 |
+| `npm test` | PASS; exit 0; 94/94 unit, worker smoke, integração real e Playwright 20/20; 64 s |
+| Integração real incluída em `npm test` | PASS; serviços reais e temporários, PGDATA em tmpfs, teardown PASS |
+| `npm audit --audit-level=high` | PASS; zero vulnerabilidades; exit 0 |
+| `git diff --check` | PASS; exit 0 |
+| Quatro checks obrigatórios + SonarCloud/Socket no commit final | PENDENTE; aguardar publicação e readback do SHA hospedado exato |
+
+Evidências de comandos desta correção estão em `/workspace/spryxel-wo008-audit/` e identificam seus comandos, exit codes e duração. O diff de produto não altera migrations, autenticação, WorkOS, proxy, layout, roles/RLS, workers ou dependências. Nenhum teste real de WorkOS/staging foi executado; os testes browser exercitam AuthKit somente pelo harness de teste. Os IDs, URLs e conclusões de todos os checks hospedados do commit final serão publicados na PR após o push; nenhum resultado anterior será reutilizado. Não houve merge ou promoção de checkpoint.

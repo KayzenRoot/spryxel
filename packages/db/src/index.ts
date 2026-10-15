@@ -924,9 +924,11 @@ function decodeJobCursor(value: string | undefined): { createdAt: string; id: st
     if (
       typeof parsed.createdAt !== 'string' ||
       !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z$/.test(parsed.createdAt) ||
+      parsed.createdAt.startsWith('0000-') ||
       Number.isNaN(Date.parse(parsed.createdAt)) ||
+      new Date(parsed.createdAt).toISOString().slice(0, 19) !== parsed.createdAt.slice(0, 19) ||
       typeof parsed.id !== 'string' ||
-      !/^[0-9a-f-]{36}$/i.test(parsed.id)
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(parsed.id)
     ) {
       throw new Error('invalid cursor');
     }

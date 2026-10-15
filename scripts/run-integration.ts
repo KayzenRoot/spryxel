@@ -1193,6 +1193,51 @@ try {
     const workerEvents: string[] = [];
     try {
       await jobsApi.ready();
+      const malformedJobCursors = [
+        {
+          name: 'UUID with malformed hyphen positions',
+          value: { createdAt: '2024-02-29T00:00:00Z', id: '-'.repeat(36) },
+        },
+        {
+          name: 'calendar date normalized by JavaScript',
+          value: {
+            createdAt: '2024-02-31T00:00:00Z',
+            id: '0190f000-0000-7000-8000-000000000001',
+          },
+        },
+        {
+          name: 'year zero rejected by PostgreSQL',
+          value: {
+            createdAt: '0000-01-01T00:00:00Z',
+            id: '0190f000-0000-7000-8000-000000000001',
+          },
+        },
+      ].map(({ name, value }) => ({
+        name,
+        cursor: Buffer.from(JSON.stringify(value)).toString('base64url'),
+      }));
+      for (const { name, cursor } of malformedJobCursors) {
+        const globalCursorResponse = await jobsApi.inject({
+          method: 'GET',
+          url: `/api/v1/jobs?limit=10&cursor=${cursor}`,
+          headers: jobIdentity('jobs-owner', identityA.tenantId),
+        });
+        const projectCursorResponse = await jobsApi.inject({
+          method: 'GET',
+          url: `/api/v1/projects/${mainProjectId}/jobs?limit=10&cursor=${cursor}`,
+          headers: jobIdentity('jobs-owner', identityA.tenantId),
+        });
+        if (
+          globalCursorResponse.statusCode !== 404 ||
+          globalCursorResponse.json<{ code?: string }>().code !== 'job_not_found' ||
+          projectCursorResponse.statusCode !== 404 ||
+          projectCursorResponse.json<{ code?: string }>().code !== 'job_not_found'
+        ) {
+          throw new Error(
+            `Malformed Job cursor '${name}' did not return safe job_not_found on both list routes`,
+          );
+        }
+      }
       const listResponse = await jobsApi.inject({
         method: 'GET',
         url: `/api/v1/projects/${mainProjectId}/jobs?limit=10`,
