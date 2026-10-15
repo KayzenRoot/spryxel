@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 1,
+  "kind": "spryxel.context-lock.candidate",
+  "workOrderId": "SPRYXEL-WO-009",
+  "implementationIncrement": "SPRYXEL-IMP-005",
+  "status": "PRE_ADMISSION_NOT_EXECUTABLE",
+  "risk": "HIGH_ASSURANCE",
+  "repository": "KayzenRoot/spryxel",
+  "trackingIssue": 85,
+  "sourcePreparationBranch": "admission/spryxel-wo-009-credit-ledger-costguard",
+  "proposedExecutorBranch": "codex/spryxel-wo-009-imp-005-credit-ledger-costguard",
+  "executionBaseCandidate": {
+    "branch": "main",
+    "sha": "3c1c3119b2599768ea9925f472b3ee1fa61e2629"
+  },
+  "workOrderSource": {
+    "path": ".engineering/work-orders/SPRYXEL-WO-009.md",
+    "gitBlobSha": "1b53bbd47f28b7696ab7ab8553561a6a31dbe99f",
+    "authority": "PROPOSED_PENDING_AUDIT"
+  },
+  "decisionBaseline": {
+    "ledgerGitBlobSha": "856894e9936780f36c5e9982d1c3fe6e96aed90f",
+    "protectedRange": "D-001..D-161",
+    "nextLegalStage": "CREDIT_LEDGER_COSTGUARD_WORK_ORDER_REQUIRED"
+  },
+  "gef": {
+    "package": "@gef-bootstrap/cli",
+    "version": "1.1.1",
+    "releaseSourceSha": "1dc030f1358eab0347043a3d54c7fc311c7c2123"
+  },
+  "criticalBaseSources": [
+    {
+      "path": "AGENTS.md",
+      "gitBlobSha": "595ef1da513d49f23747b1fb0c593e5d2245160a"
+    },
+    {
+      "path": ".engineering/CHECKPOINT.json",
+      "gitBlobSha": "d62ff4f2af691710976401f3b6c2dd516744a074"
+    },
+    {
+      "path": ".engineering/CHECKPOINT.md",
+      "gitBlobSha": "fc5068948560d7f5660dc5fe11aaf806d0466821"
+    },
+    {
+      "path": ".engineering/SOURCE-HIERARCHY.md",
+      "gitBlobSha": "1e3d751cfeb12dabc83435e15db93414d86157df"
+    },
+    {
+      "path": ".engineering/DECISIONS-LEDGER.md",
+      "gitBlobSha": "856894e9936780f36c5e9982d1c3fe6e96aed90f"
+    },
+    {
+      "path": ".engineering/SCOPE.md",
+      "gitBlobSha": "cca8420aa6427b9ddd2a16151f44f83a6bfd7cfe"
+    },
+    {
+      "path": ".engineering/DEFINITION-OF-DONE.md",
+      "gitBlobSha": "4d3a24b404cdd70a86168773bc0ac206dec0365d"
+    },
+    {
+      "path": ".engineering/ARCHITECTURE.md",
+      "gitBlobSha": "ea97f66b5776aaa35d6fa2e73db54be4c72a4769"
+    },
+    {
+      "path": ".engineering/REQUIREMENTS.md",
+      "gitBlobSha": "5c0e7199708e9aa2e0014755c18942b48bb4d60d"
+    },
+    {
+      "path": ".engineering/BILLING-ECONOMICS.md",
+      "gitBlobSha": "d4a052e7346b6c6fec396905776672409565cd48"
+    },
+    {
+      "path": ".engineering/DATA-MODEL.md",
+      "gitBlobSha": "ff988dcc33cc640e258a058b1f016186ab2b1c14"
+    },
+    {
+      "path": ".engineering/SECURITY.md",
+      "gitBlobSha": "d8aa5007a8cc9429d8860a76d544bd7b1c49516b"
+    },
+    {
+      "path": ".engineering/API-CONTRACTS.md",
+      "gitBlobSha": "ed432144a9bf3e47f3eb197869456fc08bfd609a"
+    },
+    {
+      "path": ".engineering/API-FOUNDATION-CONTRACT.md",
+      "gitBlobSha": "fef70ebd35c2921dc69dc20c9d309f6739744075"
+    },
+    {
+      "path": ".engineering/PHYSICAL-DATA-CONVENTIONS.md",
+      "gitBlobSha": "4e65b6778f63ff6664cf6aec6985db60013eead5"
+    },
+    {
+      "path": ".engineering/IMPLEMENTATION-ARCHITECTURE.md",
+      "gitBlobSha": "ad12992ab85841e051bbc482ae7cab96ea07bacb"
+    },
+    {
+      "path": ".engineering/IMPLEMENTATION-SEQUENCE.md",
+      "gitBlobSha": "822290f94688286e6962d79904a77d12c3fae8cd"
+    },
+    {
+      "path": ".engineering/TEST-BENCHMARK-PLAN.md",
+      "gitBlobSha": "157f6a81ccba63a3aa62f747b4b07607a166c8e8"
+    },
+    {
+      "path": ".engineering/DEPLOYMENT.md",
+      "gitBlobSha": "8414fa08258627d8f5c516b62cd30967b423dc3f"
+    },
+    {
+      "path": ".engineering/BACKLOG.md",
+      "gitBlobSha": "b226317fc44a11295b1d6af0dc4dec72ae4a2ba8"
+    },
+    {
+      "path": ".engineering/evidence/SPRYXEL-WO-008-INDEPENDENT-AUDIT.md",
+      "gitBlobSha": "24e537a1f5533c125810fccab9335e0912f726b4"
+    },
+    {
+      "path": ".engineering/evidence/SPRYXEL-WO-008-FINAL-ACCEPTANCE.md",
+      "gitBlobSha": "a66804d6a3715085e3bdd52fa614f54f1123ba90"
+    },
+    {
+      "path": "package.json",
+      "gitBlobSha": "791cb01c32f7e11e5e962f9016861cf7ad1d1de4"
+    },
+    {
+      "path": "package-lock.json",
+      "gitBlobSha": "56a9dfc05e8aa89e2bb6a4555ab6c54cab7cea01"
+    },
+    {
+      "path": "packages/db/src/index.ts",
+      "gitBlobSha": "2a6a2d09d6538041e10a0da35533ab9547ca6d3c"
+    },
+    {
+      "path": "packages/domain/src/index.ts",
+      "gitBlobSha": "327b010027251abe9bb91fe1ff9966f5d88786e6"
+    },
+    {
+      "path": "packages/contracts/src/index.ts",
+      "gitBlobSha": "308b66c4b6e82bf926915b7185ffb59eaa5d25d5"
+    },
+    {
+      "path": "apps/api/src/server.ts",
+      "gitBlobSha": "5457a8cf3d978e4807d5f54b8f9acccdcb58e108"
+    },
+    {
+      "path": "apps/worker/src/durable-jobs.ts",
+      "gitBlobSha": "ebe64e0a976775d4addff17a4fa85950179bb09e"
+    },
+    {
+      "path": "scripts/run-integration.ts",
+      "gitBlobSha": "f594df6cda5d5769a2d24addb38cdab51cbd329a"
+    },
+    {
+      "path": "packages/db/src/migrations/0008_job_attempt_executor_provenance.sql",
+      "gitBlobSha": "e04217612a5c492b0e74e6debc99944c75dbbdc1"
+    }
+  ],
+  "productState": {
+    "completedThrough": "SPRYXEL-IMP-004",
+    "checkpointStopState": "SPRYXEL_WO_008_COMPLETE",
+    "nextIncrement": "SPRYXEL-IMP-005",
+    "nextIncrementStatus": "NOT_ADMITTED",
+    "paymentProvider": "NOT_FROZEN",
+    "publicPricing": "NOT_FROZEN",
+    "measuredCogs": "NOT_RUN_NOT_AVAILABLE",
+    "realCostBearingExecution": "PROHIBITED"
+  },
+  "writeScopeCandidate": [
+    "packages/db/src/migrations/",
+    "packages/db/src/",
+    "packages/domain/src/",
+    "packages/contracts/src/",
+    "apps/api/src/",
+    "scripts/run-integration.ts",
+    ".engineering/evidence/SPRYXEL-WO-009-EVIDENCE.md",
+    ".engineering/checkpoint-deltas/SPRYXEL-WO-009-PROPOSED.md"
+  ],
+  "readOnlyCriticalPaths": [
+    "AGENTS.md",
+    ".engineering/CHECKPOINT.json",
+    ".engineering/CHECKPOINT.md",
+    ".engineering/SOURCE-HIERARCHY.md",
+    ".engineering/DECISIONS-LEDGER.md",
+    ".gef/",
+    ".github/workflows/"
+  ],
+  "preflight": {
+    "stopOnMainOrCriticalSourceChange": true,
+    "doNotTreatProposalAsAdmitted": true,
+    "requireIndependentAudit": true,
+    "requireFreshReviewOfVersionedWorkOrder": true,
+    "defaultProductionCostAuthorization": "DENY"
+  },
+  "stopCondition": "SPRYXEL_WO009_ADMISSION_PACK_READY_FOR_OBJECTIVE_REVIEW"
+}
