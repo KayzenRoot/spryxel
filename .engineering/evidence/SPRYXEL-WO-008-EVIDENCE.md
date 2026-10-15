@@ -322,3 +322,17 @@ Ambiente: Node `v24.19.0`, npm `11.9.0`, Docker `28.4.0`, Docker Compose `2.40.3
 | Quatro checks obrigatórios + SonarCloud/Socket no commit final | PENDENTE; aguardar publicação e readback do SHA hospedado exato |
 
 Evidências de comandos desta correção estão em `/workspace/spryxel-wo008-audit/` e identificam seus comandos, exit codes e duração. O diff de produto não altera migrations, autenticação, WorkOS, proxy, layout, roles/RLS, workers ou dependências. Nenhum teste real de WorkOS/staging foi executado; os testes browser exercitam AuthKit somente pelo harness de teste. Os IDs, URLs e conclusões de todos os checks hospedados do commit final serão publicados na PR após o push; nenhum resultado anterior será reutilizado. Não houve merge ou promoção de checkpoint.
+
+## Consolidação final — aceitação Node 22 e decisão independente (15/10/2026)
+
+As seções de aceitação local C-05 acima registram o estado intermediário executado em Node 24.19.0. Elas são históricas e foram substituídas para a aceitação final pela execução consolidada em Node 22/npm 10, sobre o SHA exato `fe54bfac66bcb85c10d56c4c8a0c9c7526bec624`.
+
+- Aceitação final: `.engineering/evidence/SPRYXEL-WO-008-FINAL-ACCEPTANCE.md`.
+- Auditoria independente HIGH_ASSURANCE, decisão e matriz AC1–AC63: `.engineering/evidence/SPRYXEL-WO-008-INDEPENDENT-AUDIT.md`.
+- Resultado Node `v22.23.3` / npm `10.9.9`: install, format, lint, typecheck 18/18, build 11/11, architecture, `npm test` (94 unitários, worker smoke, PostgreSQL/RLS + Redis/BullMQ + SeaweedFS reais, Playwright 20/20), npm audit sem vulnerabilidades e `git diff --check`: todos exit 0. Durações e logs reais estão no Evidence Bundle externo.
+- Readback GitHub do exact HEAD: 7/7 check runs SUCCESS; 14/14 review threads resolvidas; ruleset ativo permite squash sem bypass.
+- SonarCloud: Quality Gate PASS; 76 issues novos, 0 aceitos, 0 hotspots, cobertura nova 0.0%, duplicação 1.7%. O detalhe integral dos findings permanece `NOT_AVAILABLE` (HTTP 403); 50 annotations de GitHub são amostra parcial, não severidade Sonar. Nenhum blocker HIGH/CRITICAL foi demonstrado pela auditoria; isso não significa que os 76 foram integralmente classificados.
+- Limitação LOW aceita sem ocultação: Jobs Center comunica o limite dos 50 resultados, mas não expõe navegação ao próximo cursor; a API continua bounded e paginada. WorkOS/staging real não foi exercitado.
+- A auditoria independente concluiu `APPROVED` para o candidato de código. A promoção marca somente `APPROVED_PENDING_MERGE`; a conclusão `COMPLETE` requer os checks pós-merge no SHA resultante de `main`.
+
+**STOP da aceitação final:** `SPRYXEL_WO008_FINAL_AUDIT_APPROVED_AND_PROTECTED_CLOSEOUT`.

@@ -1,46 +1,36 @@
 # SPRYXEL-WO-008 — Proposed Checkpoint Delta
 
-**Status:** PROPOSED_ONLY; NOT_ACCEPTED; NOT_PROMOTED.
+**Status:** ACCEPTED_BY_INDEPENDENT_AUDIT; PROMOTED_PENDING_PROTECTED_MERGE.
 
-## Preconditions for future promotion
+## Preconditions satisfied for promotion
 
-Promotion is forbidden until an independent objective audit returns `APPROVED` for the exact final PR head and verifies the full Evidence Bundle.
+- Auditoria independente objetiva retornou `APPROVED` para PR #30 no exact code head `fe54bfac66bcb85c10d56c4c8a0c9c7526bec624` e revisou o Evidence Bundle.
+- Work Order/Context Lock permaneceram válidos para `main@08bd429bb924e26f7d5266ee9b556cc8da2c8b8c`; 39/39 fingerprints da base conferem e o blob do Work Order corresponde ao lock.
+- D-001…D-161 preservados; nenhuma regra, provider, workflow, GEF/.gef ou fonte canônica de decisão foi reescrita.
+- HIGH_ASSURANCE executado em Node 22.23.3/npm 10.9.9 no exact code head; logs, exit codes e durações constam no Evidence Bundle.
+- Quatro required checks, Sonar e dois checks Socket passaram no candidate head; 14/14 threads resolvidas.
+- Auditoria não demonstrou blocker HIGH/CRITICAL. Detalhes completos dos 76 issues Sonar estão `NOT_AVAILABLE` (HTTP 403), com limite explicitado no relatório; não houve classificação inventada nem dismiss em lote.
+- Nenhum módulo hard-out-of-scope foi implementado.
 
-The future audit must prove at minimum:
+## Delta semântico promovido (estado ainda condicionado ao merge protegido)
 
-- Work Order/Context Lock remained valid;
-- immutable Asset Contract identity/version contract passes;
-- durable PostgreSQL Job/Attempt/idempotency/state-machine contracts pass;
-- Redis/BullMQ remains transient and queue loss is reconstructible from PostgreSQL;
-- separate worker service identity is least-privilege and validated;
-- crash/lease recovery, bounded attempts and cancellation races pass;
-- Jobs/Queue monitoring UX satisfies the admitted boundary;
-- HIGH_ASSURANCE acceptance passes;
-- four required GitHub checks and existing quality/security gates pass on the same exact final head;
-- no unresolved CRITICAL/HIGH finding remains;
-- no hard-out-of-scope module was implemented.
+1. Aprovar `SPRYXEL-WO-008 / SPRYXEL-IMP-004` para promoção canônica, com merge e validação pós-merge ainda pendentes.
+2. Registrar Asset Contract versionado e imutável como base canônica; PostgreSQL como fonte de Job/Attempt/idempotência/estado; Redis/BullMQ somente projeção transitória reconstruível.
+3. Registrar worker separado de menor privilégio, bounds, claims/leases, recuperação, tentativas e cancelamento validados.
+4. Registrar Jobs/Queue Center e estados duráveis Home/Project Overview como implementados; limitações UX e evidências parciais do Sonar ficam visíveis no relatório final.
+5. Preservar toda implementação canônica até WO-007 e D-001…D-161, WorkOS/AuthKit, GEF 1.1.1, ruleset, workflows, provider e source seed.
+6. Após o closeout pós-merge, Credit Ledger + CostGuard authorization foundation será o próximo incremento NECESSARY, mas permanece `NOT_ADMITTED` até novo Work Order/Context Lock.
 
-## Proposed semantic delta after APPROVED only
+## Gate de merge
 
-If all gates pass, the checkpoint may record:
+Este commit de promoção não é evidência de merge. PR #30 só pode receber squash merge se:
 
-1. `SPRYXEL-WO-008 / SPRYXEL-IMP-004` Asset Contract + durable Job backbone as COMPLETE.
-2. Exact audited candidate, promotion, merge and post-merge SHAs/evidence.
-3. Versioned immutable Asset Contract envelope/identity as canonical foundation.
-4. PostgreSQL Job/Attempt state as canonical; Redis/BullMQ as transient reconstruction-safe projection.
-5. Separate least-privilege worker service role and bounded claim/lease/recovery/cancellation semantics as canonical.
-6. Jobs/Queue Center and durable Home/Project Overview recent-job states as implemented.
-7. All canonical implementation through WO-007 remains preserved.
-8. D-001…D-161, WorkOS/AuthKit, GEF 1.1.1, ruleset/provider/workflows and immutable seed remain unchanged.
-9. The next NECESSARY increment becomes Credit Ledger + CostGuard authorization foundation, but remains `NOT_ADMITTED` until WO-008 merge/post-merge validation and a fresh Work Order/Context Lock.
+- os quatro required checks passam no exact promotion head, sem reutilizar checks de SHA anterior;
+- Sonar Quality Gate e checks de segurança do candidato passam;
+- não há review thread pendente nem novo blocker demonstrado.
 
-## Explicitly prohibited now
+Após squash merge, aceitação pós-merge deve ser coletada no SHA exato de `main`; checks do candidato não substituem essa evidência. Só então a WO-008 pode ser marcada COMPLETE.
 
-- no edit/promotion of canonical Checkpoint by executor;
-- no merge by executor;
-- no Credit Ledger/CostGuard implementation;
-- no inference/model/GPU/provider execution;
-- no Asset/DNA/QA/export downstream slice;
-- no provider/ruleset/workflow/`.gef`/decision-ledger/source-seed mutation.
+## Fora de escopo preservado
 
-Current canonical checkpoint remains authoritative until independent approval and authorized promotion.
+Nenhuma implementação de Credit Ledger/CostGuard, inferência/modelo/GPU, execução por provider, Asset/DNA/QA/export downstream, WorkOS/provider, ruleset/workflow, `.gef`, Decision Ledger ou source seed foi incluída nesta promoção documental.

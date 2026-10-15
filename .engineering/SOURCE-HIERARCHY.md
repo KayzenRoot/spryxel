@@ -27,8 +27,8 @@ A Work Order/Context Lock is STALE if its base SHA changes or a critical authori
 - GEF package: `@gef-bootstrap/cli@1.1.1`
 - GEF v1.1.1 immutable release source: `KayzenRoot/gef-bootstrap@1dc030f1358eab0347043a3d54c7fc311c7c2123`
 - Product seed: v0.6.0 / `cbb93ec44886eba6cc9b24a072eb23e0ad5ea05a`
-- Last objectively approved Work Order: `SPRYXEL-WO-007`
-- Next legal stage: Asset Contract + durable Job backbone under a new admitted Work Order and Context Lock after WO-007 merge/post-merge closeout
+- Last objectively approved Work Order: `SPRYXEL-WO-008` (pending protected merge and post-merge validation)
+- Next legal stage after WO-008 closeout: Credit Ledger + CostGuard authorization under a new admitted Work Order and Context Lock; remains NOT_ADMITTED
 
 Post-release commits in the GEF repository may be consulted only for evidence about publication/rollout. They do not redefine the installed v1.1.1 runtime contract.
 
@@ -96,3 +96,9 @@ The historical WO-007 Context Lock becomes closed/stale at canonical promotion a
 `SPRYXEL-WO-007 / SPRYXEL-IMP-003` is COMPLETE on `main@67debfaca7cae164872a06a30faebb43daf34425` after objective audit, promotion head `4d2d2fad3e1d74a8311420f7c403cfed015582b1`, squash merge and post-merge validation. Projects + canonical shell/Home are implemented/canonical.
 
 The historical WO-007 Context Lock is STALE/closed and must not be reused. The next legal implementation stage is Asset Contract + durable Job backbone under a new admitted Work Order and fresh Context Lock.
+
+## SPRYXEL-WO-008 approved implementation binding
+
+`SPRYXEL-IMP-004 — Asset Contract + durable Job backbone` is independently APPROVED on exact code head `fe54bfac66bcb85c10d56c4c8a0c9c7526bec624`, based on `main@08bd429bb924e26f7d5266ee9b556cc8da2c8b8c`. The accepted evidence proves immutable versioned Asset Contracts, PostgreSQL-canonical Job/Attempt/idempotency/state, reconstructable transient Redis/BullMQ projection, least-privilege worker separation, bounded claims/leases/recovery/cancellation, and Jobs/Home/Project Overview surfaces. Node 22.23.3/npm 10.9.9 acceptance and exact-head hosted checks passed. The independent report records a LOW Jobs Center cursor-navigation limitation and incomplete Sonar issue detail (Quality Gate PASS; 76 new issues; full classification NOT_AVAILABLE; no HIGH/CRITICAL blocker demonstrated).
+
+This binding is `APPROVED_PENDING_MERGE`; it does not claim completion. WO-008 may become COMPLETE only after protected squash merge and exact-`main` post-merge validation. Its historical Context Lock is closed/stale after authorized checkpoint promotion and must not be reused. Credit Ledger + CostGuard authorization remains NOT_ADMITTED until the WO-008 closeout and its own Work Order/Context Lock.

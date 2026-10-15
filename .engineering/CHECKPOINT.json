@@ -1,26 +1,26 @@
 {
   "schemaVersion": 2,
   "status": "CANONICAL",
-  "phase": "PROJECTS_CANONICAL_SHELL_HOME_COMPLETE",
-  "stopState": "SPRYXEL_WO_007_COMPLETE",
-  "completedThroughModule": "SPRYXEL_IMP_003_PROJECTS_CANONICAL_SHELL_HOME",
-  "nextLegalStage": "ASSET_CONTRACT_DURABLE_JOB_WORK_ORDER_REQUIRED",
+  "phase": "ASSET_CONTRACT_DURABLE_JOB_BACKBONE_APPROVED",
+  "stopState": "SPRYXEL_WO_008_APPROVED_PENDING_MERGE",
+  "completedThroughModule": "SPRYXEL_IMP_004_ASSET_CONTRACT_DURABLE_JOB_BACKBONE",
+  "nextLegalStage": "CREDIT_LEDGER_COSTGUARD_WORK_ORDER_REQUIRED_AFTER_WO_008_CLOSEOUT",
   "v11": {
     "gefVersion": "1.1.1",
     "gefReleaseSourceSha": "1dc030f1358eab0347043a3d54c7fc311c7c2123",
-    "lastApprovedWorkOrder": "SPRYXEL-WO-007",
-    "trackingIssue": 26,
-    "pullRequest": 27,
-    "auditedFinalHeadSha": "a64b76c858f9e72e462478d910655b3d69d85ec6",
+    "lastApprovedWorkOrder": "SPRYXEL-WO-008",
+    "trackingIssue": 29,
+    "pullRequest": 30,
+    "auditedFinalHeadSha": "fe54bfac66bcb85c10d56c4c8a0c9c7526bec624",
     "auditVerdict": "APPROVED",
     "correctionDelta01": "SATISFIED",
     "correctionDelta02": "SATISFIED",
-    "postMergeValidation": "PASS",
-    "productImplementation": "PROJECTS_CANONICAL_SHELL_HOME_COMPLETE",
+    "postMergeValidation": "PENDING",
+    "productImplementation": "ASSET_CONTRACT_DURABLE_JOB_BACKBONE_APPROVED_PENDING_MERGE",
     "productBaseline": "CANONICAL_PRODUCT_MASTER_V0_6_0_DECOMPOSED",
     "planningCompletedThrough": "SPR-PLAN-007",
-    "implementationCompletedThrough": "SPRYXEL-IMP-003",
-    "nextImplementationIncrement": "ASSET_CONTRACT_DURABLE_JOB_BACKBONE",
+    "implementationCompletedThrough": "SPRYXEL-IMP-004",
+    "nextImplementationIncrement": "CREDIT_LEDGER_COSTGUARD_AUTHORIZATION_FOUNDATION",
     "nextImplementationIncrementStatus": "NOT_ADMITTED",
     "commercialPricing": "NOT_FROZEN",
     "benchmarksAndMeasuredCogs": "NOT_RUN_NOT_AVAILABLE",
@@ -63,17 +63,18 @@
       "durableAuditEvent": "project.created",
       "shellHomeProjectsOverview": "IMPLEMENTED"
     },
-    "promotionHeadSha": "4d2d2fad3e1d74a8311420f7c403cfed015582b1",
-    "mergedMainSha": "67debfaca7cae164872a06a30faebb43daf34425",
-    "postMergeRequiredChecks": {
-      "repositoryValidation": 111339426620,
-      "pipelineIntegrity": 111339426779,
-      "gitleaksSecrets": 111339426402,
-      "trivyFilesystemAndConfiguration": 111339426693
-    },
-    "postMergeSonarCloud": {
-      "checkRun": 111339499220,
-      "conclusion": "PASS"
+    "correctionDelta03": "SATISFIED",
+    "correctionDelta04": "SATISFIED",
+    "correctionDelta05": "SATISFIED",
+    "sonarIssueDetails": "NOT_AVAILABLE_HTTP_403",
+    "sonarIndependentFindingConclusion": "NO_HIGH_CRITICAL_BLOCKER_DEMONSTRATED",
+    "assetContractJobs": {
+      "assetContractIdentity": "VERSIONED_IMMUTABLE_POSTGRESQL_CANONICAL",
+      "executableJobKind": "asset_contract.integrity_check.v1",
+      "jobAttemptState": "POSTGRESQL_CANONICAL",
+      "queueProjection": "REDIS_BULLMQ_TRANSIENT_RECONSTRUCTABLE",
+      "workerIdentity": "SEPARATE_LEAST_PRIVILEGE",
+      "promotionState": "APPROVED_PENDING_MERGE"
     }
   }
 }
