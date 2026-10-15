@@ -11,7 +11,8 @@ Goal: finish static public website typography, navigation, mobile layouts, acces
 ## Source and execution base (ONLY when formally admitted)
 - Repository: `KayzenRoot/spryxel`
 - **Proposed source:** `feat/web-b1-ssr-locale-01@9e34e76ce8e451a47999cdd354921b5fed0c08c9` (stacked draft PR #80, which is based on #76 `3dd79038d0cca379a5cd3db7ac09a153a3c5b0a7`).
-- **Proposed target:** fresh `feat/web-static-batch-02-polish` and DRAFT PR based on `feat/web-b1-ssr-locale-01`. Do not create branches until admitted. Do not retarget to `main` or alter existing parents.
+- **Prepared staging branch:** `feat/web-static-batch-02-polish` already exists at the exact #80 parent SHA above and has no commits ahead of it. It was created only for owner-scoped preparation; it is **not admitted for execution**. Before admission, keep it read-only: no product edits, commits, PR creation, dispatch, rebase, reset, or retarget.
+- **Proposed target after admission:** reuse that staging branch only after a fresh Context Lock is approved and preflight confirms its remote head still equals the exact #80 parent and it remains clean/empty. If either check differs, stop and recompile the admission artifacts; do not repair or move the branch silently. Keep any eventual DRAFT PR based on `feat/web-b1-ssr-locale-01`; do not retarget to `main` or alter existing parent PRs.
 - **Canonical main:** `08bd429bb924e26f7d5266ee9b556cc8da2c8b8c`, current next legal stage `ASSET_CONTRACT_DURABLE_JOB_WORK_ORDER_REQUIRED`. Canonical governance change is required to admit this separate off-main exception without contradicting that rule.
 - **Risk:** `ELEVATED_SOURCE_GOVERNANCE_DEPENDENCY` (UI edits low risk, inherited parent route/auth migration remains HIGH_ASSURANCE). Does not weaken inherited #80 acceptance.
 
