@@ -1,10 +1,10 @@
 # SPRYXEL-WO-009 — Correction Delta 09 (terminal Job release authorization)
 
-**WO / increment:** SPRYXEL-WO-009 / IMP-005.  
-**Risk:** HIGH_ASSURANCE (credit reservation lifecycle and database authorization).  
-**Base:** `main@34bad103d8066b6d31c5947c20a07ef52032c5d7`.  
-**Candidate before correction:** `d866e931a759f9f59a89ef93bad421df3c1111f1`.  
-**Correction commit:** `89200ea2276b4e0b048b9f2fc9c94c63dd1df00e`.  
+**WO / increment:** SPRYXEL-WO-009 / IMP-005.
+**Risk:** HIGH_ASSURANCE (credit reservation lifecycle and database authorization).
+**Base:** `main@34bad103d8066b6d31c5947c20a07ef52032c5d7`.
+**Candidate before correction:** `d866e931a759f9f59a89ef93bad421df3c1111f1`.
+**Correction commit:** `89200ea2276b4e0b048b9f2fc9c94c63dd1df00e`.
 **Authority:** WO-009 authorizes correcting in-scope financial-integrity defects before the execution stop.
 
 ## Finding

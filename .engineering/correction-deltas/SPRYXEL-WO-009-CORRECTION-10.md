@@ -1,10 +1,10 @@
 # SPRYXEL-WO-009 — Correction Delta 10 (standard Playwright Jobs acceptance)
 
-**WO / increment:** SPRYXEL-WO-009 / IMP-005.  
-**Risk:** HIGH_ASSURANCE (durable Job lifecycle and browser acceptance).  
-**Base:** `main@34bad103d8066b6d31c5947c20a07ef52032c5d7`.  
-**Candidate before correction:** `d866e931a759f9f59a89ef93bad421df3c1111f1`.  
-**Correction commit:** `6cbd9210573815c82f0af60d274c41f31ef0b2bb`.  
+**WO / increment:** SPRYXEL-WO-009 / IMP-005.
+**Risk:** HIGH_ASSURANCE (durable Job lifecycle and browser acceptance).
+**Base:** `main@34bad103d8066b6d31c5947c20a07ef52032c5d7`.
+**Candidate before correction:** `d866e931a759f9f59a89ef93bad421df3c1111f1`.
+**Correction commit:** `6cbd9210573815c82f0af60d274c41f31ef0b2bb`.
 **Authority:** The owner's R3 Marathon request authorizes correcting Playwright while preserving the standard suite.
 
 ## Reproduced failure and cause
