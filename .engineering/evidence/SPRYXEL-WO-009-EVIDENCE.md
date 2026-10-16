@@ -1,13 +1,14 @@
 # SPRYXEL-WO-009 — Implementation Evidence Bundle
 
-**Verdict: CORRECTION REQUIRED.** The implementation and financial-integrity proofs are present, but the required aggregate test gate is not green: the standard Windows Playwright run repeatedly timed out in pre-existing Home/Projects/Jobs browser tests. Stop state: SPRYXEL_WO009_CORRECTION_REQUIRED. This is not an approval, checkpoint promotion, or merge authorization.
+**Executor status: READY_FOR_INDEPENDENT_AUDIT.** The standard full test gate and exact-source hosted checks are green after Corrections 09–10. No independent HIGH_ASSURANCE verdict has been issued; this status is not approval, checkpoint promotion, or merge authorization.
 
 **Work Order:** SPRYXEL-WO-009 / IMP-005, HIGH_ASSURANCE.
 **Admission:** Owner-approved PR [#86](https://github.com/KayzenRoot/spryxel/pull/86), squash-merged.
 **Base:** main@34bad103d8066b6d31c5947c20a07ef52032c5d7.
-**Implementation commit:** 17fffdc74d09ccef288cb292f39771cbef0c0ae4.
+**Initial implementation commit:** 17fffdc74d09ccef288cb292f39771cbef0c0ae4. **Current code candidate:** `6cbd9210573815c82f0af60d274c41f31ef0b2bb` (tree `2aaa31508111c586ab5fc68d6fe7c785b72e71d0`).
 **Branch:** codex/spryxel-wo-009-imp-005-credit-ledger-costguard.
 **PR:** [#87, kept as draft](https://github.com/KayzenRoot/spryxel/pull/87).
+**PR state at evidence refresh:** OPEN, DRAFT, based on the unchanged execution base; exact code candidate pushed to the authorized branch. Review decision is blank; no formal approval is recorded.
 **Context Lock:** .engineering/context-locks/SPRYXEL-WO-009.json; FRESH at preflight, 33/33 exact-main blob pins and approved Work Order blob verified.
 **Toolchain:** Node v22.23.3, npm 10.9.9, Docker 29.8.2, Gitleaks 8.30.1.
 **Scope controls:** No prices, money movement, paid provider, COGS/GPU/inference, public credit grant, WorkOS change, checkpoint promotion, merge, or IMP-006 work. No CodeRabbit invocation or new paid service.
@@ -30,7 +31,16 @@
 
 ## Exact changed source paths and Git blob IDs
 
-Blob IDs are from implementation commit 17fffdc74d09ccef288cb2e178b8cf761106c8de.
+The table below records the initial implementation commit `17fffdc74d09ccef288cb292f39771cbef0c0ae4`. Corrections 09–10 changed these current candidate blobs (verified with `git rev-parse HEAD:<path>`):
+
+| Path | Current candidate Git blob |
+|---|---|
+| packages/db/src/migrations/0009_credit_ledger_costguard.sql | e998f00aa554ecfafa81fd693b3b93c0ce7a1b27 |
+| scripts/credit-ledger-integration.ts | 1f84e5f076cf7e42d420b82f410d3175624589a4 |
+| scripts/run-browser-api.ts | 92a18a96751a03cbac9ca6fb631488b80cc389de |
+| apps/web/app/page.spec.ts | 6c8db47e716be773a9658faa308dc4d2a822df41 |
+
+The Git root-tree SHA at code candidate `6cbd9210573815c82f0af60d274c41f31ef0b2bb` is `2aaa31508111c586ab5fc68d6fe7c785b72e71d0`. The final PR tree SHA must be read from the post-evidence HEAD; the evidence-only commit does not modify product source paths.
 
 | Path | Git blob |
 |---|---|
@@ -59,37 +69,37 @@ All local commands below ran on the stated Node/npm toolchain. Exit codes are ob
 | Command | Result | Evidence |
 |---|---|---|
 | npm ci --no-audit --no-fund | PASS, exit 0 | Installed 218 lockfile packages; exact package lock retained. |
-| npm run format:check -- --line-ending=crlf | PASS, exit 0 | 119 files checked after the fixture-label correction. |
-| npm run lint | PASS, exit 0 | 119 files checked, zero warnings after correction. |
+| npm run format:check -- --line-ending=crlf | PASS, exit 0 | 120 files checked on current code candidate. |
+| npm run lint | PASS, exit 0 | 120 files checked, zero warnings on current code candidate. |
 | npm run architecture:check | PASS, exit 0 | 11 workspaces, 15 internal edges, no forbidden persistence/provider imports or cycles. |
-| npm run typecheck -- --force | PASS, exit 0 | 18/18 Turbo tasks; run before the final human-readable test-fixture label change. |
-| npm run build -- --force | PASS, exit 0 | 11/11 Turbo tasks; run before the final test-fixture label change. |
+| npm run typecheck -- --force | PASS, exit 0 | 18/18 Turbo tasks on current code candidate. |
+| npm run build -- --force | PASS, exit 0 | 11/11 Turbo tasks on current code candidate. |
 | npm run test:unit | PASS, exit 0 | After fixture-label correction: 24 files, 120 tests passed. |
-| npm run test:integration | PASS, exit 0 | Real PostgreSQL, Redis/BullMQ, authenticated SeaweedFS S3, migrations, FORCE RLS, role/column ACLs, double-spend/overcommit denial, replay after lost response/reconnect, immutable postings, reconciliation, and disposable Compose teardown. Run before the final test-fixture label change; that change only replaces API unit-test fixture strings. |
-| npm test | FAIL, exit 1 | Unit, worker smoke, and real-service integration passed; Playwright completed 9/20. This aggregate run preceded the fixture-label-only correction. |
-| npm run test:browser, standard config | FAIL, exit 1 | Repeated without changing the default 4 workers or retries: one run 15/20; later run 10/20. No tests were skipped and no workers=1 workaround was used. |
+| npm run test:integration | PASS, exit 0 | Real PostgreSQL, Redis/BullMQ, authenticated SeaweedFS S3, migrations, FORCE RLS, role/column ACLs, double-spend/overcommit denial, replay after lost response/reconnect, immutable postings, reconciliation, terminal release guard, and disposable Compose teardown. |
+| npm run test:browser, standard config | PASS, exit 0 | Two complete runs, each 22/22 with the default 4 workers/retries; no tests skipped or settings weakened. |
+| npm test | PASS, exit 0 | Final post-format aggregate: 120/120 unit tests, worker smoke, real-service integration, and 22/22 browser tests. |
 | npm audit --audit-level=high | PASS, exit 0 | Zero vulnerabilities reported; package lock unchanged. |
 | Gitleaks 8.30.1, redacted scan of base..implementation commit | PASS, exit 0 | Zero findings after replacing opaque fixture idempotency strings with explicit fixture labels; no allowlist or scanner suppression. GitHub Gitleaks check also passed on the exact implementation SHA. |
 | git diff --check | PASS, exit 0 | No whitespace errors; worktree clean after restoring generated apps/web/next-env.d.ts. |
 | npm run gef:doctor | PASS, exit 0 | Read-only; ok=true, no remediation. |
 | npm run gef:status | OBSERVED, exit 0 | Read-only; repository DIRTY and drift UNEXPECTED because the implementation is active on its branch; canonical checkpoint remains unchanged. |
 
-### Playwright failure triage
+### Playwright correction record
 
-Three standard-parallel browser runs were non-green. The latest ended 10/20. Retained traces show slow Windows Next dev filesystem/server responses, requests to RSC detail routes aborted during browser cleanup, and some browser sessions closing during a 30-second timeout. `/projects` and `/jobs` SPA responses were HTTP 200 in two navigation failures, while the prior page DOM remained visible. A read-only browser QA triage found no shared fixture-ID collision and no evidence establishing a product defect; its classification is probable local dev-server/resource flakiness, not a conclusive exemption. The cancellation test did not reach its cancel request in the failed trace. This remains an acceptance failure until the full suite passes under the standard configuration.
+Corrections 09–10 resolved the observed failures without changing timeout, retry, worker count, or test selection. The server-action helper recognizes the legitimate HTML form POST/303 response as well as same-route server submissions; the deterministic `jobs-all-states` fixture displays all six states in one Jobs route visit. Two full standard-config runs passed 22/22, and the final aggregate `npm test` also passed. Earlier failed runs remain diagnostic history, not acceptance evidence.
 
 ## Hosted checks on the exact implementation commit
 
-At 17fffdc74d09ccef288cb292f39771cbef0c0ae4, the four required repository checks passed, as did Trivy and both Socket checks. A subsequent exact-HEAD GitHub readback of `8b62f72e1acb7685428017529c02253ecc683c56` (Correction Delta 01 documentation commit, with the same product implementation) verified **7/7 SUCCESS**, including SonarCloud Code Analysis. Sonar Quality Gate PASS reported 93 new issues, 0 security hotspots, and 0.0% reported coverage on new code. Issue-level severity remains not independently classified due missing access; PASS must not be equated to 0 open issues:
+At exact code candidate `6cbd9210573815c82f0af60d274c41f31ef0b2bb`, GitHub showed **7/7 substantive checks SUCCESS**, including the four required repository checks, Trivy, two Socket checks, and SonarCloud Code Analysis. Sonar status is SUCCESS; issue-level severity was not independently classified and this is not evidence of zero findings:
 
-- [Repository validation](https://github.com/KayzenRoot/spryxel/actions/runs/38821382481/job/116718502743) — PASS.
-- [Pipeline integrity](https://github.com/KayzenRoot/spryxel/actions/runs/38821382450/job/116718502774) — PASS.
-- [Gitleaks secrets](https://github.com/KayzenRoot/spryxel/actions/runs/38821382456/job/116718502493) — PASS.
-- [Trivy filesystem and configuration](https://github.com/KayzenRoot/spryxel/actions/runs/38821382561/job/116718502630) — PASS.
-- [Socket Security: Project Report](https://socket.dev/dashboard/org/nexlabs/sbom/81965ee5-6841-453e-b0d4-189d4b683214) — PASS.
+- [Gitleaks secrets](https://github.com/KayzenRoot/spryxel/actions/runs/38980944468/job/117241418407) — PASS.
+- [Pipeline integrity](https://github.com/KayzenRoot/spryxel/actions/runs/38980944477/job/117241418315) — PASS.
+- [Repository validation](https://github.com/KayzenRoot/spryxel/actions/runs/38980944502/job/117241418438) — PASS.
+- [Trivy filesystem and configuration](https://github.com/KayzenRoot/spryxel/actions/runs/38980944520/job/117241418573) — PASS.
+- [Socket Security: Project Report](https://socket.dev/dashboard/org/nexlabs/sbom/a36df1a7-5a32-45dc-8739-79e89a304810) — PASS.
 - Socket Security: Pull Request Alerts — PASS.
-- SonarCloud — **OBSERVED SUCCESS** on exact Correction Delta documentation HEAD `8b62f72e1acb7685428017529c02253ecc683c56`. Quality Gate PASS, 93 new issues (severity details unavailable), 0 security hotspots, 0.0% coverage reported. A future product-fix HEAD must be checked again.
-- CodeRabbit — automatic review was disabled/skipped by the repository; the executor did not invoke it.
+- [SonarCloud Code Analysis](https://sonarcloud.io/dashboard?id=KayzenRoot_spryxel&pullRequest=87) — SUCCESS on exact code candidate `6cbd9210573815c82f0af60d274c41f31ef0b2bb`; no finding-severity conclusion is claimed.
+- CodeRabbit status context is automatic-review-disabled/skipped; the executor did not invoke it and it is excluded from the 7 passing checks.
 
 The [PR #87 checks page](https://github.com/KayzenRoot/spryxel/pull/87/checks) is the live source for checks attached to the current PR head. Evidence and checkpoint-document commits may produce a newer head and must be checked again.
 
@@ -113,7 +123,7 @@ The [PR #87 checks page](https://github.com/KayzenRoot/spryxel/pull/87/checks) i
 | AC14 fixture-only issuance/no public mint path | PASS | Issuance is seeded only through integration owner fixture; no public grant endpoint. |
 | AC15 atomic Job/contract/tenant references | PASS | Reservation links to canonical Job/contract under the same tenant transaction. |
 | AC16 commit bounded by reservation and replay-safe | PASS | Real PostgreSQL rejects commit above remaining reservation with no ledger mutation; duplicate commit replay is stable. |
-| AC17 exactly-once release | PASS | Terminal workflow release is durable/idempotent and tested after replay. |
+| AC17 exactly-once release | PASS | Direct full and partial SQL `release` attempts are denied for `queued` and `running` Jobs; persisted reservations, balances, events, postings and wallet snapshots remain unchanged. Terminal cleanup releases exactly once through the Job status trigger. |
 | AC18 lost response/reconnect recovery | PASS | Commit response discarded, app pool recreated, same key replayed; event/posting identity and counts remain stable. |
 | AC19 unknown/missing/stale policy inputs deny | PASS | Pure CostGuard default-deny and error-path tests. |
 | AC20 margin and hard budget bounds | PASS | Non-positive margin and above-limit cases deny. |
@@ -121,17 +131,16 @@ The [PR #87 checks page](https://github.com/KayzenRoot/spryxel/pull/87/checks) i
 | AC22 existing integrity-check Job stays non-costing | PASS | No provider/GPU/payment calls; integration asserts integrity Job remains outside credit costing. |
 | AC23 authorized read projection and safe errors | PASS | Tenant-scoped read-only API summary and redacted machine-readable errors. |
 | AC24 unit and real PostgreSQL race/recovery coverage | PASS | 120 unit tests plus real-service integration suite. |
-| AC25 existing Jobs/Auth/Projects and browser regressions | CORRECTION REQUIRED | Standard browser suite repeatedly failed locally; latest 10/20. Do not treat likely flakiness as PASS. |
-| AC26 clean install/full validation/npm test/audit | CORRECTION REQUIRED | Install, static checks, unit, build, migration/integration, and audit passed; aggregate npm test exited 1 because browser suite was not green. |
-| AC27 exact-head checks, Sonar/quality, no HIGH/CRITICAL | PARTIAL | **7/7 SUCCESS** including SonarCloud on Correction Delta documentation HEAD `8b62f72e1acb7685428017529c02253ecc683c56`; 93 new issues and unknown issue-level severity, 0 hotspots and 0.0% reported new-code coverage. No independently established HIGH/CRITICAL defect; full separate financial audit remains pending. Rerun/readback exact final code HEAD. |
-| AC28 evidence and independent HIGH_ASSURANCE verdict | CORRECTION REQUIRED | Evidence and proposed delta are updated; distinct objective HIGH_ASSURANCE audit is still required, and the local test gate is not green. No approval or promotion claimed. |
+| AC25 existing Jobs/Auth/Projects and browser regressions | PASS | Full standard Playwright suite passed 22/22 twice, including Jobs, Auth, Projects, terminal cancellation and all-state coverage; no worker/retry/timeout relaxation. |
+| AC26 clean install/full validation/npm test/audit | PASS | `npm ci`, format, lint, architecture, typecheck, build, unit, worker, integration, full `npm test`, and `npm audit` all exited 0 on the current code candidate. |
+| AC27 exact-head checks, Sonar/quality, no HIGH/CRITICAL | PARTIAL | Seven substantive exact-candidate checks passed. No severity inventory from Sonar is claimed; independent reviewer must classify findings and complete the HIGH/CRITICAL audit. |
+| AC28 evidence and independent HIGH_ASSURANCE verdict | PARTIAL | Current bundle and proposed delta are refreshed; independent reviewer verdict has not yet been issued. No approval or promotion claimed. |
 
 ## Proposed delta, risks, and next required action
 
 - Proposed checkpoint delta remains PROPOSED_ONLY / NOT_ACCEPTED / NOT_PROMOTED. Canonical checkpoint is main@34bad103d8066b6d31c5947c20a07ef52032c5d7 and still reports WO-008 complete. No checkpoint edit was made.
-- Main unresolved gate: run the complete standard npm test suite successfully, including all 20 browser tests, on this source commit in the supported Windows environment or provide reproducible evidence that a scoped environment correction is needed. Do not reduce Playwright workers, increase timeouts, skip tests, or mark the browser failures flaky without a green run.
-- After the local aggregate suite is green, recheck the final product HEAD's CI, SonarCloud and Socket statuses; then request the distinct read-only HIGH_ASSURANCE audit. Current 7/7 green hosted checks do not waive the failing browser suite. Keep PR #87 draft until the Work Order criteria are satisfied. Do not merge, promote, or start IMP-006.
+- Required next action: complete the distinct read-only HIGH_ASSURANCE review against the pushed PR candidate and this evidence. Current source tests and hosted checks are green; an independent verdict is not yet present. Keep PR #87 draft. Do not merge, promote, or start IMP-006.
 
 ## Exit and review
 
-Executor stop state: SPRYXEL_WO009_CORRECTION_REQUIRED. The implementation is not marked READY_FOR_INDEPENDENT_AUDIT because AC25/AC26 are not green. Final independent audit verdict remains pending: APPROVED / CORRECTION REQUIRED / BLOCKED. The executor cannot self-approve or promote this candidate.
+Executor stop state: SPRYXEL_IMP_005_CREDIT_LEDGER_COSTGUARD_FOUNDATION_READY_FOR_AUDIT. Independent audit verdict remains pending: APPROVED / CORRECTION REQUIRED / BLOCKED. The executor cannot self-approve or promote this candidate.
