@@ -324,11 +324,11 @@ test('Project Overview shows recent jobs and all admitted states remain readable
   page,
 }) => {
   await authenticateWorkspacePage(page, 'jobs-populated-overview');
-  await page.goto('/jobs');
+  await page.goto('/jobs', { waitUntil: 'commit' });
   const projectId = await page.locator('#jobs-project-filter option').nth(1).getAttribute('value');
   const tenantId = await page.locator('input[name="tenantId"]').first().inputValue();
   expect(projectId).toBeTruthy();
-  await page.goto(`/projects/${projectId}?tenantId=${tenantId}`);
+  await page.goto(`/projects/${projectId}?tenantId=${tenantId}`, { waitUntil: 'commit' });
   await expect(page.getByRole('heading', { name: 'Recent jobs' })).toBeVisible();
   await expect(page.getByRole('link', { name: /SKU-001 · contract v1/ })).toBeVisible();
 
@@ -341,7 +341,7 @@ test('Project Overview shows recent jobs and all admitted states remain readable
     'cancelled',
   ]) {
     await authenticateWorkspacePage(page, `jobs-${status}`);
-    await page.goto('/jobs');
+    await page.goto('/jobs', { waitUntil: 'commit' });
     await expect(
       page.getByText(status.replaceAll('_', ' '), { exact: true }).first(),
     ).toBeVisible();
