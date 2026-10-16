@@ -138,7 +138,7 @@ test('Home to Projects to Create to Open keeps a canonical project context', asy
   );
   await expect(page.getByRole('heading', { name: 'Projects', exact: true })).toBeVisible();
   await page.getByRole('textbox', { name: 'Project name' }).fill('Northstar');
-  await page.getByRole('button', { name: 'Create project' }).click();
+  await clickAndWaitForServerAction(page, page.getByRole('button', { name: 'Create project' }));
   await expect(page.getByRole('status')).toContainText('Project created.');
   const projectLink = page.getByRole('status').getByRole('link', { name: 'Open project' });
   const projectHref = await projectLink.getAttribute('href');
