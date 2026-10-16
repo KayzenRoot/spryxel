@@ -25,4 +25,4 @@ Changed paths: `packages/db/src/migrations/0009_credit_ledger_costguard.sql` and
 - `npm test` on the final code candidate — PASS, exit 0; aggregate includes unit, worker, real-service integration, and browser gates.
 - Exact source blob IDs at code candidate `6cbd9210573815c82f0af60d274c41f31ef0b2bb`: migration `e998f00aa554ecfafa81fd693b3b93c0ce7a1b27`; integration `1f84e5f076cf7e42d420b82f410d3175624589a4`.
 
-AC17 is corrected. The independent HIGH_ASSURANCE audit approved code candidate `6cbd9210573815c82f0af60d274c41f31ef0b2bb`; its review is recorded in the [Evidence Bundle](../evidence/SPRYXEL-WO-009-EVIDENCE.md). PR #87 remains draft at the Work Order stop state. No merge, checkpoint promotion, release, or IMP-006 work is authorized by this correction.
+AC17 is corrected. The independent HIGH_ASSURANCE audit approved code candidate `6cbd9210573815c82f0af60d274c41f31ef0b2bb`; its review is recorded in the [Evidence Bundle](../evidence/SPRYXEL-WO-009-EVIDENCE.md). PR #87 is ready for protected owner/reviewer disposition at the Work Order stop state. No merge, checkpoint promotion, release, or IMP-006 work is authorized by this correction.

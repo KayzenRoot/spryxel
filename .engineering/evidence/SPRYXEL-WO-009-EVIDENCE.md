@@ -1,14 +1,14 @@
 # SPRYXEL-WO-009 — Implementation Evidence Bundle
 
-**Independent audit verdict: APPROVED.** The separate HIGH_ASSURANCE reviewer approved code candidate `6cbd9210573815c82f0af60d274c41f31ef0b2bb` and inspected the documentation-only PR head `a52cb9d0d94b57fb4a6025cdb068ec5efc30f312`. No financial or security HIGH/CRITICAL defect was demonstrated. PR #87 remains OPEN/DRAFT; the verdict does not promote the checkpoint or authorize a merge.
+**Independent audit verdict: APPROVED.** The separate HIGH_ASSURANCE reviewer approved code candidate `6cbd9210573815c82f0af60d274c41f31ef0b2bb` and inspected the documentation-only PR head `a52cb9d0d94b57fb4a6025cdb068ec5efc30f312`. No financial or security HIGH/CRITICAL defect was demonstrated. PR #87 is OPEN and ready for review; the verdict does not promote the checkpoint or authorize a merge.
 
 **Work Order:** SPRYXEL-WO-009 / IMP-005, HIGH_ASSURANCE.
 **Admission:** Owner-approved PR [#86](https://github.com/KayzenRoot/spryxel/pull/86), squash-merged.
 **Base:** main@34bad103d8066b6d31c5947c20a07ef52032c5d7.
 **Initial implementation commit:** 17fffdc74d09ccef288cb292f39771cbef0c0ae4. **Current code candidate:** `6cbd9210573815c82f0af60d274c41f31ef0b2bb` (tree `2aaa31508111c586ab5fc68d6fe7c785b72e71d0`).
 **Branch:** codex/spryxel-wo-009-imp-005-credit-ledger-costguard.
-**PR:** [#87, kept as draft](https://github.com/KayzenRoot/spryxel/pull/87).
-**PR state at evidence refresh:** OPEN, DRAFT, based on the unchanged execution base; exact code candidate pushed to the authorized branch. Review decision is blank; no formal approval is recorded.
+**PR:** [#87, ready for review](https://github.com/KayzenRoot/spryxel/pull/87); not merged.
+**PR state at evidence refresh:** OPEN, ready for review, based on the unchanged execution base; exact code candidate pushed to the authorized branch. GitHub review decision remains blank; the separate audit report is APPROVED.
 **Context Lock:** .engineering/context-locks/SPRYXEL-WO-009.json; FRESH at preflight, 33/33 exact-main blob pins and approved Work Order blob verified.
 **Toolchain:** Node v22.23.3, npm 10.9.9, Docker 29.8.2, Gitleaks 8.30.1.
 **Scope controls:** No prices, money movement, paid provider, COGS/GPU/inference, public credit grant, WorkOS change, checkpoint promotion, merge, or IMP-006 work. No CodeRabbit invocation or new paid service.
@@ -161,7 +161,7 @@ This independent verdict satisfies the audit criterion only; it does not change 
 ## Proposed delta, risks, and next required action
 
 - Proposed checkpoint delta remains PROPOSED_ONLY / NOT_ACCEPTED / NOT_PROMOTED. Canonical checkpoint is main@34bad103d8066b6d31c5947c20a07ef52032c5d7 and still reports WO-008 complete. No checkpoint edit was made.
-- Audit is complete with verdict APPROVED. Keep PR #87 draft at the Work Order stop state; no merge, checkpoint promotion, release, or IMP-006 action is included in this executor handoff.
+- Audit is complete with verdict APPROVED. PR #87 is ready for protected owner/reviewer disposition at the Work Order stop state; no merge, checkpoint promotion, release, or IMP-006 action is included in this executor handoff.
 
 ## Exit and review
 
