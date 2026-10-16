@@ -1,6 +1,6 @@
 # SPRYXEL-WO-009 — Implementation Evidence Bundle
 
-**Executor status: READY_FOR_INDEPENDENT_AUDIT.** The standard full test gate and exact-source hosted checks are green after Corrections 09–10. No independent HIGH_ASSURANCE verdict has been issued; this status is not approval, checkpoint promotion, or merge authorization.
+**Independent audit verdict: APPROVED.** The separate HIGH_ASSURANCE reviewer approved code candidate `6cbd9210573815c82f0af60d274c41f31ef0b2bb` and inspected the documentation-only PR head `a52cb9d0d94b57fb4a6025cdb068ec5efc30f312`. No financial or security HIGH/CRITICAL defect was demonstrated. PR #87 remains OPEN/DRAFT; the verdict does not promote the checkpoint or authorize a merge.
 
 **Work Order:** SPRYXEL-WO-009 / IMP-005, HIGH_ASSURANCE.
 **Admission:** Owner-approved PR [#86](https://github.com/KayzenRoot/spryxel/pull/86), squash-merged.
@@ -101,7 +101,29 @@ At exact code candidate `6cbd9210573815c82f0af60d274c41f31ef0b2bb`, GitHub showe
 - [SonarCloud Code Analysis](https://sonarcloud.io/dashboard?id=KayzenRoot_spryxel&pullRequest=87) — SUCCESS on exact code candidate `6cbd9210573815c82f0af60d274c41f31ef0b2bb`; no finding-severity conclusion is claimed.
 - CodeRabbit status context is automatic-review-disabled/skipped; the executor did not invoke it and it is excluded from the 7 passing checks.
 
-The [PR #87 checks page](https://github.com/KayzenRoot/spryxel/pull/87/checks) is the live source for checks attached to the current PR head. Evidence and checkpoint-document commits may produce a newer head and must be checked again.
+At pre-audit-evidence PR HEAD `a52cb9d0d94b57fb4a6025cdb068ec5efc30f312` (documentation-only changes after the code candidate), GitHub showed **7/7 substantive checks SUCCESS** as of 2026-10-16 23:28 UTC. The audit evidence update itself changes only the four listed `.engineering/` documents; the live PR checks page must be read for checks on the resulting HEAD:
+
+- [Gitleaks secrets](https://github.com/KayzenRoot/spryxel/actions/runs/38981553754/job/117243342680) — PASS.
+- [Pipeline integrity](https://github.com/KayzenRoot/spryxel/actions/runs/38981553773/job/117243342250) — PASS.
+- [Repository validation](https://github.com/KayzenRoot/spryxel/actions/runs/38981553747/job/117243341803) — PASS.
+- [Trivy filesystem and configuration](https://github.com/KayzenRoot/spryxel/actions/runs/38981553740/job/117243342190) — PASS.
+- [Socket Security: Project Report](https://socket.dev/dashboard/org/nexlabs/sbom/73d8ef80-c7e4-490a-9c76-4900714c0ecd) — PASS.
+- Socket Security: Pull Request Alerts — PASS.
+- [SonarCloud Code Analysis](https://sonarcloud.io/dashboard?id=KayzenRoot_spryxel&pullRequest=87) — SUCCESS.
+
+The [PR #87 checks page](https://github.com/KayzenRoot/spryxel/pull/87/checks) is the live source for later check updates.
+
+## Independent HIGH_ASSURANCE audit
+
+**Verdict: APPROVED** for the reviewed implementation candidate. The independent reviewer inspected the admitted sources, AC01–AC28, migration/ledger invariants, tenant isolation, FORCE RLS/ACL, concurrency/idempotency, terminal release, CostGuard and the Sonar findings. It found no demonstrable financial or security HIGH/CRITICAL defect and made no edits.
+
+- The reviewer independently ran `npm run test:integration` — PASS, exit 0, real PostgreSQL and disposable services, including RLS/ACL, concurrency, replay, reconciliation and AC17.
+- The reviewer independently ran `npm run test:unit` — PASS, exit 0, 24 files and 120 tests.
+- The reviewer did not rerun the browser suite, aggregate `npm test`, audit, build, or hosted checks; those results are separately recorded above and in the exact-head check links.
+- SonarCloud inventory: 109 open/confirmed issues, all `CODE_SMELL`: 76 Critical, 5 Major, 28 Minor; zero Security Hotspots; 0.0% new-code coverage and 2.7% duplication. The reviewer classified the 71 SQL duplicate-literal findings as maintenance concerns; it found no divergent role, ACL, status or session-setting literal that changes access or ledger behavior. The five complexity findings increase review/maintenance cost; the reviewer inspected `withCreditTransaction`, `evaluateCostGuard`, `reconcileCreditLedgerSnapshot`, `applyCompensation` and the integration assertion helper without finding an incorrect financial branch. The five Major and 28 Minor findings also remain maintenance debt, not demonstrated security or financial defects.
+- The zero new-code coverage is a material evidence limitation and is not described as covered. Test executions passed, but Sonar line/branch coverage for new code remains 0.0%.
+
+This independent verdict satisfies the audit criterion only; it does not change the canonical checkpoint, merge the PR, or authorize the next increment.
 
 ## WO009 acceptance matrix
 
@@ -133,14 +155,14 @@ The [PR #87 checks page](https://github.com/KayzenRoot/spryxel/pull/87/checks) i
 | AC24 unit and real PostgreSQL race/recovery coverage | PASS | 120 unit tests plus real-service integration suite. |
 | AC25 existing Jobs/Auth/Projects and browser regressions | PASS | Full standard Playwright suite passed 22/22 twice, including Jobs, Auth, Projects, terminal cancellation and all-state coverage; no worker/retry/timeout relaxation. |
 | AC26 clean install/full validation/npm test/audit | PASS | `npm ci`, format, lint, architecture, typecheck, build, unit, worker, integration, full `npm test`, and `npm audit` all exited 0 on the current code candidate. |
-| AC27 exact-head checks, Sonar/quality, no HIGH/CRITICAL | PARTIAL | Seven substantive exact-candidate checks passed. No severity inventory from Sonar is claimed; independent reviewer must classify findings and complete the HIGH/CRITICAL audit. |
-| AC28 evidence and independent HIGH_ASSURANCE verdict | PARTIAL | Current bundle and proposed delta are refreshed; independent reviewer verdict has not yet been issued. No approval or promotion claimed. |
+| AC27 exact-head checks, Sonar/quality, no HIGH/CRITICAL | PASS | Seven substantive checks pass on code candidate `6cbd921` and current PR HEAD `a52cb9d`. Independent reviewer classified the 109 reported Sonar items (76 Critical, 5 Major, 28 Minor; all smells) and found no financial/security HIGH/CRITICAL defect. Sonar new-code coverage remains 0.0%, documented as a limitation. |
+| AC28 evidence and independent HIGH_ASSURANCE verdict | PASS | Evidence Bundle is refreshed and the distinct read-only reviewer returned APPROVED for the code candidate. This does not claim checkpoint promotion or merge authorization. |
 
 ## Proposed delta, risks, and next required action
 
 - Proposed checkpoint delta remains PROPOSED_ONLY / NOT_ACCEPTED / NOT_PROMOTED. Canonical checkpoint is main@34bad103d8066b6d31c5947c20a07ef52032c5d7 and still reports WO-008 complete. No checkpoint edit was made.
-- Required next action: complete the distinct read-only HIGH_ASSURANCE review against the pushed PR candidate and this evidence. Current source tests and hosted checks are green; an independent verdict is not yet present. Keep PR #87 draft. Do not merge, promote, or start IMP-006.
+- Audit is complete with verdict APPROVED. Keep PR #87 draft at the Work Order stop state; no merge, checkpoint promotion, release, or IMP-006 action is included in this executor handoff.
 
 ## Exit and review
 
-Executor stop state: SPRYXEL_IMP_005_CREDIT_LEDGER_COSTGUARD_FOUNDATION_READY_FOR_AUDIT. Independent audit verdict remains pending: APPROVED / CORRECTION REQUIRED / BLOCKED. The executor cannot self-approve or promote this candidate.
+Executor stop state: SPRYXEL_IMP_005_CREDIT_LEDGER_COSTGUARD_FOUNDATION_READY_FOR_AUDIT. Independent audit verdict: APPROVED. The executor cannot self-promote the proposed checkpoint delta or merge beyond the Work Order stop state.
