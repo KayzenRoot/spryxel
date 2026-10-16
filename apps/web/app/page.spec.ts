@@ -201,6 +201,7 @@ test('concurrent Jobs sessions isolate cancellation from independent overview st
     browser.newContext(),
     browser.newContext(),
   ]);
+  let cancelContextOpen = true;
   try {
     const [cancelPage, overviewPage] = await Promise.all([
       cancelContext.newPage(),
@@ -231,12 +232,17 @@ test('concurrent Jobs sessions isolate cancellation from independent overview st
       cancelPage.getByRole('button', { name: 'Cancel job' }),
     );
     await expect(cancelPage.getByText('Status: cancelled.')).toBeVisible();
+    await cancelContext.close();
+    cancelContextOpen = false;
 
-    await overviewPage.reload();
+    await overviewPage.reload({ waitUntil: 'commit' });
     await expect(overviewPage.getByText('Status: queued.')).toBeVisible();
     await expect(overviewPage.getByRole('button', { name: 'Cancel job' })).toBeVisible();
   } finally {
-    await Promise.all([cancelContext.close(), overviewContext.close()]);
+    await Promise.all([
+      ...(cancelContextOpen ? [cancelContext.close()] : []),
+      overviewContext.close(),
+    ]);
   }
 });
 
