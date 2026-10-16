@@ -9,6 +9,7 @@ const e2eBaseUrl = `http://127.0.0.1:${e2ePort}`;
 export default defineConfig({
   testDir: './apps/web',
   testMatch: '**/*.spec.ts',
+  globalSetup: './scripts/prewarm-browser-routes.ts',
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: 0,

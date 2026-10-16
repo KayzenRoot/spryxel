@@ -6,6 +6,12 @@
 **Base:** `main@34bad103d8066b6d31c5947c20a07ef52032c5d7`.  
 **Verdict:** **CORRECTION REQUIRED** for AC25, AC26, AC28. Do not start next Work Order, promote checkpoint, merge PR #87, modify ruleset, invoke CodeRabbit or purchase services.
 
+## R3 EXECUTOR SCOPE RECONCILIATION — PLAYWRIGHT HARNESS
+
+The owner's direct R3 instruction explicitly requires fixing Playwright as part of WO-009. The exact cold baseline run on `main@34bad103d8066b6d31c5947c20a07ef52032c5d7` completed **14/20**; the equivalent cold run on candidate `04a900a02c4e55e686e0b198cf01cba0760a951c` completed **15/20**. Both runs used Node 22.23.3/npm 10.9.9, `TURBO_FORCE=true`, default four workers, `fullyParallel: true`, `retries: 0`, and the existing assertion/test timeout values. The failed cases overlap in cold Home/Projects/Jobs navigation and route rendering. This proves the baseline also fails and does not support attributing the failures to Credit Ledger changes; it does not identify the cause or rule out an indirect regression. AC25/AC26 remain unsatisfied until the candidate passes the complete standard suite and aggregate `npm test`.
+
+To satisfy AC25/AC26 and the explicit R3 request, this delta narrowly adds root `playwright.config.ts` to the execution Context Lock `writeScope` alongside the existing `scripts/` allowance for a fixture-only, pre-test route warmup. This reconciles the browser test harness only; it does not add product routes, change CI configuration, alter test assertions/count, lower concurrency, increase retries/timeouts, or widen the Work Order's financial/product scope. Final acceptance still requires the exact candidate browser suite **20/20 twice** and the complete default `npm test` pass.
+
 ## SOURCE CHECK / ALREADY VERIFIED
 
 - Candidate is PR #87, 22 changed files, actual financial schema/domain/API and real-infra tests present.

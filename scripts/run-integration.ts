@@ -273,6 +273,7 @@ try {
       'platform.asset_contract',
       'platform.asset_contract_version',
       'platform.credit_event',
+      'platform.credit_integrity_incident',
       'platform.credit_ledger_entry',
       'platform.credit_lot',
       'platform.credit_reservation',
@@ -291,7 +292,9 @@ try {
       'public._spryxel_schema_migrations',
     ];
     if (JSON.stringify(observed) !== JSON.stringify(expectedTables)) {
-      throw new Error('Disposable PostgreSQL did not contain exactly the admitted identity tables');
+      throw new Error(
+        `Disposable PostgreSQL table set differed from the admitted set; observed=${JSON.stringify(observed)} expected=${JSON.stringify(expectedTables)}`,
+      );
     }
   } finally {
     await database.close();

@@ -7,7 +7,8 @@ Tracking Issue: [#85](https://github.com/KayzenRoot/spryxel/issues/85)
 **Repository:** `KayzenRoot/spryxel`  
 **Execution base (after admission merge):** `main@34bad103d8066b6d31c5947c20a07ef52032c5d7`  
 **Authorized execution branch:** `codex/spryxel-wo-009-imp-005-credit-ledger-costguard`  
-**Admission authority:** owner explicitly approved the exact PR #86 admission package; source/fingerprint preflight independently rechecked against its exact committed baseline. Product modifications require a FRESH Context Lock, real tests and later independent HIGH_ASSURANCE audit.  
+**Admission authority:** the owner directly authorized execution by instructing Codex to execute this handoff; the subsequent R3 Marathon request explicitly reaffirmed completion of WO-009 and its browser/financial gates. PR #86 merged the documentation-only source pack and is provenance for this Work Order, not the implementation admission. The source/fingerprint preflight is independently rechecked against exact `main@34bad103d8066b6d31c5947c20a07ef52032c5d7`. Product modifications require a FRESH Context Lock, real tests and later independent HIGH_ASSURANCE audit.
+
 **GEF:** `@gef-bootstrap/cli@1.1.1` immutable baseline.
 
 ## OBJECTIVE
@@ -120,7 +121,7 @@ CI: exact SHA GEF, format, lint, typecheck, build, unit, worker, integration, br
 `BASE_SHA`, `HEAD_SHA`, `CONTEXT_LOCK`, changed paths, financial/tenant invariants, migrations, runtime role grants, idempotency, double-spend tests, reconciliation, policy DENY, security, actual test command exits, CI links, known gaps, proposed Checkpoint Delta, status of all ACs. Verdict `APPROVED` / `CORRECTION REQUIRED` / `BLOCKED`.
 
 ## STOP CONDITION / ADMISSION
-**Owner admission:** APPROVED for this bounded Work Order as documented in PR #86; pre-implementation requires current Git base, this Work Order blob and the accompanying execution Context Lock to match. Approval is not approval of implementation, pricing, commercial operations or a production release.
+**Owner admission:** APPROVED for this bounded Work Order by the owner's direct instruction to execute the handoff in the Codex task, reaffirmed in the R3 Marathon request. PR #86 supplied the documentation-only source pack and did not itself admit implementation. Pre-implementation requires current Git base, this Work Order blob and the accompanying execution Context Lock to match. Approval is not approval of implementation, pricing, commercial operations or a production release.
 
 Executor implements only this WO on the authorized branch and PR, corrects proven in-scope defects, pushes tests/evidence and STOPS at `SPRYXEL_IMP_005_CREDIT_LEDGER_COSTGUARD_FOUNDATION_READY_FOR_AUDIT`. A distinct read-only auditor must review HIGH_ASSURANCE results before promotion. Executor may not self-promote checkpoint, merge, publish, freeze prices or start IMP-006.
 

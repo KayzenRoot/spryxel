@@ -129,6 +129,9 @@ CREATE TABLE platform.credit_event (
   )
 );
 
+COMMENT ON TABLE platform.credit_event IS
+  'Durable idempotency identity is scoped by tenant, subject, operation, and key hash. It has no TTL and is retained with the immutable ledger event; this migration defines no expiry or cleanup.';
+
 CREATE TABLE platform.credit_ledger_entry (
   id uuid PRIMARY KEY DEFAULT uuidv7(),
   event_id uuid NOT NULL,
@@ -149,6 +152,32 @@ CREATE TABLE platform.credit_ledger_entry (
     REFERENCES platform.credit_lot(id, tenant_id, wallet_id) ON DELETE RESTRICT,
   FOREIGN KEY (reservation_id, tenant_id, wallet_id)
     REFERENCES platform.credit_reservation(id, tenant_id, wallet_id) ON DELETE RESTRICT
+);
+
+CREATE TABLE platform.credit_integrity_incident (
+  id uuid PRIMARY KEY DEFAULT uuidv7(),
+  tenant_id uuid NOT NULL,
+  subject_id uuid NOT NULL,
+  project_id uuid NOT NULL,
+  operation text NOT NULL CHECK (operation IN (
+    'reserve', 'commit', 'release', 'compensate', 'job_cancel', 'job_finish'
+  )),
+  correlation_id text NOT NULL CHECK (
+    length(correlation_id) BETWEEN 1 AND 128 AND correlation_id ~ '^[A-Za-z0-9._:-]+$'
+  ),
+  incident_code text NOT NULL CHECK (incident_code IN (
+    'credit_ledger_unbalanced',
+    'credit_balance_invariant_failed',
+    'credit_lot_issuance_invariant_failed',
+    'credit_cost_guard_metadata_mismatch',
+    'credit_snapshot_invariant_failed'
+  )),
+  job_id uuid,
+  attempt_id uuid,
+  reservation_id uuid,
+  created_at timestamptz NOT NULL DEFAULT clock_timestamp(),
+  UNIQUE (tenant_id, operation, correlation_id, incident_code),
+  CHECK ((operation = 'job_finish') = (attempt_id IS NOT NULL))
 );
 
 CREATE INDEX credit_lot_wallet_expiry_idx
@@ -289,6 +318,8 @@ ALTER TABLE platform.credit_reservation ENABLE ROW LEVEL SECURITY;
 ALTER TABLE platform.credit_reservation FORCE ROW LEVEL SECURITY;
 ALTER TABLE platform.credit_ledger_entry ENABLE ROW LEVEL SECURITY;
 ALTER TABLE platform.credit_ledger_entry FORCE ROW LEVEL SECURITY;
+ALTER TABLE platform.credit_integrity_incident ENABLE ROW LEVEL SECURITY;
+ALTER TABLE platform.credit_integrity_incident FORCE ROW LEVEL SECURITY;
 
 CREATE FUNCTION platform.credit_terminal_job_matches(
   p_tenant_id uuid,
@@ -569,6 +600,17 @@ CREATE POLICY credit_entry_tenant_scope ON platform.credit_ledger_entry
       )
     )
   );
+
+CREATE POLICY credit_integrity_incident_definer_insert
+  ON platform.credit_integrity_incident FOR INSERT TO spryxel
+  WITH CHECK (
+    current_user = 'spryxel'
+    AND session_user IN ('spryxel_app', 'spryxel_worker')
+  );
+
+CREATE TRIGGER credit_integrity_incident_append_only
+  BEFORE UPDATE OR DELETE ON platform.credit_integrity_incident
+  FOR EACH ROW EXECUTE FUNCTION platform.prevent_credit_append_only_mutation();
 
 CREATE FUNCTION platform.assert_credit_event_balanced(p_event_id uuid)
 RETURNS void
@@ -1375,7 +1417,7 @@ BEGIN
           ON entry.lot_id = lot.id AND entry.tenant_id = lot.tenant_id AND entry.wallet_id = lot.wallet_id
        WHERE lot.tenant_id = v_tenant_id AND lot.wallet_id = v_wallet.id
          AND (lot.expires_at IS NULL OR lot.expires_at > clock_timestamp())
-         AND lot.origin <> 'COMPENSATION'
+         AND lot.origin = 'TEST_FIXTURE'
          AND entry.account = 'available'
        GROUP BY lot.id
       HAVING sum(entry.delta_credits) > 0
@@ -1422,7 +1464,7 @@ BEGIN
         ON entry.lot_id = lot.id AND entry.tenant_id = lot.tenant_id AND entry.wallet_id = lot.wallet_id
      WHERE lot.tenant_id = v_tenant_id AND lot.wallet_id = v_wallet.id
        AND (lot.expires_at IS NULL OR lot.expires_at > clock_timestamp())
-       AND lot.origin <> 'COMPENSATION' AND entry.account = 'available'
+       AND lot.origin = 'TEST_FIXTURE' AND entry.account = 'available'
      GROUP BY lot.id, lot.origin, lot.expires_at, lot.created_at
     HAVING sum(entry.delta_credits) > 0
      ORDER BY CASE lot.origin
@@ -1727,6 +1769,170 @@ BEGIN
 END
 $$;
 
+CREATE FUNCTION platform.record_credit_integrity_incident(
+  p_tenant_id uuid,
+  p_subject_id uuid,
+  p_project_id uuid,
+  p_operation text,
+  p_correlation_id text,
+  p_incident_code text,
+  p_job_id uuid,
+  p_reservation_id uuid
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, platform
+AS $$
+BEGIN
+  -- The restricted API database role is a trusted service attestation boundary. This is
+  -- intentionally not a user-facing endpoint; only the service calls it after matching an
+  -- allowlisted invariant error and confirming rollback on its prior transaction.
+  IF session_user <> 'spryxel_app' OR current_user <> 'spryxel'
+    OR p_tenant_id IS NULL OR p_subject_id IS NULL OR p_project_id IS NULL
+    OR p_operation IS NULL
+    OR p_operation NOT IN ('reserve', 'commit', 'release', 'compensate', 'job_cancel')
+    OR p_correlation_id IS NULL OR length(p_correlation_id) NOT BETWEEN 1 AND 128
+    OR p_correlation_id !~ '^[A-Za-z0-9._:-]+$'
+    OR p_incident_code IS NULL
+    OR p_incident_code NOT IN (
+      'credit_ledger_unbalanced',
+      'credit_balance_invariant_failed',
+      'credit_lot_issuance_invariant_failed',
+      'credit_cost_guard_metadata_mismatch',
+      'credit_snapshot_invariant_failed'
+    )
+    OR (p_operation = 'reserve' AND (p_job_id IS NULL OR p_reservation_id IS NOT NULL))
+    OR (p_operation = 'job_cancel' AND (p_job_id IS NULL OR p_reservation_id IS NOT NULL))
+    OR (p_operation IN ('commit', 'release', 'compensate')
+      AND (p_reservation_id IS NULL OR p_job_id IS NOT NULL))
+  THEN
+    RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'credit_integrity_incident_denied';
+  END IF;
+
+  PERFORM set_config('spryxel.subject_id', p_subject_id::text, true),
+          set_config('spryxel.tenant_id', p_tenant_id::text, true),
+          set_config('spryxel.project_id', p_project_id::text, true);
+  IF NOT EXISTS (
+    SELECT 1
+      FROM platform.project project
+      JOIN platform.tenant_membership membership
+        ON membership.tenant_id = project.tenant_id
+     WHERE project.id = p_project_id
+       AND project.tenant_id = p_tenant_id
+       AND membership.subject_id = p_subject_id
+       AND membership.status = 'active'
+  ) THEN
+    RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'credit_integrity_incident_denied';
+  END IF;
+
+  IF p_operation = 'reserve' AND NOT EXISTS (
+    SELECT 1 FROM platform.durable_job job
+     WHERE job.id = p_job_id AND job.tenant_id = p_tenant_id
+       AND job.project_id = p_project_id AND job.created_by_subject_id = p_subject_id
+       AND job.operation_type = 'test_fixture.credit_ledger.v1'
+  ) THEN
+    RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'credit_integrity_incident_denied';
+  END IF;
+  IF p_operation = 'job_cancel' AND NOT EXISTS (
+    SELECT 1 FROM platform.durable_job job
+     WHERE job.id = p_job_id AND job.tenant_id = p_tenant_id
+       AND job.project_id = p_project_id
+       AND job.operation_type = 'asset_contract.integrity_check.v1'
+  ) THEN
+    RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'credit_integrity_incident_denied';
+  END IF;
+  IF p_operation IN ('commit', 'release', 'compensate') AND NOT EXISTS (
+    SELECT 1 FROM platform.credit_reservation reservation
+     WHERE reservation.id = p_reservation_id AND reservation.tenant_id = p_tenant_id
+       AND reservation.project_id = p_project_id AND reservation.subject_id = p_subject_id
+  ) THEN
+    RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'credit_integrity_incident_denied';
+  END IF;
+
+  INSERT INTO platform.credit_integrity_incident (
+    tenant_id, subject_id, project_id, operation, correlation_id, incident_code,
+    job_id, reservation_id
+  ) VALUES (
+    p_tenant_id, p_subject_id, p_project_id, p_operation, p_correlation_id,
+    p_incident_code, p_job_id, p_reservation_id
+  ) ON CONFLICT (tenant_id, operation, correlation_id, incident_code) DO NOTHING;
+END
+$$;
+
+REVOKE ALL ON FUNCTION platform.record_credit_integrity_incident(
+  uuid, uuid, uuid, text, text, text, uuid, uuid
+) FROM PUBLIC, spryxel_app, spryxel_worker;
+GRANT EXECUTE ON FUNCTION platform.record_credit_integrity_incident(
+  uuid, uuid, uuid, text, text, text, uuid, uuid
+) TO spryxel_app;
+
+CREATE FUNCTION platform.record_credit_terminal_integrity_incident(
+  p_job_id uuid,
+  p_attempt_id uuid,
+  p_lease_token uuid,
+  p_incident_code text
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, platform
+AS $$
+DECLARE
+  v_tenant_id uuid;
+  v_project_id uuid;
+  v_subject_id uuid;
+  v_reservation_id uuid;
+BEGIN
+  IF session_user <> 'spryxel_worker' OR current_user <> 'spryxel'
+    OR p_job_id IS NULL OR p_attempt_id IS NULL OR p_lease_token IS NULL
+    OR p_incident_code IS NULL
+    OR p_incident_code NOT IN (
+      'credit_ledger_unbalanced',
+      'credit_balance_invariant_failed',
+      'credit_lot_issuance_invariant_failed',
+      'credit_cost_guard_metadata_mismatch',
+      'credit_snapshot_invariant_failed'
+    )
+  THEN
+    RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'credit_integrity_incident_denied';
+  END IF;
+
+  SELECT job.tenant_id, job.project_id, job.created_by_subject_id
+    INTO v_tenant_id, v_project_id, v_subject_id
+    FROM platform.durable_job job
+    JOIN platform.job_attempt attempt
+      ON attempt.job_id = job.id AND attempt.tenant_id = job.tenant_id
+     AND attempt.project_id = job.project_id
+   WHERE job.id = p_job_id AND attempt.id = p_attempt_id
+     AND attempt.lease_token = p_lease_token AND attempt.status = 'running'
+     AND job.status IN ('running', 'cancel_requested')
+     AND job.operation_type = 'asset_contract.integrity_check.v1';
+  IF NOT FOUND THEN
+    RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'credit_integrity_incident_denied';
+  END IF;
+
+  SELECT reservation.id INTO v_reservation_id
+    FROM platform.credit_reservation reservation
+   WHERE reservation.job_id = p_job_id AND reservation.tenant_id = v_tenant_id
+     AND reservation.project_id = v_project_id;
+
+  INSERT INTO platform.credit_integrity_incident (
+    tenant_id, subject_id, project_id, operation, correlation_id, incident_code,
+    job_id, attempt_id, reservation_id
+  ) VALUES (
+    v_tenant_id, v_subject_id, v_project_id, 'job_finish',
+    'job-attempt:' || p_attempt_id::text, p_incident_code,
+    p_job_id, p_attempt_id, v_reservation_id
+  ) ON CONFLICT (tenant_id, operation, correlation_id, incident_code) DO NOTHING;
+END
+$$;
+
+REVOKE ALL ON FUNCTION platform.record_credit_terminal_integrity_incident(uuid, uuid, uuid, text)
+  FROM PUBLIC, spryxel_app, spryxel_worker;
+GRANT EXECUTE ON FUNCTION platform.record_credit_terminal_integrity_incident(uuid, uuid, uuid, text)
+  TO spryxel_worker;
+
 DO $$
 DECLARE
   v_table regclass;
@@ -1750,7 +1956,8 @@ BEGIN
     'platform.credit_lot'::regclass,
     'platform.credit_event'::regclass,
     'platform.credit_reservation'::regclass,
-    'platform.credit_ledger_entry'::regclass
+    'platform.credit_ledger_entry'::regclass,
+    'platform.credit_integrity_incident'::regclass
   ] LOOP
     IF has_table_privilege('spryxel_app', v_table, 'SELECT')
       OR pg_catalog.has_any_column_privilege('spryxel_app', v_table, 'SELECT')
@@ -1820,6 +2027,26 @@ BEGIN
     OR has_function_privilege('spryxel_worker', 'platform.commit_credit_ledger(uuid,bigint,text,text,text)', 'EXECUTE')
     OR has_function_privilege('spryxel_worker', 'platform.release_credit_ledger(uuid,bigint,text,text,text)', 'EXECUTE')
     OR has_function_privilege('spryxel_worker', 'platform.compensate_credit_ledger(uuid,uuid,bigint,text,text,text,text)', 'EXECUTE')
+    OR NOT has_function_privilege(
+       'spryxel_app',
+       'platform.record_credit_integrity_incident(uuid,uuid,uuid,text,text,text,uuid,uuid)',
+       'EXECUTE'
+     )
+    OR has_function_privilege(
+       'spryxel_worker',
+       'platform.record_credit_integrity_incident(uuid,uuid,uuid,text,text,text,uuid,uuid)',
+       'EXECUTE'
+     )
+    OR NOT has_function_privilege(
+       'spryxel_worker',
+       'platform.record_credit_terminal_integrity_incident(uuid,uuid,uuid,text)',
+       'EXECUTE'
+     )
+    OR has_function_privilege(
+       'spryxel_app',
+       'platform.record_credit_terminal_integrity_incident(uuid,uuid,uuid,text)',
+       'EXECUTE'
+     )
   THEN
     RAISE EXCEPTION 'Credit ledger wrapper grants exceed the approved app-only EXECUTE boundary';
   END IF;

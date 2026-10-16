@@ -25,6 +25,72 @@ export type CreditCostGuardMetadata = Readonly<{
 
 type CreditTransactionContext = CreditSummaryContext & { projectId?: string };
 
+type CreditIntegrityIncident = {
+  operation: 'reserve' | 'commit' | 'release' | 'compensate' | 'job_cancel';
+  correlationId: string;
+  jobId?: string;
+  reservationId?: string;
+};
+
+const creditIntegrityIncidentCodes = new Set([
+  'credit_ledger_unbalanced',
+  'credit_balance_invariant_failed',
+  'credit_lot_issuance_invariant_failed',
+  'credit_cost_guard_metadata_mismatch',
+  'credit_snapshot_invariant_failed',
+]);
+
+function creditIntegrityIncidentCode(error: unknown): string | undefined {
+  const detail = error as { code?: unknown; message?: unknown } | null;
+  return detail?.code === 'P0001' &&
+    typeof detail.message === 'string' &&
+    creditIntegrityIncidentCodes.has(detail.message)
+    ? detail.message
+    : undefined;
+}
+
+export async function persistCreditIntegrityIncident(
+  database: Database,
+  context: CreditLedgerContext,
+  incident: CreditIntegrityIncident,
+  error: unknown,
+): Promise<void> {
+  const incidentCode = creditIntegrityIncidentCode(error);
+  if (!incidentCode) return;
+
+  await database.pool.query(
+    `SELECT platform.record_credit_integrity_incident(
+      $1::uuid, $2::uuid, $3::uuid, $4::text, $5::text, $6::text, $7::uuid, $8::uuid
+    )`,
+    [
+      context.tenantId.toLowerCase(),
+      context.subjectId.toLowerCase(),
+      context.projectId.toLowerCase(),
+      incident.operation,
+      incident.correlationId,
+      incidentCode,
+      incident.jobId ?? null,
+      incident.reservationId ?? null,
+    ],
+  );
+}
+
+export async function persistCreditTerminalJobIntegrityIncident(
+  database: Database,
+  input: { jobId: string; attemptId: string; leaseToken: string },
+  error: unknown,
+): Promise<void> {
+  const incidentCode = creditIntegrityIncidentCode(error);
+  if (!incidentCode) return;
+
+  await database.pool.query(
+    `SELECT platform.record_credit_terminal_integrity_incident(
+      $1::uuid, $2::uuid, $3::uuid, $4::text
+    )`,
+    [input.jobId, input.attemptId, input.leaseToken, incidentCode],
+  );
+}
+
 export type CreditSummary = {
   tenantId: string;
   asOf: string;
@@ -67,6 +133,13 @@ export class CreditLedgerError extends Error {
   constructor(readonly code: CreditLedgerErrorCode) {
     super(code);
     this.name = 'CreditLedgerError';
+  }
+}
+
+export class CreditIntegrityIncidentCaptureError extends CreditLedgerError {
+  constructor() {
+    super('operation_failed');
+    this.name = 'CreditIntegrityIncidentCaptureError';
   }
 }
 
@@ -298,9 +371,11 @@ async function withCreditTransaction<T>(
   readOnly: boolean,
   requiresProject: boolean,
   callback: (client: PoolClient) => Promise<T>,
+  incident?: CreditIntegrityIncident,
 ): Promise<T> {
   validateContext(context, requiresProject);
   let client: PoolClient | undefined;
+  let clientReleased = false;
   let transactionStarted = false;
   try {
     await database.validateRuntimeRole();
@@ -322,16 +397,37 @@ async function withCreditTransaction<T>(
     transactionStarted = false;
     return result;
   } catch (error) {
+    let rollbackConfirmed = false;
     if (client && transactionStarted) {
       try {
         await client.query('ROLLBACK');
+        rollbackConfirmed = true;
       } catch {
         // Keep the safe operation error; rollback diagnostics may include database details.
       }
     }
+    if (client) {
+      client.release(rollbackConfirmed || !transactionStarted ? undefined : true);
+      clientReleased = true;
+      client = undefined;
+    }
+    if (rollbackConfirmed && incident) {
+      try {
+        await persistCreditIntegrityIncident(
+          database,
+          context as CreditLedgerContext,
+          incident,
+          error,
+        );
+      } catch {
+        // Preserve a safe error type so API/worker boundary logs reveal lost evidence without
+        // forwarding the database error or changing the operation's fail-closed result.
+        throw new CreditIntegrityIncidentCaptureError();
+      }
+    }
     throw safeDatabaseError(error);
   } finally {
-    client?.release();
+    if (!clientReleased) client?.release();
   }
 }
 
@@ -402,29 +498,36 @@ export async function reserveCredits(
       costGuard.maxInternalCost,
     ].join('\n'),
   );
-  return withCreditTransaction(database, context, false, true, async (client) => {
-    const result = await client.query<ReservationRow>(
-      `SELECT * FROM platform.reserve_credit_ledger(
+  return withCreditTransaction(
+    database,
+    context,
+    false,
+    true,
+    async (client) => {
+      const result = await client.query<ReservationRow>(
+        `SELECT * FROM platform.reserve_credit_ledger(
         $1::uuid, $2::bigint, $3::text, $4::text, $5::text, $6::text,
         $7::text, $8::bigint, $9::bigint, $10::text, $11::text, $12::text
       )`,
-      [
-        jobId,
-        amount,
-        costGuard.skuId,
-        costGuard.policyId,
-        costGuard.policyVersion,
-        costGuard.decision,
-        costGuard.reasonCode,
-        costGuard.estimatedInternalCost,
-        costGuard.maxInternalCost,
-        idempotencyHash,
-        requestHash,
-        requestId,
-      ],
-    );
-    return parseReservationResult(result.rows[0]);
-  });
+        [
+          jobId,
+          amount,
+          costGuard.skuId,
+          costGuard.policyId,
+          costGuard.policyVersion,
+          costGuard.decision,
+          costGuard.reasonCode,
+          costGuard.estimatedInternalCost,
+          costGuard.maxInternalCost,
+          idempotencyHash,
+          requestHash,
+          requestId,
+        ],
+      );
+      return parseReservationResult(result.rows[0]);
+    },
+    { operation: 'reserve', correlationId: requestId, jobId },
+  );
 }
 
 type ReservationMutationInput = {
@@ -465,31 +568,38 @@ async function mutateReservation(
       ? `compensate\n${targetEntryId}\n${amount}\n${reasonCode}`
       : `${operation}\n${reservationId}\n${amount}`;
   const requestHash = payloadHash(payload);
-  return withCreditTransaction(database, context, false, true, async (client) => {
-    const result =
-      operation === 'compensate'
-        ? await client.query<ReservationRow>(
-            `SELECT * FROM platform.compensate_credit_ledger(
+  return withCreditTransaction(
+    database,
+    context,
+    false,
+    true,
+    async (client) => {
+      const result =
+        operation === 'compensate'
+          ? await client.query<ReservationRow>(
+              `SELECT * FROM platform.compensate_credit_ledger(
              $1::uuid, $2::uuid, $3::bigint, $4::text, $5::text, $6::text, $7::text
            )`,
-            [
-              reservationId,
-              targetEntryId,
-              amount,
-              reasonCode,
-              idempotencyHash,
-              requestHash,
-              requestId,
-            ],
-          )
-        : await client.query<ReservationRow>(
-            `SELECT * FROM platform.${operation}_credit_ledger(
+              [
+                reservationId,
+                targetEntryId,
+                amount,
+                reasonCode,
+                idempotencyHash,
+                requestHash,
+                requestId,
+              ],
+            )
+          : await client.query<ReservationRow>(
+              `SELECT * FROM platform.${operation}_credit_ledger(
              $1::uuid, $2::bigint, $3::text, $4::text, $5::text
            )`,
-            [reservationId, amount, idempotencyHash, requestHash, requestId],
-          );
-    return parseReservationResult(result.rows[0]);
-  });
+              [reservationId, amount, idempotencyHash, requestHash, requestId],
+            );
+      return parseReservationResult(result.rows[0]);
+    },
+    { operation, correlationId: requestId, reservationId },
+  );
 }
 
 export function commitCredits(

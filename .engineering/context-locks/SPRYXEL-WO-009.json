@@ -11,7 +11,9 @@
   "ownerAdmission": {
     "docsPullRequest": 86,
     "docsMergedMainSha": "34bad103d8066b6d31c5947c20a07ef52032c5d7",
+    "docsScope": "SOURCE_PACK_ONLY_NOT_IMPLEMENTATION_ADMISSION",
     "approval": "USER_EXPLICIT_APPROVED",
+    "approvalSource": "DIRECT_USER_INSTRUCTION_TO_EXECUTE_WO009_HANDOFF_AND_R3_MARATHON_REQUEST",
     "admissionReview": "SOURCE_AND_CHECKS_REVIEWED",
     "independentImplementationAudit": "REQUIRED_BEFORE_MERGE"
   },
@@ -22,7 +24,7 @@
   },
   "workOrderSource": {
     "path": ".engineering/work-orders/SPRYXEL-WO-009.md",
-    "gitBlobSha": "0d30c7524cc679acc905622fa169c8d017bae3c3",
+    "gitBlobSha": "4dd8a75c38863710c57d368dff806e74f5e16eb1",
     "authority": "OWNER_ADMITTED_IMPLEMENTATION_WORK_ORDER"
   },
   "decisionBaseline": {
@@ -186,8 +188,11 @@
     "packages/domain/src/",
     "packages/contracts/src/",
     "apps/api/src/",
+    "playwright.config.ts",
     "scripts/run-integration.ts",
     "scripts/",
+    "apps/web/app/jobs/actions.ts",
+    "apps/web/app/page.spec.ts",
     "apps/web/app/credits/",
     "apps/web/components/credits/",
     ".engineering/work-orders/SPRYXEL-WO-009.md",

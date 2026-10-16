@@ -3,6 +3,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { parseRuntimeConfig } from '@spryxel/config';
 import {
   type CreditLedgerContext,
+  CreditIntegrityIncidentCaptureError,
   CreditLedgerError,
   type CreditReservationResult,
   cancelDurableJob,
@@ -46,6 +47,12 @@ type FixtureScope = Readonly<{
 }>;
 
 type FixtureJob = Readonly<{ id: string; scope: FixtureScope }>;
+type DirectSqlReservationResult = Readonly<{
+  reservation_id: string;
+  entry_id: string;
+  status: string;
+  reserved_credits: string;
+}>;
 type FixtureCreditReservationCommand = Readonly<{
   jobId: string;
   amountCredits: bigint;
@@ -93,7 +100,7 @@ export async function runCreditLedgerIntegration(
       'The member summary fixture must belong to tenant A',
     );
     const scopeB = await createTenantBFixture(ownerDatabase, input.identityB);
-    const jobsA = await createFixtureJobs(ownerDatabase, scopeA, 3);
+    const jobsA = await createFixtureJobs(ownerDatabase, scopeA, 4);
     const jobsB = await createFixtureJobs(ownerDatabase, scopeB, 1);
     const firstJobA = jobsA[0];
     assert.ok(firstJobA);
@@ -122,6 +129,36 @@ export async function runCreditLedgerIntegration(
       input.integrityJobId,
       jobsA,
       jobsB,
+    );
+    await assertDurableCreditIncidentCapture(
+      ownerDatabase,
+      appDatabase,
+      scopeA,
+      scopeB,
+      input.memberIdentity,
+    );
+
+    const directSqlFixtureJob = jobsA[3];
+    assert.ok(
+      directSqlFixtureJob,
+      'Direct SQL authorization proof requires an isolated fixture Job',
+    );
+    // The synthetic non-fixture origin is seeded only in this disposable DB and makes the
+    // allocator's normal FIFO order prefer a lot that test-fixture Jobs must never consume.
+    await seedFixtureCredits(ownerDatabase, input.identityA, 1n);
+    const availableFixtureCredits = await readFixtureAvailableCredits(
+      ownerDatabase,
+      input.identityA.tenantId,
+    );
+    assert.ok(availableFixtureCredits > 0n);
+    await seedFixtureCredits(ownerDatabase, input.identityA, 1n, 'PAID_PACK');
+    await assertDirectSqlReserveRemainsFixtureOnly(
+      appDatabase,
+      ownerDatabase,
+      scopeA,
+      directSqlFixtureJob.id,
+      input.integrityJobId,
+      availableFixtureCredits,
     );
   } finally {
     await Promise.all([ownerDatabase.close(), appDatabase.close(), workerDatabase.close()]);
@@ -328,6 +365,7 @@ async function seedFixtureCredits(
   ownerDatabase: ReturnType<typeof createDatabase>,
   identity: FixtureIdentity,
   credits: bigint,
+  origin: 'TEST_FIXTURE' | 'PAID_PACK' = 'TEST_FIXTURE',
 ): Promise<void> {
   const client = await ownerDatabase.pool.connect();
 
@@ -346,9 +384,9 @@ async function seedFixtureCredits(
     const requestHash = sha256(`fixture-grant-request:${identity.tenantId}:${credits}`);
     await client.query(
       `INSERT INTO platform.credit_lot
-        (id, tenant_id, wallet_id, origin, issued_credits, expires_at)
-       VALUES ($1, $2, $3, 'TEST_FIXTURE', $4, NULL)`,
-      [lotId, identity.tenantId, walletId, credits.toString()],
+         (id, tenant_id, wallet_id, origin, issued_credits, expires_at)
+       VALUES ($1, $2, $3, $4, $5, NULL)`,
+      [lotId, identity.tenantId, walletId, origin, credits.toString()],
     );
     await client.query(
       `INSERT INTO platform.credit_event
@@ -390,6 +428,381 @@ async function seedFixtureCredits(
   } finally {
     client.release();
   }
+}
+
+async function readFixtureAvailableCredits(
+  ownerDatabase: ReturnType<typeof createDatabase>,
+  tenantId: string,
+): Promise<bigint> {
+  const result = await ownerDatabase.pool.query<{ available_credits: string }>(
+    `SELECT COALESCE(sum(entry.delta_credits), 0)::text AS available_credits
+       FROM platform.credit_lot lot
+       JOIN platform.credit_ledger_entry entry
+         ON entry.lot_id = lot.id AND entry.tenant_id = lot.tenant_id
+        AND entry.wallet_id = lot.wallet_id
+      WHERE lot.tenant_id = $1 AND lot.origin = 'TEST_FIXTURE'
+        AND (lot.expires_at IS NULL OR lot.expires_at > clock_timestamp())
+        AND entry.account = 'available'`,
+    [tenantId],
+  );
+  return BigInt(result.rows[0]?.available_credits ?? '0');
+}
+
+async function assertDirectSqlReserveRemainsFixtureOnly(
+  appDatabase: ReturnType<typeof createDatabase>,
+  ownerDatabase: ReturnType<typeof createDatabase>,
+  scope: FixtureScope,
+  fixtureJobId: string,
+  integrityJobId: string,
+  availableFixtureCredits: bigint,
+): Promise<void> {
+  const fixtureBefore = await readDirectSqlReservationSnapshot(ownerDatabase, scope, fixtureJobId);
+  assert.equal(fixtureBefore.job_status, 'queued');
+  assert.equal(fixtureBefore.reservation_count, '0');
+  assert.equal(fixtureBefore.reserve_event_count, '0');
+
+  const initialPrivileges = await ownerDatabase.pool.query<{
+    can_select_lots: boolean;
+    can_select_entries: boolean;
+    can_select_reservations: boolean;
+    can_execute_terminal_job_matcher: boolean;
+    can_insert_durable_jobs: boolean;
+  }>(
+    `SELECT has_table_privilege('spryxel_app', 'platform.credit_lot', 'SELECT') AS can_select_lots,
+            has_table_privilege('spryxel_app', 'platform.credit_ledger_entry', 'SELECT')
+              AS can_select_entries,
+            has_table_privilege('spryxel_app', 'platform.credit_reservation', 'SELECT')
+              AS can_select_reservations,
+            has_function_privilege(
+              'spryxel_app',
+              'platform.credit_terminal_job_matches(uuid, uuid, uuid, uuid)',
+              'EXECUTE'
+            ) AS can_execute_terminal_job_matcher,
+            has_table_privilege('spryxel_app', 'platform.durable_job', 'INSERT')
+              AS can_insert_durable_jobs`,
+  );
+  assert.deepEqual(initialPrivileges.rows[0], {
+    can_select_lots: false,
+    can_select_entries: false,
+    can_select_reservations: false,
+    can_execute_terminal_job_matcher: false,
+    can_insert_durable_jobs: false,
+  });
+
+  const appInsertClient = await appDatabase.pool.connect();
+  let appInsertTransactionStarted = false;
+  let appJobInsertError: unknown;
+  try {
+    await appInsertClient.query('BEGIN');
+    appInsertTransactionStarted = true;
+    const appSession = await appInsertClient.query<{ session_user: string }>('SELECT session_user');
+    assert.equal(appSession.rows[0]?.session_user, 'spryxel_app');
+    try {
+      await appInsertClient.query('INSERT INTO platform.durable_job (id) VALUES ($1::uuid)', [
+        randomUUID(),
+      ]);
+    } catch (caught) {
+      appJobInsertError = caught;
+    }
+  } finally {
+    try {
+      if (appInsertTransactionStarted) await appInsertClient.query('ROLLBACK');
+    } finally {
+      appInsertClient.release();
+    }
+  }
+  assert.equal(
+    (appJobInsertError as { code?: unknown } | undefined)?.code,
+    '42501',
+    'The runtime app role must not create a Job that could be presented as an authorized fixture',
+  );
+
+  // This probe is confined to the disposable integration database. Its RLS expressions inspect
+  // reservations and call the terminal-job matcher, so grant those dependencies temporarily to
+  // the restricted app session while it proves fixture-only allocation. The finally block
+  // revokes them before later role assertions continue.
+  try {
+    await ownerDatabase.pool.query(
+      'GRANT SELECT ON platform.credit_lot, platform.credit_ledger_entry, platform.credit_reservation TO spryxel_app',
+    );
+    await ownerDatabase.pool.query(
+      'GRANT EXECUTE ON FUNCTION platform.credit_terminal_job_matches(uuid, uuid, uuid, uuid) TO spryxel_app',
+    );
+    // Bypass the JavaScript CostGuard service and exercise the callable SQL boundary directly.
+    const fixtureAttempt = await callDirectSqlReserveAndRollback(appDatabase, scope, fixtureJobId);
+    assert.equal(
+      fixtureAttempt.error,
+      undefined,
+      'The SQL boundary must allow only the explicitly labeled fixture operation',
+    );
+    const fixtureReservation = fixtureAttempt.result;
+    assert.ok(fixtureReservation?.reservation_id);
+    assert.ok(fixtureReservation.entry_id);
+    assert.deepEqual(
+      { status: fixtureReservation.status, reserved_credits: fixtureReservation.reserved_credits },
+      { status: 'reserved', reserved_credits: '1' },
+    );
+    assert.deepEqual(
+      fixtureAttempt.allocatedLotOrigins,
+      ['TEST_FIXTURE'],
+      'A direct fixture reservation must not allocate a synthetic non-fixture lot',
+    );
+    assert.deepEqual(
+      await readDirectSqlReservationSnapshot(ownerDatabase, scope, fixtureJobId),
+      fixtureBefore,
+      'The direct fixture reservation must be rolled back with no owner-visible financial state',
+    );
+
+    const mixedOriginAttempt = await callDirectSqlReserveAndRollback(
+      appDatabase,
+      scope,
+      fixtureJobId,
+      availableFixtureCredits + 1n,
+    );
+    const mixedOriginError = mixedOriginAttempt.error as
+      | { code?: unknown; message?: unknown }
+      | undefined;
+    assert.equal(mixedOriginError?.code, 'P0001');
+    assert.equal(mixedOriginError?.message, 'credit_insufficient_credits');
+    assert.equal(
+      mixedOriginAttempt.result,
+      undefined,
+      'Direct SQL must not supplement fixture credit with non-fixture lots',
+    );
+    assert.deepEqual(
+      await readDirectSqlReservationSnapshot(ownerDatabase, scope, fixtureJobId),
+      fixtureBefore,
+      'The insufficient fixture-only direct call must not persist financial state',
+    );
+
+    const integrityBefore = await readDirectSqlReservationSnapshot(
+      ownerDatabase,
+      scope,
+      integrityJobId,
+    );
+    const integrityAttempt = await callDirectSqlReserveAndRollback(
+      appDatabase,
+      scope,
+      integrityJobId,
+    );
+    const integrityError = integrityAttempt.error as
+      | { code?: unknown; message?: unknown }
+      | undefined;
+    assert.equal(integrityError?.code, 'P0001');
+    assert.equal(integrityError?.message, 'credit_cost_guard_denied');
+    assert.equal(
+      integrityAttempt.result,
+      undefined,
+      'Direct SQL must deny the existing non-costing integrity-check Job',
+    );
+    assert.deepEqual(
+      await readDirectSqlReservationSnapshot(ownerDatabase, scope, integrityJobId),
+      integrityBefore,
+      'The denied direct SQL call must leave no owner-visible financial state',
+    );
+  } finally {
+    await ownerDatabase.pool.query(
+      'REVOKE SELECT ON platform.credit_lot, platform.credit_ledger_entry, platform.credit_reservation FROM spryxel_app',
+    );
+    await ownerDatabase.pool.query(
+      'REVOKE EXECUTE ON FUNCTION platform.credit_terminal_job_matches(uuid, uuid, uuid, uuid) FROM spryxel_app',
+    );
+    const restoredPrivileges = await ownerDatabase.pool.query<{
+      can_select_lots: boolean;
+      can_select_entries: boolean;
+      can_select_reservations: boolean;
+      can_execute_terminal_job_matcher: boolean;
+      can_insert_durable_jobs: boolean;
+    }>(
+      `SELECT has_table_privilege('spryxel_app', 'platform.credit_lot', 'SELECT')
+                AS can_select_lots,
+              has_table_privilege('spryxel_app', 'platform.credit_ledger_entry', 'SELECT')
+                AS can_select_entries,
+              has_table_privilege('spryxel_app', 'platform.credit_reservation', 'SELECT')
+                AS can_select_reservations,
+              has_function_privilege(
+                'spryxel_app',
+                'platform.credit_terminal_job_matches(uuid, uuid, uuid, uuid)',
+                'EXECUTE'
+                ) AS can_execute_terminal_job_matcher,
+                has_table_privilege('spryxel_app', 'platform.durable_job', 'INSERT')
+                  AS can_insert_durable_jobs`,
+    );
+    assert.deepEqual(restoredPrivileges.rows[0], {
+      can_select_lots: false,
+      can_select_entries: false,
+      can_select_reservations: false,
+      can_execute_terminal_job_matcher: false,
+      can_insert_durable_jobs: false,
+    });
+  }
+}
+
+async function callDirectSqlReserveAndRollback(
+  appDatabase: ReturnType<typeof createDatabase>,
+  scope: FixtureScope,
+  jobId: string,
+  amountCredits: bigint = 1n,
+): Promise<{
+  result?: DirectSqlReservationResult;
+  allocatedLotOrigins?: readonly string[];
+  error?: unknown;
+}> {
+  const amount = amountCredits.toString();
+  const policyId = 'direct-sql-fixture-policy';
+  const policyVersion = '1';
+  const decision = 'allow_fixture';
+  const reasonCode = 'fixture_policy_passed';
+  const estimatedInternalCost = amount;
+  const maxInternalCost = amount;
+  const idempotencyKey = `direct-sql-idempotency:${randomUUID()}`;
+  const requestId = `credit-ledger-direct-sql-${randomUUID()}`;
+  const requestHash = sha256(
+    [
+      'reserve',
+      jobId.toLowerCase(),
+      amount,
+      scope.skuId,
+      policyId,
+      policyVersion,
+      decision,
+      reasonCode,
+      estimatedInternalCost,
+      maxInternalCost,
+    ].join('\n'),
+  );
+  const client = await appDatabase.pool.connect();
+  let transactionStarted = false;
+  let result: DirectSqlReservationResult | undefined;
+  let allocatedLotOrigins: readonly string[] | undefined;
+  let error: unknown;
+
+  try {
+    await client.query('BEGIN');
+    transactionStarted = true;
+    const session = await client.query<{ session_user: string }>('SELECT session_user');
+    assert.equal(
+      session.rows[0]?.session_user,
+      'spryxel_app',
+      'The direct call must use the restricted runtime app login',
+    );
+    try {
+      await setScope(client, scope);
+      const reserved = await client.query<DirectSqlReservationResult>(
+        `SELECT reservation_id::text AS reservation_id,
+                entry_id::text AS entry_id,
+                status,
+                reserved_credits::text AS reserved_credits
+           FROM platform.reserve_credit_ledger(
+             $1::uuid, $2::bigint, $3::text, $4::text, $5::text, $6::text,
+             $7::text, $8::bigint, $9::bigint, $10::text, $11::text, $12::text
+           )`,
+        [
+          jobId,
+          amount,
+          scope.skuId,
+          policyId,
+          policyVersion,
+          decision,
+          reasonCode,
+          estimatedInternalCost,
+          maxInternalCost,
+          sha256(idempotencyKey),
+          requestHash,
+          requestId,
+        ],
+      );
+      result = reserved.rows[0];
+      // Exercise deferred ledger constraints before the test-only rollback.
+      await client.query('SET CONSTRAINTS ALL IMMEDIATE');
+      const allocatedLots = await client.query<{ origin: string }>(
+        `SELECT DISTINCT lot.origin
+           FROM platform.credit_ledger_entry entry
+           JOIN platform.credit_lot lot
+             ON lot.id = entry.lot_id AND lot.tenant_id = entry.tenant_id
+            AND lot.wallet_id = entry.wallet_id
+          WHERE entry.reservation_id = $1 AND entry.account = 'available'
+            AND entry.delta_credits < 0
+          ORDER BY lot.origin`,
+        [result.reservation_id],
+      );
+      allocatedLotOrigins = allocatedLots.rows.map(({ origin }) => origin);
+    } catch (caught) {
+      error = caught;
+    }
+
+    return {
+      ...(result === undefined ? {} : { result }),
+      ...(allocatedLotOrigins === undefined ? {} : { allocatedLotOrigins }),
+      ...(error === undefined ? {} : { error }),
+    };
+  } finally {
+    try {
+      if (transactionStarted) await client.query('ROLLBACK');
+    } finally {
+      client.release();
+    }
+  }
+}
+
+async function readDirectSqlReservationSnapshot(
+  ownerDatabase: ReturnType<typeof createDatabase>,
+  scope: FixtureScope,
+  jobId: string,
+): Promise<{
+  job_status: string;
+  reservation_count: string;
+  reserve_event_count: string;
+  ledger_entry_count: string;
+  available_credits: string;
+  reserved_credits: string;
+  consumed_credits: string;
+}> {
+  const snapshot = await ownerDatabase.pool.query<{
+    job_status: string;
+    reservation_count: string;
+    reserve_event_count: string;
+    ledger_entry_count: string;
+    available_credits: string;
+    reserved_credits: string;
+    consumed_credits: string;
+  }>(
+    `SELECT job.status AS job_status,
+            (SELECT count(*)::text
+               FROM platform.credit_reservation reservation
+              WHERE reservation.job_id = job.id AND reservation.tenant_id = job.tenant_id)
+              AS reservation_count,
+            (SELECT count(*)::text
+               FROM platform.credit_event event
+              WHERE event.job_id = job.id AND event.tenant_id = job.tenant_id
+                AND event.operation = 'reserve') AS reserve_event_count,
+            (SELECT count(*)::text
+               FROM platform.credit_ledger_entry entry
+               JOIN platform.credit_reservation reservation
+                 ON reservation.id = entry.reservation_id
+                AND reservation.tenant_id = entry.tenant_id
+              WHERE reservation.job_id = job.id AND reservation.tenant_id = job.tenant_id)
+              AS ledger_entry_count,
+            COALESCE((SELECT sum(entry.delta_credits)
+                        FROM platform.credit_ledger_entry entry
+                       WHERE entry.tenant_id = job.tenant_id AND entry.account = 'available'), 0)::text
+              AS available_credits,
+            COALESCE((SELECT sum(entry.delta_credits)
+                        FROM platform.credit_ledger_entry entry
+                       WHERE entry.tenant_id = job.tenant_id AND entry.account = 'reserved'), 0)::text
+              AS reserved_credits,
+            COALESCE((SELECT sum(entry.delta_credits)
+                        FROM platform.credit_ledger_entry entry
+                       WHERE entry.tenant_id = job.tenant_id AND entry.account = 'consumed'), 0)::text
+              AS consumed_credits
+       FROM platform.durable_job job
+      WHERE job.id = $1 AND job.tenant_id = $2 AND job.project_id = $3`,
+    [jobId, scope.tenantId, scope.projectId],
+  );
+  assert.equal(snapshot.rowCount, 1, 'The owner snapshot must resolve the scoped fixture Job');
+  const row = snapshot.rows[0];
+  assert.ok(row);
+  return row;
 }
 
 async function assertRoleBoundaries(
@@ -470,6 +883,7 @@ async function assertRoleBoundaries(
     'SELECT id FROM platform.credit_event',
     'SELECT id FROM platform.credit_reservation',
     'SELECT id FROM platform.credit_ledger_entry',
+    'SELECT id FROM platform.credit_integrity_incident',
   ]) {
     await expectPermissionDenied(workerDatabase, query);
   }
@@ -498,6 +912,40 @@ async function assertRoleBoundaries(
 
   const ownerClient = await ownerDatabase.pool.connect();
   try {
+    const retainedCreditEvents = await ownerClient.query<{ count: string }>(
+      'SELECT count(*)::text AS count FROM platform.credit_event WHERE tenant_id = $1',
+      [scopeA.tenantId],
+    );
+    assert.ok(
+      Number(retainedCreditEvents.rows[0]?.count ?? '0') > 0,
+      'The retention proof requires a durable credit event with an idempotency identity',
+    );
+
+    for (const [operation, query] of [
+      [
+        'UPDATE',
+        `UPDATE platform.credit_event
+            SET idempotency_key_sha256 = repeat('f', 64)
+          WHERE id = (SELECT id FROM platform.credit_event WHERE tenant_id = $1 LIMIT 1)`,
+      ],
+      [
+        'DELETE',
+        `DELETE FROM platform.credit_event
+          WHERE id = (SELECT id FROM platform.credit_event WHERE tenant_id = $1 LIMIT 1)`,
+      ],
+    ] as const) {
+      let immutable = false;
+      try {
+        await ownerClient.query(query, [scopeA.tenantId]);
+      } catch (error) {
+        immutable = isImmutableViolation(error);
+      }
+      assert.ok(
+        immutable,
+        `Durable idempotency identities must reject owner-level ${operation} for their ledger-event lifetime`,
+      );
+    }
+
     for (const [operation, query] of [
       ['UPDATE', 'UPDATE platform.credit_ledger_entry SET delta_credits = 1 WHERE tenant_id = $1'],
       ['DELETE', 'DELETE FROM platform.credit_ledger_entry WHERE tenant_id = $1'],
@@ -600,6 +1048,157 @@ async function assertLedgerLifecycle(
   const winningRequestKey = successfulReservations[0]?.key;
   const winningReservationId = successfulReservations[0]?.result.reservationId;
   assert.ok(winningJobId && winningRequestKey && winningReservationId);
+
+  // Both callers use the same business payload and CostGuard authorization. Distinct request IDs
+  // model separate transport attempts; they are correlation metadata, not part of the ledger's
+  // idempotency payload hash.
+  const sameKeyJobId = winningJobId === jobOne.id ? jobTwo.id : jobOne.id;
+  const sameKeyAmount = 10n;
+  const sameKeyIdempotencyKey = `credit-ledger-same-key-concurrent:${randomUUID()}`;
+  const sameKeyCostGuardInput = fixtureCostGuardInput(scopeA.skuId, sameKeyAmount);
+  const reserveSameKey = createCostGuardedCreditReservationService({
+    reserve: (authorizedInput) => reserveCredits(appDatabase, contextA, authorizedInput),
+  });
+  const sameKeyBaseline = await getCreditSummary(appDatabase, contextA);
+  assert.deepEqual(sameKeyBaseline.balances, {
+    availableCredits: '80',
+    reservedCredits: '120',
+    committedCredits: '0',
+  });
+  const sameKeyReservations = new Set<string>();
+  try {
+    const sameKeyAttempts = await Promise.allSettled([
+      reserveSameKey({
+        jobId: sameKeyJobId,
+        amountCredits: sameKeyAmount,
+        idempotencyKey: sameKeyIdempotencyKey,
+        requestId: `credit-ledger-same-key-attempt-a-${randomUUID()}`,
+        costGuardInput: sameKeyCostGuardInput,
+      }),
+      reserveSameKey({
+        jobId: sameKeyJobId,
+        amountCredits: sameKeyAmount,
+        idempotencyKey: sameKeyIdempotencyKey,
+        requestId: `credit-ledger-same-key-attempt-b-${randomUUID()}`,
+        costGuardInput: sameKeyCostGuardInput,
+      }),
+    ]);
+    const sameKeyFulfilled = sameKeyAttempts.flatMap((attempt) =>
+      attempt.status === 'fulfilled' ? [attempt.value] : [],
+    );
+    assert.equal(
+      sameKeyFulfilled.length,
+      2,
+      'Concurrent identical reserve attempts must both resolve through the durable idempotency record',
+    );
+    const originalSameKeyResult = sameKeyFulfilled.find((result) => !result.replayed);
+    const replaySameKeyResult = sameKeyFulfilled.find((result) => result.replayed);
+    assert.ok(originalSameKeyResult && replaySameKeyResult);
+    sameKeyReservations.add(originalSameKeyResult.reservationId);
+    sameKeyReservations.add(replaySameKeyResult.reservationId);
+    assertSameReservationSnapshot(
+      replaySameKeyResult,
+      originalSameKeyResult,
+      'Concurrent identical requests must return the same durable reservation/event snapshot',
+    );
+    assert.equal(sameKeyReservations.size, 1, 'The idempotency key must create one reservation');
+    assert.equal(originalSameKeyResult.status, 'reserved');
+    assert.equal(originalSameKeyResult.reservedCredits, sameKeyAmount.toString());
+
+    const durableSameKey = await ownerDatabase.pool.query<{
+      event_id: string;
+      reservation_id: string;
+      job_id: string;
+      event_count: string;
+      reservation_count: string;
+      posting_count: string;
+      posting_net: string;
+      available_postings: string;
+      reserved_postings: string;
+    }>(
+      `WITH matching_events AS (
+         SELECT event.id, event.reservation_id, event.job_id
+           FROM platform.credit_event event
+          WHERE event.tenant_id = $1 AND event.subject_id = $2
+            AND event.operation = 'reserve' AND event.idempotency_key_sha256 = $3
+       ), matching_entries AS (
+         SELECT entry.*
+           FROM platform.credit_ledger_entry entry
+           JOIN matching_events event ON event.id = entry.event_id
+          WHERE entry.tenant_id = $1
+       )
+       SELECT (SELECT id::text FROM matching_events LIMIT 1) AS event_id,
+              (SELECT reservation_id::text FROM matching_events LIMIT 1) AS reservation_id,
+              (SELECT job_id::text FROM matching_events LIMIT 1) AS job_id,
+              (SELECT count(*)::text FROM matching_events) AS event_count,
+              (SELECT count(DISTINCT reservation_id)::text FROM matching_events) AS reservation_count,
+              (SELECT count(*)::text FROM matching_entries) AS posting_count,
+              coalesce((SELECT sum(delta_credits) FROM matching_entries), 0)::text AS posting_net,
+              (SELECT count(*)::text FROM matching_entries
+                WHERE account = 'available' AND delta_credits = -$4::bigint) AS available_postings,
+              (SELECT count(*)::text FROM matching_entries
+                WHERE account = 'reserved' AND delta_credits = $4::bigint) AS reserved_postings`,
+      [scopeA.tenantId, scopeA.subjectId, sha256(sameKeyIdempotencyKey), sameKeyAmount.toString()],
+    );
+    assert.deepEqual(durableSameKey.rows[0], {
+      event_id: originalSameKeyResult.entryId,
+      reservation_id: originalSameKeyResult.reservationId,
+      job_id: sameKeyJobId,
+      event_count: '1',
+      reservation_count: '1',
+      posting_count: '2',
+      posting_net: '0',
+      available_postings: '1',
+      reserved_postings: '1',
+    });
+
+    const afterSameKey = await getCreditSummary(appDatabase, contextA);
+    assert.deepEqual(
+      afterSameKey.balances,
+      { availableCredits: '70', reservedCredits: '130', committedCredits: '0' },
+      'Concurrent replay must debit the wallet only once',
+    );
+    assert.equal(
+      afterSameKey.counters.openReservations,
+      sameKeyBaseline.counters.openReservations + 1,
+      'Concurrent replay must open exactly one reservation',
+    );
+  } finally {
+    // Query the owner view as well as using returned IDs so a committed request whose response
+    // was lost cannot leave fixture credits reserved if another assertion fails.
+    const persistedSameKeyReservations = await ownerDatabase.pool.query<{
+      reservation_id: string;
+    }>(
+      `SELECT DISTINCT reservation_id::text AS reservation_id
+         FROM platform.credit_event
+        WHERE tenant_id = $1 AND subject_id = $2 AND operation = 'reserve'
+          AND idempotency_key_sha256 = $3`,
+      [scopeA.tenantId, scopeA.subjectId, sha256(sameKeyIdempotencyKey)],
+    );
+    for (const row of persistedSameKeyReservations.rows) {
+      sameKeyReservations.add(row.reservation_id);
+    }
+    for (const reservationId of sameKeyReservations) {
+      await releaseCredits(appDatabase, contextA, {
+        reservationId,
+        amountCredits: sameKeyAmount,
+        idempotencyKey: `credit-ledger-same-key-cleanup:${reservationId}`,
+        requestId: `credit-ledger-same-key-cleanup-${randomUUID()}`,
+      });
+    }
+  }
+  const sameKeyAfterCleanup = await getCreditSummary(appDatabase, contextA);
+  assert.deepEqual(
+    sameKeyAfterCleanup.balances,
+    sameKeyBaseline.balances,
+    'The concurrent idempotency fixture must restore wallet balances after cleanup',
+  );
+  assert.equal(
+    sameKeyAfterCleanup.counters.openReservations,
+    sameKeyBaseline.counters.openReservations,
+    'The concurrent idempotency fixture must leave no open reservation behind',
+  );
+
   await assertReservationLinkedToFixture(ownerDatabase, scopeA, winningJobId, winningReservationId);
   await assertReservationCostGuardMetadata(ownerDatabase, scopeA, winningReservationId);
   await assertCrossTenantReservationCommandsDenied(appDatabase, contextB, winningReservationId);
@@ -1138,6 +1737,7 @@ async function assertAppCannotReadLedgerTables(
     'platform.credit_event',
     'platform.credit_reservation',
     'platform.credit_ledger_entry',
+    'platform.credit_integrity_incident',
   ]) {
     const client = await appDatabase.pool.connect();
     try {
@@ -1155,6 +1755,404 @@ async function assertAppCannotReadLedgerTables(
       client.release();
     }
   }
+}
+
+async function assertDurableCreditIncidentCapture(
+  ownerDatabase: ReturnType<typeof createDatabase>,
+  appDatabase: ReturnType<typeof createDatabase>,
+  scope: FixtureScope,
+  foreignScope: FixtureScope,
+  activeMember: FixtureIdentity,
+): Promise<void> {
+  const job = (await createFixtureJobs(ownerDatabase, scope, 1))[0];
+  assert.ok(job, 'Durable incident proof requires an isolated fixture Job');
+  const context = scopeContext(scope);
+  const requestId = `credit-ledger-incident-${randomUUID()}`;
+  const reservation = await createFixtureCreditReserver(
+    appDatabase,
+    context,
+    scope.skuId,
+  )({
+    jobId: job.id,
+    amountCredits: 1n,
+    idempotencyKey: `credit-ledger-incident-${randomUUID()}`,
+    requestId,
+  });
+
+  const postingResult = await ownerDatabase.pool.query<{
+    id: string;
+    event_id: string;
+    tenant_id: string;
+    wallet_id: string;
+    lot_id: string;
+    reservation_id: string;
+    account: string;
+    delta_credits: string;
+  }>(
+    `SELECT id, event_id, tenant_id, wallet_id, lot_id, reservation_id, account,
+            delta_credits::text AS delta_credits
+       FROM platform.credit_ledger_entry
+      WHERE reservation_id = $1 AND account = 'available' AND delta_credits < 0
+      ORDER BY id
+      LIMIT 1`,
+    [reservation.reservationId],
+  );
+  const posting = postingResult.rows[0];
+  assert.ok(posting, 'Fixture reservation must have a durable reserved posting');
+
+  await ownerDatabase.pool.query(
+    'ALTER TABLE platform.credit_ledger_entry DISABLE TRIGGER credit_ledger_entry_immutable',
+  );
+  let postingRemoved = false;
+  try {
+    const removed = await ownerDatabase.pool.query(
+      'DELETE FROM platform.credit_ledger_entry WHERE id = $1',
+      [posting.id],
+    );
+    assert.equal(removed.rowCount, 1, 'The disposable DB must inject one isolated ledger defect');
+    postingRemoved = true;
+
+    const before = await readDurableIncidentFinancialSnapshot(
+      ownerDatabase,
+      scope.tenantId,
+      reservation.reservationId,
+      requestId,
+    );
+    let failure: unknown;
+    try {
+      await commitCredits(appDatabase, context, {
+        reservationId: reservation.reservationId,
+        amountCredits: 1n,
+        idempotencyKey: `credit-ledger-incident-commit-${randomUUID()}`,
+        requestId,
+      });
+    } catch (error) {
+      failure = error;
+    }
+    assert.ok(failure instanceof CreditLedgerError);
+    assert.equal(failure.code, 'operation_failed');
+
+    const after = await readDurableIncidentFinancialSnapshot(
+      ownerDatabase,
+      scope.tenantId,
+      reservation.reservationId,
+      requestId,
+    );
+    assert.deepEqual(
+      after.financial,
+      before.financial,
+      'Failed COMMIT must roll back all ledger effects',
+    );
+    assert.equal(after.incidentCount, before.incidentCount + 1);
+    assert.deepEqual(after.incident, {
+      operation: 'commit',
+      correlation_id: requestId,
+      incident_code: 'credit_lot_issuance_invariant_failed',
+      job_id: null,
+      attempt_id: null,
+      reservation_id: reservation.reservationId,
+    });
+  } finally {
+    try {
+      if (postingRemoved) {
+        await ownerDatabase.pool.query(
+          `INSERT INTO platform.credit_ledger_entry
+            (id, event_id, tenant_id, wallet_id, lot_id, reservation_id, account, delta_credits)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          [
+            posting.id,
+            posting.event_id,
+            posting.tenant_id,
+            posting.wallet_id,
+            posting.lot_id,
+            posting.reservation_id,
+            posting.account,
+            posting.delta_credits,
+          ],
+        );
+      }
+    } finally {
+      await ownerDatabase.pool.query(
+        'ALTER TABLE platform.credit_ledger_entry ENABLE TRIGGER credit_ledger_entry_immutable',
+      );
+    }
+  }
+
+  await assertIncidentReporterRejectsMismatchedSubject(
+    appDatabase,
+    scope,
+    foreignScope,
+    activeMember,
+    reservation.reservationId,
+    requestId,
+  );
+
+  const duplicateIncident = await appDatabase.pool.query(
+    `SELECT platform.record_credit_integrity_incident(
+       $1::uuid, $2::uuid, $3::uuid, 'commit', $4::text,
+       'credit_lot_issuance_invariant_failed', NULL, $5::uuid
+     )`,
+    [scope.tenantId, scope.subjectId, scope.projectId, requestId, reservation.reservationId],
+  );
+  assert.equal(duplicateIncident.rowCount, 1);
+  const deduplicated = await ownerDatabase.pool.query<{ count: string }>(
+    `SELECT count(*)::text AS count
+       FROM platform.credit_integrity_incident
+      WHERE tenant_id = $1 AND operation = 'commit' AND correlation_id = $2`,
+    [scope.tenantId, requestId],
+  );
+  assert.equal(deduplicated.rows[0]?.count, '1', 'Incident replay must deduplicate durably');
+
+  await assertIncidentCaptureFailureIsObservable(ownerDatabase, appDatabase, scope);
+
+  await releaseCredits(appDatabase, context, {
+    reservationId: reservation.reservationId,
+    amountCredits: 1n,
+    idempotencyKey: `credit-ledger-incident-release-${randomUUID()}`,
+    requestId: `credit-ledger-incident-release-${randomUUID()}`,
+  });
+}
+
+async function assertIncidentReporterRejectsMismatchedSubject(
+  appDatabase: ReturnType<typeof createDatabase>,
+  scope: FixtureScope,
+  foreignScope: FixtureScope,
+  activeMember: FixtureIdentity,
+  reservationId: string,
+  correlationId: string,
+): Promise<void> {
+  for (const [candidate, subjectId] of [
+    [scope, activeMember.subjectId],
+    [foreignScope, foreignScope.subjectId],
+  ] as const) {
+    let denied = false;
+    try {
+      await appDatabase.pool.query(
+        `SELECT platform.record_credit_integrity_incident(
+           $1::uuid, $2::uuid, $3::uuid, 'commit', $4::text,
+           'credit_lot_issuance_invariant_failed', NULL, $5::uuid
+         )`,
+        [
+          candidate.tenantId,
+          subjectId,
+          candidate.projectId,
+          `${correlationId}-forged`,
+          reservationId,
+        ],
+      );
+    } catch (error) {
+      denied = isPermissionDenied(error);
+    }
+    assert.ok(
+      denied,
+      'The incident reporter must reject active-member and foreign-tenant tuples that do not own the reservation',
+    );
+  }
+}
+
+async function assertIncidentCaptureFailureIsObservable(
+  ownerDatabase: ReturnType<typeof createDatabase>,
+  appDatabase: ReturnType<typeof createDatabase>,
+  scope: FixtureScope,
+): Promise<void> {
+  const job = (await createFixtureJobs(ownerDatabase, scope, 1))[0];
+  assert.ok(job, 'Reporter-failure proof requires an isolated fixture Job');
+  const requestId = `credit-ledger-incident-reporter-failure-${randomUUID()}`;
+  const reservation = await createFixtureCreditReserver(
+    appDatabase,
+    scopeContext(scope),
+    scope.skuId,
+  )({
+    jobId: job.id,
+    amountCredits: 1n,
+    idempotencyKey: `credit-ledger-incident-reporter-failure-${randomUUID()}`,
+    requestId,
+  });
+  const postingResult = await ownerDatabase.pool.query<{
+    id: string;
+    event_id: string;
+    tenant_id: string;
+    wallet_id: string;
+    lot_id: string;
+    reservation_id: string;
+    account: string;
+    delta_credits: string;
+  }>(
+    `SELECT id, event_id, tenant_id, wallet_id, lot_id, reservation_id, account,
+            delta_credits::text AS delta_credits
+       FROM platform.credit_ledger_entry
+      WHERE reservation_id = $1 AND account = 'available' AND delta_credits < 0
+      ORDER BY id
+      LIMIT 1`,
+    [reservation.reservationId],
+  );
+  const posting = postingResult.rows[0];
+  assert.ok(posting, 'Reporter-failure fixture must have a durable reserved posting');
+
+  await ownerDatabase.pool.query(
+    'ALTER TABLE platform.credit_ledger_entry DISABLE TRIGGER credit_ledger_entry_immutable',
+  );
+  let postingRemoved = false;
+  let reporterPrivilegeRevoked = false;
+  try {
+    const removed = await ownerDatabase.pool.query(
+      'DELETE FROM platform.credit_ledger_entry WHERE id = $1',
+      [posting.id],
+    );
+    assert.equal(removed.rowCount, 1);
+    postingRemoved = true;
+    await ownerDatabase.pool.query(
+      `REVOKE EXECUTE ON FUNCTION platform.record_credit_integrity_incident(
+         uuid, uuid, uuid, text, text, text, uuid, uuid
+       ) FROM spryxel_app`,
+    );
+    reporterPrivilegeRevoked = true;
+    const before = await readDurableIncidentFinancialSnapshot(
+      ownerDatabase,
+      scope.tenantId,
+      reservation.reservationId,
+      requestId,
+    );
+
+    let failure: unknown;
+    try {
+      await commitCredits(appDatabase, scopeContext(scope), {
+        reservationId: reservation.reservationId,
+        amountCredits: 1n,
+        idempotencyKey: `credit-ledger-reporter-failure-commit-${randomUUID()}`,
+        requestId,
+      });
+    } catch (error) {
+      failure = error;
+    }
+    assert.ok(failure instanceof CreditIntegrityIncidentCaptureError);
+    assert.equal(failure.code, 'operation_failed');
+    assert.equal(failure.message, 'operation_failed');
+    const after = await readDurableIncidentFinancialSnapshot(
+      ownerDatabase,
+      scope.tenantId,
+      reservation.reservationId,
+      requestId,
+    );
+    assert.deepEqual(
+      after.financial,
+      before.financial,
+      'A failed incident capture must leave the failed commit fully rolled back',
+    );
+    assert.equal(after.incidentCount, before.incidentCount);
+  } finally {
+    try {
+      if (reporterPrivilegeRevoked) {
+        await ownerDatabase.pool.query(
+          `GRANT EXECUTE ON FUNCTION platform.record_credit_integrity_incident(
+             uuid, uuid, uuid, text, text, text, uuid, uuid
+           ) TO spryxel_app`,
+        );
+      }
+    } finally {
+      try {
+        if (postingRemoved) {
+          await ownerDatabase.pool.query(
+            `INSERT INTO platform.credit_ledger_entry
+              (id, event_id, tenant_id, wallet_id, lot_id, reservation_id, account, delta_credits)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [
+              posting.id,
+              posting.event_id,
+              posting.tenant_id,
+              posting.wallet_id,
+              posting.lot_id,
+              posting.reservation_id,
+              posting.account,
+              posting.delta_credits,
+            ],
+          );
+        }
+      } finally {
+        await ownerDatabase.pool.query(
+          'ALTER TABLE platform.credit_ledger_entry ENABLE TRIGGER credit_ledger_entry_immutable',
+        );
+      }
+    }
+  }
+
+  const incidents = await ownerDatabase.pool.query<{ count: string }>(
+    `SELECT count(*)::text AS count
+       FROM platform.credit_integrity_incident
+      WHERE tenant_id = $1 AND operation = 'commit' AND correlation_id = $2`,
+    [scope.tenantId, requestId],
+  );
+  assert.equal(incidents.rows[0]?.count, '0');
+}
+
+async function readDurableIncidentFinancialSnapshot(
+  ownerDatabase: ReturnType<typeof createDatabase>,
+  tenantId: string,
+  reservationId: string,
+  requestId: string,
+): Promise<{
+  financial: {
+    status: string;
+    event_count: string;
+    entry_count: string;
+    reserved_credits: string;
+    available_credits: string;
+  };
+  incidentCount: number;
+  incident: {
+    operation: string;
+    correlation_id: string;
+    incident_code: string;
+    job_id: string | null;
+    attempt_id: string | null;
+    reservation_id: string | null;
+  } | null;
+}> {
+  const financial = await ownerDatabase.pool.query<{
+    status: string;
+    event_count: string;
+    entry_count: string;
+    reserved_credits: string;
+    available_credits: string;
+  }>(
+    `SELECT reservation.status,
+            (SELECT count(*)::text FROM platform.credit_event event
+              WHERE event.reservation_id = reservation.id AND event.tenant_id = reservation.tenant_id)
+              AS event_count,
+            (SELECT count(*)::text FROM platform.credit_ledger_entry entry
+              WHERE entry.reservation_id = reservation.id AND entry.tenant_id = reservation.tenant_id)
+              AS entry_count,
+            COALESCE((SELECT sum(entry.delta_credits) FROM platform.credit_ledger_entry entry
+                       WHERE entry.reservation_id = reservation.id AND entry.tenant_id = reservation.tenant_id
+                         AND entry.account = 'reserved'), 0)::text AS reserved_credits,
+            COALESCE((SELECT sum(entry.delta_credits) FROM platform.credit_ledger_entry entry
+                       WHERE entry.wallet_id = reservation.wallet_id AND entry.tenant_id = reservation.tenant_id
+                         AND entry.account = 'available'), 0)::text AS available_credits
+       FROM platform.credit_reservation reservation
+      WHERE reservation.id = $1 AND reservation.tenant_id = $2`,
+    [reservationId, tenantId],
+  );
+  assert.equal(financial.rowCount, 1);
+  const financialRow = financial.rows[0];
+  assert.ok(financialRow);
+  const incidents = await ownerDatabase.pool.query<{
+    operation: string;
+    correlation_id: string;
+    incident_code: string;
+    job_id: string | null;
+    attempt_id: string | null;
+    reservation_id: string | null;
+  }>(
+    `SELECT operation, correlation_id, incident_code, job_id, attempt_id, reservation_id
+       FROM platform.credit_integrity_incident
+      WHERE tenant_id = $1 AND operation = 'commit' AND correlation_id = $2`,
+    [tenantId, requestId],
+  );
+  return {
+    financial: financialRow,
+    incidentCount: incidents.rowCount ?? 0,
+    incident: incidents.rows[0] ?? null,
+  };
 }
 
 async function assertRevokedMembershipHidden(

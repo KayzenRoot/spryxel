@@ -17,6 +17,7 @@ describe('migration architecture guard', () => {
         CREATE TABLE platform.credit_reservation (id uuid);
         CREATE TABLE platform.credit_event (id uuid);
         CREATE TABLE platform.credit_ledger_entry (id uuid);
+        CREATE TABLE platform.credit_integrity_incident (id uuid);
       `),
     ).toEqual([]);
     expect(findOutOfScopeProductTables('CREATE TABLE public.project (id uuid);')).toEqual([
