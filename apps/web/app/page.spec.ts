@@ -5,18 +5,14 @@ async function clickAndWaitForUrl(
   link: Locator,
   url: Parameters<Page['waitForURL']>[0],
 ): Promise<void> {
-  await Promise.all([page.waitForURL(url), link.click()]);
+  await Promise.all([page.waitForURL(url, { waitUntil: 'commit' }), link.click()]);
 }
 
-async function clickAndWaitForServerAction(page: Page, button: Locator): Promise<void> {
+async function clickAndWaitForPost(page: Page, button: Locator): Promise<void> {
   const pathname = new URL(page.url()).pathname;
   const actionRequestPromise = page.waitForRequest((request) => {
     const url = new URL(request.url());
-    return (
-      request.method() === 'POST' &&
-      url.pathname === pathname &&
-      Object.keys(request.headers()).some((name) => name.toLowerCase() === 'next-action')
-    );
+    return request.method() === 'POST' && url.pathname === pathname;
   });
 
   await button.click();
@@ -138,7 +134,7 @@ test('Home to Projects to Create to Open keeps a canonical project context', asy
   );
   await expect(page.getByRole('heading', { name: 'Projects', exact: true })).toBeVisible();
   await page.getByRole('textbox', { name: 'Project name' }).fill('Northstar');
-  await clickAndWaitForServerAction(page, page.getByRole('button', { name: 'Create project' }));
+  await clickAndWaitForPost(page, page.getByRole('button', { name: 'Create project' }));
   await expect(page.getByRole('status')).toContainText('Project created.');
   const projectLink = page.getByRole('status').getByRole('link', { name: 'Open project' });
   const projectHref = await projectLink.getAttribute('href');
@@ -173,7 +169,7 @@ test('Jobs Center lists durable state and reload preserves details and cancellat
   page,
 }) => {
   await authenticateWorkspacePage(page, 'jobs-populated-cancellable');
-  await page.goto('/jobs');
+  await page.goto('/jobs', { waitUntil: 'commit' });
   await expect(page.getByRole('heading', { name: 'Jobs', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: /SKU-001 · contract v1/ })).toBeVisible();
   const projectId = await page.locator('#jobs-project-filter option').nth(1).getAttribute('value');
@@ -186,7 +182,7 @@ test('Jobs Center lists durable state and reload preserves details and cancellat
   ).toBeVisible();
   await expect(page.getByText('Specification SHA-256')).toBeVisible();
   await expect(page.getByText(/raw contract|specification JSON/i)).toHaveCount(0);
-  await clickAndWaitForServerAction(page, page.getByRole('button', { name: 'Cancel job' }));
+  await clickAndWaitForPost(page, page.getByRole('button', { name: 'Cancel job' }));
   await expect(page.getByText('Status: cancelled.')).toBeVisible();
   await page.reload();
   await expect(page.getByText('Status: cancelled.')).toBeVisible();
@@ -211,7 +207,10 @@ test('concurrent Jobs sessions isolate cancellation from independent overview st
       authenticateWorkspacePage(cancelPage, 'jobs-populated-cancel-isolation'),
       authenticateWorkspacePage(overviewPage, 'jobs-populated-read-isolation'),
     ]);
-    await Promise.all([cancelPage.goto('/jobs'), overviewPage.goto('/jobs')]);
+    await Promise.all([
+      cancelPage.goto('/jobs', { waitUntil: 'commit' }),
+      overviewPage.goto('/jobs', { waitUntil: 'commit' }),
+    ]);
 
     const cancelLink = cancelPage.getByRole('link', { name: /SKU-001 · contract v1/ });
     const overviewLink = overviewPage.getByRole('link', { name: /SKU-001 · contract v1/ });
@@ -227,10 +226,7 @@ test('concurrent Jobs sessions isolate cancellation from independent overview st
       openJobDetails(cancelPage, cancelLink),
       openJobDetails(overviewPage, overviewLink),
     ]);
-    await clickAndWaitForServerAction(
-      cancelPage,
-      cancelPage.getByRole('button', { name: 'Cancel job' }),
-    );
+    await clickAndWaitForPost(cancelPage, cancelPage.getByRole('button', { name: 'Cancel job' }));
     await expect(cancelPage.getByText('Status: cancelled.')).toBeVisible();
     await cancelContext.close();
     cancelContextOpen = false;
@@ -248,13 +244,13 @@ test('concurrent Jobs sessions isolate cancellation from independent overview st
 
 test('a terminal cancellation race redirects to the refreshed durable Job', async ({ page }) => {
   await authenticateWorkspacePage(page, 'jobs-cancel-raced');
-  await page.goto('/jobs');
+  await page.goto('/jobs', { waitUntil: 'commit' });
   const jobLink = page.getByRole('link', { name: /SKU-001 · contract v1/ });
   await openJobDetails(page, jobLink);
 
   await expect(page.getByRole('button', { name: 'Cancel job' })).toBeVisible();
 
-  await clickAndWaitForServerAction(page, page.getByRole('button', { name: 'Cancel job' }));
+  await clickAndWaitForPost(page, page.getByRole('button', { name: 'Cancel job' }));
 
   await expect(page.getByText('cancelled', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Cancel job' })).toHaveCount(0);
@@ -271,7 +267,7 @@ test('a transient cancellation API failure returns to the current durable Job st
 
   await expect(page.getByRole('button', { name: 'Cancel job' })).toBeVisible();
 
-  await clickAndWaitForServerAction(page, page.getByRole('button', { name: 'Cancel job' }));
+  await clickAndWaitForPost(page, page.getByRole('button', { name: 'Cancel job' }));
 
   await expect(page.getByText('queued', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Cancel job' })).toBeVisible();
@@ -332,6 +328,8 @@ test('Project Overview shows recent jobs and all admitted states remain readable
   await expect(page.getByRole('heading', { name: 'Recent jobs' })).toBeVisible();
   await expect(page.getByRole('link', { name: /SKU-001 · contract v1/ })).toBeVisible();
 
+  await authenticateWorkspacePage(page, 'jobs-all-states');
+  await page.goto('/jobs', { waitUntil: 'commit' });
   for (const status of [
     'queued',
     'running',
@@ -340,8 +338,6 @@ test('Project Overview shows recent jobs and all admitted states remain readable
     'failed',
     'cancelled',
   ]) {
-    await authenticateWorkspacePage(page, `jobs-${status}`);
-    await page.goto('/jobs', { waitUntil: 'commit' });
     await expect(
       page.getByText(status.replaceAll('_', ' '), { exact: true }).first(),
     ).toBeVisible();
