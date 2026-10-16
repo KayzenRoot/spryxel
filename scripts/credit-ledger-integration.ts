@@ -1163,9 +1163,58 @@ async function assertLedgerLifecycle(
       sameKeyBaseline.counters.openReservations + 1,
       'Concurrent replay must open exactly one reservation',
     );
+
+    await assertReleaseRejectedWithoutMutation(
+      appDatabase,
+      ownerDatabase,
+      contextA,
+      {
+        reservationId: originalSameKeyResult.reservationId,
+        amountCredits: sameKeyAmount,
+        idempotencyKey: `credit-ledger-same-key-queued-release:${originalSameKeyResult.reservationId}`,
+        requestId: `credit-ledger-same-key-queued-release-${randomUUID()}`,
+      },
+      'An active queued Job must not release reserved credits',
+    );
+    await assertReleaseRejectedWithoutMutation(
+      appDatabase,
+      ownerDatabase,
+      contextA,
+      {
+        reservationId: originalSameKeyResult.reservationId,
+        amountCredits: 1n,
+        idempotencyKey: `credit-ledger-same-key-queued-partial-release:${originalSameKeyResult.reservationId}`,
+        requestId: `credit-ledger-same-key-queued-partial-release-${randomUUID()}`,
+      },
+      'A partial release from an active queued Job must leave all financial state unchanged',
+    );
+    await transitionFixtureJobToRunningAsOwner(ownerDatabase, sameKeyJobId);
+    await assertReleaseRejectedWithoutMutation(
+      appDatabase,
+      ownerDatabase,
+      contextA,
+      {
+        reservationId: originalSameKeyResult.reservationId,
+        amountCredits: sameKeyAmount,
+        idempotencyKey: `credit-ledger-same-key-running-release:${originalSameKeyResult.reservationId}`,
+        requestId: `credit-ledger-same-key-running-release-${randomUUID()}`,
+      },
+      'An active running Job must not release reserved credits',
+    );
+    await assertReleaseRejectedWithoutMutation(
+      appDatabase,
+      ownerDatabase,
+      contextA,
+      {
+        reservationId: originalSameKeyResult.reservationId,
+        amountCredits: 1n,
+        idempotencyKey: `credit-ledger-same-key-running-partial-release:${originalSameKeyResult.reservationId}`,
+        requestId: `credit-ledger-same-key-running-partial-release-${randomUUID()}`,
+      },
+      'A partial release from an active running Job must leave all financial state unchanged',
+    );
   } finally {
-    // Query the owner view as well as using returned IDs so a committed request whose response
-    // was lost cannot leave fixture credits reserved if another assertion fails.
+    // Resolve by durable idempotency identity so interrupted responses still get terminal cleanup.
     const persistedSameKeyReservations = await ownerDatabase.pool.query<{
       reservation_id: string;
     }>(
@@ -1178,13 +1227,20 @@ async function assertLedgerLifecycle(
     for (const row of persistedSameKeyReservations.rows) {
       sameKeyReservations.add(row.reservation_id);
     }
-    for (const reservationId of sameKeyReservations) {
-      await releaseCredits(appDatabase, contextA, {
-        reservationId,
-        amountCredits: sameKeyAmount,
-        idempotencyKey: `credit-ledger-same-key-cleanup:${reservationId}`,
-        requestId: `credit-ledger-same-key-cleanup-${randomUUID()}`,
-      });
+    if (sameKeyReservations.size > 0) {
+      await terminalizeFixtureJobAsOwner(ownerDatabase, sameKeyJobId);
+      for (const reservationId of sameKeyReservations) {
+        assert.equal(
+          await countReservationEvents(
+            ownerDatabase,
+            scopeA.tenantId,
+            reservationId,
+            'terminal_release',
+          ),
+          1,
+          'Terminalizing the fixture Job must release the same-key reservation exactly once',
+        );
+      }
     }
   }
   const sameKeyAfterCleanup = await getCreditSummary(appDatabase, contextA);
@@ -1494,6 +1550,18 @@ async function assertLedgerLifecycle(
     balancesAfterRejectedCancel.balances,
     balancesBeforeRejectedCancel.balances,
     'Rejected application cancellation must leave every wallet balance unchanged',
+  );
+  await assertReleaseRejectedWithoutMutation(
+    appDatabase,
+    ownerDatabase,
+    contextA,
+    {
+      reservationId: winningReservationId,
+      amountCredits: 1n,
+      idempotencyKey: `credit-ledger-winning-queued-release:${winningReservationId}`,
+      requestId: `credit-ledger-winning-queued-release-${randomUUID()}`,
+    },
+    'A queued Job release must leave its event, reservation, postings, and wallet unchanged',
   );
   await terminalizeFixtureJobAsOwner(ownerDatabase, winningJobId);
   await assertTerminalReleaseSnapshot(ownerDatabase, scopeA, winningReservationId);
@@ -1905,12 +1973,29 @@ async function assertDurableCreditIncidentCapture(
 
   await assertIncidentCaptureFailureIsObservable(ownerDatabase, appDatabase, scope);
 
-  await releaseCredits(appDatabase, context, {
-    reservationId: reservation.reservationId,
-    amountCredits: 1n,
-    idempotencyKey: `credit-ledger-incident-release-${randomUUID()}`,
-    requestId: `credit-ledger-incident-release-${randomUUID()}`,
-  });
+  await assertReleaseRejectedWithoutMutation(
+    appDatabase,
+    ownerDatabase,
+    context,
+    {
+      reservationId: reservation.reservationId,
+      amountCredits: 1n,
+      idempotencyKey: `credit-ledger-incident-release-before-terminal:${reservation.reservationId}`,
+      requestId: `credit-ledger-incident-release-before-terminal-${randomUUID()}`,
+    },
+    'An active incident fixture Job must not be cleaned up with a direct release',
+  );
+  await terminalizeFixtureJobAsOwner(ownerDatabase, job.id);
+  assert.equal(
+    await countReservationEvents(
+      ownerDatabase,
+      scope.tenantId,
+      reservation.reservationId,
+      'terminal_release',
+    ),
+    1,
+    'The incident fixture cleanup must release through its terminal Job transition exactly once',
+  );
 }
 
 async function assertIncidentReporterRejectsMismatchedSubject(
@@ -2264,6 +2349,50 @@ async function assertCommitRejectedWithoutMutation(
   );
 }
 
+async function assertReleaseRejectedWithoutMutation(
+  appDatabase: ReturnType<typeof createDatabase>,
+  ownerDatabase: ReturnType<typeof createDatabase>,
+  context: CreditLedgerContext,
+  input: Parameters<typeof releaseCredits>[2],
+  message: string,
+): Promise<void> {
+  const beforeSummary = await getCreditSummary(appDatabase, context);
+  const beforeWallet = await readCreditLedgerMutationSnapshot(
+    ownerDatabase,
+    context.tenantId,
+    input.reservationId,
+  );
+
+  await assert.rejects(
+    () => releaseCredits(appDatabase, context, input),
+    (error: unknown) => isLedgerErrorCode(error, 'not_authorized'),
+    message,
+  );
+
+  const afterSummary = await getCreditSummary(appDatabase, context);
+  const afterWallet = await readCreditLedgerMutationSnapshot(
+    ownerDatabase,
+    context.tenantId,
+    input.reservationId,
+  );
+  assert.deepEqual(
+    {
+      balances: afterSummary.balances,
+      counters: afterSummary.counters,
+    },
+    {
+      balances: beforeSummary.balances,
+      counters: beforeSummary.counters,
+    },
+    `${message}: the wallet projection must remain unchanged`,
+  );
+  assert.deepEqual(
+    afterWallet,
+    beforeWallet,
+    `${message}: no reservation, event, posting, or wallet state may change`,
+  );
+}
+
 async function readCreditLedgerMutationSnapshot(
   ownerDatabase: ReturnType<typeof createDatabase>,
   tenantId: string,
@@ -2414,44 +2543,58 @@ async function assertCommitReplayRecoveryAndDurableReconciliation(
     const reopenedReleaseInput = {
       reservationId,
       amountCredits: 3n,
-      idempotencyKey: 'credit-ledger-reopened-release',
+      idempotencyKey: `credit-ledger-reopened-release-before-terminal:${reservationId}`,
       requestId: `credit-ledger-reopened-release-${randomUUID()}`,
     } satisfies Parameters<typeof releaseCredits>[2];
-    const reopenedRelease = await releaseCredits(
+    await assertReleaseRejectedWithoutMutation(
       reopenedAppDatabase,
+      reopenedOwnerDatabase,
       contextB,
       reopenedReleaseInput,
+      'A reopened active Job release must leave its durable financial state unchanged',
     );
-    assert.equal(reopenedRelease.status, 'settled');
-    assert.equal(reopenedRelease.committedCredits, '7');
-    assert.equal(reopenedRelease.releasedCredits, '3');
-    assert.equal(reopenedRelease.remainingCredits, '0');
+
+    const reservationJob = await reopenedOwnerDatabase.pool.query<{ job_id: string }>(
+      'SELECT job_id::text FROM platform.credit_reservation WHERE id = $1 AND tenant_id = $2',
+      [reservationId, scopeB.tenantId],
+    );
+    const reservationJobId = reservationJob.rows[0]?.job_id;
+    assert.ok(reservationJobId, 'The recovered reservation must retain its fixture Job identity');
+    await terminalizeFixtureJobAsOwner(reopenedOwnerDatabase, reservationJobId);
+    await assertTerminalReleaseSnapshot(reopenedOwnerDatabase, scopeB, reservationId, {
+      amountCredits: '3',
+      reasonCode: 'terminal_job_cancelled',
+      reservedCredits: '10',
+      committedCredits: '7',
+      releasedCredits: '3',
+      remainingCredits: '0',
+    });
 
     const releaseEvent = await readDurableCreditEventSnapshot(
       reopenedOwnerDatabase,
       scopeB.tenantId,
       scopeB.subjectId,
       reservationId,
-      'release',
-      reopenedReleaseInput.idempotencyKey,
+      'terminal_release',
+      `terminal_release:${reservationId}`,
     );
     assert.equal(releaseEvent.eventCount, '1');
-    assertSameReservationSnapshot(
-      reopenedRelease,
-      releaseEvent.result,
-      'A reopened release must persist its exact result snapshot',
-    );
+    assert.equal(releaseEvent.result.status, 'settled');
+    assert.equal(releaseEvent.result.reservedCredits, '10');
+    assert.equal(releaseEvent.result.committedCredits, '7');
+    assert.equal(releaseEvent.result.releasedCredits, '3');
+    assert.equal(releaseEvent.result.remainingCredits, '0');
 
-    const replayedCommitAfterRelease = await commitCredits(
+    const replayedCommitAfterTerminalRelease = await commitCredits(
       reopenedAppDatabase,
       contextB,
       lostCommitInput,
     );
-    assert.equal(replayedCommitAfterRelease.replayed, true);
+    assert.equal(replayedCommitAfterTerminalRelease.replayed, true);
     assertSameReservationSnapshot(
-      replayedCommitAfterRelease,
+      replayedCommitAfterTerminalRelease,
       committedEvent.result,
-      'A replay after a later release must retain the original commit result snapshot',
+      'A commit replay after terminal release must retain its original result snapshot',
     );
     assert.deepEqual(
       await readDurableCreditEventSnapshot(
@@ -2463,19 +2606,19 @@ async function assertCommitReplayRecoveryAndDurableReconciliation(
         lostCommitInput.idempotencyKey,
       ),
       committedEvent,
-      'Replaying a commit after a later transition must not duplicate its durable postings',
+      'Replaying a commit after terminal release must not duplicate its durable postings',
     );
 
-    const replayedRelease = await releaseCredits(
-      reopenedAppDatabase,
-      contextB,
-      reopenedReleaseInput,
-    );
-    assert.equal(replayedRelease.replayed, true);
-    assertSameReservationSnapshot(
-      replayedRelease,
-      releaseEvent.result,
-      'Release replay must preserve its original durable result snapshot',
+    await terminalizeFixtureJobAsOwner(reopenedOwnerDatabase, reservationJobId);
+    assert.equal(
+      await countReservationEvents(
+        reopenedOwnerDatabase,
+        scopeB.tenantId,
+        reservationId,
+        'terminal_release',
+      ),
+      1,
+      'Repeating a terminal Job transition must not release the reservation twice',
     );
     assert.deepEqual(
       await readDurableCreditEventSnapshot(
@@ -2483,11 +2626,11 @@ async function assertCommitReplayRecoveryAndDurableReconciliation(
         scopeB.tenantId,
         scopeB.subjectId,
         reservationId,
-        'release',
-        reopenedReleaseInput.idempotencyKey,
+        'terminal_release',
+        `terminal_release:${reservationId}`,
       ),
       releaseEvent,
-      'Release replay must not add another event or ledger posting',
+      'Terminal release replay must not add another event or ledger posting',
     );
 
     await assertDurableLedgerReconciliation(reopenedOwnerDatabase, reopenedAppDatabase, [
@@ -2908,6 +3051,21 @@ async function assertTerminalReleaseSnapshot(
   ownerDatabase: ReturnType<typeof createDatabase>,
   scope: FixtureScope,
   reservationId: string,
+  expected: {
+    amountCredits: string;
+    reasonCode: string;
+    reservedCredits: string;
+    committedCredits: string;
+    releasedCredits: string;
+    remainingCredits: string;
+  } = {
+    amountCredits: '80',
+    reasonCode: 'terminal_job_cancelled',
+    reservedCredits: '120',
+    committedCredits: '40',
+    releasedCredits: '80',
+    remainingCredits: '0',
+  },
 ): Promise<void> {
   const result = await ownerDatabase.pool.query<{
     amount_credits: string;
@@ -2931,13 +3089,13 @@ async function assertTerminalReleaseSnapshot(
   );
   assert.deepEqual(result.rows, [
     {
-      amount_credits: '80',
-      reason_code: 'terminal_job_cancelled',
+      amount_credits: expected.amountCredits,
+      reason_code: expected.reasonCode,
       result_status: 'settled',
-      result_reserved_credits: '120',
-      result_committed_credits: '40',
-      result_released_credits: '80',
-      result_remaining_credits: '0',
+      result_reserved_credits: expected.reservedCredits,
+      result_committed_credits: expected.committedCredits,
+      result_released_credits: expected.releasedCredits,
+      result_remaining_credits: expected.remainingCredits,
     },
   ]);
 }
@@ -3238,23 +3396,54 @@ async function terminalizeFixtureJobAsOwner(
     );
     const currentStatus = currentJob.rows[0]?.status;
     assert.ok(
-      currentStatus === 'queued' || currentStatus === 'cancelled',
-      'Owner harness must terminalize only the queued fixture or verify an already-terminal fixture',
+      currentStatus === 'queued' ||
+        currentStatus === 'running' ||
+        currentStatus === 'cancel_requested' ||
+        currentStatus === 'succeeded' ||
+        currentStatus === 'failed' ||
+        currentStatus === 'cancelled',
+      'Owner harness must terminalize only a fixture Job or verify an already-terminal fixture',
     );
+    let terminalStatus: 'failed' | 'cancelled' | 'succeeded';
     if (currentStatus === 'queued') {
       const terminalized = await client.query(
         `UPDATE platform.durable_job
-            SET status = 'cancelled'
+            SET status = 'cancelled', lease_expires_at = NULL
           WHERE id = $1 AND operation_type = $2 AND status = 'queued'`,
         [jobId, fixtureOperation],
       );
       assert.equal(terminalized.rowCount, 1, 'Owner harness must terminalize the queued fixture');
+      terminalStatus = 'cancelled';
+    } else if (currentStatus === 'running') {
+      const terminalized = await client.query(
+        `UPDATE platform.durable_job
+            SET status = 'failed', lease_expires_at = NULL, failure_code = 'execution_timeout'
+          WHERE id = $1 AND operation_type = $2 AND status = 'running'`,
+        [jobId, fixtureOperation],
+      );
+      assert.equal(terminalized.rowCount, 1, 'Owner harness must terminalize the running fixture');
+      terminalStatus = 'failed';
+    } else if (currentStatus === 'cancel_requested') {
+      const terminalized = await client.query(
+        `UPDATE platform.durable_job
+            SET status = 'cancelled', lease_expires_at = NULL
+          WHERE id = $1 AND operation_type = $2 AND status = 'cancel_requested'`,
+        [jobId, fixtureOperation],
+      );
+      assert.equal(
+        terminalized.rowCount,
+        1,
+        'Owner harness must terminalize the cancellation fixture',
+      );
+      terminalStatus = 'cancelled';
+    } else {
+      terminalStatus = currentStatus;
     }
     const repeatedTerminalUpdate = await client.query(
       `UPDATE platform.durable_job
-          SET status = 'cancelled'
-        WHERE id = $1 AND operation_type = $2 AND status = 'cancelled'`,
-      [jobId, fixtureOperation],
+          SET status = $3
+        WHERE id = $1 AND operation_type = $2 AND status = $3`,
+      [jobId, fixtureOperation, terminalStatus],
     );
     assert.equal(repeatedTerminalUpdate.rowCount, 1);
     await client.query('COMMIT');
@@ -3264,6 +3453,21 @@ async function terminalizeFixtureJobAsOwner(
   } finally {
     client.release();
   }
+}
+
+async function transitionFixtureJobToRunningAsOwner(
+  ownerDatabase: ReturnType<typeof createDatabase>,
+  jobId: string,
+): Promise<void> {
+  const running = await ownerDatabase.pool.query(
+    `UPDATE platform.durable_job
+        SET status = 'running', attempt_count = attempt_count + 1,
+            lease_expires_at = clock_timestamp() + interval '5 minutes'
+      WHERE id = $1 AND operation_type = $2 AND status = 'queued'
+        AND attempt_count < max_attempts`,
+    [jobId, fixtureOperation],
+  );
+  assert.equal(running.rowCount, 1, 'Owner fixture harness must transition queued Job to running');
 }
 
 async function assertCrossTenantReservationCommandsDenied(

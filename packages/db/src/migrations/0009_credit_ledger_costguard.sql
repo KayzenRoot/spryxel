@@ -1068,6 +1068,21 @@ BEGIN
   IF NOT FOUND THEN
     RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'credit_reservation_not_found';
   END IF;
+  IF p_operation = 'release'
+    AND NOT EXISTS (
+      SELECT 1
+        FROM platform.durable_job job
+       WHERE job.id = v_reservation.job_id
+         AND job.tenant_id = v_reservation.tenant_id
+         AND job.project_id = v_reservation.project_id
+         AND job.created_by_subject_id = v_reservation.subject_id
+         AND job.status IN ('succeeded', 'failed', 'cancelled')
+    )
+  THEN
+    -- Keep this as an unlocked read: terminal release already holds the Job row before
+    -- taking reservation and wallet locks, so locking the Job here would invert that order.
+    RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'credit_operation_denied';
+  END IF;
   PERFORM 1 FROM platform.credit_wallet wallet
    WHERE wallet.id = v_reservation.wallet_id AND wallet.tenant_id = v_tenant_id
    FOR UPDATE;
