@@ -1,6 +1,6 @@
 # SPRYXEL-WO-009 — Implementation Evidence Bundle
 
-**Independent audit verdict: APPROVED.** The separate HIGH_ASSURANCE reviewer approved code candidate `6cbd9210573815c82f0af60d274c41f31ef0b2bb` and inspected the documentation-only PR head `a52cb9d0d94b57fb4a6025cdb068ec5efc30f312`. No financial or security HIGH/CRITICAL defect was demonstrated. PR #87 is OPEN and ready for review; the verdict does not promote the checkpoint or authorize a merge.
+**Independent audit verdict: APPROVED.** The separate HIGH_ASSURANCE reviewer approved code candidate `6cbd9210573815c82f0af60d274c41f31ef0b2bb` and inspected documentation-only PR head `a52cb9d0d94b57fb4a6025cdb068ec5efc30f312`. No financial or security HIGH/CRITICAL defect was demonstrated. PR #87 is OPEN and ready for review; the verdict does not promote the checkpoint or authorize a merge.
 
 **Work Order:** SPRYXEL-WO-009 / IMP-005, HIGH_ASSURANCE.
 **Admission:** Owner-approved PR [#86](https://github.com/KayzenRoot/spryxel/pull/86), squash-merged.
@@ -101,7 +101,7 @@ At exact code candidate `6cbd9210573815c82f0af60d274c41f31ef0b2bb`, GitHub showe
 - [SonarCloud Code Analysis](https://sonarcloud.io/dashboard?id=KayzenRoot_spryxel&pullRequest=87) — SUCCESS on exact code candidate `6cbd9210573815c82f0af60d274c41f31ef0b2bb`; no finding-severity conclusion is claimed.
 - CodeRabbit status context is automatic-review-disabled/skipped; the executor did not invoke it and it is excluded from the 7 passing checks.
 
-At pre-audit-evidence PR HEAD `a52cb9d0d94b57fb4a6025cdb068ec5efc30f312` (documentation-only changes after the code candidate), GitHub showed **7/7 substantive checks SUCCESS** as of 2026-10-16 23:28 UTC. The audit evidence update itself changes only the four listed `.engineering/` documents; the live PR checks page must be read for checks on the resulting HEAD:
+At pre-audit-evidence PR HEAD `a52cb9d0d94b57fb4a6025cdb068ec5efc30f312` (documentation-only changes after the code candidate), GitHub showed **7/7 substantive checks SUCCESS** as of 2026-10-16 23:28 UTC. The live PR checks page must be read for checks on any later HEAD:
 
 - [Gitleaks secrets](https://github.com/KayzenRoot/spryxel/actions/runs/38981553754/job/117243342680) — PASS.
 - [Pipeline integrity](https://github.com/KayzenRoot/spryxel/actions/runs/38981553773/job/117243342250) — PASS.
@@ -110,6 +110,16 @@ At pre-audit-evidence PR HEAD `a52cb9d0d94b57fb4a6025cdb068ec5efc30f312` (docume
 - [Socket Security: Project Report](https://socket.dev/dashboard/org/nexlabs/sbom/73d8ef80-c7e4-490a-9c76-4900714c0ecd) — PASS.
 - Socket Security: Pull Request Alerts — PASS.
 - [SonarCloud Code Analysis](https://sonarcloud.io/dashboard?id=KayzenRoot_spryxel&pullRequest=87) — SUCCESS.
+
+At PR HEAD `3c6f1b66643e0e92e53b849c6c931975a9a252a4`, immediately before this Evidence Bundle refresh, I re-read the SHA-specific check runs on 2026-10-16 23:52 UTC: **7/7 completed SUCCESS**. This refresh is documentation-only; these results do not assert checks on the successor SHA created by this update. The [live PR checks page](https://github.com/KayzenRoot/spryxel/pull/87/checks) is authoritative for that successor:
+
+- [Gitleaks secrets](https://github.com/KayzenRoot/spryxel/actions/runs/38983280325/job/117248834540) — PASS.
+- [Pipeline integrity](https://github.com/KayzenRoot/spryxel/actions/runs/38983280353/job/117248834191) — PASS.
+- [Repository validation](https://github.com/KayzenRoot/spryxel/actions/runs/38983280337/job/117248834214) — PASS.
+- [Trivy filesystem and configuration](https://github.com/KayzenRoot/spryxel/actions/runs/38983280394/job/117248834688) — PASS.
+- [Socket Security: Project Report](https://github.com/KayzenRoot/spryxel/runs/117248843669) — PASS.
+- [Socket Security: Pull Request Alerts](https://github.com/KayzenRoot/spryxel/runs/117248858471) — PASS.
+- [SonarCloud Code Analysis](https://github.com/KayzenRoot/spryxel/runs/117249019564) — PASS.
 
 The [PR #87 checks page](https://github.com/KayzenRoot/spryxel/pull/87/checks) is the live source for later check updates.
 
@@ -155,7 +165,7 @@ This independent verdict satisfies the audit criterion only; it does not change 
 | AC24 unit and real PostgreSQL race/recovery coverage | PASS | 120 unit tests plus real-service integration suite. |
 | AC25 existing Jobs/Auth/Projects and browser regressions | PASS | Full standard Playwright suite passed 22/22 twice, including Jobs, Auth, Projects, terminal cancellation and all-state coverage; no worker/retry/timeout relaxation. |
 | AC26 clean install/full validation/npm test/audit | PASS | `npm ci`, format, lint, architecture, typecheck, build, unit, worker, integration, full `npm test`, and `npm audit` all exited 0 on the current code candidate. |
-| AC27 exact-head checks, Sonar/quality, no HIGH/CRITICAL | PASS | Seven substantive checks pass on code candidate `6cbd921` and current PR HEAD `a52cb9d`. Independent reviewer classified the 109 reported Sonar items (76 Critical, 5 Major, 28 Minor; all smells) and found no financial/security HIGH/CRITICAL defect. Sonar new-code coverage remains 0.0%, documented as a limitation. |
+| AC27 exact-head checks, Sonar/quality, no HIGH/CRITICAL | PASS | Seven substantive checks pass on code candidate `6cbd921`, prior documentation-only heads `a52cb9d` and `3c6f1b6` (the latter immediately before this refresh). Checks on the successor SHA remain to be read from the live PR page. Independent reviewer classified the 109 reported Sonar items (76 Critical, 5 Major, 28 Minor; all smells) and found no financial/security HIGH/CRITICAL defect. Sonar new-code coverage remains 0.0%, documented as a limitation. |
 | AC28 evidence and independent HIGH_ASSURANCE verdict | PASS | Evidence Bundle is refreshed and the distinct read-only reviewer returned APPROVED for the code candidate. This does not claim checkpoint promotion or merge authorization. |
 
 ## Proposed delta, risks, and next required action
