@@ -80,7 +80,7 @@ Three standard-parallel browser runs were non-green. The latest ended 10/20. Ret
 
 ## Hosted checks on the exact implementation commit
 
-At 17fffdc74d09ccef288cb292f39771cbef0c0ae4, the four required repository checks passed, as did Trivy and both Socket checks:
+At 17fffdc74d09ccef288cb292f39771cbef0c0ae4, the four required repository checks passed, as did Trivy and both Socket checks. A subsequent exact-HEAD GitHub readback of `8b62f72e1acb7685428017529c02253ecc683c56` (Correction Delta 01 documentation commit, with the same product implementation) verified **7/7 SUCCESS**, including SonarCloud Code Analysis. Sonar Quality Gate PASS reported 93 new issues, 0 security hotspots, and 0.0% reported coverage on new code. Issue-level severity remains not independently classified due missing access; PASS must not be equated to 0 open issues:
 
 - [Repository validation](https://github.com/KayzenRoot/spryxel/actions/runs/38821382481/job/116718502743) — PASS.
 - [Pipeline integrity](https://github.com/KayzenRoot/spryxel/actions/runs/38821382450/job/116718502774) — PASS.
@@ -88,7 +88,7 @@ At 17fffdc74d09ccef288cb292f39771cbef0c0ae4, the four required repository checks
 - [Trivy filesystem and configuration](https://github.com/KayzenRoot/spryxel/actions/runs/38821382561/job/116718502630) — PASS.
 - [Socket Security: Project Report](https://socket.dev/dashboard/org/nexlabs/sbom/81965ee5-6841-453e-b0d4-189d4b683214) — PASS.
 - Socket Security: Pull Request Alerts — PASS.
-- SonarCloud — NOT OBSERVED on this PR head; no result is claimed.
+- SonarCloud — **OBSERVED SUCCESS** on exact Correction Delta documentation HEAD `8b62f72e1acb7685428017529c02253ecc683c56`. Quality Gate PASS, 93 new issues (severity details unavailable), 0 security hotspots, 0.0% coverage reported. A future product-fix HEAD must be checked again.
 - CodeRabbit — automatic review was disabled/skipped by the repository; the executor did not invoke it.
 
 The [PR #87 checks page](https://github.com/KayzenRoot/spryxel/pull/87/checks) is the live source for checks attached to the current PR head. Evidence and checkpoint-document commits may produce a newer head and must be checked again.
@@ -123,14 +123,14 @@ The [PR #87 checks page](https://github.com/KayzenRoot/spryxel/pull/87/checks) i
 | AC24 unit and real PostgreSQL race/recovery coverage | PASS | 120 unit tests plus real-service integration suite. |
 | AC25 existing Jobs/Auth/Projects and browser regressions | CORRECTION REQUIRED | Standard browser suite repeatedly failed locally; latest 10/20. Do not treat likely flakiness as PASS. |
 | AC26 clean install/full validation/npm test/audit | CORRECTION REQUIRED | Install, static checks, unit, build, migration/integration, and audit passed; aggregate npm test exited 1 because browser suite was not green. |
-| AC27 exact-head checks, Sonar/quality, no HIGH/CRITICAL | PARTIAL | Required four checks, Trivy, and Socket passed on implementation SHA; SonarCloud was not observed. No HIGH/CRITICAL finding was reported by the scoped static security review; independent audit remains pending. |
+| AC27 exact-head checks, Sonar/quality, no HIGH/CRITICAL | PARTIAL | **7/7 SUCCESS** including SonarCloud on Correction Delta documentation HEAD `8b62f72e1acb7685428017529c02253ecc683c56`; 93 new issues and unknown issue-level severity, 0 hotspots and 0.0% reported new-code coverage. No independently established HIGH/CRITICAL defect; full separate financial audit remains pending. Rerun/readback exact final code HEAD. |
 | AC28 evidence and independent HIGH_ASSURANCE verdict | CORRECTION REQUIRED | Evidence and proposed delta are updated; distinct objective HIGH_ASSURANCE audit is still required, and the local test gate is not green. No approval or promotion claimed. |
 
 ## Proposed delta, risks, and next required action
 
 - Proposed checkpoint delta remains PROPOSED_ONLY / NOT_ACCEPTED / NOT_PROMOTED. Canonical checkpoint is main@34bad103d8066b6d31c5947c20a07ef52032c5d7 and still reports WO-008 complete. No checkpoint edit was made.
 - Main unresolved gate: run the complete standard npm test suite successfully, including all 20 browser tests, on this source commit in the supported Windows environment or provide reproducible evidence that a scoped environment correction is needed. Do not reduce Playwright workers, increase timeouts, skip tests, or mark the browser failures flaky without a green run.
-- After the local aggregate suite is green, rerun exact-head CI/Socket and observe SonarCloud if that check is configured; then request the distinct read-only HIGH_ASSURANCE audit. Keep PR #87 draft until the Work Order criteria are satisfied. Do not merge, promote, or start IMP-006.
+- After the local aggregate suite is green, recheck the final product HEAD's CI, SonarCloud and Socket statuses; then request the distinct read-only HIGH_ASSURANCE audit. Current 7/7 green hosted checks do not waive the failing browser suite. Keep PR #87 draft until the Work Order criteria are satisfied. Do not merge, promote, or start IMP-006.
 
 ## Exit and review
 
