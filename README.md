@@ -1,20 +1,24 @@
-# Spryxel
+# Spryxel platform foundation
 
-Spryxel is governed by **GEF Bootstrap 1.1.1**.
+This repository contains the bounded SPRYXEL-IMP-001 platform bootstrap: a minimal web shell, health/readiness API, separate worker process, and shared technical packages. Product authentication, tenancy, billing, generation, asset workflows, AI/model execution, and production storage providers are outside this slice.
 
-## Current stage
-The GEF CLI is installed from npm and pinned exactly to `@gef-bootstrap/cli@1.1.1`. The repository/GitHub governance increment `SPRYXEL-WO-001` was objectively audited `APPROVED`; its checkpoint promotion is included in PR #3 and merge remains conditional on final required checks. Product definition and implementation have **not** started.
+## Local runtime
 
-## Canonical source order
-1. `.engineering/CHECKPOINT.json` and `.engineering/CHECKPOINT.md`
-2. `.engineering/DECISIONS-LEDGER.md`
-3. `.engineering/SCOPE.md`
-4. `.engineering/DEFINITION-OF-DONE.md`
-5. `.engineering/ARCHITECTURE.md`
-6. `.engineering/REQUIREMENTS.md`
-7. Remaining Source Pack documents
+- Node.js `22.23.3` and npm `10.9.9` are the validated runtime/tool versions.
+- Install the single workspace graph with `npm ci --ignore-scripts`.
+- Start the local PostgreSQL, Redis, and authenticated S3-compatible SeaweedFS profile with `npm run infra:up`. It binds service ports to loopback and writes generated local credentials to the ignored `.env.local-infra` file.
+- Stop those containers with `npm run infra:down`. The local named data volumes and ignored credentials stay in place.
+- Start the web shell, API, and idle worker with `npm run dev`.
 
-See `.engineering/SOURCE-HIERARCHY.md` for conflict rules.
+The API reads typed values documented in `.env.example`; secret values are not committed. The worker starts with no product job consumers. Database migrations run only through the explicit `npm run db:migrate` command against a configured database.
 
-## Development handoff
-ChatGPT owns architecture/specification/audit and compiles Work Orders. Codex is the implementation/CI executor. GitHub is the task/evidence transport. No product implementation is admitted until Product Discovery and the relevant Source Pack/Work Order explicitly permit it.
+## Validation
+
+Run `npm run format`, `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm run build`, `npm run architecture:check`, and `npm test`. The integration suite builds isolated, randomized Docker services, checks authenticated S3 operations and real PostgreSQL/Redis connections, then removes its containers and named volumes. The browser smoke suite uses headless Chromium.
+
+GEF remains pinned at `@gef-bootstrap/cli@1.1.1`; its doctor and status commands remain available as `npm run gef:doctor` and `npm run gef:status`.
+
+
+## Canonical implementation status
+
+SPRYXEL-IMP-001 is COMPLETE under SPRYXEL-WO-005 after objective audit, canonical promotion, squash merge and post-merge validation. This repository contains the canonical platform foundation only. Identity/Tenancy and later product capabilities are not yet admitted.

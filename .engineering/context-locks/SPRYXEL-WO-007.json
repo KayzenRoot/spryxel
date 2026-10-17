@@ -1,0 +1,220 @@
+{
+  "schemaVersion": 1,
+  "kind": "spryxel.context-lock",
+  "workOrderId": "SPRYXEL-WO-007",
+  "implementationIncrement": "SPRYXEL-IMP-003",
+  "status": "FRESH",
+  "risk": "HIGH_ASSURANCE",
+  "repository": "KayzenRoot/spryxel",
+  "authorizedBranch": "codex/spryxel-wo-007-imp-003-projects-shell",
+  "executionBase": {
+    "branch": "main",
+    "sha": "704b17f015f2bf0021730779f94bed38c45eeae5"
+  },
+  "trackingIssue": 26,
+  "gef": {
+    "package": "@gef-bootstrap/cli",
+    "version": "1.1.1",
+    "releaseSourceSha": "1dc030f1358eab0347043a3d54c7fc311c7c2123"
+  },
+  "workOrderSource": {
+    "path": ".engineering/work-orders/SPRYXEL-WO-007.md",
+    "gitBlobSha": "834c1cc6359c243b282a5864b324eae5ad3849ac"
+  },
+  "decisionBaseline": {
+    "ledgerBlobSha": "856894e9936780f36c5e9982d1c3fe6e96aed90f",
+    "protectedDecisionRange": "D-001..D-161"
+  },
+  "productState": {
+    "productImplementation": "IDENTITY_TENANCY_SECURITY_BASELINE_COMPLETE",
+    "implementationCompletedThrough": "SPRYXEL-IMP-002",
+    "nextLegalStage": "SPRYXEL-IMP-003_PROJECTS_CANONICAL_SHELL_HOME",
+    "nextIncrementStatus": "ADMITTED_FOR_EXECUTION",
+    "nextAfterThis": "ASSET_CONTRACT_DURABLE_JOB_BACKBONE_NOT_ADMITTED",
+    "commercialPricing": "NOT_FROZEN",
+    "benchmarksAndMeasuredCogs": "NOT_RUN_NOT_AVAILABLE",
+    "authProvider": "WORKOS_AUTHKIT_V1_SELECTED"
+  },
+  "criticalBaseSources": [
+    {
+      "path": ".engineering/API-CONTRACTS.md",
+      "gitBlobSha": "ed432144a9bf3e47f3eb197869456fc08bfd609a"
+    },
+    {
+      "path": ".engineering/API-FOUNDATION-CONTRACT.md",
+      "gitBlobSha": "fef70ebd35c2921dc69dc20c9d309f6739744075"
+    },
+    {
+      "path": ".engineering/ARCHITECTURE.md",
+      "gitBlobSha": "ea97f66b5776aaa35d6fa2e73db54be4c72a4769"
+    },
+    {
+      "path": ".engineering/CHECKPOINT.json",
+      "gitBlobSha": "c18f44663962d32076ea964c5d3f72d96791477a"
+    },
+    {
+      "path": ".engineering/CHECKPOINT.md",
+      "gitBlobSha": "50911aca72f2e056fbcafc95fa29bbdb6ce897d9"
+    },
+    {
+      "path": ".engineering/DATA-MODEL.md",
+      "gitBlobSha": "ff988dcc33cc640e258a058b1f016186ab2b1c14"
+    },
+    {
+      "path": ".engineering/DECISIONS-LEDGER.md",
+      "gitBlobSha": "856894e9936780f36c5e9982d1c3fe6e96aed90f"
+    },
+    {
+      "path": ".engineering/DEFINITION-OF-DONE.md",
+      "gitBlobSha": "4d3a24b404cdd70a86168773bc0ac206dec0365d"
+    },
+    {
+      "path": ".engineering/DEPLOYMENT.md",
+      "gitBlobSha": "8414fa08258627d8f5c516b62cd30967b423dc3f"
+    },
+    {
+      "path": ".engineering/IMPLEMENTATION-ARCHITECTURE.md",
+      "gitBlobSha": "ad12992ab85841e051bbc482ae7cab96ea07bacb"
+    },
+    {
+      "path": ".engineering/IMPLEMENTATION-SEQUENCE.md",
+      "gitBlobSha": "822290f94688286e6962d79904a77d12c3fae8cd"
+    },
+    {
+      "path": ".engineering/INFORMATION-ARCHITECTURE.md",
+      "gitBlobSha": "46910820cec93d14ccd0a2f072cc7a8720efc5a6"
+    },
+    {
+      "path": ".engineering/INTEGRATION-CONTRACTS.md",
+      "gitBlobSha": "56187247ce63263e880f28eaaa0fdd1adda78057"
+    },
+    {
+      "path": ".engineering/LOCAL-DEVELOPMENT.md",
+      "gitBlobSha": "0dd9641ee3a37ed9f16de85f10faf7fdeb9a1497"
+    },
+    {
+      "path": ".engineering/PHYSICAL-DATA-CONVENTIONS.md",
+      "gitBlobSha": "4e65b6778f63ff6664cf6aec6985db60013eead5"
+    },
+    {
+      "path": ".engineering/REPOSITORY-TOPOLOGY.md",
+      "gitBlobSha": "dca611512ef9e2f66f53686b535ba1698461326c"
+    },
+    {
+      "path": ".engineering/REQUIREMENTS.md",
+      "gitBlobSha": "5c0e7199708e9aa2e0014755c18942b48bb4d60d"
+    },
+    {
+      "path": ".engineering/RUNTIME-STACK.md",
+      "gitBlobSha": "3fde18dd86788db748164dccf3dcb64ae64f4bcf"
+    },
+    {
+      "path": ".engineering/SCOPE.md",
+      "gitBlobSha": "cca8420aa6427b9ddd2a16151f44f83a6bfd7cfe"
+    },
+    {
+      "path": ".engineering/SCREEN-INVENTORY.md",
+      "gitBlobSha": "6c44c9055208d7d2bc35d2bae1ffb565cab7ae52"
+    },
+    {
+      "path": ".engineering/SECURITY.md",
+      "gitBlobSha": "d8aa5007a8cc9429d8860a76d544bd7b1c49516b"
+    },
+    {
+      "path": ".engineering/SOURCE-HIERARCHY.md",
+      "gitBlobSha": "7a39a3b8c7cce2148474e52d65ae14708185124d"
+    },
+    {
+      "path": ".engineering/TEST-BENCHMARK-PLAN.md",
+      "gitBlobSha": "157f6a81ccba63a3aa62f747b4b07607a166c8e8"
+    },
+    {
+      "path": ".engineering/UI-UX.md",
+      "gitBlobSha": "6738bf0c5f242253ceff7f7e177ac62ab841be3d"
+    },
+    {
+      "path": ".engineering/UX-DESIGN-SYSTEM.md",
+      "gitBlobSha": "6ab9d7a4ddb754363e9247633e3dcace0d12991d"
+    },
+    {
+      "path": ".engineering/UX-FLOWS.md",
+      "gitBlobSha": "039031eaf1207a56d6f12ee4d27d010f0759a73c"
+    },
+    {
+      "path": ".engineering/UX-STATE-CONTRACTS.md",
+      "gitBlobSha": "81598e52a8f00ce83cab4669522fe9d8000d501b"
+    },
+    {
+      "path": ".engineering/UX-WIREFRAME-CONTRACTS.md",
+      "gitBlobSha": "04d2bf45b0391c8fcd1f671e36f5881e57689cf2"
+    },
+    {
+      "path": "AGENTS.md",
+      "gitBlobSha": "e1eed8d5dee022e7060e6298d9fa4c649514c310"
+    },
+    {
+      "path": "package-lock.json",
+      "gitBlobSha": "5585c5b1eb10deaac1f6f513f38f8bb3ff874e97"
+    },
+    {
+      "path": "package.json",
+      "gitBlobSha": "791cb01c32f7e11e5e962f9016861cf7ad1d1de4"
+    }
+  ],
+  "providerBaseline": {
+    "rulesetId": 24340349,
+    "authProvider": "WORKOS_AUTHKIT_V1_SELECTED",
+    "rulesetMutationAllowed": false,
+    "providerMutationAllowed": false,
+    "requiredStatusContextMutationAllowed": false
+  },
+  "authorizedMutationClasses": {
+    "productCode": true,
+    "projectSchemaAndMigration": true,
+    "projectRlsPolicies": true,
+    "projectDomainContractsAndRepository": true,
+    "projectApiRoutes": true,
+    "projectIdempotency": true,
+    "projectAuditExtension": true,
+    "webGlobalShellHomeProjects": true,
+    "uiPrimitivesAsStrictlyNeeded": true,
+    "tests": true,
+    "rootPackageManifestAndLockfile": "ONLY_IF_REQUIRED_BY_JUSTIFIED_NEW_DEPENDENCY",
+    "evidenceAndProposedCheckpointDelta": true,
+    "canonicalDecisionMutation": false,
+    "checkpointPromotion": false,
+    "gefMutation": false,
+    "sourceSeedMutation": false,
+    "workflowMutation": false,
+    "rulesetProviderMutation": false
+  },
+  "hardOutOfScope": [
+    "Spryxel DNA implementation beyond not-configured/setup CTA",
+    "Generate and production studios",
+    "Asset Library Asset Graph QA Export implementation",
+    "Asset Contract durable Job or Attempt backbone",
+    "Jobs Queue product schema or consumer",
+    "billing payments credits wallet ledger CostGuard RevenueShield",
+    "TrustShield Turnstile multi-account trial promotion referral implementation",
+    "API key MCP OAuth implementation",
+    "project-level role designer team collaboration invitations",
+    "project update archive delete ownership transfer unless acceptance proves necessary",
+    "AI model GPU runtime",
+    "production provider selection or deployment",
+    "pricing or credit freeze",
+    "broad admin console",
+    "WorkOS provider replacement",
+    "D-001..D-161 mutation",
+    "next implementation slice"
+  ],
+  "staleIf": [
+    "executionBase.sha changes before executor preflight",
+    "workOrderSource gitBlobSha changes outside an audited correction",
+    "any criticalBaseSources gitBlobSha changes unexpectedly outside this Work Order",
+    "D-001..D-161 decision baseline changes",
+    "GEF package pin changes",
+    "ruleset/provider/required-status baseline changes unexpectedly",
+    "WO-006 canonical completion is reverted or invalidated"
+  ],
+  "stopOnStale": true
+}

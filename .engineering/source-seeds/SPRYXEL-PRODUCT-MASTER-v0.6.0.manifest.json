@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "kind": "spryxel.pre_repository_product_master_manifest",
+  "name": "SPRYXEL-PRODUCT-MASTER-v0.6.0.md",
+  "version": "0.6.0",
+  "date": "2026-10-01",
+  "status": "IMMUTABLE_MIGRATION_SEED",
+  "sha256": "1c2bf605cb4851300e7f1cc64071b1eaa4cf6d814187dcc95ebe7366d5ec2a8e",
+  "gitBlobSha1": "cbb93ec44886eba6cc9b24a072eb23e0ad5ea05a",
+  "sizeBytes": 238278,
+  "lineCount": 12447,
+  "origin": "Owner-approved pre-repository canonical Product Master",
+  "migrationWorkOrder": "SPRYXEL-WO-002",
+  "trackingIssue": 7,
+  "rules": {
+    "rewriteSeed": false,
+    "approvedDecisionsMustBePreserved": true,
+    "openDecisionsStayOpenUnlessResolvedBySeed": true,
+    "repositorySourcePackBecomesCanonicalOnlyAfterAuditPromotion": true
+  }
+}

@@ -1,0 +1,198 @@
+{
+  "schemaVersion": 1,
+  "kind": "spryxel.context-lock",
+  "workOrderId": "SPRYXEL-WO-006",
+  "implementationIncrement": "SPRYXEL-IMP-002",
+  "status": "FRESH",
+  "risk": "HIGH_ASSURANCE",
+  "repository": "KayzenRoot/spryxel",
+  "authorizedBranch": "codex/spryxel-wo-006-imp-002-identity-tenancy",
+  "executionBase": {
+    "branch": "main",
+    "sha": "95ae64d1951ca285c67014fcedbb00e74c3d163d"
+  },
+  "trackingIssue": 23,
+  "gef": {
+    "package": "@gef-bootstrap/cli",
+    "version": "1.1.1",
+    "releaseSourceSha": "1dc030f1358eab0347043a3d54c7fc311c7c2123"
+  },
+  "workOrderSource": {
+    "path": ".engineering/work-orders/SPRYXEL-WO-006.md",
+    "gitBlobSha": "98b68423eeedb5a3fc3957c95d06966a934205b4"
+  },
+  "decisionBaseline": {
+    "ledgerBlobSha": "856894e9936780f36c5e9982d1c3fe6e96aed90f",
+    "protectedDecisionRange": "D-001..D-161"
+  },
+  "providerDecision": {
+    "authProvider": "WORKOS_AUTHKIT_V1_SELECTED",
+    "decisionRange": "D-156..D-161",
+    "preflightSource": ".engineering/AUTH-PROVIDER-PREFLIGHT.md",
+    "silentSubstitutionAllowed": false
+  },
+  "productState": {
+    "productImplementation": "PLATFORM_FOUNDATION_COMPLETE",
+    "implementationCompletedThrough": "SPRYXEL-IMP-001",
+    "nextLegalStage": "SPRYXEL-IMP-002",
+    "commercialPricing": "NOT_FROZEN",
+    "benchmarksAndMeasuredCogs": "NOT_RUN_NOT_AVAILABLE"
+  },
+  "criticalBaseSources": [
+    {
+      "path": ".engineering/API-CONTRACTS.md",
+      "gitBlobSha": "ed432144a9bf3e47f3eb197869456fc08bfd609a"
+    },
+    {
+      "path": ".engineering/API-FOUNDATION-CONTRACT.md",
+      "gitBlobSha": "fef70ebd35c2921dc69dc20c9d309f6739744075"
+    },
+    {
+      "path": ".engineering/ARCHITECTURE.md",
+      "gitBlobSha": "ea97f66b5776aaa35d6fa2e73db54be4c72a4769"
+    },
+    {
+      "path": ".engineering/AUTH-PROVIDER-PREFLIGHT.md",
+      "gitBlobSha": "ef66e82c3cc1cfe8c26ceed529d6a45f30b544bb"
+    },
+    {
+      "path": ".engineering/CHECKPOINT.json",
+      "gitBlobSha": "849b70ae9a6c8cf8e70679d667ead0f06d7dddc8"
+    },
+    {
+      "path": ".engineering/CHECKPOINT.md",
+      "gitBlobSha": "b948b42d66f97c53e7c35395ba3cad25e435ca29"
+    },
+    {
+      "path": ".engineering/DATA-MODEL.md",
+      "gitBlobSha": "ff988dcc33cc640e258a058b1f016186ab2b1c14"
+    },
+    {
+      "path": ".engineering/DECISIONS-LEDGER.md",
+      "gitBlobSha": "856894e9936780f36c5e9982d1c3fe6e96aed90f"
+    },
+    {
+      "path": ".engineering/DEFINITION-OF-DONE.md",
+      "gitBlobSha": "4d3a24b404cdd70a86168773bc0ac206dec0365d"
+    },
+    {
+      "path": ".engineering/DEPLOYMENT.md",
+      "gitBlobSha": "8414fa08258627d8f5c516b62cd30967b423dc3f"
+    },
+    {
+      "path": ".engineering/IMPLEMENTATION-ARCHITECTURE.md",
+      "gitBlobSha": "ad12992ab85841e051bbc482ae7cab96ea07bacb"
+    },
+    {
+      "path": ".engineering/IMPLEMENTATION-SEQUENCE.md",
+      "gitBlobSha": "822290f94688286e6962d79904a77d12c3fae8cd"
+    },
+    {
+      "path": ".engineering/INTEGRATION-CONTRACTS.md",
+      "gitBlobSha": "56187247ce63263e880f28eaaa0fdd1adda78057"
+    },
+    {
+      "path": ".engineering/LOCAL-DEVELOPMENT.md",
+      "gitBlobSha": "0dd9641ee3a37ed9f16de85f10faf7fdeb9a1497"
+    },
+    {
+      "path": ".engineering/PHYSICAL-DATA-CONVENTIONS.md",
+      "gitBlobSha": "4e65b6778f63ff6664cf6aec6985db60013eead5"
+    },
+    {
+      "path": ".engineering/REPOSITORY-TOPOLOGY.md",
+      "gitBlobSha": "dca611512ef9e2f66f53686b535ba1698461326c"
+    },
+    {
+      "path": ".engineering/REQUIREMENTS.md",
+      "gitBlobSha": "5c0e7199708e9aa2e0014755c18942b48bb4d60d"
+    },
+    {
+      "path": ".engineering/RUNTIME-STACK.md",
+      "gitBlobSha": "3fde18dd86788db748164dccf3dcb64ae64f4bcf"
+    },
+    {
+      "path": ".engineering/SCOPE.md",
+      "gitBlobSha": "cca8420aa6427b9ddd2a16151f44f83a6bfd7cfe"
+    },
+    {
+      "path": ".engineering/SECURITY.md",
+      "gitBlobSha": "d8aa5007a8cc9429d8860a76d544bd7b1c49516b"
+    },
+    {
+      "path": ".engineering/SOURCE-HIERARCHY.md",
+      "gitBlobSha": "f2b095a19ae52c3847ac330c4dc557d468a9739b"
+    },
+    {
+      "path": ".engineering/TEST-BENCHMARK-PLAN.md",
+      "gitBlobSha": "157f6a81ccba63a3aa62f747b4b07607a166c8e8"
+    },
+    {
+      "path": ".engineering/UI-UX.md",
+      "gitBlobSha": "6738bf0c5f242253ceff7f7e177ac62ab841be3d"
+    },
+    {
+      "path": ".engineering/UX-DESIGN-SYSTEM.md",
+      "gitBlobSha": "6ab9d7a4ddb754363e9247633e3dcace0d12991d"
+    },
+    {
+      "path": "AGENTS.md",
+      "gitBlobSha": "a0139f0e4c2f385f9e75daf105ed970e23772e9e"
+    },
+    {
+      "path": "package-lock.json",
+      "gitBlobSha": "955737f16abc8b24d521e12731843ea93e445cd7"
+    },
+    {
+      "path": "package.json",
+      "gitBlobSha": "02cac27eac795b0b0333d295addc4bec42d237f4"
+    }
+  ],
+  "providerBaseline": {
+    "rulesetId": 24340349,
+    "rulesetMutationAllowed": false,
+    "providerMutationAllowed": false,
+    "requiredStatusContextMutationAllowed": false
+  },
+  "authorizedMutationClasses": {
+    "productCode": true,
+    "identityPackageOrBoundary": true,
+    "authProviderEdge": true,
+    "rootPackageManifestAndLockfile": true,
+    "identityTenancyMigrations": true,
+    "rlsPolicies": true,
+    "tests": true,
+    "environmentExamples": true,
+    "evidenceAndProposedCheckpointDelta": true,
+    "canonicalDecisionMutation": false,
+    "checkpointPromotion": false,
+    "gefMutation": false,
+    "sourceSeedMutation": false,
+    "workflowMutation": false,
+    "rulesetProviderMutation": false
+  },
+  "hardOutOfScope": [
+    "Projects and project CRUD",
+    "billing payments credits wallet ledger CostGuard RevenueShield",
+    "TrustShield graph scoring multi-account Turnstile promo trial eligibility",
+    "generation assets product jobs QA export",
+    "AI model GPU runtime",
+    "API keys or MCP OAuth",
+    "team collaboration invitation workflows beyond internal bootstrap necessity",
+    "billing or production storage provider selection",
+    "pricing freeze",
+    "enterprise SSO or SCIM procurement",
+    "dynamic permissions designer",
+    "next implementation slice"
+  ],
+  "staleIf": [
+    "executionBase.sha changes before executor preflight",
+    "workOrderSource gitBlobSha changes outside an audited correction",
+    "any criticalBaseSources gitBlobSha changes unexpectedly outside this Work Order",
+    "D-001..D-161 decision baseline changes",
+    "GEF package pin changes",
+    "ruleset/provider/required-status baseline changes unexpectedly",
+    "current WorkOS preflight materially invalidates D-156 integration path"
+  ],
+  "stopOnStale": true
+}

@@ -1,0 +1,32 @@
+@import "tailwindcss";
+@import "@spryxel/ui/tokens.css";
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-subtle-border: var(--subtle-border);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-brand-primary: var(--brand-primary);
+  --color-focus: var(--focus);
+  --radius-panel: var(--corner-panel);
+  --radius-workspace: var(--corner-workspace);
+}
+
+.skip-link {
+  position: absolute;
+  z-index: 10;
+  top: 0.75rem;
+  left: 0.75rem;
+  transform: translateY(-180%);
+  border-radius: var(--radius-control);
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}

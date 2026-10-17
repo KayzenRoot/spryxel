@@ -1,6 +1,6 @@
 # Decisions Ledger
 
-Status: SOURCE_PACK_CANDIDATE
+Status: CANONICAL through SPR-PLAN-007 / D-001…D-153 after objective audit of SPRYXEL-WO-004.
 
 ## D-0001 — GEF version
 Use `@gef-bootstrap/cli@1.1.1` exactly. Upgrade requires a future Work Order.
@@ -9,7 +9,9 @@ Use `@gef-bootstrap/cli@1.1.1` exactly. Upgrade requires a future Work Order.
 Adopt the GEF ADR-0008 operating model for this project: ChatGPT specifies/audits; Codex implements code/tests/CI; GitHub carries durable tasks and evidence.
 
 ## D-0003 — Product definition deferred
-No product mission, feature or architecture is inferred during governance bootstrap. Product truth remains TBD until explicit owner planning.
+Historical decision for the SPRYXEL-WO-001 governance-bootstrap stage: no product mission, feature, or architecture was inferred during bootstrap; product truth was TBD until owner planning.
+
+Current-state reconciliation: the owner-approved pre-repository Product Master v0.6.0 records product decisions D-001 through D-089. SPRYXEL-WO-002 migrated and objectively audited them into the repository Source Pack. After authorized checkpoint promotion, this ledger is the canonical owner of those stable decision IDs; the seed remains immutable historical evidence.
 
 ## D-0004 — Safe main protection
 The target ruleset for `main` requires PR integration, resolved threads, deletion/non-fast-forward protection and no bypass. Required status checks are added only after their exact contexts have succeeded in Spryxel.
@@ -22,3 +24,830 @@ Executor may propose a Checkpoint Delta but may not self-promote it. Promotion f
 
 ## D-0007 — GEF v1.1.1 drift interpretation
 The installed v1.1.1 baseline is immutable evidence and is not rewritten merely because governed project files evolve. The exact v1.1.1 release implementation routes `gef status` project-drift comparison through `detectDrift(..., { authorized: false })`. Consequently, post-baseline changes can be reported as `UNEXPECTED` even when a Work Order authorized them. Spryxel resolves authorization outside that raw diagnostic by binding the delta to the Work Order, Context Lock, exact Git diff and Evidence Bundle. Unbound drift remains blocking.
+
+## Pre-repository product decision namespace (seed D-001 through D-089)
+
+These stable IDs are distinct from repository governance decisions D-0001 through D-0007. Each entry below has its sole canonical ownership in this ledger. The migration matrix provides source sections and non-owning cross-references. Exact wording and status were extracted from immutable Product Master v0.6.0 and approved by the SPRYXEL-WO-002 audit.
+
+### D-001 — Product Name
+Decision: SPRYXEL
+Status: APPROVED FOR PLANNING
+Note: Formal trademark/domain clearance required before public launch.
+Source: Product Master v0.6.0, numbered section 22.
+
+### D-002 — Product Category
+Decision: AI Game Asset Platform, not generic AI image generator.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 22.
+
+### D-003 — Target Audience
+Decision: Indie developers, solo developers, vibe coders and AI-native game builders.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 22.
+
+### D-004 — Asset Scope
+Decision: Architecture must support pixel, 2D, 2.5D and 3D. Delivery will be incremental.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 22.
+
+### D-005 — Developer Interfaces
+Decision: API and MCP are first-class product surfaces; CLI is planned.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 22.
+
+### D-006 — Languages
+Decision: English canonical/default; PT-BR and Spanish localized UI.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 22.
+
+### D-007 — Development Environment
+Decision: Local-first Docker with RTX 5050 as primary development inference hardware.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 22.
+
+### D-008 — Initial Infrastructure
+Decision: Use free tiers wherever commercially permitted; external GPU is pay-per-use/serverless until scale justifies dedicated capacity.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 22.
+
+### D-009 — Credit Economics
+Decision: Ledger-based credits with pre-generation reservation and CostGuard.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 22.
+
+### D-010 — Anti-Abuse
+Decision: TrustShield risk graph; no single-signal multi-account bans.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 22.
+
+### D-011 — Refund Strategy
+Decision: Do not obstruct statutory rights. Protect the company using trial design, new-account exposure caps, reserves, evidence, antifraud, cost pricing and hard limits.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 22.
+
+### D-012 — Commercial Safety
+Decision: No generation without bounded cost authorization.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 22.
+
+### D-013 — Product Navigation Model
+Decision: Organize SPRYXEL by game-production job, not AI model/provider.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 26.
+
+### D-014 — Canonical Asset Model
+Decision: Assets are versioned entities with metadata, lineage, DNA and provenance, not mere files.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 26.
+
+### D-015 — Asset Families
+Decision: SPRYXEL supports coherent asset families/packs as a first-class concept.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 26.
+
+### D-016 — V1 Asset Focus
+Decision: V1 focuses on Pixel + 2D while platform architecture remains ready for 2.5D and 3D.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 26.
+
+### D-017 — Model Abstraction
+Decision: Model/provider selection is hidden behind the Model Router and Generation SKU contracts.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 26.
+
+### D-018 — Agent Budgeting
+Decision: MCP/API calls must support bounded spend/retries and machine-readable budget errors.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 26.
+
+### D-019 — Economic Benchmark Metric
+Decision: Optimize for cost per accepted production asset, not merely cost per inference attempt.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 26.
+
+### D-020 — Repair Strategy
+Decision: Prefer targeted repair over full regeneration when quality and economics justify it.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 26.
+
+### D-021 — Production Asset Gate
+Decision: Raw AI output cannot become an approved asset without required QA gates.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 44.
+
+### D-022 — Anatomy Quality
+Decision: Anatomy/topology validation is mandatory for applicable character/creature SKUs.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 44.
+
+### D-023 — Resolution-Aware Anatomy
+Decision: Anatomy validation must respect pixel resolution; tiny sprites are validated semantically/silhouette-wise rather than requiring impossible photorealistic finger detail.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 44.
+
+### D-024 — Asset Contract
+Decision: Every generation compiles to an explicit Asset Contract before inference.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 44.
+
+### D-025 — Multi-Signal QA
+Decision: No single probabilistic vision model may be the sole production approval mechanism for anatomy-sensitive assets.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 44.
+
+### D-026 — Targeted Repair
+Decision: Localized repair is preferred to full regeneration when it is cheaper and expected to meet quality.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 44.
+
+### D-027 — Model Eligibility
+Decision: Production models require verified commercial eligibility, quality benchmark and known economics.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 44.
+
+### D-028 — Qwen-Image-2.1
+Decision: Benchmark/research candidate only under current Qwen Research License; not a commercial SPRYXEL production dependency at this stage.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 44.
+
+### D-029 — Initial Commercial-Friendly Model Shortlist
+Decision: Prioritize benchmarking Z-Image, FLUX.1-schnell and HiDream-O1-Image because current published licenses are commercially friendlier (Apache-2.0 / MIT), subject to final license review.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 44.
+
+### D-030 — ComfyUI Boundary
+Decision: ComfyUI is an inference/workflow adapter and R&D environment, not the owner of billing/business invariants.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 44.
+
+### D-031 — Control Plane Architecture
+Decision: Start with a modular-monolith control plane and independently scalable AI workers; no premature microservice split.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 44.
+
+### D-032 — PostgreSQL Canonical State
+Decision: PostgreSQL is canonical for users/projects/assets/jobs/ledger state; transient provider/queue state cannot replace it.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 44.
+
+### D-033 — Local Profiles
+Decision: Docker development uses profiles so 24 GB RAM / 8 GB VRAM are not overwhelmed by unnecessary simultaneous services.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 44.
+
+### D-034 — Benchmark Metric
+Decision: Track explicit anatomy defect rates and cost per accepted asset, not generic image quality alone.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 44.
+
+### D-035 — Dual Quality Layer
+Decision: Integrity Gate is binary and independent from Production Score.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 79.
+
+### D-036 — Critical Defect Supremacy
+Decision: Aesthetic quality can never override a critical structural failure.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 79.
+
+### D-037 — Resolution Profiles
+Decision: Pixel QA/anatomy rules vary by target resolution.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 79.
+
+### D-038 — V1 SKU Contracts
+Decision: V1 generation operations are versioned SKUs with explicit asset contracts and bounded retries.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 79.
+
+### D-039 — Four-Direction Identity
+Decision: A four-direction character set is accepted only if all directions preserve one character identity.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 79.
+
+### D-040 — Baseline / Scale Control
+Decision: Character families use explicit baseline and scale-drift rules.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 79.
+
+### D-041 — Benchmark Promotion
+Decision: No model/pipeline reaches paid production from subjective review alone.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 79.
+
+### D-042 — Golden Asset Suite
+Decision: Generation changes require versioned regression benchmarks.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 79.
+
+### D-043 — Failed Quality Billing
+Decision: Hard-gate-invalid generation is not treated as a valid delivered production asset for full-charge purposes.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 79.
+
+### D-044 — Cost Attribution
+Decision: Credit economics use the entire attempt/retry/QA/repair cost, not the winning inference only.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 79.
+
+### D-045 — Maps as First-Class System
+Decision: map creation is a dedicated SPRYXEL product domain, not a side feature.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 97.
+
+### D-046 — Multi-Layer Map Scope
+Decision: SPRYXEL must support world, region, local, dungeon/interior and minimap layers conceptually.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 97.
+
+### D-047 — Hybrid Map Direction
+Decision: SPRYXEL should pursue hybrid structured/procedural + AI-assisted map workflows where useful.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 97.
+
+### D-048 — UI/HUD as First-Class Asset Family
+Decision: menus, HUD, inventory/backpack and screen systems are first-class product surfaces.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 97.
+
+### D-049 — Maps and UI Share Project DNA
+Decision: maps, minimaps, markers and UI assets must participate in the same project style system.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 97.
+
+### D-050 — Combined Workflow Packs
+Decision: map/UI bundles such as world navigation packs and backpack UI packs are valid workflow-level outputs.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 97.
+
+### D-051 — Map SKUs
+Decision: map production is represented by explicit versioned SKUs, not generic image generation.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 117.
+
+### D-052 — Structured Dungeon First
+Decision: dungeon generation should support structure-first graph generation before visual rendering.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 117.
+
+### D-053 — Map Layer Contract
+Decision: structured map layers must be dimension-aligned and machine-addressable.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 117.
+
+### D-054 — UI Pack SKUs
+Decision: HUD, backpack, menus and screen systems are packaged as coherent multi-component SKUs.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 117.
+
+### D-055 — Localization-Safe UI
+Decision: UI generation must be localization-safe for English, PT-BR and Spanish.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 117.
+
+### D-056 — Engine-Agnostic Canonical Export
+Decision: canonical assets remain engine-independent; EngineBridge performs Godot/Unity adaptation.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 117.
+
+### D-057 — Agent Map/UI APIs
+Decision: maps and UI receive first-class MCP/API operations with bounded budgets and idempotency.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 117.
+
+### D-058 — Non-Destructive World Evolution
+Decision: map versioning should preserve stable region/POI identities when feasible.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 117.
+
+### D-059 — Canonical Cost Currency
+Decision: USD is canonical internal cost currency; BRL is secondary owner-reporting currency.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 174.
+
+### D-060 — Abstract Credits
+Decision: Spryxel Credits are abstract non-cash usage units with no permanently fixed currency value.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 174.
+
+### D-061 — Full Redemption Safety
+Decision: paid packs must remain profitable assuming 100% credit redemption.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 174.
+
+### D-062 — Trial Entitlements
+Decision: free trial defaults to restricted SKU entitlements instead of generic free SC.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 174.
+
+### D-063 — Zero Public Free Cloud Budget
+Decision: default public free-cloud budget is zero until explicitly funded by the owner/campaign.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 174.
+
+### D-064 — Credit-Pack First Launch
+Decision: initial commercial model prioritizes prepaid credit packs; subscriptions are deferred until usage/retention data exists.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 174.
+
+### D-065 — Billing Abstraction
+Decision: payment-provider semantics live behind a BillingProvider adapter.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 174.
+
+### D-066 — Early Global MoR Candidate
+Decision: Paddle is the preferred early global Merchant-of-Record candidate for further validation; Stripe remains a first-class direct-payment alternative.
+Status: APPROVED FOR PLANNING, NOT PROCUREMENT
+Source: Product Master v0.6.0, numbered section 174.
+
+### D-067 — Small-Pack Guard
+Decision: avoid tiny paid packs that are disproportionately consumed by fixed transaction fees; $10 is an initial simulation floor, not a final price.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 174.
+
+### D-068 — Working Capital Gate
+Decision: public paid cloud inference requires a working-capital reserve independent of booked revenue.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 174.
+
+### D-069 — Margin Guardrails
+Decision: target >=70% base contribution margin; launch models must also remain >=60% in conservative and >=30% in approved severe stress simulations.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 174.
+
+### D-070 — Hard Negative-Margin Stop
+Decision: CostGuard prevents new affected jobs when predicted contribution margin is non-positive.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 174.
+
+### D-071 — Stress Simulation
+Decision: every pack/SKU is tested against GPU, FX, quality-regression, refund, chargeback, fraud, free-farming, heavy-user and worst-mix scenarios.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 174.
+
+### D-072 — No Cross-Subsidized Hidden Loss
+Decision: no normal paid SKU may knowingly lose money and depend on low usage to hide the loss.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 174.
+
+### D-073 — Pricing Freeze
+Decision: public prices remain simulation-only until measured benchmark COGS and legal/accounting/payment inputs are available.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 174.
+
+### D-074 — Graph-Based TrustShield
+Decision: Multi-account/fraud uses graph + multiple signals, never IP-only.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 236.
+
+### D-075 — Promotional Eligibility Separation
+Decision: Account and free-value eligibility are independent.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 236.
+
+### D-076 — Privacy-Preserving Device Signal
+Decision: First-party pseudonymous token; invasive fingerprinting is not a V1 dependency.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 236.
+
+### D-077 — Turnstile V1
+Decision: Cloudflare Turnstile preferred for V1 bot verification with server validation.
+Status: APPROVED FOR PLANNING
+Source: Product Master v0.6.0, numbered section 236.
+
+### D-078 — Ephemeral IDs
+Decision: Optional future Enterprise enhancement only.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 236.
+
+### D-079 — Rules Before ML
+Decision: TrustShield v1 uses rules/graph/provider signals.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 236.
+
+### D-080 — No Auto-Delete by Score
+Decision: Automated risk score alone cannot permanently delete account.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 236.
+
+### D-081 — Trial Cluster Rule
+Decision: Strong-linked accounts may share one promotional eligibility.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 236.
+
+### D-082 — Payment Tokenization
+Decision: No raw card storage; provider identifiers only.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 236.
+
+### D-083 — Admin MFA
+Decision: Production owner/admin requires MFA.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 236.
+
+### D-084 — Agent Budget Inheritance
+Decision: Nested agent calls consume one bounded workflow budget.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 236.
+
+### D-085 — OAuth-First Remote MCP
+Decision: Interactive remote MCP prefers OAuth.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 236.
+
+### D-086 — Scoped API Keys
+Decision: Keys are one-time revealed, hashed, scoped, budgeted and revocable.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 236.
+
+### D-087 — False Positive Recovery
+Decision: Review/appeal plus false-positive metrics required.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 236.
+
+### D-088 — Security Kill Switches
+Decision: Independent shutdown controls for signups, trials, referrals, agent mutations, purchases and generation.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 236.
+
+### D-089 — Security Data Minimization
+Decision: Each security signal requires purpose, necessity, access and retention documentation.
+Status: APPROVED
+Source: Product Master v0.6.0, numbered section 236.
+
+### D-090 — Product UX Posture
+Decision: SPRYXEL is a premium, technical creative workstation: high information density where useful, calm hierarchy, strong canvas/workspace focus, and progressive disclosure instead of dashboard clutter.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-091 — Theme Strategy
+Decision: full Dark and Light themes are required. Dark is the default creative-workspace presentation; Light is a first-class equal theme, not an afterthought.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-092 — Glass/Translucency Boundary
+Decision: glass/translucency may be used for navigation chrome, overlays, floating toolbars, command palette, modals and transient surfaces. Dense forms, tables, logs, billing/security details and long text use opaque/high-contrast surfaces. Readability wins over visual effect.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-093 — Tokenized Color System
+Decision: use semantic tokens, never raw feature-specific colors. Core roles: canvas/background/surface/elevated/border/text-muted; brand accent; success/info/warning/danger; selection/focus; job states; quality states; cost/risk states. All tokens have dark/light variants.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-094 — Brand Palette Direction
+Decision: neutral graphite/slate foundations with a restrained spectral-violet primary accent and electric-teal secondary accent. Status colors stay semantically distinct and are never conveyed by color alone.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-095 — Typography
+Decision: Inter Variable (or metrics-compatible open fallback) for product UI; JetBrains Mono (or metrics-compatible open fallback) for code, IDs, hashes, costs where monospacing improves scanning. Typography scale is tokenized.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-096 — Spatial System
+Decision: 4 px base spacing grid; tokenized density, radius and elevation. Default workspace density is compact-comfortable with explicit compact mode for data-heavy/operator screens.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-097 — Motion
+Decision: purposeful motion only. Canonical duration tiers approximately 120/180/240 ms; avoid decorative blocking animation; respect reduced-motion preference; never hide state transition behind animation.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-098 — Desktop-First Strategy
+Decision: full production studios target desktop/laptop and remain usable from 1024 px upward; 1280–1440+ is the preferred workspace. Below 1024 px, complex studios switch to limited companion behavior rather than pretending the full canvas editor fits.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-099 — Mobile Companion
+Decision: mobile/tablet supports monitoring jobs, reviewing/approving assets, notifications, account/billing, lightweight project browsing and safe simple actions. Full complex canvas/map/UI studio editing is not a V1 mobile promise.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-100 — Global/Project Navigation
+Decision: distinguish global context from project context. Global shell owns Home/Command Center, Projects, notifications, developer/billing/account surfaces. A selected project owns DNA, Generate/Studios, Library/Graph, QA and Export.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-101 — Studio Workspace Layout
+Decision: production studios share a consistent resizable multi-pane grammar: navigation/browser pane, central canvas/work area, contextual inspector pane, with optional collapsible bottom job/timeline/output tray. Panel state may persist per user/project.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-102 — Persistent Project Context
+Decision: active project, Spryxel DNA/version, relevant asset family and generation/quality profile must remain easy to inspect without consuming the main canvas.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-103 — Command Palette and Keyboard
+Decision: Ctrl/Cmd+K command palette is first-class. Keyboard navigation, shortcut discovery and power-user flows are planned from the start; shortcuts cannot be the only way to perform an action.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-104 — Progressive Disclosure
+Decision: default screens expose the next useful action and essential quality/cost/state evidence; advanced generation/model/QA/security detail expands on demand.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-105 — Toast System
+Decision: polished, accessible success/info/warning/error toasts are standardized, deduplicated and action-aware. Critical failures cannot disappear only as transient toasts.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-106 — Notification Center
+Decision: a durable notification center covers completed/failed jobs, approvals, exports, billing/account/security events, quota/budget warnings and actionable system notices. Users can configure non-security notification preferences where appropriate.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-107 — State Model
+Decision: every major screen/operation defines loading, skeleton, empty, success, partial-success, queued, offline/degraded, recoverable error, terminal error, permission denied, budget/credit blocked and policy-restricted states as applicable.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-108 — Visible Jobs
+Decision: cost-incurring generation never feels like a black box. Queued/running/QA/repair/export states, progress evidence, cancellation eligibility and final outcome are visible through the same durable job model.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-109 — Destructive/High-Impact Actions
+Decision: destructive, irreversible, high-cost or security-sensitive operations require explicit confirmation appropriate to impact; bulk operations preview scope before execution.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-110 — Version/History UX
+Decision: assets, DNA, maps, UI packs and other versioned entities expose lineage/history/compare/restore-or-fork concepts without rewriting provenance.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-111 — Generate/Character Shared Grammar
+Decision: Generate Studio and Character Studio share request → contract/profile → cost/credit estimate → run → inspect candidates → QA/repair → approve/version/export grammar while retaining domain-specific controls.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-112 — Map Studio Grammar
+Decision: maps use structure + layers + visual canvas + POI/region graph + QA/export views. World/region/local/dungeon/minimap modes share one family architecture rather than isolated apps.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-113 — UI/HUD Studio Grammar
+Decision: UI/HUD creation uses component tree, canvas/preview, responsive/localization states, theme/DNA context, state variants and export packaging. Generated visuals do not replace structured component contracts.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-114 — Library/Graph/QA Integration
+Decision: Asset Library, Asset Graph and QA Center are linked views of the same canonical assets, lineage and quality evidence, with deep links back to originating jobs/studios.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-115 — Export Center
+Decision: export UX always shows target engine/profile, included assets/versions, validation status, compatibility warnings and provenance before producing a bundle.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-116 — Cost Transparency
+Decision: before a cost-incurring action, show the user-facing credit estimate/reservation and bounded limits appropriate to the workflow. After completion, show actual charged/released credits where relevant. Do not expose unfrozen internal commercial-price fiction as a final price.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-117 — Budget Failures
+Decision: CostGuard/budget/credit blocks use machine- and human-readable reasons, safe remediation and no hidden expensive fallback.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-118 — Safe TrustShield Messaging
+Decision: user-facing policy/trial/risk messaging never reveals device hashes, linked accounts, graph edges, thresholds, rules or exploitable antifraud detail. Preserve the canonical safe-message posture from Security/UI-UX.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-119 — API/MCP/Key UX
+Decision: developer surfaces make scopes, project binding, expiry, last use, budgets, allowed SKUs/profiles, one-time secret reveal, revocation and risk class understandable before a credential or cost-incurring automation is enabled.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-120 — Admin/Owner Separation
+Decision: Owner/Admin Console is visually and navigationally separated from normal creative workspaces. High-impact actions surface MFA/reauth/audit implications and never use silent impersonation.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-121 — Accessibility Baseline
+Decision: target WCAG 2.2 AA for product UI, including contrast, focus visibility, keyboard operability, reduced motion, semantic status communication, labels and non-color-only signals.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+### D-122 — Localization/Layout Baseline
+Decision: English remains canonical/default; pt-BR and Spanish are first-class localized layouts. Designs must tolerate approximately 35–40% text expansion, pluralization and locale-aware number/date formatting without clipped controls. Pseudo-localization is part of future implementation validation.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-003, SPR-PLAN-006.
+
+## Planning history carried forward
+
+SPR-PLAN-001 — APPROVED / COMPLETED IN MASTER v0.2.0; SPR-PLAN-002 — APPROVED / COMPLETED IN MASTER v0.3.0; SPR-PLAN-003 — APPROVED / COMPLETED IN MASTER v0.4.0; SPR-SPECIAL-001 — APPROVED / ADDED IN MASTER v0.4.1; SPR-SPECIAL-002 — APPROVED / COMPLETED IN MASTER v0.4.2; SPR-PLAN-004 — APPROVED / COMPLETED IN MASTER v0.5.0; SPR-PLAN-005 — APPROVED / COMPLETED IN MASTER v0.6.0.
+SPR-PLAN-006 — APPROVED / COMPLETED by SPRYXEL-WO-003 after objective audit; product implementation remains NOT_STARTED.
+
+## SPR-PLAN-007 implementation-planning decisions — canonical
+
+The following Work Order decisions define the implementation foundation only. They were objectively audited and promoted by SPRYXEL-WO-004; they do not admit implementation. Decisions D-001…D-122 above remain preserved unchanged.
+
+### D-123 — Primary implementation language/runtime
+Decision: Product control-plane, web and worker code use TypeScript on Node.js 22 LTS-compatible runtime. Python remains permitted only inside inference/model tooling where a model/runtime requires it; Python does not own product business invariants.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-124 — Package management
+Decision: Preserve npm as the repository package manager with one root lockfile and npm workspaces. Do not introduce pnpm/yarn/bun merely for preference.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-125 — Build/task orchestration
+Decision: Use Turborepo-compatible workspace task orchestration/caching for product packages/apps, while npm remains the package manager. Exact package version is pinned only during implementation preflight after compatibility verification.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-126 — Repository topology
+Decision: Planned product topology is `apps/web`, `apps/api`, `apps/worker`; shared packages are `packages/contracts`, `packages/domain`, `packages/db`, `packages/config`, `packages/observability`, `packages/ui`, and `packages/testkit`. Add packages only when a Work Order needs them; do not generate empty architecture theatre.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-127 — Web application
+Decision: Use Next.js App Router + React + TypeScript for the product web shell. Server-side product invariants remain in API/domain services; Next.js server features cannot become a second business backend.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-128 — UI implementation boundary
+Decision: Implement the canonical Spryxel design system with semantic CSS custom-property tokens, Tailwind CSS utility composition and accessible headless primitives such as Radix-compatible primitives. Third-party component templates may accelerate implementation but cannot own Spryxel visual identity or bypass D-090…D-122.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-129 — Web state model
+Decision: Remote/server state uses TanStack Query-compatible query/mutation semantics; shareable navigation/filter state prefers URL state; local complex-workspace presentation state may use Zustand-compatible stores. Do not create one global client store as a second product database.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-130 — Localization implementation
+Decision: Use a Next.js-compatible ICU/message-catalog i18n layer such as next-intl, with English canonical/default and pt-BR/Spanish catalogs. Pseudo-localization remains a validation mode.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-131 — API runtime
+Decision: Use Fastify + TypeScript as the modular-monolith HTTP control-plane runtime. Domain packages remain framework-agnostic.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-132 — API foundation contract
+Decision: Public/internal HTTP foundation is JSON REST under versioned `/api/v1` paths with OpenAPI 3.1 documentation. Exact product endpoint catalog is not frozen by this increment.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-133 — Boundary schemas
+Decision: Zod-compatible versioned schemas are the source of truth for request/response/environment boundary validation and may generate OpenAPI/type artifacts. Database models are not API schemas.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-134 — Error contract
+Decision: Use RFC 9457 Problem Details-compatible JSON errors with stable machine-readable Spryxel error codes, correlation/request ID, safe human detail and explicit retryability where applicable. Secrets, antifraud internals and raw provider errors never cross the boundary.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-135 — Mutation/idempotency baseline
+Decision: Cost-bearing and replay-sensitive mutations require an idempotency key and return/reuse the durable operation identity on replay. Exact endpoint-specific requirements are refined in their implementation Work Orders.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-136 — Identifier baseline
+Decision: New durable product identifiers use UUIDv7-compatible opaque IDs unless an external provider supplies its own immutable identifier. User-visible slugs are aliases, never authorization keys.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-137 — PostgreSQL implementation layer
+Decision: PostgreSQL remains canonical. Use Drizzle ORM/Drizzle Kit-compatible typed access plus checked-in SQL migrations. SQL/RLS/index/constraint capabilities may be authored directly when ORM abstractions are insufficient.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-138 — Migration policy
+Decision: Schema changes are forward-only, reviewable migrations; no production `db push`/schema-sync shortcut. Destructive migration requires explicit migration/recovery Work Order. Every migration has rollback/roll-forward reasoning appropriate to risk.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-139 — Physical data conventions
+Decision: Database names use snake_case; timestamps are UTC `timestamptz`; authoritative credits/money use integer/fixed-precision storage, never floating point; posted ledger facts are immutable and corrected by compensating entries; nullable/soft-delete behavior must be explicit per entity.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-140 — Tenant isolation baseline
+Decision: From the first tenant-owned business table, tenancy/project ownership is explicit and protected by application authorization plus PostgreSQL RLS where applicable. UI filtering is never authorization.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-141 — Queue choice
+Decision: Redis + BullMQ-compatible queues are the initial transient execution/coordination mechanism. PostgreSQL durable Job/Attempt records remain canonical; Redis/BullMQ state cannot become the only record of a job.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-142 — Object storage choice
+Decision: Use an S3-compatible storage abstraction. Local development uses MinIO-compatible object storage; production provider stays replaceable and unfrozen. Product records store object identity/metadata, not provider-specific public URLs.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-143 — Authentication provider boundary
+Decision: Final external auth provider is intentionally NOT FROZEN by SPR-PLAN-007. Auth is represented behind an application identity/session adapter. `SPRYXEL-IMP-001` does not implement real user authentication or production identity tables; auth/provider selection is admitted before the first identity/tenant slice.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-144 — Worker process boundary
+Decision: `apps/worker` is a separate Node process consuming transient work references and using shared domain/contracts. Workers cannot mutate billing/ledger/trust invariants except through authorized domain services/transactions.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-145 — External provider discipline
+Decision: Billing, auth, GPU and production object-storage providers remain adapters until a triggered Work Order has current terms/compatibility/economic evidence. No provider-specific SDK may leak through domain contracts.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-146 — Configuration contract
+Decision: Environment/configuration is typed and validated at process startup; commit only safe examples/schema, never secrets. Production-required variables fail closed. Provider secrets are injected externally.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-147 — Observability baseline
+Decision: Use structured JSON logging (Pino-compatible), correlation/request IDs and OpenTelemetry-compatible traces/metrics. Logs exclude bearer tokens, API secrets, raw payment data and prohibited TrustShield internals.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-148 — Local development profiles
+Decision: Core local infrastructure uses Docker Compose profiles designed for 24 GB RAM: PostgreSQL, Redis and MinIO are the minimal infrastructure profile; web/api/worker may run on host for fast HMR or in containers where required. GPU/inference services are separate optional profiles and are not started by default.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-149 — Local/cloud semantic parity
+Decision: Local and cloud adapters must preserve the same IDs, contracts, durable-job semantics, cost authorization hooks, QA/provenance shapes and error categories. Development shortcuts may not create an incompatible product model.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-150 — Product test stack
+Decision: Use Vitest-compatible unit tests; integration tests execute against real disposable PostgreSQL/Redis/S3-compatible services via a dedicated Docker test profile; Playwright-compatible browser tests cover critical web flows once UI flows exist. Financial/tenant/idempotency invariants require real integration coverage, not mocks alone.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-151 — Dependency direction
+Decision: Apps depend inward on shared packages. `domain` has no Next/Fastify/Drizzle/provider imports; `contracts` has no database/provider imports; `db` implements persistence for domain use; `ui` has no server/database imports; provider adapters sit at edges. Circular workspace dependencies are prohibited.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-152 — First implementation slice
+Decision: The first code Work Order is `SPRYXEL-IMP-001 — Platform Foundation Bootstrap`. It creates the workspace/topology, web shell scaffold wired to canonical design tokens, API health/readiness foundation, typed config, PostgreSQL migration harness, Redis and S3-compatible adapter health boundaries, structured observability, test harness and product build/lint/typecheck/test commands. It implements **no authentication, business entity, generation, billing, TrustShield scoring, credits, provider procurement or AI model path**.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+### D-153 — Implementation sequence
+Decision: After IMP-001, the default NECESSARY sequence is: (2) Identity/Tenancy security baseline; (3) Projects + canonical product shell/Home; (4) Asset Contract + durable Job backbone; (5) Credit Ledger + CostGuard authorization foundation; (6) Spryxel DNA + Asset core; (7) bounded local inference/Generate vertical slice; (8) QA/approval/version/export vertical slice. Each is a separate Work Order and may be recompiled if dependencies/evidence change. IMPORTANT/FUTURE modules do not jump the queue automatically.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-004, SPR-PLAN-007.
+
+
+## SPRYXEL-WO-005 preflight security supersession
+
+The following decisions respond to current external maintenance/security evidence discovered before any IMP-001 product dependency installation. They supersede only the named local/test implementation clauses. D-142 and D-148 remain preserved as historical approved planning records and are not rewritten.
+
+### D-154 — Local S3 development implementation supersession
+Decision: Preserve the private S3-compatible/provider-neutral storage abstraction, but do not use the archived MinIO community server as a new required Spryxel local/test dependency. SeaweedFS becomes the current local/test S3-compatible implementation direction. Recompiled SPRYXEL-IMP-001 must pin an exact maintained SeaweedFS release and immutable container digest after current registry, license, security and provenance preflight. Production object-storage provider remains replaceable and NOT FROZEN.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-005 preflight correction A, 2026-10-02. Supersedes only the MinIO-specific local/test clause of D-142.
+
+### D-155 — Local infrastructure profile security supersession
+Decision: The minimal local/test infrastructure profile is PostgreSQL, Redis and SeaweedFS S3-compatible storage. GPU/inference remains separate optional/off-by-default. Local infrastructure images must be exact-version/digest pinned, use current maintained upstreams, and verify available image-signature/provenance evidence during implementation preflight. A future local emulator replacement requires an explicit audited correction rather than silent substitution.
+Status: APPROVED FOR PLANNING
+Source: SPRYXEL-WO-005 preflight correction A, 2026-10-02. Supersedes only the MinIO-specific local-service clause of D-148.
+
+
+## Identity/Tenancy provider decisions — pre-implementation canonical candidate
+
+### D-156 — V1 external authentication/session provider
+Decision: WorkOS AuthKit is the selected V1 external authentication/session provider, behind the application identity/session adapter. This selection applies to human authentication and external session lifecycle only. Exact SDK versions remain implementation-preflight pins. A later provider migration requires a new explicit decision/preflight.
+Status: APPROVED FOR PLANNING
+Source: Auth provider preflight, 2026-10-02.
+
+### D-157 — Spryxel owns tenant authorization
+Decision: Spryxel PostgreSQL is canonical for internal identity linkage, tenant, tenant membership, product roles/permissions, resource ownership and authorization state. WorkOS organization/role claims, if used, are external assertions that must map to local canonical records and never bypass application authorization or PostgreSQL RLS.
+Status: APPROVED FOR PLANNING
+Source: Auth provider preflight, 2026-10-02.
+
+### D-158 — Provider-neutral identity mapping
+Decision: Durable internal identities use Spryxel-owned UUIDv7-compatible IDs. WorkOS user/session/organization identifiers are external provider references only and cannot serve as tenant/business primary authorization keys. Provider replacement must be possible by remapping external subjects without changing tenant/business identifiers.
+Status: APPROVED FOR PLANNING
+Source: Auth provider preflight, 2026-10-02.
+
+### D-159 — Authentication token/session validation
+Decision: The Fastify API independently validates authentication tokens using trusted JWKS plus explicit issuer, audience, expiry and subject checks. Browser UI state is never authorization. Access/refresh/bearer credentials are never stored in localStorage/sessionStorage. Protected mutations fail closed on uncertain authentication state.
+Status: APPROVED FOR PLANNING
+Source: Auth provider preflight, 2026-10-02.
+
+### D-160 — Session and step-up security
+Decision: Sessions must support bounded lifetime, explicit revocation, sign-out invalidation and user-visible security/session management where applicable. Sensitive/high-impact actions require recent authentication or equivalent step-up. Production Owner/Admin continues to require MFA under D-083. Passkeys and TOTP-capable MFA are preferred provider capabilities; exact end-user method policy is refined by the Identity/Tenancy Work Order.
+Status: APPROVED FOR PLANNING
+Source: Auth provider preflight, 2026-10-02.
+
+### D-161 — Identity/Tenancy test and provider-failure boundary
+Decision: Tenant authorization/RLS correctness must be provable in deterministic local/CI tests without requiring live provider credentials. Tests include local JWT/JWKS contract fixtures, invalid signature/issuer/audience/expiry cases and real PostgreSQL cross-tenant RLS evidence. Optional provider staging smoke is additive when credentials exist. No fake/local identity adapter may be enabled in production configuration.
+Status: APPROVED FOR PLANNING
+Source: Auth provider preflight, 2026-10-02.

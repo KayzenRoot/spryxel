@@ -1,21 +1,40 @@
 {
   "schemaVersion": 2,
-  "status": "SOURCE_PACK_CANDIDATE",
-  "phase": "GEF_GITHUB_GOVERNANCE_APPROVED",
-  "stopState": "SPRYXEL_WO_001_APPROVED",
-  "completedThroughModule": "GEF_GITHUB_GOVERNANCE_APPROVED",
-  "nextLegalStage": "SPRYXEL_PRODUCT_DISCOVERY_PLANNING_AFTER_MERGE",
+  "status": "CANONICAL",
+  "phase": "ASSET_CONTRACT_DURABLE_JOB_BACKBONE_COMPLETE",
+  "stopState": "SPRYXEL_WO_008_COMPLETE",
+  "completedThroughModule": "SPRYXEL_IMP_004_ASSET_CONTRACT_DURABLE_JOB_BACKBONE",
+  "nextLegalStage": "CREDIT_LEDGER_COSTGUARD_WORK_ORDER_REQUIRED",
   "v11": {
     "gefVersion": "1.1.1",
     "gefReleaseSourceSha": "1dc030f1358eab0347043a3d54c7fc311c7c2123",
-    "baseSha": "10dca04e38cfcd2e07335faf9078cc6041766c02",
-    "lastApprovedWorkOrder": "SPRYXEL-WO-001",
-    "trackingIssue": 2,
-    "pullRequest": 3,
-    "auditedExecutionHeadSha": "db68f8aeb85beed2f8bbfba98fcc8fd562f7515b",
+    "lastApprovedWorkOrder": "SPRYXEL-WO-008",
+    "trackingIssue": 29,
+    "pullRequest": 30,
+    "auditedFinalHeadSha": "fe54bfac66bcb85c10d56c4c8a0c9c7526bec624",
     "auditVerdict": "APPROVED",
-    "productImplementation": "NOT_STARTED",
-    "productBaseline": "NOT_BASELINED",
+    "correctionDelta01": "SATISFIED",
+    "correctionDelta02": "SATISFIED",
+    "postMergeValidation": "PASS",
+    "productImplementation": "ASSET_CONTRACT_DURABLE_JOB_BACKBONE_COMPLETE",
+    "productBaseline": "CANONICAL_PRODUCT_MASTER_V0_6_0_DECOMPOSED",
+    "planningCompletedThrough": "SPR-PLAN-007",
+    "implementationCompletedThrough": "SPRYXEL-IMP-004",
+    "nextImplementationIncrement": "CREDIT_LEDGER_COSTGUARD_AUTHORIZATION_FOUNDATION",
+    "nextImplementationIncrementStatus": "NOT_ADMITTED",
+    "commercialPricing": "NOT_FROZEN",
+    "benchmarksAndMeasuredCogs": "NOT_RUN_NOT_AVAILABLE",
+    "authProvider": "WORKOS_AUTHKIT_V1_SELECTED",
+    "authSdkPins": {
+      "authkitNextjs": "4.4.0",
+      "workosNode": "10.14.0",
+      "jose": "6.2.12",
+      "uuid": "14.0.2"
+    },
+    "billingProvider": "NOT_FROZEN",
+    "productionGpuModelProvider": "NOT_FROZEN",
+    "productionObjectStorageProvider": "NOT_FROZEN",
+    "localTestObjectStorage": "SEAWEEDFS_S3_COMPATIBLE",
     "rulesetBaseline": "ACTIVE_MAIN_RULESET_24340349",
     "requiredChecks": [
       "Repository validation",
@@ -23,6 +42,52 @@
       "Gitleaks secrets",
       "Trivy filesystem and configuration"
     ],
-    "driftPolicy": "RECONCILE_AGAINST_AUTHORIZED_GIT_DELTA_DO_NOT_REWRITE_GEF_BASELINE"
+    "sonarQualityGateOnAuditedHead": "PASS",
+    "sonarSecurityHotspotsOnAuditedHead": 0,
+    "driftPolicy": "RECONCILE_AGAINST_AUTHORIZED_GIT_DELTA_DO_NOT_REWRITE_GEF_BASELINE",
+    "authProviderDecisionRange": "D-156..D-161",
+    "authProviderPreflightDate": "2026-10-02",
+    "projects": {
+      "persistence": "POSTGRESQL_CANONICAL",
+      "rls": "ENABLED_FORCED",
+      "creationRoles": [
+        "OWNER",
+        "ADMIN"
+      ],
+      "readRoles": [
+        "OWNER",
+        "ADMIN",
+        "MEMBER"
+      ],
+      "idempotencyMapping": "WRITE_ONCE_SELECT_INSERT_RUNTIME_ROLE",
+      "durableAuditEvent": "project.created",
+      "shellHomeProjectsOverview": "IMPLEMENTED"
+    },
+    "correctionDelta03": "SATISFIED",
+    "correctionDelta04": "SATISFIED",
+    "correctionDelta05": "SATISFIED",
+    "sonarIssueDetails": "NOT_AVAILABLE_HTTP_403",
+    "sonarIndependentFindingConclusion": "NO_HIGH_CRITICAL_BLOCKER_DEMONSTRATED",
+    "assetContractJobs": {
+      "assetContractIdentity": "VERSIONED_IMMUTABLE_POSTGRESQL_CANONICAL",
+      "executableJobKind": "asset_contract.integrity_check.v1",
+      "jobAttemptState": "POSTGRESQL_CANONICAL",
+      "queueProjection": "REDIS_BULLMQ_TRANSIENT_RECONSTRUCTABLE",
+      "workerIdentity": "SEPARATE_LEAST_PRIVILEGE",
+      "promotionState": "COMPLETE"
+    },
+    "promotionHeadSha": "2e3d9cdd09ed1ff31655183e54f6d23bd3c0716e",
+    "mergedMainSha": "75054119d4f0f110ed766b8094f1d3c1f17e59f3",
+    "postMergeRequiredChecks": {
+      "repositoryValidation": 116394735439,
+      "pipelineIntegrity": 116394679485,
+      "gitleaksSecrets": 116394677268,
+      "trivyFilesystemAndConfiguration": 116394678499
+    },
+    "postMergeSonarCloud": {
+      "checkRun": 116394955206,
+      "conclusion": "PASS"
+    },
+    "postMergeSocketProjectReport": 116394711114
   }
 }
