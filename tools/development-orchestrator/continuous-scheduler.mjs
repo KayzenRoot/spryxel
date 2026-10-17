@@ -63,4 +63,4 @@ export function simulateContinuousDispatch(manifest){
   ]};
 }
 async function main(){if(!process.argv[2])throw Error('Usage: node continuous-scheduler.mjs <manifest.json>');console.log(JSON.stringify(simulateContinuousDispatch(JSON.parse(await readFile(manifestPathArg(process.argv[2]),'utf8'))),null,2))}
-if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href)main().catch(e=>{console.error('CONTROL_TOWER_BLOCKED:',e.code==='ENOENT'?'manifest not found':'manifest rejected');process.exitCode=2});
+if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href)main().catch(e=>{console.error('CONTROL_TOWER_BLOCKED: manifest unavailable or invalid');process.exitCode=2});
