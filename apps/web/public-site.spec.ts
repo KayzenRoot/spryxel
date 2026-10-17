@@ -12,10 +12,10 @@ const pages = [
   '/cookies',
 ] as const;
 
-test('localized public pages render with language-specific metadata and landmarks', async ({
-  page,
-}) => {
-  for (const locale of locales) {
+for (const locale of locales) {
+  test(`localized public pages render with language-specific metadata and landmarks: ${locale}`, async ({
+    page,
+  }) => {
     for (const slug of pages) {
       const path = `/${locale}${slug}`;
       const response = await page.request.get(path);
@@ -27,8 +27,10 @@ test('localized public pages render with language-specific metadata and landmark
       expect(html).toContain('<title>');
       expect(html).toContain('Spryxel');
     }
-  }
+  });
+}
 
+test('Portuguese public navigation sets document language', async ({ page }) => {
   await page.goto('/pt-BR');
   await expect(page.locator('html')).toHaveAttribute('lang', 'pt-BR');
 });
