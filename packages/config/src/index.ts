@@ -15,6 +15,7 @@ const runtimeConfigSchema = z
       .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
       .default('info'),
     databaseUrl: optionalString,
+    workerDatabaseUrl: optionalString,
     redisUrl: optionalString,
     s3Endpoint: optionalString,
     s3Region: z.string().trim().min(1).default('us-east-1'),
@@ -34,6 +35,17 @@ const runtimeConfigSchema = z
       context.addIssue({
         code: 'custom',
         path: ['databaseUrl'],
+        message: 'must use the postgres or postgresql URL scheme',
+      });
+    }
+
+    if (
+      config.workerDatabaseUrl &&
+      !isUrlWithProtocols(config.workerDatabaseUrl, ['postgres:', 'postgresql:'], true)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['workerDatabaseUrl'],
         message: 'must use the postgres or postgresql URL scheme',
       });
     }
@@ -68,11 +80,22 @@ const runtimeConfigSchema = z
       });
     }
 
-    if (config.nodeEnv === 'production' && !config.databaseUrl) {
+    if (config.nodeEnv === 'production' && config.serviceName === 'api' && !config.databaseUrl) {
       context.addIssue({
         code: 'custom',
         path: ['databaseUrl'],
         message: 'is required in production',
+      });
+    }
+    if (
+      config.nodeEnv === 'production' &&
+      config.serviceName === 'worker' &&
+      !config.workerDatabaseUrl
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['workerDatabaseUrl'],
+        message: 'is required for the restricted worker service role in production',
       });
     }
 
@@ -139,6 +162,7 @@ export function parseRuntimeConfig(
     port: source.PORT,
     logLevel: source.LOG_LEVEL,
     databaseUrl: source.DATABASE_URL,
+    workerDatabaseUrl: source.WORKER_DATABASE_URL,
     redisUrl: source.REDIS_URL,
     s3Endpoint: source.S3_ENDPOINT,
     s3Region: source.S3_REGION,
@@ -170,6 +194,7 @@ export function redactRuntimeConfig(config: RuntimeConfig): Record<string, unkno
     port: config.port,
     logLevel: config.logLevel,
     databaseUrl: config.databaseUrl ? '[REDACTED]' : undefined,
+    workerDatabaseUrl: config.workerDatabaseUrl ? '[REDACTED]' : undefined,
     redisUrl: config.redisUrl ? '[REDACTED]' : undefined,
     s3Endpoint: config.s3Endpoint,
     s3Region: config.s3Region,

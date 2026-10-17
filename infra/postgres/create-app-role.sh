@@ -2,15 +2,28 @@
 set -eu
 
 : "${DATABASE_APP_PASSWORD:?DATABASE_APP_PASSWORD is required to create the restricted app role}"
+: "${DATABASE_WORKER_PASSWORD:?DATABASE_WORKER_PASSWORD is required to create the restricted worker role}"
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
   --set=app_password="$DATABASE_APP_PASSWORD" <<'SQL'
-CREATE ROLE spryxel_app
-  LOGIN
-  NOSUPERUSER
-  NOCREATEDB
-  NOCREATEROLE
-  NOINHERIT
-  NOBYPASSRLS
+SELECT format(
+  'CREATE ROLE spryxel_app LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS PASSWORD %L',
+  :'app_password'
+)
+WHERE NOT EXISTS (SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = 'spryxel_app')
+\gexec
+ALTER ROLE spryxel_app LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS
   PASSWORD :'app_password';
+SQL
+
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
+  --set=worker_password="$DATABASE_WORKER_PASSWORD" <<'SQL'
+SELECT format(
+  'CREATE ROLE spryxel_worker LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS NOREPLICATION PASSWORD %L',
+  :'worker_password'
+)
+WHERE NOT EXISTS (SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = 'spryxel_worker')
+\gexec
+ALTER ROLE spryxel_worker LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS NOREPLICATION
+  PASSWORD :'worker_password';
 SQL
