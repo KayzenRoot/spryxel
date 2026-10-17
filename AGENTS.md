@@ -7,9 +7,9 @@ Read in order: `.engineering/CHECKPOINT.json`, Decisions Ledger/ADRs, Scope, Def
 Codex executes only an explicitly admitted Work Order and its current Context Lock. Inspect the exact base before mutation. Do not invent missing product decisions or provider selections.
 
 ## Current execution
-`SPRYXEL-WO-008 / SPRYXEL-IMP-004` is COMPLETE after independent HIGH_ASSURANCE APPROVAL, authorized checkpoint promotion, protected squash merge and exact-main post-merge validation. Its historical Context Lock is stale/closed.
+`SPRYXEL-WO-009 / SPRYXEL-IMP-005` is COMPLETE in the post-merge closeout candidate after independent HIGH_ASSURANCE APPROVAL, protected squash merge of PR #87, and successful checks on exact `main@f1ce1df2dad7aabb45dd7d725d31821f30e21a2c`. The WO-009 Context Lock is historical and must remain stale/closed after this promotion; do not reuse it.
 
-The next NECESSARY slice is Credit Ledger + CostGuard authorization, but it remains `NOT_ADMITTED` until a new Work Order and Context Lock are created from the current main base.
+The next NECESSARY slice is Spryxel DNA + Asset core. It remains `NOT_ADMITTED` until a new Work Order and Context Lock are created from the then-current `main` base.
 
 ## Safety
 No force-push, history rewrite, destructive GitHub mutation, visibility change or executor self-promotion. Checkpoint promotion is an auditor action after objective `APPROVED`, under D-0006. Critical source/base drift makes an execution Context Lock STALE. Missing required permissions means BLOCKED, not weakened controls.

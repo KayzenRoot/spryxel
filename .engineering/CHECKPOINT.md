@@ -5,7 +5,19 @@ Status: CANONICAL
 Repository: `KayzenRoot/spryxel`  
 GEF: `@gef-bootstrap/cli@1.1.1`
 
-## Estado canônico
+## SPRYXEL-WO-009 pós-merge — candidato de closeout documental
+
+- Work Order: `SPRYXEL-WO-009 / SPRYXEL-IMP-005 — Credit Ledger + CostGuard authorization foundation` — COMPLETE no candidato de promoção.
+- Base de execução: `main@34bad103d8066b6d31c5947c20a07ef52032c5d7`.
+- Candidato de código aprovado: `6cbd9210573815c82f0af60d274c41f31ef0b2bb`; auditoria HIGH_ASSURANCE independente: APPROVED.
+- HEAD revisado da PR #87: `3f14441ac48d0067dfad8214ba29dfcb2e285a8a`; squash merge protegido por PR em `main@f1ce1df2dad7aabb45dd7d725d31821f30e21a2c`.
+- Árvore pós-merge: `efee1dca1a54942f35ab5d0f227e3f0d24919ad8`, idêntica à árvore revisada da PR.
+- Checks no exact main: Repository validation `117263474902`, Pipeline integrity `117263474185`, Gitleaks secrets `117263474196`, Trivy filesystem and configuration `117263474575`, SonarCloud `117263669389` e Socket Project Report `117263477361`: SUCCESS.
+- Estado do checkpoint neste worktree: candidato documental de promoção baseado em `main@f1ce1df`; ainda depende de PR documental protegido para atualizar o checkpoint canônico em `main`. `promotionHeadSha` permanece não definido até haver integração protegida deste candidato.
+- Próxima etapa conforme D-153: Spryxel DNA + Asset core, `NOT_ADMITTED` até Work Order e Context Lock próprios no `main` então atual.
+- Limites: CostGuard default `DENY`; sem saldo pago, preço, pagamento, COGS comprovado, provider ou execução de custo real. A cobertura Sonar de código novo é 0,0%; demais limitações constam do relatório de auditoria.
+
+## Snapshot histórico do checkpoint antes do merge de WO-009
 
 - `SPRYXEL-WO-001`: COMPLETE.
 - `SPRYXEL-WO-002`: COMPLETE.
@@ -52,7 +64,7 @@ GEF: `@gef-bootstrap/cli@1.1.1`
 - SonarCloud Code Analysis: `111339499220` PASS.
 - Socket Security Project Report: `111339432734` PASS.
 
-## Próxima ação legal
+## Próxima ação legal registrada no snapshot histórico
 
 O próximo incremento NECESSARY é `Credit Ledger + CostGuard authorization foundation`; permanece `NOT_ADMITTED` até a abertura de Work Order e Context Lock próprios sobre o `main` atual. Não há autorização para iniciar WO-009 nesta ordem.
 
@@ -68,3 +80,11 @@ O próximo incremento NECESSARY é `Credit Ledger + CostGuard authorization foun
 - Sonar PR #30: 76 issues novos, 0 hotspots, 1.7% duplicação, Quality Gate PASS; detalhe completo indisponível por HTTP 403 e não tratado como blocker isolado. Auditor não demonstrou blocker HIGH/CRITICAL.
 - Limitação UX residual LOW: Jobs Center mostra os 50 resultados mais recentes, sem navegação ao próximo cursor; a API é bounded/paginada. WorkOS/staging real não foi testado.
 - D-001…D-161, WorkOS/AuthKit, GEF 1.1.1, regras e `.gef` foram preservados. Não houve implementação de WO-009.
+
+## SPRYXEL-WO-009 / IMP-005 — COMPLETE no candidato de promoção
+
+- O PR #87 foi squash-merged em `main@f1ce1df2dad7aabb45dd7d725d31821f30e21a2c` pelo proprietário, após auditoria independente APPROVED no candidato de código `6cbd9210573815c82f0af60d274c41f31ef0b2bb`.
+- O HEAD revisado da PR (`3f14441ac48d0067dfad8214ba29dfcb2e285a8a`) e o merge têm a mesma árvore `efee1dca1a54942f35ab5d0f227e3f0d24919ad8`; a diferença entre candidato de código e HEAD revisado foi documental.
+- Checks pós-merge no exact main: Repository validation `117263474902`, Pipeline integrity `117263474185`, Gitleaks secrets `117263474196`, Trivy filesystem and configuration `117263474575`, SonarCloud Code Analysis `117263669389`, Socket Security: Project Report `117263477361`: SUCCESS.
+- Aceitação e evidências: `.engineering/evidence/SPRYXEL-WO-009-EVIDENCE.md`; revisão independente e limitações HIGH_ASSURANCE: `.engineering/evidence/SPRYXEL-WO-009-INDEPENDENT-AUDIT.md`.
+- O Context Lock histórico de WO-009 permanece preservado sem edição e não pode ser reutilizado. A próxima NECESSARY etapa é Spryxel DNA + Asset core e continua `NOT_ADMITTED` até Work Order/Context Lock novos.

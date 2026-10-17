@@ -27,8 +27,8 @@ A Work Order/Context Lock is STALE if its base SHA changes or a critical authori
 - GEF package: `@gef-bootstrap/cli@1.1.1`
 - GEF v1.1.1 immutable release source: `KayzenRoot/gef-bootstrap@1dc030f1358eab0347043a3d54c7fc311c7c2123`
 - Product seed: v0.6.0 / `cbb93ec44886eba6cc9b24a072eb23e0ad5ea05a`
-- Last objectively approved Work Order: `SPRYXEL-WO-008` (COMPLETE on main after protected merge and post-merge validation)
-- Next legal stage: Credit Ledger + CostGuard authorization under a new Work Order and Context Lock; remains NOT_ADMITTED
+- Last objectively approved Work Order: `SPRYXEL-WO-009 / SPRYXEL-IMP-005` (COMPLETE in the post-merge closeout candidate; PR #87 merged and exact-main checks passed)
+- Next legal stage: Spryxel DNA + Asset core under a new Work Order and Context Lock; remains NOT_ADMITTED
 
 Post-release commits in the GEF repository may be consulted only for evidence about publication/rollout. They do not redefine the installed v1.1.1 runtime contract.
 
@@ -101,4 +101,10 @@ The historical WO-007 Context Lock is STALE/closed and must not be reused. The n
 
 `SPRYXEL-WO-008 / SPRYXEL-IMP-004` is COMPLETE on `main@75054119d4f0f110ed766b8094f1d3c1f17e59f3`, after independent APPROVED on candidate `fe54bfac66bcb85c10d56c4c8a0c9c7526bec624`, checkpoint promotion `2e3d9cdd09ed1ff31655183e54f6d23bd3c0716e`, PR #30 protected squash merge, and exact-main post-merge validation. The 4 required checks, Sonar Quality Gate, and Socket Project Report passed on that exact `main` SHA. The tested tree exactly matches the merged tree. PostgreSQL-canonical immutable Asset Contracts and Job/Attempt state, reconstructable transient Redis/BullMQ, the separate least-privilege worker, and bounded recovery/cancellation are canonical implementation. D-001…D-161 remain unchanged.
 
-The WO-008 Context Lock is closed/stale after canonical promotion and must not be reused. Credit Ledger + CostGuard authorization remains NOT_ADMITTED until a new Work Order and Context Lock are created from the current main base.
+The WO-008 Context Lock is closed/stale after canonical promotion and must not be reused.
+
+## SPRYXEL-WO-009 completion binding
+
+`SPRYXEL-WO-009 / SPRYXEL-IMP-005 — Credit Ledger + CostGuard authorization foundation` is COMPLETE on merged `main@f1ce1df2dad7aabb45dd7d725d31821f30e21a2c` after independent HIGH_ASSURANCE APPROVAL of code candidate `6cbd9210573815c82f0af60d274c41f31ef0b2bb`, PR #87 protected squash merge from reviewed PR head `3f14441ac48d0067dfad8214ba29dfcb2e285a8a`, and successful exact-main required/security/quality checks. The merged tree `efee1dca1a54942f35ab5d0f227e3f0d24919ad8` equals the reviewed PR tree. Audit scope, AC01–AC28 results, known limits and post-merge receipts are recorded in `.engineering/evidence/SPRYXEL-WO-009-INDEPENDENT-AUDIT.md` and `.engineering/evidence/SPRYXEL-WO-009-EVIDENCE.md`.
+
+The historical WO-009 Context Lock remains unchanged and is stale/closed after merge; it must not be reused. Credit Ledger + CostGuard is a non-commercial authorization foundation: CostGuard defaults to DENY, paid balance/spend and providers remain inactive/unfrozen, and no real-cost execution is enabled. The next NECESSARY increment is Spryxel DNA + Asset core, NOT_ADMITTED until a new Work Order and Context Lock are created from the then-current `main` base.
