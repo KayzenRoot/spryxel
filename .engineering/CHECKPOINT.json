@@ -76,7 +76,7 @@
       "workerIdentity": "SEPARATE_LEAST_PRIVILEGE",
       "promotionState": "COMPLETE"
     },
-    "promotionHeadSha": null,
+    "promotionHeadSha": "63ff547bb4c61c15ade3200fc57c55ceb1a6dd6f",
     "mergedMainSha": "f1ce1df2dad7aabb45dd7d725d31821f30e21a2c",
     "postMergeRequiredChecks": {
       "repositoryValidation": 117263474902,
