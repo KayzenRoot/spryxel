@@ -32,6 +32,35 @@ export const requestIdPattern = /^[A-Za-z0-9._:-]{1,80}$/;
 export const projectIdPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+const postgresInt8Maximum = 9_223_372_036_854_775_807n;
+const nonNegativeInt8DecimalSchema = z
+  .string()
+  .regex(/^(?:0|[1-9][0-9]{0,18})$/)
+  .refine((value) => BigInt(value) <= postgresInt8Maximum);
+
+export const creditSummaryResponseSchema = z
+  .object({
+    tenantId: z.string().regex(projectIdPattern),
+    asOf: z.iso.datetime(),
+    requestId: z.string().regex(requestIdPattern),
+    balances: z
+      .object({
+        availableCredits: nonNegativeInt8DecimalSchema,
+        reservedCredits: nonNegativeInt8DecimalSchema,
+        committedCredits: nonNegativeInt8DecimalSchema,
+      })
+      .strict(),
+    counters: z
+      .object({
+        openReservations: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER),
+        ledgerEntries: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER),
+      })
+      .strict(),
+  })
+  .strict();
+
+export type CreditSummaryResponse = z.infer<typeof creditSummaryResponseSchema>;
+
 const normalizedProjectNameSchema = z
   .string()
   .transform((value) => value.normalize('NFC').trim().replace(/\s+/gu, ' '))

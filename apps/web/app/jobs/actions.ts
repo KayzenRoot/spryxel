@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireWebSession } from '../../src/auth/session';
 import { assertJobApiError, cancelJob } from '../../src/jobs/api';
@@ -17,7 +18,9 @@ export async function cancelJobAction(formData: FormData): Promise<void> {
   } catch (error) {
     assertJobApiError(error);
   }
+  const jobPath = `/jobs/${encodeURIComponent(jobId)}`;
+  revalidatePath(jobPath);
   redirect(
-    `/jobs/${encodeURIComponent(jobId)}?projectId=${encodeURIComponent(projectId)}&tenantId=${encodeURIComponent(tenantId)}`,
+    `${jobPath}?projectId=${encodeURIComponent(projectId)}&tenantId=${encodeURIComponent(tenantId)}`,
   );
 }

@@ -72,27 +72,12 @@ function ensureJobsProject(scope: string, tenantId: string, subjectId: string): 
   return project;
 }
 
-function ensureJobsFixture(
+function ensureJobsFixtureForStatus(
   scope: string,
   tenantId: string,
   projectId: string,
-): SafeJob | undefined {
-  const fixtureStatus =
-    scope === 'jobs-populated' ||
-    scope.startsWith('jobs-populated-') ||
-    scope === 'jobs-mobile' ||
-    scope === 'jobs-cancel-raced' ||
-    scope === 'jobs-cancel-unavailable'
-      ? 'queued'
-      : scope.startsWith('jobs-')
-        ? scope.slice(5).replaceAll('-', '_')
-        : '';
-  if (
-    !['queued', 'running', 'cancel_requested', 'succeeded', 'failed', 'cancelled'].includes(
-      fixtureStatus,
-    )
-  )
-    return undefined;
+  fixtureStatus: SafeJob['status'],
+): SafeJob {
   const id = uuidV7From(`job:${scope}`);
   const existing = jobs.get(id)?.job;
   if (existing) return existing;
@@ -105,7 +90,7 @@ function ensureJobsFixture(
     id,
     projectId,
     operationType: 'asset_contract.integrity_check.v1',
-    status: fixtureStatus as SafeJob['status'],
+    status: fixtureStatus,
     retryable: fixtureStatus === 'queued',
     cancelEligible: fixtureStatus === 'queued' || fixtureStatus === 'running',
     attemptCount,
@@ -138,7 +123,7 @@ function ensureJobsFixture(
               status:
                 fixtureStatus === 'running' || fixtureStatus === 'cancel_requested'
                   ? 'running'
-                  : (fixtureStatus as SafeJob['attempts'][number]['status']),
+                  : fixtureStatus,
               startedAt: '2026-10-01T12:00:30.000Z',
               completedAt:
                 fixtureStatus === 'running' || fixtureStatus === 'cancel_requested'
@@ -151,6 +136,44 @@ function ensureJobsFixture(
   };
   jobs.set(id, { tenantId, job });
   return job;
+}
+
+function ensureJobsFixture(
+  scope: string,
+  tenantId: string,
+  projectId: string,
+): SafeJob | undefined {
+  if (scope === 'jobs-all-states') {
+    for (const status of [
+      'queued',
+      'running',
+      'cancel_requested',
+      'succeeded',
+      'failed',
+      'cancelled',
+    ] satisfies SafeJob['status'][]) {
+      ensureJobsFixtureForStatus(`${scope}:${status}`, tenantId, projectId, status);
+    }
+    return undefined;
+  }
+
+  const fixtureStatus =
+    scope === 'jobs-populated' ||
+    scope.startsWith('jobs-populated-') ||
+    scope === 'jobs-mobile' ||
+    scope === 'jobs-cancel-raced' ||
+    scope === 'jobs-cancel-unavailable'
+      ? 'queued'
+      : scope.startsWith('jobs-')
+        ? scope.slice(5).replaceAll('-', '_')
+        : '';
+  if (
+    !['queued', 'running', 'cancel_requested', 'succeeded', 'failed', 'cancelled'].includes(
+      fixtureStatus,
+    )
+  )
+    return undefined;
+  return ensureJobsFixtureForStatus(scope, tenantId, projectId, fixtureStatus as SafeJob['status']);
 }
 
 const projectRepository: ProjectRepositoryPort = {

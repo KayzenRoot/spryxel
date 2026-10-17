@@ -23,6 +23,11 @@ import type {
   SessionRevocationIntentStatus,
   TenantMembership,
 } from '@spryxel/identity';
+import {
+  CreditIntegrityIncidentCaptureError,
+  persistCreditIntegrityIncident,
+  persistCreditTerminalJobIntegrityIncident,
+} from './credit-ledger.js';
 
 const migrationTable = 'public._spryxel_schema_migrations';
 
@@ -758,6 +763,7 @@ export async function cancelDurableJob(
 ): Promise<SafeJob | null> {
   await database.validateRuntimeRole();
   const client = await database.pool.connect();
+  let clientReleased = false;
   try {
     await client.query('BEGIN');
     await setSecurityContext(client, input.subjectId, input.tenantId, input.projectId);
@@ -774,10 +780,35 @@ export async function cancelDurableJob(
     await client.query('COMMIT');
     return job;
   } catch (error) {
-    await client.query('ROLLBACK');
+    let rollbackConfirmed = false;
+    try {
+      await client.query('ROLLBACK');
+      rollbackConfirmed = true;
+    } catch {
+      // Preserve the operation error and discard the uncertain connection below.
+    }
+    client.release(rollbackConfirmed ? undefined : true);
+    clientReleased = true;
+    if (rollbackConfirmed) {
+      try {
+        await persistCreditIntegrityIncident(
+          database,
+          input,
+          {
+            operation: 'job_cancel',
+            correlationId: `job-cancel:${input.jobId}`,
+            jobId: input.jobId,
+          },
+          error,
+        );
+      } catch {
+        // Preserve fail-closed behavior while exposing a safe error name to the API logger.
+        throw new CreditIntegrityIncidentCaptureError();
+      }
+    }
     throw error;
   } finally {
-    client.release();
+    if (!clientReleased) client.release();
   }
 }
 
@@ -1053,11 +1084,21 @@ export async function finishDurableJob(
   },
 ): Promise<boolean> {
   await database.validateRuntimeRole();
-  const result = await database.pool.query<{ finish_job: boolean }>(
-    'SELECT platform.finish_job($1, $2, $3, $4, $5) AS finish_job',
-    [input.jobId, input.attemptId, input.leaseToken, input.outcome, input.failureCode ?? null],
-  );
-  return result.rows[0]?.finish_job ?? false;
+  try {
+    const result = await database.pool.query<{ finish_job: boolean }>(
+      'SELECT platform.finish_job($1, $2, $3, $4, $5) AS finish_job',
+      [input.jobId, input.attemptId, input.leaseToken, input.outcome, input.failureCode ?? null],
+    );
+    return result.rows[0]?.finish_job ?? false;
+  } catch (error) {
+    try {
+      await persistCreditTerminalJobIntegrityIncident(database, input, error);
+    } catch {
+      // Preserve fail-closed behavior while exposing a safe error name to the worker logger.
+      throw new CreditIntegrityIncidentCaptureError();
+    }
+    throw error;
+  }
 }
 
 function getIntentForUpdate(
@@ -1275,8 +1316,49 @@ async function validateRuntimePoolRole(pool: Pool): Promise<void> {
           AND relation.relname IN ('asset_contract', 'asset_contract_version', 'durable_job', 'job_create_idempotency', 'job_attempt')
       )
       AND (
+        SELECT count(*) = 6 AND bool_and(
+          relation.relrowsecurity AND relation.relforcerowsecurity
+          AND NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'SELECT')
+          AND NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'INSERT')
+          AND NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'UPDATE')
+          AND NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'DELETE')
+          AND NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRUNCATE')
+          AND NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'REFERENCES')
+          AND NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRIGGER')
+           AND NOT pg_catalog.has_any_column_privilege(role.oid, relation.oid, 'SELECT')
+          AND NOT pg_catalog.has_any_column_privilege(role.oid, relation.oid, 'INSERT')
+          AND NOT pg_catalog.has_any_column_privilege(role.oid, relation.oid, 'UPDATE')
+          AND NOT pg_catalog.has_any_column_privilege(role.oid, relation.oid, 'REFERENCES')
+        )
+        FROM pg_catalog.pg_class relation
+        JOIN pg_catalog.pg_namespace namespace ON namespace.oid = relation.relnamespace
+        WHERE namespace.nspname = 'platform'
+          AND relation.relname IN (
+            'credit_wallet', 'credit_lot', 'credit_reservation', 'credit_event',
+            'credit_ledger_entry', 'credit_integrity_incident'
+          )
+      )
+      AND (
+        SELECT count(*) = 1 AND bool_and(
+          relation.relkind = 'v'
+          AND pg_catalog.has_table_privilege(role.oid, relation.oid, 'SELECT')
+          AND NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'INSERT')
+          AND NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'UPDATE')
+          AND NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'DELETE')
+          AND NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRUNCATE')
+          AND NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'REFERENCES')
+          AND NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'TRIGGER')
+           AND NOT pg_catalog.has_any_column_privilege(role.oid, relation.oid, 'INSERT')
+           AND NOT pg_catalog.has_any_column_privilege(role.oid, relation.oid, 'UPDATE')
+           AND NOT pg_catalog.has_any_column_privilege(role.oid, relation.oid, 'REFERENCES')
+        )
+        FROM pg_catalog.pg_class relation
+        JOIN pg_catalog.pg_namespace namespace ON namespace.oid = relation.relnamespace
+        WHERE namespace.nspname = 'platform' AND relation.relname = 'credit_wallet_summary'
+      )
+      AND (
         (
-          SELECT count(*) = 8 AND bool_and(
+          SELECT count(*) = 13 AND bool_and(
             pg_catalog.has_function_privilege(role.oid, function_name, 'EXECUTE')
           )
           FROM unnest(ARRAY[
@@ -1287,13 +1369,31 @@ async function validateRuntimePoolRole(pool: Pool): Promise<void> {
             'platform.is_project_created_event(text)',
             'platform.current_project_id()',
             'platform.create_integrity_job(text, text, text, text, text)',
-            'platform.request_job_cancel(uuid)'
+            'platform.request_job_cancel(uuid)',
+            'platform.reserve_credit_ledger(uuid, bigint, text, text, text, text, text, bigint, bigint, text, text, text)',
+            'platform.commit_credit_ledger(uuid, bigint, text, text, text)',
+            'platform.release_credit_ledger(uuid, bigint, text, text, text)',
+            'platform.compensate_credit_ledger(uuid, uuid, bigint, text, text, text, text)',
+            'platform.record_credit_integrity_incident(uuid, uuid, uuid, text, text, text, uuid, uuid)'
           ]::text[]) AS runtime_function(function_name)
         )
         AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.reconcile_jobs(integer)', 'EXECUTE')
         AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.claim_job(uuid, text, integer)', 'EXECUTE')
         AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.finish_job(uuid, uuid, uuid, text, text)', 'EXECUTE')
         AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.read_claimed_job_execution_bounds(uuid, uuid, uuid)', 'EXECUTE')
+        AND NOT EXISTS (
+          SELECT 1
+          FROM pg_catalog.pg_proc candidate_function
+          JOIN pg_catalog.pg_namespace namespace ON namespace.oid = candidate_function.pronamespace
+          WHERE namespace.nspname = 'platform'
+            AND candidate_function.proname LIKE '%credit%'
+            AND candidate_function.proname NOT IN (
+              'reserve_credit_ledger', 'commit_credit_ledger',
+              'release_credit_ledger', 'compensate_credit_ledger',
+              'record_credit_integrity_incident'
+            )
+            AND pg_catalog.has_function_privilege(role.oid, candidate_function.oid, 'EXECUTE')
+        )
       ) AS has_runtime_capabilities
     FROM runtime_role role
   `);
@@ -1317,6 +1417,8 @@ async function validateWorkerPoolRole(pool: Pool): Promise<void> {
     owns_platform_objects: boolean;
     has_schema_create: boolean;
     has_only_bounded_functions: boolean;
+    has_no_credit_functions: boolean;
+    has_no_credit_column_access: boolean;
     has_no_table_access: boolean;
   }>(`
     WITH worker_role AS (
@@ -1333,18 +1435,43 @@ async function validateWorkerPoolRole(pool: Pool): Promise<void> {
         OR EXISTS (SELECT 1 FROM pg_catalog.pg_namespace n WHERE n.nspname='platform' AND n.nspowner=role.oid) AS owns_platform_objects,
       COALESCE(pg_catalog.has_schema_privilege(role.oid, pg_catalog.to_regnamespace('platform'), 'CREATE'), false) AS has_schema_create,
       (
-        SELECT count(*) = 4 AND bool_and(pg_catalog.has_function_privilege(role.oid, function_name, 'EXECUTE'))
+        SELECT count(*) = 5 AND bool_and(pg_catalog.has_function_privilege(role.oid, function_name, 'EXECUTE'))
         FROM unnest(ARRAY[
           'platform.reconcile_jobs(integer)',
           'platform.claim_job(uuid, text, integer)',
           'platform.finish_job(uuid, uuid, uuid, text, text)',
-          'platform.read_claimed_job_execution_bounds(uuid, uuid, uuid)'
+          'platform.read_claimed_job_execution_bounds(uuid, uuid, uuid)',
+          'platform.record_credit_terminal_integrity_incident(uuid, uuid, uuid, text)'
         ]::text[]) AS worker_function(function_name)
       )
       AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.create_integrity_job(text, text, text, text, text)', 'EXECUTE')
       AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.request_job_cancel(uuid)', 'EXECUTE')
       AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.reconcile_jobs_before_cancel_safe_point(integer)', 'EXECUTE')
       AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.finish_job_before_cancel_safe_point(uuid, uuid, uuid, text, text)', 'EXECUTE') AS has_only_bounded_functions,
+      NOT EXISTS (
+        SELECT 1
+        FROM pg_catalog.pg_proc candidate_function
+        JOIN pg_catalog.pg_namespace namespace ON namespace.oid = candidate_function.pronamespace
+        WHERE namespace.nspname = 'platform'
+          AND candidate_function.proname LIKE '%credit%'
+          AND candidate_function.proname <> 'record_credit_terminal_integrity_incident'
+          AND pg_catalog.has_function_privilege(role.oid, candidate_function.oid, 'EXECUTE')
+      ) AS has_no_credit_functions,
+      NOT EXISTS (
+        SELECT 1
+        FROM platform_relations r
+        JOIN pg_catalog.pg_class relation ON relation.oid = r.oid
+        WHERE relation.relname IN (
+          'credit_wallet', 'credit_lot', 'credit_reservation', 'credit_event',
+          'credit_ledger_entry', 'credit_integrity_incident', 'credit_wallet_summary'
+        )
+          AND (
+            pg_catalog.has_any_column_privilege(role.oid, relation.oid, 'SELECT') OR
+            pg_catalog.has_any_column_privilege(role.oid, relation.oid, 'INSERT') OR
+            pg_catalog.has_any_column_privilege(role.oid, relation.oid, 'UPDATE') OR
+            pg_catalog.has_any_column_privilege(role.oid, relation.oid, 'REFERENCES')
+          )
+      ) AS has_no_credit_column_access,
       NOT EXISTS (
         SELECT 1 FROM platform_relations r WHERE
           pg_catalog.has_table_privilege(role.oid,r.oid,'SELECT') OR
@@ -1365,6 +1492,8 @@ async function validateWorkerPoolRole(pool: Pool): Promise<void> {
     role.owns_platform_objects ||
     role.has_schema_create ||
     !role.has_only_bounded_functions ||
+    !role.has_no_credit_functions ||
+    !role.has_no_credit_column_access ||
     !role.has_no_table_access
   ) {
     throw new WorkerRuntimeRoleError();
@@ -1535,3 +1664,22 @@ async function loadMigrations(): Promise<Array<{ id: string; sql: string; checks
     }),
   );
 }
+
+export {
+  CreditIntegrityIncidentCaptureError,
+  CreditLedgerError,
+  compensateCredits,
+  commitCredits,
+  getCreditSummary,
+  releaseCredits,
+  reserveCredits,
+} from './credit-ledger.js';
+export type {
+  CreditAmount,
+  CreditCostGuardMetadata,
+  CreditLedgerContext,
+  CreditReservationResult,
+  CreditReservationStatus,
+  CreditSummaryContext,
+  CreditSummary as DatabaseCreditSummary,
+} from './credit-ledger.js';

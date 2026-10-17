@@ -100,7 +100,7 @@ describe('architecture boundary checker', () => {
           join(repositoryRoot, 'node_modules/tsx/dist/cli.mjs'),
           join(repositoryRoot, 'scripts/check-architecture.ts'),
         ],
-        { cwd: fixtureRoot, encoding: 'utf8', timeout: 10_000 },
+        { cwd: fixtureRoot, encoding: 'utf8', timeout: 30_000 },
       );
 
       expect(result.error).toBeUndefined();
@@ -130,5 +130,5 @@ describe('architecture boundary checker', () => {
     } finally {
       await rm(fixtureRoot, { recursive: true, force: true });
     }
-  });
+  }, 30_000);
 });

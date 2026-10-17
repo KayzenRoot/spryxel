@@ -2,12 +2,13 @@
 
 Tracking Issue: [#85](https://github.com/KayzenRoot/spryxel/issues/85)
 
-**Status:** PROPOSED_FOR_OBJECTIVE_ADMISSION_REVIEW — NOT_EXECUTABLE_UNTIL_ADMITTED  
+**Status:** ADMITTED_FOR_EXECUTION — owner-approved documentation PR #86 merged under required checks; HIGH_ASSURANCE code audit remains required  
 **Risk:** HIGH_ASSURANCE (credits, economic authorization and data integrity)  
 **Repository:** `KayzenRoot/spryxel`  
-**Frozen SOURCE-CHECK base:** `main@3c1c3119b2599768ea9925f472b3ee1fa61e2629`  
-**Proposed execution branch:** `codex/spryxel-wo-009-imp-005-credit-ledger-costguard` (create only after admission)  
-**Admissibility:** WO and fresh Context Lock must first be independently reviewed.  
+**Execution base (after admission merge):** `main@34bad103d8066b6d31c5947c20a07ef52032c5d7`  
+**Authorized execution branch:** `codex/spryxel-wo-009-imp-005-credit-ledger-costguard`  
+**Admission authority:** the owner directly authorized execution by instructing Codex to execute this handoff; the subsequent R3 Marathon request explicitly reaffirmed completion of WO-009 and its browser/financial gates. PR #86 merged the documentation-only source pack and is provenance for this Work Order, not the implementation admission. The source/fingerprint preflight is independently rechecked against exact `main@34bad103d8066b6d31c5947c20a07ef52032c5d7`. Product modifications require a FRESH Context Lock, real tests and later independent HIGH_ASSURANCE audit.
+
 **GEF:** `@gef-bootstrap/cli@1.1.1` immutable baseline.
 
 ## OBJECTIVE
@@ -120,8 +121,8 @@ CI: exact SHA GEF, format, lint, typecheck, build, unit, worker, integration, br
 `BASE_SHA`, `HEAD_SHA`, `CONTEXT_LOCK`, changed paths, financial/tenant invariants, migrations, runtime role grants, idempotency, double-spend tests, reconciliation, policy DENY, security, actual test command exits, CI links, known gaps, proposed Checkpoint Delta, status of all ACs. Verdict `APPROVED` / `CORRECTION REQUIRED` / `BLOCKED`.
 
 ## STOP CONDITION / ADMISSION
-**This file is a specification candidate, not executable until owner/auditor accepts its exact SHA and matching fresh Context Lock under the repository source hierarchy.** Admission reviewer may request a scoped correction delta before code.
+**Owner admission:** APPROVED for this bounded Work Order by the owner's direct instruction to execute the handoff in the Codex task, reaffirmed in the R3 Marathon request. PR #86 supplied the documentation-only source pack and did not itself admit implementation. Pre-implementation requires current Git base, this Work Order blob and the accompanying execution Context Lock to match. Approval is not approval of implementation, pricing, commercial operations or a production release.
 
-After separate formal admission: executor implements only this WO in a dedicated code branch and PR, corrects defects in-scope, pushes tests/evidence and STOPS at `SPRYXEL_IMP_005_CREDIT_LEDGER_COSTGUARD_FOUNDATION_READY_FOR_AUDIT`. It may not promote checkpoint, merge, publish, freeze prices or start IMP-006.
+Executor implements only this WO on the authorized branch and PR, corrects proven in-scope defects, pushes tests/evidence and STOPS at `SPRYXEL_IMP_005_CREDIT_LEDGER_COSTGUARD_FOUNDATION_READY_FOR_AUDIT`. A distinct read-only auditor must review HIGH_ASSURANCE results before promotion. Executor may not self-promote checkpoint, merge, publish, freeze prices or start IMP-006.
 
-**Current documentation-stop:** `SPRYXEL_WO009_ADMISSION_PACK_READY_FOR_OBJECTIVE_REVIEW`.
+**Execution stop:** `SPRYXEL_IMP_005_CREDIT_LEDGER_COSTGUARD_FOUNDATION_READY_FOR_AUDIT`.
