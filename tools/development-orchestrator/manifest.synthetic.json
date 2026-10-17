@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "repository": "KayzenRoot/spryxel",
+  "baseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "maxParallel": 3,
+  "maxBatchTokens": 10000,
+  "completedWorkOrders": [],
+  "workOrders": [
+    {
+      "id": "DEMO-ONLY-LANDING",
+      "issue": 9001,
+      "status": "ADMITTED_FOR_EXECUTION",
+      "risk": "STANDARD",
+      "baseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "contextLock": "FRESH",
+      "dependsOn": [],
+      "ownsPaths": [
+        "apps/web/components/landing"
+      ],
+      "exclusiveLocks": [],
+      "priority": 1,
+      "estimatedMinutes": 90,
+      "tokenBudget": 3000
+    },
+    {
+      "id": "DEMO-ONLY-LEGAL",
+      "issue": 9002,
+      "status": "ADMITTED_FOR_EXECUTION",
+      "risk": "STANDARD",
+      "baseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "contextLock": "FRESH",
+      "dependsOn": [],
+      "ownsPaths": [
+        "apps/web/components/legal"
+      ],
+      "exclusiveLocks": [],
+      "priority": 1,
+      "estimatedMinutes": 60,
+      "tokenBudget": 3000
+    },
+    {
+      "id": "DEMO-ONLY-ARTWORK",
+      "issue": 9003,
+      "status": "ADMITTED_FOR_EXECUTION",
+      "risk": "STANDARD",
+      "baseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "contextLock": "FRESH",
+      "dependsOn": [],
+      "ownsPaths": [
+        "design/website/hero"
+      ],
+      "exclusiveLocks": [],
+      "priority": 2,
+      "estimatedMinutes": 50,
+      "tokenBudget": 3000
+    },
+    {
+      "id": "DEMO-ONLY-INTEGRATION",
+      "issue": 9004,
+      "status": "ADMITTED_FOR_EXECUTION",
+      "risk": "STANDARD",
+      "baseSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "contextLock": "FRESH",
+      "dependsOn": [
+        "DEMO-ONLY-LANDING",
+        "DEMO-ONLY-LEGAL",
+        "DEMO-ONLY-ARTWORK"
+      ],
+      "ownsPaths": [
+        "apps/web/app"
+      ],
+      "exclusiveLocks": [
+        "ROUTE_INTEGRATION"
+      ],
+      "priority": 1,
+      "estimatedMinutes": 30,
+      "tokenBudget": 2500
+    }
+  ],
+  "maxTotalTokenBudget": 15000
+}
