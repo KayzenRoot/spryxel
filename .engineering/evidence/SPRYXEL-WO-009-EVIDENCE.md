@@ -1,5 +1,13 @@
 # SPRYXEL-WO-009 — Implementation Evidence Bundle
 
+## Atualização de closeout pós-merge — 2026-10-17 UTC
+
+**Resultado atual:** `SPRYXEL-WO-009 / SPRYXEL-IMP-005` está COMPLETE no candidato de promoção documental, após auditoria independente APPROVED, squash merge protegido da PR #87 e validação no SHA exato de main. Merge SHA `f1ce1df2dad7aabb45dd7d725d31821f30e21a2c`, árvore `efee1dca1a54942f35ab5d0f227e3f0d24919ad8`. A PR revisada em `3f14441ac48d0067dfad8214ba29dfcb2e285a8a` tem a mesma árvore. Seu pai/base permaneceu `34bad103d8066b6d31c5947c20a07ef52032c5d7`.
+
+Os fatos de execução e o estado PR OPEN/not merged abaixo são o snapshot pré-merge preservado do Evidence Bundle; não os reescrevi como se tivessem sido observados depois. O código financeiro permaneceu idêntico ao candidato auditado `6cbd9210573815c82f0af60d274c41f31ef0b2bb`; entre esse candidato e o HEAD revisado do PR houve apenas os documentos de correção/evidência listados no histórico Git.
+
+### Snapshot do executor antes do merge (preservado)
+
 **Independent audit verdict: APPROVED.** The separate HIGH_ASSURANCE reviewer approved code candidate `6cbd9210573815c82f0af60d274c41f31ef0b2bb` and inspected documentation-only PR head `a52cb9d0d94b57fb4a6025cdb068ec5efc30f312`. No financial or security HIGH/CRITICAL defect was demonstrated. PR #87 is OPEN and ready for review; the verdict does not promote the checkpoint or authorize a merge.
 
 **Work Order:** SPRYXEL-WO-009 / IMP-005, HIGH_ASSURANCE.
@@ -214,4 +222,18 @@ This independent verdict satisfies the audit criterion only; it does not change 
 
 ## Exit and review
 
-Executor stop state: SPRYXEL_IMP_005_CREDIT_LEDGER_COSTGUARD_FOUNDATION_READY_FOR_AUDIT. Independent audit verdict: APPROVED. The executor cannot self-promote the proposed checkpoint delta or merge beyond the Work Order stop state.
+Executor stop state at the pre-merge snapshot: SPRYXEL_IMP_005_CREDIT_LEDGER_COSTGUARD_FOUNDATION_READY_FOR_AUDIT. Independent audit verdict: APPROVED. The executor could not self-promote the proposed checkpoint delta or merge beyond the Work Order stop state.
+
+## Fechamento pós-merge e estado do candidato de promoção
+
+- PR #87: MERGED por `KayzenRoot` em `2026-10-17T00:46:06Z`; merge SHA `f1ce1df2dad7aabb45dd7d725d31821f30e21a2c`; pai `34bad103d8066b6d31c5947c20a07ef52032c5d7`.
+- Base/HEAD/árvores: base imutável `34bad103d8066b6d31c5947c20a07ef52032c5d7`; PR HEAD `3f14441ac48d0067dfad8214ba29dfcb2e285a8a`; `main` exato `f1ce1df2dad7aabb45dd7d725d31821f30e21a2c`; árvore dos dois últimos `efee1dca1a54942f35ab5d0f227e3f0d24919ad8`. A árvore testada no candidato de código era `2aaa31508111c586ab5fc68d6fe7c785b72e71d0`; a comparação Git confirma que os commits posteriores até o PR HEAD só alteraram `.engineering` (Evidence/Delta/Correction 09–10).
+- Regras de `main`: ruleset ativo `24340349` (“SPRYXEL main governance”), com PR obrigatório e required status checks; nenhum bypass actor configurado. PR #87 foi squash-merged por PR e não alterou as regras.
+- Checks do SHA exato de main, todos `completed/success`: Repository validation `117263474902`; Pipeline integrity `117263474185`; Gitleaks secrets `117263474196`; Trivy filesystem and configuration `117263474575`; SonarCloud Code Analysis `117263669389`; Socket Security: Project Report `117263477361`. Os quatro primeiros são os required checks; os dois últimos são gates adicionais observados.
+- O candidato de promoção documental mantém a decisão `SPRYXEL-WO-009 COMPLETE` e os receipts acima. Seu base é o main verificado `f1ce1df`; este worktree não criou nem integrou uma PR de closeout. O `promotionHeadSha` do checkpoint fica não definido até a integração protegida deste candidato.
+- A próxima etapa de D-153 é Spryxel DNA + Asset core, `NOT_ADMITTED` até um Work Order e Context Lock novos derivados do `main` então atual. O Context Lock histórico de WO-009 foi preservado sem edição e não deve ser reutilizado.
+- Os testes funcionais registrados foram executados no candidato de código `6cbd921`, não novamente no merge SHA: a árvore de implementação testada é igual à árvore do código integrado. O auditor executou `npm run test:integration` (PASS, exit 0, PostgreSQL real) e `npm run test:unit` (PASS, exit 0, 24 arquivos/120 testes) no candidato inalterado. Esta tarefa de closeout não rodou suítes nem serviços Docker.
+- A análise Sonar de PR em `a52cb9d0d94b57fb4a6025cdb068ec5efc30f312` observou 109 issues, todos `CODE_SMELL`: 76 Critical, 5 Major e 28 Minor; 0 security hotspots; 0,0% de cobertura de código novo; duplicação 2,7%. O código fonte nessa análise não mudou até o candidato aprovado `6cbd921`; alterações posteriores até o PR HEAD foram apenas documentais. O relatório de auditoria classifica a materialidade; cobertura permanece uma limitação de evidência e não é descrita como cobertura de teste.
+- Limitação financeira preservada: o papel SQL `spryxel_app` pode fabricar metadados `allow_fixture` para reservar somente lotes `TEST_FIXTURE` em Job do tipo fixture; a integração adversarial prova que a reserva sintética não consome lote `PAID_PACK` e que o Job não custeado existente é negado. Isto não prova autorização SQL para geração real: qualquer nova operação de custo real requer uma nova fronteira SQL confiável e prova adversarial própria. Nenhum spending real está habilitado neste incremento.
+
+**Evidência local executada neste closeout:** comparação de árvores, Git diff de caminhos e consultas read-only do estado da PR/main/check-runs/ruleset. Não se afirma nova execução de suíte de produto.
