@@ -89,11 +89,12 @@
       "conclusion": "SUCCESS"
     },
     "correctionDeltaWorkOrder": "SPRYXEL-WO-008",
-    "checkpointPromotionState": "CANDIDATE_PENDING_PROTECTED_DOCUMENTATION_MERGE",
+    "correctionDeltaWorkOrderNote": "Legacy correctionDelta01..05 fields describe WO-008 only; WO-009 corrections 01..10 are recorded in the WO-009 Evidence Bundle and independent audit.",
+    "checkpointPromotionState": "COMPLETE_ON_PROTECTED_CLOSEOUT_MERGE",
     "checkpointPromotionCandidateBaseSha": "f1ce1df2dad7aabb45dd7d725d31821f30e21a2c",
     "postMergeSocketProjectReport": 117263477361,
     "creditLedgerCostGuard": {
-      "promotionState": "CANDIDATE_PENDING_PROTECTED_DOCUMENTATION_MERGE",
+      "promotionState": "COMPLETE_ON_PROTECTED_CLOSEOUT_MERGE",
       "codeCandidateSha": "6cbd9210573815c82f0af60d274c41f31ef0b2bb",
       "reviewedPrHeadSha": "3f14441ac48d0067dfad8214ba29dfcb2e285a8a",
       "mergedMainSha": "f1ce1df2dad7aabb45dd7d725d31821f30e21a2c",
