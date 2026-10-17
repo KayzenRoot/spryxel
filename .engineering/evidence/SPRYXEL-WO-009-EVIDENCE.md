@@ -88,20 +88,43 @@ All local commands below ran on the stated Node/npm toolchain. Exit codes are ob
 
 Corrections 09–10 resolved the observed failures without changing timeout, retry, worker count, or test selection. The server-action helper recognizes the legitimate HTML form POST/303 response as well as same-route server submissions; the deterministic `jobs-all-states` fixture displays all six states in one Jobs route visit. Two full standard-config runs passed 22/22, and the final aggregate `npm test` also passed. Earlier failed runs remain diagnostic history, not acceptance evidence.
 
-### Controlled baseline-versus-candidate comparison (Marathon R3 C1)
+### Reproduced baseline-versus-candidate comparison (Marathon R3 C1)
 
-To replace the earlier historical 14/20-versus-15/20 notes whose original artifacts could not be tied to their counts, I repeated the comparison in two new detached worktrees: baseline `main@34bad103d8066b6d31c5947c20a07ef52032c5d7` and code candidate `6cbd9210573815c82f0af60d274c41f31ef0b2bb`. Both started without `node_modules`, `apps/web/.next`, or Playwright `test-results`; each ran the same pinned `npm ci` with Node 22.23.3/npm 10.9.9, then the same `npm run test:browser` command. The command builds the workspaces before invoking Playwright. Turbo reported its local build cache for 11/11 build tasks on each side; no pre-existing worktree `.next` directory was carried into either run. Runs were sequential on the same Windows host, using the same default ports 3100/3201, the Playwright-configured test environment, and `DEBUG=pw:webserver` solely to capture server readiness/stdout/stderr. Playwright retained `fullyParallel: true`, zero retries, the unchanged default timeouts, and four workers in both full runs.
+The earlier comparison did not preserve sufficient run output and its counts are superseded here. I captured one replay on detached baseline `main@34bad103d8066b6d31c5947c20a07ef52032c5d7` and two consecutive replays on detached code candidate `6cbd9210573815c82f0af60d274c41f31ef0b2bb`. Each used `npm exec --yes --package=node@22.23.3 --package=npm@10.9.9 -- npm run test:browser`; the pinned toolchain reported Node `v22.23.3` and npm `10.9.9`. Runs were sequential on the same Windows host with the standard browser script and four Playwright workers. `node_modules` and generated `.next` output already existed from earlier worktree runs; `npm ci` was not rerun for this replay, and no cold-install or build-cache comparison is claimed.
 
-A preliminary direct `npm exec -- playwright test` in the clean baseline worktree exited 1 before test collection because workspace package `@spryxel/config/dist/index.js` had not been built. It is excluded from the comparison; the canonical `test:browser` command builds those packages before starting Playwright.
+| Side | Captured run | Exit | Playwright result | Raw local capture (SHA-256) |
+|---|---|---:|---|---|
+| Baseline `34bad103` | `2026-10-16 21:37` | 1 | 17 passed, 3 failed, 20 total; 4 workers; 1.7 min | `%TEMP%/spryxel-r3-c1-baseline-replay.log` — `E010F4A748A6AC7122C1BE1F76F6A62E5928DAA1CEB9821C03049C8707FF5057` |
+| Candidate `6cbd921` | `2026-10-16 21:39` | 0 | 22 passed, 0 failed, 22 total; 4 workers; 1.3 min | `%TEMP%/spryxel-r3-c1-candidate-run1.log` — `1616D5A1C02E217ECE037A496C2208A02E492D5D219DC8383BBE5E401C2E9FEF` |
+| Candidate `6cbd921` | `2026-10-16 21:40` | 0 | 22 passed, 0 failed, 22 total; 4 workers; 1.3 min | `%TEMP%/spryxel-r3-c1-candidate-run2.log` — `2F54714E6F6E4E0D1D4268B73315AAAC128D20AAF6B04A82ED4A19A2928DA54C` |
 
-| Side | `npm ci` | Standard browser command | Result | Failure artifact |
-|---|---|---|---|---|
-| Baseline `34bad103` | PASS, exit 0; 218 packages added, zero vulnerabilities | `npm run test:browser` | FAIL, exit 1; 19/20 passed, one failed with four workers | `Home to Projects to Create to Open keeps a canonical project context`; `toBeVisible()` could not find heading `Northstar` within 5,000 ms. `POST /projects` returned HTTP 200. Trace SHA-256: `01007052A8FCD81DA415E89BC9DE326305385A185C72762CB539B9C67C32D63E`. |
-| Candidate `6cbd921` | PASS, exit 0; 218 packages added, zero vulnerabilities | `npm run test:browser` twice, consecutively | PASS, exit 0; 22/22 on each run with four workers and no skipped tests | The same Home-to-Projects creation flow passed both times. The first run logged `POST /projects` 200 followed by a successful project-detail `GET` 200. No failure trace was produced on passing runs. |
+Sanitized output excerpts retained in this bundle:
 
-The baseline server log recorded cold Home/Projects route compilation at roughly 4–6 seconds, while the failing assertion allowed 5 seconds for the project heading. The baseline test clicked the create action and then the open link without explicitly awaiting completion of the server-action response and navigation commit. The candidate adds a browser-route `globalSetup` prewarm plus helpers that await the action response body (`Response.finished()`) and the link navigation commit before asserting the resulting page. On the reproduced failing scenario, baseline returned HTTP 200 but the expected heading was absent at the assertion; with those synchronization changes, the same flow passed in two complete candidate runs. This supports a cold-route/action-navigation race in the browser harness; it does not demonstrate a failed ledger operation or a product data defect.
+```text
+Baseline:
+Running 20 tests using 4 workers
+x Home to Projects to Create to Open keeps a canonical project context (16.4s)
+x Jobs Center lists durable state and reload preserves details and cancellation (15.7s)
+x Project Overview shows recent jobs and all admitted states remain readable (33.6s)
+  3 failed
+  17 passed (1.7m)
 
-The test totals differ because the candidate splits/expands browser cases under Correction Delta 04; assertions were not removed. Therefore the pass percentages are not treated as a same-denominator comparison. The shared Home-to-Projects creation scenario is the causal comparison. The earlier 14/20 and 15/20 values remain historical and are not claimed as reproducible. The baseline trace remains in the ignored `test-results` directory of the isolated baseline worktree and is identified above by SHA-256; it is not copied into this bundle because Playwright archives can contain browser snapshots and session state.
+Candidate run 1:
+Running 22 tests using 4 workers
+ok Home to Projects to Create to Open keeps a canonical project context (15.1s)
+ok Jobs Center lists durable state and reload preserves details and cancellation (12.9s)
+ok Project Overview shows recent jobs and all admitted states remain readable (10.2s)
+  22 passed (1.3m)
+
+Candidate run 2:
+Running 22 tests using 4 workers
+ok Home to Projects to Create to Open keeps a canonical project context (13.6s)
+ok Jobs Center lists durable state and reload preserves details and cancellation (12.3s)
+ok Project Overview shows recent jobs and all admitted states remain readable (8.6s)
+  22 passed (1.3m)
+```
+
+The baseline failures were: the Home-to-Projects flow could not find the `Projects` heading within 5,000 ms; the Jobs Center flow could not find the `Jobs` heading within 5,000 ms; and the Project Overview scenario exceeded its 30,000 ms test timeout. The candidate passed all three shared scenarios in both complete runs. The candidate executes two more tests than the baseline, so pass percentages are not compared; the repeatable shared-scenario outcomes are the relevant evidence. These browser results do not establish a ledger defect or prove real spending behavior. Raw stdout/stderr remain in local temporary files identified above; the sanitized excerpts and their hashes are recorded here to avoid committing browser snapshots or session material.
 
 ## Hosted checks on the exact implementation commit
 
