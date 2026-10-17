@@ -7,6 +7,7 @@ import {readFile} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
 import {manifestPathArg} from './manifest-path.mjs';
 import {planBatch} from './planner.mjs';
+import {publicScheduleSummary} from './public-summary.mjs';
 function guard(ok,msg){if(!ok)throw Error(msg)}
 function overlaps(a,b){const sa=a.split('/'),sb=b.split('/');return (sa.length<=sb.length&&sa.every((x,i)=>x===sb[i]))||(sb.length<=sa.length&&sb.every((x,i)=>x===sa[i]))}
 function collision(a,b){return a.risk==='HIGH_ASSURANCE'||b.risk==='HIGH_ASSURANCE'||a.exclusiveLocks.some(x=>b.exclusiveLocks.includes(x))||a.ownsPaths.some(x=>b.ownsPaths.some(y=>overlaps(x,y)))}
@@ -62,5 +63,5 @@ export function simulateContinuousDispatch(manifest){
    'This planner does not waive ANY approved Work Order test or mandatory CI/merge gate.'
   ]};
 }
-async function main(){if(!process.argv[2])throw Error('Usage: node continuous-scheduler.mjs <manifest.json>');console.log(JSON.stringify(simulateContinuousDispatch(JSON.parse(await readFile(manifestPathArg(process.argv[2]),'utf8'))),null,2))}
+async function main(){if(!process.argv[2])throw Error('Usage: node continuous-scheduler.mjs <manifest.json>');console.log(JSON.stringify(publicScheduleSummary(simulateContinuousDispatch(JSON.parse(await readFile(await manifestPathArg(process.argv[2]),'utf8'))))))}
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href)main().catch(e=>{console.error('CONTROL_TOWER_BLOCKED: manifest unavailable or invalid');process.exitCode=2});

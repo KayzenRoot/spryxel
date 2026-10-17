@@ -2,6 +2,7 @@
 import {readFile} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
 import {manifestPathArg} from './manifest-path.mjs';
+import {publicPlanSummary} from './public-summary.mjs';
 const SHA=/^[\da-f]{40}$/i, statuses=new Set(['PLANNING','DRAFT','BLOCKED','COMPLETE','ADMITTED_FOR_EXECUTION']), risks=new Set(['LOW','STANDARD','ELEVATED','HIGH_ASSURANCE']);
 function guard(c,m){if(!c)throw Error(m)}
 function owns(p){return typeof p==='string'&&p.length>0&&!p.includes('*')&&!p.includes('\\')&&!p.startsWith('/')&&p.split('/').every(x=>x&&x!=='.'&&x!=='..')}
@@ -69,5 +70,5 @@ export function planBatch(m){
  }
  return {schemaVersion:1,mode:'DRY_RUN_ONLY',dispatchEnabled:false,mergeEnabled:false,checkpointPromotionEnabled:false,repository:m.repository,baseSha:m.baseSha,waves,blocked:blocked.sort((a,b)=>a.id.localeCompare(b.id)),totals:{planned:m.workOrders.length,schedulable:waves.reduce((v,w)=>v+w.tasks.length,0),blocked:blocked.length,simulatedSequentialMinutes:eligible.reduce((v,w)=>v+w.estimatedMinutes,0),simulatedWaveMinutes:waves.reduce((v,w)=>v+w.estimatedConcurrentMinutes,0),tokenBudgetCeiling:waves.reduce((v,w)=>v+w.tokenBudgetCeiling,0)},warning:'SIMULATION ONLY. No external dispatch, verified current GitHub checks, merge or promotion. Estimates are unmeasured.'};
 }
-async function main(){if(!process.argv[2])throw Error('Usage: node planner.mjs <manifest.json>');console.log(JSON.stringify(planBatch(JSON.parse(await readFile(manifestPathArg(process.argv[2]),'utf8'))),null,2))}
+async function main(){if(!process.argv[2])throw Error('Usage: node planner.mjs <manifest.json>');console.log(JSON.stringify(publicPlanSummary(planBatch(JSON.parse(await readFile(await manifestPathArg(process.argv[2]),'utf8'))))))}
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href)main().catch(e=>{console.error('CONTROL_TOWER_BLOCKED: manifest unavailable or invalid');process.exitCode=2});
