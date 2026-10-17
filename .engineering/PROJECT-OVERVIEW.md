@@ -47,7 +47,7 @@ Mid-size teams, studio collaboration, and enterprise are later audiences.
 - English default UI with Brazilian Portuguese and Spanish localization.
 - Local-first Docker development using an RTX 5050 with 8 GB VRAM and 24 GB system RAM as the planning baseline; local inference plus a bounded serverless adapter path.
 
-The complete V1, V1.x, later-release, and module classifications are in SCOPE.md. No product implementation has started or is admitted by this Work Order.
+The complete V1, V1.x, later-release, and module classifications are in SCOPE.md. Implementation status and its exact Work Order boundaries are recorded chronologically below; completion of a bounded slice does not imply the broader V1 profile is complete or admit later work.
 
 ## Planning history and current state
 
@@ -63,7 +63,9 @@ Completed in the seed:
 - SPR-PLAN-004 — Credit Economics, Pricing Safety & Financial Simulation — APPROVED / COMPLETED IN MASTER v0.5.0.
 - SPR-PLAN-005 — Security, TrustShield, Abuse Graph & Account/Payment Risk Architecture — APPROVED / COMPLETED IN MASTER v0.6.0.
 
-SPR-PLAN-006 and SPR-PLAN-007 are complete and canonical. SPRYXEL-IMP-001 — Platform Foundation Bootstrap — is COMPLETE under SPRYXEL-WO-005; only the bounded technical foundation is implemented. Product business features remain NOT_STARTED.
+SPR-PLAN-006 and SPR-PLAN-007 are complete and canonical. SPRYXEL-IMP-001 — Platform Foundation Bootstrap — is COMPLETE under SPRYXEL-WO-005. Later bounded implementation increments are recorded in their own sections; the product vision and the remaining V1 modules are not represented as complete here.
+
+The earlier Work Order sections preserve the state observed at their respective approvals. The latest implementation and current NOT_ADMITTED boundary are summarized in the SPRYXEL-WO-009 section at the end of this file.
 
 ## Open decisions and release gates
 
@@ -135,3 +137,15 @@ Identity/Tenancy from WO-006 remains preserved. Asset Contract/Job backbone and 
 `SPRYXEL-WO-007 / SPRYXEL-IMP-003` is COMPLETE: objectively audited, canonically promoted, squash-merged and post-merge validated on `main@67debfaca7cae164872a06a30faebb43daf34425`.
 
 The canonical implemented surface now includes the technical foundation, Identity/Tenancy security baseline, durable tenant-owned Projects, and the authenticated Global Shell/Home/Projects/Project Overview product surface. Asset Contract/Job backbone and every later product slice remain NOT_ADMITTED until their own Work Orders and Context Locks.
+
+## SPRYXEL-WO-008 / IMP-004 — COMPLETE
+
+`Asset Contract + durable Job backbone` foi aprovado independentemente e integrado em `main@75054119d4f0f110ed766b8094f1d3c1f17e59f3` via PR #30, squash merge protegido e validação pós-merge exata. A árvore foi testada em Node 22.23.3/npm 10.9.9 e é idêntica à árvore mesclada. O incremento mantém Asset Contract e Job/Attempt duráveis em PostgreSQL, Redis/BullMQ como projeção transitória reconstruível e worker separado least-privilege.
+
+Limites mantidos no Evidence Bundle: Jobs Center não navega além dos 50 itens mais recentes (LOW); WorkOS/staging real não foi testado. Credit Ledger + CostGuard foi implementado como fundação não comercial em SPRYXEL-WO-009 / IMP-005, com auditoria HIGH_ASSURANCE independente e validação pós-merge. A análise Sonar registrou 109 CODE_SMELL, cobertura de código novo 0,0% e duplicação de 2,7%; o relatório de auditoria classifica os findings e documenta a cobertura como limitação.
+
+## SPRYXEL-WO-009 / IMP-005 — fundação financeira concluída
+
+O PR #87 foi squash-merged em `main@f1ce1df2dad7aabb45dd7d725d31821f30e21a2c`. O candidato de código `6cbd9210573815c82f0af60d274c41f31ef0b2bb` recebeu auditoria independente HIGH_ASSURANCE `APPROVED`; o HEAD revisado do PR e o merge têm a mesma árvore. A fundação oferece ledger de créditos imutável, reserva/commit/release/compensação e CostGuard fail-closed para a etapa futura. Ela não ativa saldo pago, precificação, checkout, GPU, provider ou execução com custo real; a decisão padrão do CostGuard permanece `DENY`.
+
+A próxima etapa NECESSARY é Spryxel DNA + Asset core. Continua `NOT_ADMITTED` até um Work Order e Context Lock novos, derivados do `main` então atual. Evidências, achados, resultados de testes e limitações financeiras estão em `.engineering/evidence/SPRYXEL-WO-009-EVIDENCE.md` e `.engineering/evidence/SPRYXEL-WO-009-INDEPENDENT-AUDIT.md`.

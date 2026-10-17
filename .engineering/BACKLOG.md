@@ -109,3 +109,19 @@ The next NECESSARY slice is Asset Contract + durable Job backbone. It remains NO
 `SPRYXEL-WO-007 / SPRYXEL-IMP-003` is COMPLETE on `main@67debfaca7cae164872a06a30faebb43daf34425` after objective HIGH_ASSURANCE audit, canonical promotion, squash merge and post-merge validation. Projects + canonical shell/Home are now canonical.
 
 The next NECESSARY implementation slice is Asset Contract + durable Job backbone. It remains NOT_ADMITTED until a new Work Order and fresh Context Lock are created from the current main base.
+
+## SPRYXEL-WO-008 / IMP-004 completion
+
+`SPRYXEL-WO-008 — Asset Contract + durable Job backbone` is COMPLETE on `main@75054119d4f0f110ed766b8094f1d3c1f17e59f3`. Independent HIGH_ASSURANCE audit APPROVED candidate `fe54bfac66bcb85c10d56c4c8a0c9c7526bec624`; promotion head `2e3d9cdd09ed1ff31655183e54f6d23bd3c0716e`; PR #30 was protected squash-merged; exact-main post-merge checks passed.
+
+Post-merge IDs: Repository validation `116394735439`, Pipeline integrity `116394679485`, Gitleaks `116394677268`, Trivy `116394678499`, SonarCloud `116394955206`, Socket Project Report `116394711114`. Candidate test tree and merged tree are identical. The independent audit records the LOW Jobs Center cursor navigation limitation and incomplete Sonar issue classification (Quality Gate PASS); neither is concealed.
+
+Credit Ledger + CostGuard authorization was the next NECESSARY increment and has since been completed under SPRYXEL-WO-009 / IMP-005.
+
+## SPRYXEL-WO-009 / IMP-005 completion
+
+`Credit Ledger + CostGuard authorization foundation` is COMPLETE on `main@f1ce1df2dad7aabb45dd7d725d31821f30e21a2c` after independent HIGH_ASSURANCE APPROVAL, PR #87 protected squash merge, exact-main tree comparison, and successful exact-main validation. The reviewed code candidate was `6cbd9210573815c82f0af60d274c41f31ef0b2bb`; reviewed PR HEAD `3f14441ac48d0067dfad8214ba29dfcb2e285a8a` and merged main share tree `efee1dca1a54942f35ab5d0f227e3f0d24919ad8`.
+
+Post-merge receipts on the exact main SHA: Repository validation `117263474902`, Pipeline integrity `117263474185`, Gitleaks secrets `117263474196`, Trivy filesystem and configuration `117263474575`, SonarCloud Code Analysis `117263669389`, and Socket Security: Project Report `117263477361` — all SUCCESS. Full test and risk details, including the zero-percent new-code coverage and fixture-only SQL-boundary limitation, remain in the Evidence Bundle and independent audit report.
+
+Next NECESSARY increment: Spryxel DNA + Asset core, NOT_ADMITTED until its own Work Order and fresh Context Lock are created from the then-current main base. Pricing, COGS, payment provider, paid balances, GPU/model execution and real-cost generation remain unfrozen or unavailable; CostGuard defaults to DENY.

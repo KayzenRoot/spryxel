@@ -8,7 +8,7 @@ import type {
 } from '@spryxel/identity';
 import { createLogger } from '@spryxel/observability';
 import { InvalidAccessTokenError } from './auth/jwt.js';
-import { buildApiServer } from './server.js';
+import { buildApiServer, type CreditSummaryRepositoryPort } from './server.js';
 
 describe('API foundation routes', () => {
   it('returns safe liveness and a bounded request ID', async () => {
@@ -98,6 +98,7 @@ describe('identity API boundary', () => {
     overrides: {
       authenticateToken?: (token: string) => Promise<AuthenticatedPrincipal>;
       identityRepository?: IdentityRepositoryPort;
+      creditSummaryRepository?: CreditSummaryRepositoryPort;
       logger?: import('fastify').FastifyBaseLogger;
       sessionProvider?: IdentitySessionProviderPort;
     } = {},
@@ -126,6 +127,7 @@ describe('identity API boundary', () => {
     return {
       authenticateToken: overrides.authenticateToken ?? (async () => principal),
       identityRepository,
+      creditSummaryRepository: overrides.creditSummaryRepository,
       logger: overrides.logger,
       sessionProvider: overrides.sessionProvider,
     };
@@ -187,6 +189,116 @@ describe('identity API boundary', () => {
         role: 'OWNER',
       });
       expect(response.body).not.toContain('user_fixture');
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('returns only a safe credit summary for the active tenant membership', async () => {
+    const summary = {
+      tenantId: bootstrap.tenantId,
+      asOf: '2026-10-04T00:00:00.000Z',
+      balances: {
+        availableCredits: '25',
+        reservedCredits: '5',
+        committedCredits: '10',
+      },
+      counters: { openReservations: 1, ledgerEntries: 6 },
+    };
+    const repository: CreditSummaryRepositoryPort = {
+      get: vi.fn(async (input) => {
+        expect(input).toEqual({ subjectId: bootstrap.subjectId, tenantId: bootstrap.tenantId });
+        return summary;
+      }),
+    };
+    const app = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'silent' }, 'api'), {
+      ...dependencies({ creditSummaryRepository: repository }),
+    });
+    try {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/v1/credits',
+        headers: {
+          authorization: 'Bearer valid-fixture-token',
+          'x-tenant-id': bootstrap.tenantId,
+          'x-request-id': 'credit-read-123',
+        },
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toEqual({ ...summary, requestId: 'credit-read-123' });
+      expect(response.body).not.toContain('walletId');
+      expect(response.body).not.toContain('policy');
+
+      const foreignTenant = await app.inject({
+        method: 'GET',
+        url: '/api/v1/credits',
+        headers: {
+          authorization: 'Bearer valid-fixture-token',
+          'x-tenant-id': '0199c321-5f24-7a3a-8f03-8d4e8d34c7ff',
+        },
+      });
+      expect(foreignTenant.statusCode).toBe(404);
+      expect(repository.get).toHaveBeenCalledOnce();
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('redacts credit-store errors and requires authentication', async () => {
+    const repository: CreditSummaryRepositoryPort = {
+      get: vi.fn(async () => {
+        throw new Error('private policy material');
+      }),
+    };
+    const app = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'silent' }, 'api'), {
+      ...dependencies({ creditSummaryRepository: repository }),
+    });
+    try {
+      const unauthenticated = await app.inject({ method: 'GET', url: '/api/v1/credits' });
+      expect(unauthenticated.statusCode).toBe(401);
+      expect(repository.get).not.toHaveBeenCalled();
+
+      const unavailable = await app.inject({
+        method: 'GET',
+        url: '/api/v1/credits',
+        headers: { authorization: 'Bearer valid-fixture-token', 'x-request-id': 'credit-read-err' },
+      });
+      expect(unavailable.statusCode).toBe(503);
+      expect(unavailable.json()).toMatchObject({
+        code: 'credit_summary_unavailable',
+        requestId: 'credit-read-err',
+      });
+      expect(unavailable.body).not.toContain('private policy material');
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('fails closed if a credit repository returns a summary for another tenant', async () => {
+    const repository: CreditSummaryRepositoryPort = {
+      get: vi.fn(async () => ({
+        tenantId: '0199c321-5f24-7a3a-8f03-8d4e8d34c7ff',
+        asOf: '2026-10-04T00:00:00.000Z',
+        balances: {
+          availableCredits: '999',
+          reservedCredits: '0',
+          committedCredits: '0',
+        },
+        counters: { openReservations: 0, ledgerEntries: 1 },
+      })),
+    };
+    const app = buildApiServer(parseRuntimeConfig({ LOG_LEVEL: 'silent' }, 'api'), {
+      ...dependencies({ creditSummaryRepository: repository }),
+    });
+    try {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/v1/credits',
+        headers: { authorization: 'Bearer valid-fixture-token' },
+      });
+      expect(response.statusCode).toBe(503);
+      expect(response.body).not.toContain('999');
+      expect(response.body).not.toContain('0199c321-5f24-7a3a-8f03-8d4e8d34c7ff');
     } finally {
       await app.close();
     }

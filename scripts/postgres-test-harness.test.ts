@@ -23,6 +23,15 @@ describe('disposable PostgreSQL integration harness', () => {
     expect(testPostgres).not.toContain('volumes:');
   });
 
+  it('makes the PostgreSQL init hook readable despite a restrictive checkout umask', () => {
+    expect(postgresDockerfile).toContain(
+      'COPY --chmod=0644 create-app-role.sh /docker-entrypoint-initdb.d/10-create-app-role.sh',
+    );
+    expect(postgresDockerfile).toContain(
+      '&& chmod 0644 /docker-entrypoint-initdb.d/10-create-app-role.sh',
+    );
+  });
+
   it('normalizes Windows checkout line endings in the PostgreSQL init hook', () => {
     expect(postgresDockerfile).toContain(
       "RUN sed -i 's/\\r$//' /docker-entrypoint-initdb.d/10-create-app-role.sh",

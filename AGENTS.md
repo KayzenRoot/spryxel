@@ -7,9 +7,29 @@ Read in order: `.engineering/CHECKPOINT.json`, Decisions Ledger/ADRs, Scope, Def
 Codex executes only an explicitly admitted Work Order and its current Context Lock. Inspect the exact base before mutation. Do not invent missing product decisions or provider selections.
 
 ## Current execution
-`SPRYXEL-WO-007 / SPRYXEL-IMP-003` is COMPLETE after objective HIGH_ASSURANCE audit, canonical promotion, squash merge and post-merge validation. Its historical Context Lock is stale/closed.
+`SPRYXEL-WO-009 / SPRYXEL-IMP-005` is APPROVED and code-merged at `main@f1ce1df2dad7aabb45dd7d725d31821f30e21a2c`, with canonical COMPLETE effective upon protected merge of auditor-reviewed checkpoint PR #88. The WO-009 Context Lock is historical and must remain stale/closed after this promotion; do not reuse it.
 
-The next legal slice is Asset Contract + durable Job backbone, but it is NOT_ADMITTED until a new Work Order and fresh Context Lock are created from the current main base.
+The next NECESSARY slice is Spryxel DNA + Asset core. It remains `NOT_ADMITTED` until a new Work Order and Context Lock are created from the then-current `main` base.
 
 ## Safety
-No force-push, history rewrite, destructive GitHub mutation, visibility change or checkpoint self-promotion. Critical source/base drift makes an execution Context Lock STALE. Missing required permissions means BLOCKED, not weakened controls.
+No force-push, history rewrite, destructive GitHub mutation, visibility change or executor self-promotion. Checkpoint promotion is an auditor action after objective `APPROVED`, under D-0006. Critical source/base drift makes an execution Context Lock STALE. Missing required permissions means BLOCKED, not weakened controls.
+
+## Agent skills
+
+### Matt Pocock skill invocation
+
+When the `mattpocock-skills` plugin is available, automatically use a model-invoked skill whose description matches the current task; these skills do not require the user to type a slash command. Use `/ask-matt` when skill routing is unclear. User-invoked workflows remain user-led. Do not force-fit a skill or let it override the user's request, this repository's governance/security rules, or deterministic evidence.
+
+Prefer deterministic Git, text search, AST, hashes, tests, lint, typecheck, and build checks whenever they are sufficient. Use Jev only when available and useful for bounded context relevance, triage, classification, reranking, claim verification, comparison, or explicit-gate decisions. Jev output is advisory; never send it secrets or credentials.
+
+### Issue tracker
+
+Issues and specs for this repository live in GitHub Issues. Use the `gh` CLI and follow `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Use `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, and `wontfix` for the five canonical triage roles. Follow `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Follow `.engineering/SOURCE-HIERARCHY.md` and the canonical `.engineering/` Source Pack for domain vocabulary and decisions. See `docs/agents/domain.md` for Spryxel-specific paths; generic skills examples must never replace an approved decision.

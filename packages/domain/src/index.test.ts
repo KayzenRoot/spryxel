@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { canCreateProject, normalizeProjectName, summarizeReadiness } from './index.js';
+import {
+  AssetContractValidationError,
+  compileAssetContract,
+  deriveAssetContractRequestSha256,
+  canCreateProject,
+  nextDurableJobState,
+  normalizeProjectName,
+  summarizeReadiness,
+} from './index.js';
 
 describe('readiness summary', () => {
   it('allows explicitly disabled optional adapters', () => {
@@ -8,6 +16,113 @@ describe('readiness summary', () => {
 
   it('marks a failed configured dependency unavailable', () => {
     expect(summarizeReadiness([{ name: 'postgres', state: 'unavailable' }])).toBe('unavailable');
+  });
+});
+
+describe('Asset Contract compiler and durable Job policy', () => {
+  it('canonicalizes property order and Unicode before hashing', () => {
+    const first = compileAssetContract({
+      skuId: 'SKU-001',
+      specification: { z: 1, label: 'Cafe\u0301', nested: { b: true, a: 2 } },
+    });
+    const second = compileAssetContract({
+      skuId: 'SKU-001',
+      specification: { nested: { a: 2, b: true }, label: 'Café', z: 1 },
+    });
+    expect(first.canonicalSpecification).toBe(second.canonicalSpecification);
+    expect(first.specificationSha256).toBe(second.specificationSha256);
+    expect(first.requestSha256).toBe(second.requestSha256);
+    expect(Object.isFrozen(first)).toBe(true);
+    expect(first.executionBounds).toEqual({
+      maxCandidates: 1,
+      maxRetries: 2,
+      maxRepairs: 0,
+      maxWallTimeMs: 5_000,
+    });
+    expect(Object.isFrozen(first.executionBounds)).toBe(true);
+    expect(Reflect.set(first, 'executionBounds', second.executionBounds)).toBe(false);
+    for (const changedBounds of [
+      { ...first.executionBounds, maxCandidates: 2 },
+      { ...first.executionBounds, maxRetries: 1 },
+      { ...first.executionBounds, maxRepairs: 1 },
+      { ...first.executionBounds, maxWallTimeMs: 4_999 },
+    ]) {
+      expect(
+        deriveAssetContractRequestSha256(first.skuId, first.specificationSha256, changedBounds),
+      ).not.toBe(first.requestSha256);
+    }
+  });
+
+  it('does not accept execution bounds as caller-controlled draft fields', () => {
+    const compiled = compileAssetContract({
+      skuId: 'SKU-001',
+      specification: { width: 12 },
+      executionBounds: { maxCandidates: 99, maxRetries: 99, maxRepairs: 99, maxWallTimeMs: 99_999 },
+    } as Parameters<typeof compileAssetContract>[0]);
+
+    expect(compiled.executionBounds).toEqual({
+      maxCandidates: 1,
+      maxRetries: 2,
+      maxRepairs: 0,
+      maxWallTimeMs: 5_000,
+    });
+  });
+
+  it('orders canonical keys by locale-independent UTF-16 code units', () => {
+    const compiled = compileAssetContract({
+      skuId: 'SKU-001',
+      specification: { ä: 1, z: 2, a: 3 },
+    });
+
+    expect(compiled.canonicalSpecification).toBe('{"a":3,"z":2,"ä":1}');
+  });
+
+  it('rejects unknown catalog IDs, excessive envelopes, and non-JSON values', () => {
+    expect(() => compileAssetContract({ skuId: 'SKU-999', specification: {} })).toThrow(
+      AssetContractValidationError,
+    );
+    const oversizedEnvelope = Object.fromEntries(
+      Array.from({ length: 17 }, (_, index) => [`field-${index}`, 'x'.repeat(4_096)]),
+    );
+    expect(() =>
+      compileAssetContract({ skuId: 'SKU-001', specification: oversizedEnvelope }),
+    ).toThrow(expect.objectContaining({ code: 'specification_too_large' }));
+    expect(() =>
+      compileAssetContract({ skuId: 'SKU-001', specification: { value: Number.NaN } }),
+    ).toThrow(AssetContractValidationError);
+  });
+
+  it('rejects strings and keys PostgreSQL jsonb cannot represent', () => {
+    for (const value of ['\u0000', '\ud800', '\udc00']) {
+      expect(() => compileAssetContract({ skuId: 'SKU-001', specification: { value } })).toThrow(
+        AssetContractValidationError,
+      );
+      expect(() =>
+        compileAssetContract({ skuId: 'SKU-001', specification: { [value]: 1 } }),
+      ).toThrow(AssetContractValidationError);
+    }
+  });
+
+  it('accepts JSONB-valid prototype-like keys and rejects NFC-normalized collisions', () => {
+    const prototypeLikeKeys = JSON.parse(
+      '{"__proto__":{"safe":true},"constructor":"ok"}',
+    ) as unknown;
+    const compiled = compileAssetContract({ skuId: 'SKU-001', specification: prototypeLikeKeys });
+    expect(compiled.canonicalSpecification).toBe('{"__proto__":{"safe":true},"constructor":"ok"}');
+    expect(Object.getPrototypeOf(compiled.specification)).toBeNull();
+
+    const collidingKeys = Object.assign({}, { 'e\u0301': 1, é: 2 });
+    expect(() => compileAssetContract({ skuId: 'SKU-001', specification: collidingKeys })).toThrow(
+      expect.objectContaining({ code: 'invalid_specification' }),
+    );
+  });
+
+  it('enforces the finite state machine and bounded retry path', () => {
+    expect(nextDurableJobState('queued', 'claim')).toBe('running');
+    expect(nextDurableJobState('running', 'retry')).toBe('queued');
+    expect(nextDurableJobState('running', 'request_cancel')).toBe('cancel_requested');
+    expect(nextDurableJobState('cancel_requested', 'finish_cancel')).toBe('cancelled');
+    expect(() => nextDurableJobState('succeeded', 'claim')).toThrow();
   });
 });
 
