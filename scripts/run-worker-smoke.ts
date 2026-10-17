@@ -30,7 +30,9 @@ const events = output
   .split(/\r?\n/)
   .filter(Boolean)
   .map((line) => JSON.parse(line) as Record<string, unknown>);
-if (!events.some((event) => event.event === 'worker.ready' && event.productConsumers === 0)) {
-  throw new Error('Worker self-test did not report the bounded ready state');
+if (!events.some((event) => event.event === 'worker.ready' && event.productConsumers === 1)) {
+  throw new Error('Worker self-test did not report the admitted bounded consumer');
 }
-process.stdout.write('Worker self-test: PASS (separate Node process; zero product consumers)\n');
+process.stdout.write(
+  'Worker self-test: PASS (separate Node process; one bounded integrity consumer)\n',
+);

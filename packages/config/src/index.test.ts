@@ -22,6 +22,7 @@ describe('runtime configuration', () => {
     const config = parseRuntimeConfig(
       {
         DATABASE_URL: 'postgresql://user:db-secret@localhost:5432/app',
+        WORKER_DATABASE_URL: 'postgresql://worker:worker-db-secret@localhost:5432/app',
         REDIS_URL: 'redis://:redis-secret@localhost:6379/0',
         S3_ENDPOINT: 'http://127.0.0.1:8333',
         S3_ACCESS_KEY_ID: 'access-secret',
@@ -31,10 +32,16 @@ describe('runtime configuration', () => {
       'api',
     );
     const serialized = JSON.stringify(redactRuntimeConfig(config));
-    for (const secret of ['db-secret', 'redis-secret', 'access-secret', 's3-secret']) {
+    for (const secret of [
+      'db-secret',
+      'worker-db-secret',
+      'redis-secret',
+      'access-secret',
+      's3-secret',
+    ]) {
       expect(serialized).not.toContain(secret);
     }
-    expect(serialized.match(/\[REDACTED\]/g)).toHaveLength(4);
+    expect(serialized.match(/\[REDACTED\]/g)).toHaveLength(5);
   });
 
   it('rejects partial S3 credentials without printing secret values', () => {
@@ -88,5 +95,41 @@ describe('runtime configuration', () => {
     expect(() => parseMigrationDatabaseUrl({ MIGRATION_DATABASE_URL: 'not-a-url-secret' })).toThrow(
       ConfigValidationError,
     );
+  });
+
+  it('requires only the least-privilege worker database URL for a production worker', () => {
+    const workerConfig = parseRuntimeConfig(
+      {
+        NODE_ENV: 'production',
+        WORKER_DATABASE_URL: 'postgresql://worker:secret@localhost/app',
+        REDIS_URL: 'redis://localhost:6379/0',
+      },
+      'worker',
+    );
+    expect(workerConfig.databaseUrl).toBeUndefined();
+    expect(workerConfig.workerDatabaseUrl).toBe('postgresql://worker:secret@localhost/app');
+
+    expect(() =>
+      parseRuntimeConfig(
+        {
+          NODE_ENV: 'production',
+          REDIS_URL: 'redis://localhost:6379/0',
+        },
+        'worker',
+      ),
+    ).toThrow(ConfigValidationError);
+
+    expect(() =>
+      parseRuntimeConfig(
+        {
+          NODE_ENV: 'production',
+          WORKOS_API_KEY: 'sk_workos_secret',
+          WORKOS_CLIENT_ID: 'client_fixture',
+          WORKOS_ISSUER: 'https://auth.example.test',
+          WORKOS_TOKEN_AUDIENCE: 'https://api.example.test',
+        },
+        'api',
+      ),
+    ).toThrow(ConfigValidationError);
   });
 });

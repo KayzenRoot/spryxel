@@ -6,13 +6,13 @@ Read in order: `.engineering/CHECKPOINT.json`, Decisions Ledger/ADRs, Scope, Def
 ## Executor boundary
 Codex executes only an explicitly admitted Work Order and its current Context Lock. Inspect the exact base before mutation. Do not invent missing product decisions or provider selections.
 
-## Current execution and admission
-The current completed increment and next legal stage are defined by `.engineering/CHECKPOINT.json` and `.engineering/CHECKPOINT.md`, not by this agent guidance. Re-read them at task start.
+## Current execution
+`SPRYXEL-WO-009 / SPRYXEL-IMP-005` is APPROVED and code-merged at `main@f1ce1df2dad7aabb45dd7d725d31821f30e21a2c`, with canonical COMPLETE effective upon protected merge of auditor-reviewed checkpoint PR #88. The WO-009 Context Lock is historical and must remain stale/closed after this promotion; do not reuse it.
 
-For work already admitted on an open PR, also read its versioned Work Order, Context Lock, Correction Delta(s), Evidence Bundle, and exact current PR HEAD. Do not treat an open PR or passing hosted checks as approval. An in-progress increment remains gated until objective audit, canonical checkpoint promotion, merge, and post-merge validation. Never start its successor before those gates are satisfied.
+The next NECESSARY slice is Spryxel DNA + Asset core. It remains `NOT_ADMITTED` until a new Work Order and Context Lock are created from the then-current `main` base.
 
 ## Safety
-No force-push, history rewrite, destructive GitHub mutation, visibility change or checkpoint self-promotion. Critical source/base drift makes an execution Context Lock STALE. Missing required permissions means BLOCKED, not weakened controls.
+No force-push, history rewrite, destructive GitHub mutation, visibility change or executor self-promotion. Checkpoint promotion is an auditor action after objective `APPROVED`, under D-0006. Critical source/base drift makes an execution Context Lock STALE. Missing required permissions means BLOCKED, not weakened controls.
 
 ## Agent skills
 

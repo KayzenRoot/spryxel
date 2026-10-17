@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { chmod, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { spawn } from 'node:child_process';
+import { resolveDockerCliPath } from './docker-cli.js';
 
 const root = process.cwd();
 const action = process.argv[2];
@@ -21,6 +22,7 @@ if (action === 'up') {
       POSTGRES_USER: 'spryxel',
       POSTGRES_PASSWORD: randomBytes(24).toString('hex'),
       DATABASE_APP_PASSWORD: randomBytes(24).toString('hex'),
+      DATABASE_WORKER_PASSWORD: randomBytes(24).toString('hex'),
       REDIS_PASSWORD: randomBytes(24).toString('hex'),
       S3_ACCESS_KEY_ID: randomBytes(16).toString('hex'),
       S3_SECRET_ACCESS_KEY: randomBytes(32).toString('hex'),
@@ -42,32 +44,59 @@ if (action === 'up') {
     );
     await chmod(envPath, 0o600);
   }
+  if (existingEnv && !/^DATABASE_WORKER_PASSWORD=/m.test(existingEnv)) {
+    const current = await readFile(envPath, 'utf8');
+    await writeFile(
+      envPath,
+      `${current.replace(/\s*$/, '')}\nDATABASE_WORKER_PASSWORD=${randomBytes(24).toString('hex')}\n`,
+      { mode: 0o600 },
+    );
+    await chmod(envPath, 0o600);
+  }
 }
 
-await new Promise<void>((resolveRun, reject) => {
-  const child = spawn(
-    'docker',
-    [
-      'compose',
-      '--env-file',
-      envPath,
-      '--project-name',
-      'spryxel-local',
-      '--file',
-      composePath,
-      '--profile',
-      'infra',
-      action === 'up' ? 'up' : 'down',
-      ...(action === 'up' ? ['--build', '--detach', '--wait', '--wait-timeout', '90'] : []),
-    ],
-    { cwd: root, windowsHide: true, stdio: 'inherit' },
-  );
-  child.once('error', reject);
-  child.once('close', (code) => {
-    if (code === 0) resolveRun();
-    else reject(new Error(`Docker Compose ${action} failed with exit code ${code}`));
+const composePrefix = [
+  'compose',
+  '--env-file',
+  envPath,
+  '--project-name',
+  'spryxel-local',
+  '--file',
+  composePath,
+  '--profile',
+  'infra',
+];
+
+async function runCompose(args: string[], operation: string): Promise<void> {
+  await new Promise<void>((resolveRun, reject) => {
+    const child = spawn(resolveDockerCliPath(), [...composePrefix, ...args], {
+      cwd: root,
+      windowsHide: true,
+      stdio: 'inherit',
+    });
+    child.once('error', reject);
+    child.once('close', (code) => {
+      if (code === 0) resolveRun();
+      else reject(new Error(`Docker Compose ${operation} failed with exit code ${code}`));
+    });
   });
-});
+}
+
+if (action === 'up') {
+  await runCompose(['up', '--build', '--detach', '--wait', '--wait-timeout', '90'], 'up');
+  await runCompose(
+    [
+      'exec',
+      '--no-TTY',
+      'postgres',
+      '/bin/sh',
+      '/docker-entrypoint-initdb.d/10-create-app-role.sh',
+    ],
+    'restricted database role provisioning',
+  );
+} else {
+  await runCompose(['down'], 'down');
+}
 
 process.stdout.write(
   action === 'up'
