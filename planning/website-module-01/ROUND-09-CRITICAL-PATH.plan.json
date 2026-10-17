@@ -1,0 +1,181 @@
+{
+  "schemaVersion": "SPRYXEL_WEB_R09_CRITICAL_PATH_EXECUTION_GATES_1",
+  "status": "PROPOSED_SUPERSEDES_ROUND07_SCHEDULING_ONLY_AFTER_INDEPENDENT_G0_APPROVAL",
+  "repo": "KayzenRoot/spryxel",
+  "sourceSha": "08bd429bb924e26f7d5266ee9b556cc8da2c8b8c",
+  "mustRefreshSource": true,
+  "goal": "Fastest wall-clock completion while protecting admitted Work Orders, AuthKit, CI and actual design release gates",
+  "planningStages": [
+    {
+      "id": "G0",
+      "issue": 63,
+      "status": "FORMAL_DECISION_PENDING",
+      "stop": "Review independent off-main branch exception to D-153, protect WO-008 merge order"
+    },
+    {
+      "id": "G1",
+      "issue": 64,
+      "status": "FROZEN_CONTRACT_PENDING",
+      "stop": "Freeze typed locale/SEO/route/semantic token APIs and roots; Next16 protected root B1 migration remains isolated"
+    },
+    {
+      "id": "G2",
+      "issue": 70,
+      "status": "OWNER_VISUAL_APPROVAL_PENDING",
+      "stop": "Approve exact Round05 4 reference PNG hashes and truthful website art; logo #53 fidelity and Git binary import"
+    },
+    {
+      "id": "A",
+      "issues": [
+        65,
+        66,
+        67,
+        68,
+        71,
+        72,
+        73
+      ],
+      "status": "NO_WO_ADMITTED",
+      "stop": "Per-issue WO, Context Lock and owners, 4 supported agents max"
+    },
+    {
+      "id": "B1",
+      "issue": 69,
+      "status": "HIGH_ASSURANCE_SOURCE_CHECK_PENDING",
+      "stop": "Native SSR/root migration + WorkOS/RLS/real cookie tests on exact HEAD"
+    },
+    {
+      "id": "B2",
+      "issue": 74,
+      "status": "LAUNCH_REVIEW_PENDING",
+      "stop": "Copyright, contact, counsel legal and all verified functional site gates"
+    }
+  ],
+  "proposedEarlyIndependentNonVisualCoding": [
+    {
+      "id": "A6",
+      "issue": 72,
+      "kind": "typed locale dictionary and key parity",
+      "requires": [
+        "G0 formally approved",
+        "G1 frozen locale key schema",
+        "specific A6 WO+Context Lock+SHA admitted"
+      ],
+      "doesNotRequire": [
+        "Final Digital Leaf SVG",
+        "Final 3D Worlds hero image owner approval"
+      ],
+      "restriction": "No public release, no modification of app/layout.tsx"
+    },
+    {
+      "id": "A4",
+      "issue": 68,
+      "kind": "FAQ and SEO data interfaces with no public route integration",
+      "requires": [
+        "G0 formally approved",
+        "G1 8-route contract",
+        "specific A4 WO+Context Lock+SHA admitted"
+      ],
+      "doesNotRequire": [
+        "Hero art approved"
+      ],
+      "restriction": "No live canonical domain claims, no edited router, no self-published legal pages"
+    }
+  ],
+  "laterImageDependent": {
+    "tasks": [
+      "A1",
+      "A3",
+      "A5"
+    ],
+    "requires": [
+      "G0",
+      "G1",
+      "G2 visual signoff",
+      "brand #53 fidelity where displayed",
+      "Git reference bytes imported/verified",
+      "specific WO+Context Lock"
+    ]
+  },
+  "sensitiveParallelCandidates": {
+    "A2": {
+      "issue": 66,
+      "requires": [
+        "G0",
+        "G1",
+        "relevant privacy/consent owner review",
+        "specific WO+Context Lock"
+      ],
+      "restriction": "Consent display logic may be planned/isolated; no optional trackers/production legal publication without signed inventory"
+    },
+    "A7": {
+      "issue": 73,
+      "requires": [
+        "G0",
+        "G1",
+        "WorkOS unchanged boundary review",
+        "specific WO+Context Lock"
+      ],
+      "restriction": "Only existing /sign-in link adapter, no auth provider/proxy configuration"
+    }
+  },
+  "scheduler": {
+    "maxAgents": 4,
+    "benchmarkBeforeScaling": true,
+    "slotsAfterFirstGate": [
+      "A6",
+      "A4"
+    ],
+    "slotsAfterDesignAndContractApproval": [
+      "A1",
+      "A3",
+      "A5",
+      "A6"
+    ],
+    "eventDrivenRefill": [
+      "A2",
+      "A7",
+      "A4"
+    ],
+    "reservedResources": "MUST_FILL_WITH_REAL_Codex_QUOTA_BUDGET",
+    "notYetAvailableUntilFormalApproval": true
+  },
+  "mergePolicy": {
+    "all": "NO_MERGE_UNTIL_INDEPENDENT_OBJECTIVE_APPROVAL",
+    "workOrder008": "MUST_NOT_INVALIDATE CURRENT CONTEXT LOCK",
+    "finalHead": "Full exact SHA required CI + WO tests",
+    "nonGatingP2": "tracked module closeout only if outside WO/DoD"
+  },
+  "conditions": [
+    {
+      "id": "PERF-01",
+      "state": "PROPOSED",
+      "reason": "Visual owner approval cannot rationally block unrelated typed locale dictionaries IF G0/G1 formally waive G2 dependency for A6/A4 after independent reviewed change"
+    },
+    {
+      "id": "SAFE-01",
+      "state": "MANDATORY",
+      "reason": "No release of legal/consent/auth/tenant-coupled route changes before relevant audit"
+    },
+    {
+      "id": "SAFE-02",
+      "state": "MANDATORY",
+      "reason": "Current protected / WorkOS and WCAG locale issue require B1 isolated HIGH_ASSURANCE full tests"
+    },
+    {
+      "id": "SAFE-03",
+      "state": "MANDATORY",
+      "reason": "No actual Codex or vendor GPU/credit spend in planning"
+    }
+  ],
+  "ownerDecisionRequired": "Approve both G0 sequencing and a limited G2 dependency split for nonvisual tasks A6/A4, or retain original all-A-after-G2 DAG.",
+  "approval": {
+    "ownerExplicit": false,
+    "independentReviewer": false,
+    "canonicalDecisionDelta": false,
+    "admittedWorkOrders": [],
+    "contextLocks": false
+  },
+  "executionAuthorized": false,
+  "mergesAuthorized": false
+}

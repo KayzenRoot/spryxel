@@ -1,0 +1,167 @@
+{
+  "schemaVersion": "SPRYXEL_WEB_ROUND05_FREEZE_CANDIDATE_1",
+  "status": "DESIGN_FREEZE_CANDIDATE_READY_FOR_OWNER_REVIEW_NOT_APPROVED",
+  "repo": "KayzenRoot/spryxel",
+  "pr": 75,
+  "issue": 70,
+  "webVersion": "Round 05 CSS-refined static HTML reference",
+  "officialDesignMaster": false,
+  "executableWorkOrder": false,
+  "referencePack": {
+    "filename": "spryxel-master-design-round05-review-pack.zip",
+    "bytes": 16805951,
+    "sha256": "91782ba281fb852d9fc2bcf69c0eebe61509b41f146cc3b759931b80bf59ce41",
+    "location": "conversation attachment only, not GitHub file",
+    "includesOriginalOwnerReferences": true
+  },
+  "sourceFiles": [
+    {
+      "path": "master-home.html",
+      "sha256": "0f5ab5185d54ba8245c96c6f75ebef413bded24e3ec61e46d0ed5077ad44d8a5"
+    },
+    {
+      "path": "master-home.css",
+      "sha256": "6566be98a17cc29ccc4812cc955f4908102cfd61759ea933e2127f387eafaabe"
+    }
+  ],
+  "ownerReferences": [
+    {
+      "path": "assets/OFFICIAL-VISUAL-REFERENCE-IMG_9281.jpeg",
+      "sha256": "ccea6a42e1787b8a2162019ba07a800ca28274bfa6f2f4d74faf4dec870652aa",
+      "size": [
+        1179,
+        775
+      ],
+      "approval": "original owner-selected BRAND Option05 direction; vectorized exact mark NOT APPROVED"
+    },
+    {
+      "path": "assets/OFFICIAL-VISUAL-DIRECTION-OPTION07.png",
+      "sha256": "8e86b97c86b30dd9f155fe9165abefef28cbd8a32b52512b6c9c5decb29a1a70",
+      "size": [
+        1312,
+        1199
+      ],
+      "approval": "owner-selected HOMEPAGE Option07 3D FOCADO EM WORLDS direction; bottom row second column"
+    }
+  ],
+  "renderedCandidates": [
+    {
+      "path": "master-home-desktop-dark.png",
+      "size": [
+        1440,
+        6817
+      ],
+      "sha256": "d51b776b14f58bc0b8dbc66f4e558c7a5fd6dc0b94bdce4c134c75632daf3dec"
+    },
+    {
+      "path": "master-home-desktop-light.png",
+      "size": [
+        1440,
+        6817
+      ],
+      "sha256": "410cbe3cf5d734d56d7eea466a718e1440916089b6d35e22df4999e5fd34e1d2"
+    },
+    {
+      "path": "master-home-mobile-dark.png",
+      "size": [
+        391,
+        9533
+      ],
+      "sha256": "31d6837eb560602935c2a1806b15b8a570ae64f40bfa0232ebdc96b6f836bc57"
+    },
+    {
+      "path": "master-home-mobile-light.png",
+      "size": [
+        391,
+        9533
+      ],
+      "sha256": "582f62cdbf1a2e74b55cf8b5cb8910d6099073d46aeee95e800d7e72fda1bc41"
+    }
+  ],
+  "measured": {
+    "cssContrast": {
+      "originalLightMutedOnWhite": 4.01,
+      "correctedLightMutedOnWhite": 5.66,
+      "cssRole": "--faint",
+      "before": "#6b8389",
+      "after": "#526b73",
+      "scope": "opaque white surface only; not full WCAG audit"
+    },
+    "reflow": "Mobile asset grid changed to single column for functional labels; more page height expected",
+    "previewBrowserWidthsCssPx": [
+      320,
+      375,
+      390,
+      768,
+      1024,
+      1440,
+      1920
+    ],
+    "checkedThemeAndWidthPairs": [
+      {
+        "width": 320,
+        "themes": [
+          "dark",
+          "light"
+        ]
+      },
+      {
+        "width": 390,
+        "themes": [
+          "dark",
+          "light"
+        ]
+      },
+      {
+        "width": 768,
+        "themes": [
+          "dark",
+          "light"
+        ]
+      },
+      {
+        "width": 1440,
+        "themes": [
+          "dark",
+          "light"
+        ]
+      }
+    ],
+    "computedTypographyPreview": {
+      "visibleOwnTextBelow14px": 0,
+      "visibleActionTargetsBelow44px": 0,
+      "scope": "inspected DOM in static preview only; full accessibility not established"
+    },
+    "previewInteraction": [
+      "in-page anchors",
+      "no horizontal overflow",
+      "6 game asset cards",
+      "6 FAQ",
+      "4 footer column sections",
+      "theme mock toggle",
+      "cookie dialog demonstration",
+      "auth dialog demonstration",
+      "mobile nav demonstration"
+    ],
+    "renderVariants": 4,
+    "limits": [
+      "Not application integration tests",
+      "Not a full WCAG 2.2 AA audit",
+      "Not legal consent enforcement or tracking policy",
+      "Not public WorkOS login/signup",
+      "Not tested EN/pt-BR/es live translations",
+      "Not full original logo repro or approved game art license audit"
+    ]
+  },
+  "blockersBeforeDesignFreeze": [
+    "Owner visually approves these exact candidate PNG SHA256s or requests one more revision",
+    "Issue #53 faithful master Digital Leaf logo and transparent source outputs approved",
+    "Actual original and final binary design assets imported into GitHub for Codex workspace with SHA verification",
+    "G0 #63 sequencing ADR, G1 #64 UI contract reconciliation and G2 #70 design signoff before implementation admission",
+    "Real work scopes/copy/permissions/legal terms remain future separate module QA and launch gates"
+  ],
+  "noAutoMerge": true,
+  "noCheckpointPromotion": true,
+  "noCodexDispatch": true,
+  "stopCondition": "SPRYXEL_WEB_G2_ROUND_05_DESIGN_FREEZE_CANDIDATE_READY_FOR_OWNER_REVIEW"
+}

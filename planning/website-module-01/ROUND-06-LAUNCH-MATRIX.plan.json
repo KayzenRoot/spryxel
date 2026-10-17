@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "SPRYXEL_WEB_ROUND06_IMPLEMENTATION_PLAN_1",
+  "status": "PLANNING_ONLY_ALL_NOT_ADMITTED",
+  "project": "KayzenRoot/spryxel",
+  "sourceFiles": [
+    ".engineering/CHECKPOINT.json",
+    ".engineering/DECISIONS-LEDGER.md",
+    "planning/website-module-01/governance/WEB-G0-SEQUENCING-ADR-PROPOSAL.md",
+    "planning/website-module-01/contracts/WEB-G1-SHARED-INTERFACES.md",
+    "planning/website-module-01/contracts/WEB-G1-PUBLIC-ROUTES.plan.json",
+    "planning/website-module-01/master-design/ROUND-05-FREEZE-LOCK.plan.json"
+  ],
+  "ownerPriority": "Reduce elapsed time to independently audited, correct public-site module, not number of parallel agents or short-term skipped tests",
+  "gateOrder": [
+    {
+      "id": "G0",
+      "issue": 63,
+      "need": "Owner + objective audit of staged public site sequencing while WO-008 pending",
+      "status": "NOT_APPROVED"
+    },
+    {
+      "id": "G1",
+      "issue": 64,
+      "need": "Freeze shared route/locale/SSR html lang design, marketing tokens, section IDs, path ownership, WorkOS trust boundary",
+      "status": "NOT_APPROVED"
+    },
+    {
+      "id": "G2",
+      "issue": 70,
+      "need": "Approve four exact Round05 image master SHAs, exact original double-leaf logo #53, references imported, source and rights",
+      "status": "NOT_APPROVED"
+    },
+    {
+      "id": "CODING_ADMISSION",
+      "issue": 54,
+      "need": "Admitted Work Orders + fresh Context Locks + exact updated base SHA + independent preflight",
+      "status": "NOT_APPROVED"
+    }
+  ],
+  "proposedParallelBatch": {
+    "group": "A1..A7",
+    "maxAgents": 4,
+    "dispatchMode": "event-driven freed-slot refill (only after admission)",
+    "singleCodexPromptMultiWO": true,
+    "initialCandidate": [
+      "A1",
+      "A3",
+      "A5",
+      "A6"
+    ],
+    "refillCandidates": [
+      "A4",
+      "A2",
+      "A7"
+    ],
+    "pendingAdmission": true,
+    "noSharedWritablePaths": true,
+    "sharedReadOnlyContracts": [
+      "G1 route+locale schema",
+      "G2 frozen master design",
+      "Round04 component slot JSON",
+      "canonical UX tokens"
+    ],
+    "cautions": [
+      "A6 exclusive dictionary writer; all other agents consume typed keys",
+      "A1/A3 slots frozen first; outputs need not wait for art completion to draft layout",
+      "A2 legal/consent elevated risk: no unreviewed client tracker",
+      "A7 must not modify WorkOS auth backend",
+      "No full root/proxy migrations in parallel A-lanes",
+      "B1 shared layout/root route changes are serial after accepted A-lanes"
+    ],
+    "expectedOutputs": [
+      "separate PR and exact SHA per WO",
+      "focused evidence and review receipt per WO",
+      "documented P2 non-required polish only",
+      "no unadmitted task execution or fake green"
+    ],
+    "noEstimatedTokensClaimed": true
+  },
+  "integration": {
+    "step": "B1",
+    "issue": 69,
+    "mode": "SERIAL",
+    "requiresAccepted": [
+      "A1",
+      "A2",
+      "A3",
+      "A4",
+      "A5",
+      "A6",
+      "A7"
+    ],
+    "stepA": "Localized additive public routes, preserves current protected / and WorkOS baseline.",
+    "stepB": "Optional protected root cutover with independent HIGH_ASSURANCE gate, changes all protected navigation/proxy only after separate approval.",
+    "criticalNonDelegable": [
+      "root layout SSR locale lang",
+      "proxy matcher and auth boundary",
+      "shared route registration",
+      "metadata/canonical and deployed robots",
+      "global CSS import scope"
+    ],
+    "securityNoGo": [
+      "public root leaks tenant data",
+      "root redirect loop",
+      "localized html lang wrong",
+      "unauthenticated protected projects access",
+      "fake login/cookie consent in production"
+    ],
+    "exactHeadEvidenceRequired": true
+  },
+  "closeout": {
+    "step": "B2",
+    "issue": 74,
+    "mode": "SERIAL",
+    "requires": [
+      "B1 independent PASS",
+      "WCAG/keyboard/locale and cookie flows",
+      "real legal & controller signoff",
+      "brand owner approval",
+      "exact final HEAD required CI",
+      "independent audit and authorized merge"
+    ],
+    "noAutomaticPublicDeployment": true
+  },
+  "reviewRouting": {
+    "owner": "ChatGPT-first #62",
+    "priorities": {
+      "P0": "stop",
+      "P1": "block task acceptance",
+      "P2": "track to module closeout only if outside formal required DoD",
+      "P3": "future backlog"
+    },
+    "localCodexReturn": "only proven necessary runtime/complex P1, consolidated"
+  },
+  "testing": {
+    "F0": "targeted changed-workspace quick checks",
+    "F1": "affected component/function and relevant browser smoke",
+    "F2": "full admitted Work Order acceptance on exact HEAD; real AuthKit/cookie/SSR/i18n and security tests at integration",
+    "F3": "postmerge and public launch readiness independently"
+  },
+  "nonGoals": [
+    "change main or current WO-008 #29/PR #30",
+    "alter GEF/protected checks",
+    "implement Stripe/crypto now",
+    "assume logo fidelity approved",
+    "claim static preview is functional WorkOS or consent"
+  ],
+  "deployment": false,
+  "execAuthorized": false,
+  "mergeAuthorized": false
+}

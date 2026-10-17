@@ -1,0 +1,535 @@
+{
+  "schemaVersion": "SPRYXEL_WEB_R4_COMPONENT_CONTRACTS_1",
+  "status": "DRAFT_G2_APPROVAL_PENDING",
+  "rootShellOwner": "B1 only",
+  "siteLocales": [
+    "en",
+    "pt-BR",
+    "es"
+  ],
+  "themes": [
+    "dark",
+    "light"
+  ],
+  "source": "ROUND-03-VISUAL-CANDIDATE.md and canonical UX-DESIGN-SYSTEM.md",
+  "sharedConstraints": [
+    "No A1..A7 agent may modify root app layout, shared CSS variables, route registration, package scripts, WorkOS config or shared locale dictionaries except designated A6",
+    "G1 freezes paths, semantic token mappings, expected component slot contracts",
+    "A1 and A5 consume A6 typed locale key map; never independently change keys during parallel batch",
+    "B1 is only agent integrating shared routing/layout/SEO/script ownership",
+    "No action clickable unless href or callback exists and has a real permitted effect",
+    "All components respect dark/light, 320..1920, reduced-motion, keyboard and translated expanded strings"
+  ],
+  "components": [
+    {
+      "id": "PublicSiteShell",
+      "owner": "B1",
+      "proposedExclusiveRoot": "apps/web/app/(public)/ (final shared integration owner only)",
+      "publicInterface": [
+        "locale: en|pt-BR|es",
+        "theme: dark|light",
+        "children: rendered SSR route",
+        "userAccess: verified/public/unavailable"
+      ],
+      "requiredStates": [
+        "loading",
+        "invalid locale",
+        "dark",
+        "light"
+      ],
+      "acceptance": [
+        "One main landmark, header and footer each once",
+        "Clean SSR hydration and no theme flashing",
+        "No public route bypasses WorkOS security or leaks preview data"
+      ],
+      "dependsOn": [
+        "G1",
+        "G2"
+      ],
+      "status": "DESIGN_CONTRACT_PROPOSED"
+    },
+    {
+      "id": "BrandMark",
+      "owner": "A5",
+      "proposedExclusiveRoot": "apps/web/components/public-chrome/",
+      "publicInterface": [
+        "assetRef: immutable approved Digital Leaf #53 asset manifest",
+        "variant: symbol|horizontal|stacked",
+        "contrast: dark|light",
+        "decorative: boolean"
+      ],
+      "requiredStates": [
+        "full-color",
+        "mono",
+        "fallback unapproved"
+      ],
+      "acceptance": [
+        "Image must match owner Option05 original (no draft logo declared approved)",
+        "True SVG/PNG alpha validated, no untrusted external SVG URLs",
+        "Accessible name exactly Spryxel when semantic; empty alt when adjacent visible name"
+      ],
+      "dependsOn": [
+        "G2",
+        "#53 approval"
+      ],
+      "status": "DESIGN_CONTRACT_PROPOSED"
+    },
+    {
+      "id": "PublicHeader",
+      "owner": "A5",
+      "proposedExclusiveRoot": "apps/web/components/public-chrome/",
+      "publicInterface": [
+        "navItems: actual G1 route contracts",
+        "localeSwitchSlot",
+        "themeSwitchSlot",
+        "authCtaSlot",
+        "brandSlot"
+      ],
+      "requiredStates": [
+        "default",
+        "sticky",
+        "mobileOpen",
+        "mobileClosed",
+        "keyboardFocus"
+      ],
+      "acceptance": [
+        "No dead links; sign-in only if verified",
+        "Mobile drawer focus management Escape and return focus",
+        "No browser language setting implied by static EN-only mock"
+      ],
+      "dependsOn": [
+        "G1",
+        "G2"
+      ],
+      "status": "DESIGN_CONTRACT_PROPOSED"
+    },
+    {
+      "id": "ThemeSwitcher",
+      "owner": "A5",
+      "proposedExclusiveRoot": "apps/web/components/public-chrome/",
+      "publicInterface": [
+        "theme: dark|light",
+        "onRequestTheme: callback",
+        "accessibleLabel: localized"
+      ],
+      "requiredStates": [
+        "dark",
+        "light",
+        "system preference",
+        "storage unavailable"
+      ],
+      "acceptance": [
+        "Theme presentational only, no auth permissions affected",
+        "Both themes contrast audited and SSR compatible",
+        "Keyboard focus visible and same semantic statuses"
+      ],
+      "dependsOn": [
+        "G1",
+        "G2"
+      ],
+      "status": "DESIGN_CONTRACT_PROPOSED"
+    },
+    {
+      "id": "LanguageSwitcher",
+      "owner": "A5",
+      "proposedExclusiveRoot": "apps/web/components/public-chrome/",
+      "publicInterface": [
+        "locale: en|pt-BR|es",
+        "onSelectLocale or locale route hrefs",
+        "localizedName"
+      ],
+      "requiredStates": [
+        "expanded",
+        "collapsed",
+        "selected",
+        "unknown locale"
+      ],
+      "acceptance": [
+        "Actual locale navigation (not static 'EN' badge)",
+        "Preserve matching page if translation exists, safe fallback",
+        "35-40% text expansion no clipping"
+      ],
+      "dependsOn": [
+        "G1",
+        "A6"
+      ],
+      "status": "DESIGN_CONTRACT_PROPOSED"
+    },
+    {
+      "id": "HeroWorlds",
+      "owner": "A1",
+      "proposedExclusiveRoot": "apps/web/components/public-landing/",
+      "publicInterface": [
+        "eyebrow: translated COPY",
+        "headline: translated COPY",
+        "ctaPrimary: real #asset-types anchor",
+        "ctaSecondary: real #how-it-works anchor",
+        "illustrationSlot: static default/progressive art from A3"
+      ],
+      "requiredStates": [
+        "loading image",
+        "static fallback",
+        "reduced motion",
+        "mobile",
+        "desktop",
+        "light",
+        "dark"
+      ],
+      "acceptance": [
+        "Marketing copy truthful Pixel/2D in development",
+        "Above-fold category signals visible",
+        "No fake user counts/prices/3D production feature promises"
+      ],
+      "dependsOn": [
+        "G2",
+        "A3",
+        "A6"
+      ],
+      "status": "DESIGN_CONTRACT_PROPOSED"
+    },
+    {
+      "id": "HeroArtwork",
+      "owner": "A3",
+      "proposedExclusiveRoot": "apps/web/components/public-hero-art/ + design/website/3d-worlds/",
+      "publicInterface": [
+        "srcSet: versioned/licensed imagery",
+        "altMode: decorative|meaningful",
+        "progressive3d?: opt-in fallback-safe"
+      ],
+      "requiredStates": [
+        "no WebGL",
+        "network slow",
+        "prefers-reduced-motion",
+        "low bandwidth",
+        "screen reader"
+      ],
+      "acceptance": [
+        "Always usable without WebGL/JS",
+        "License and hash/provenance recorded",
+        "Largest contentful element image loading budget measured and no CLS"
+      ],
+      "dependsOn": [
+        "G2"
+      ],
+      "status": "DESIGN_CONTRACT_PROPOSED"
+    },
+    {
+      "id": "AssetExplorer",
+      "owner": "A1",
+      "proposedExclusiveRoot": "apps/web/components/public-landing/",
+      "publicInterface": [
+        "categories: typed data from A6",
+        "availability: VERIFIED|PLANNED per category",
+        "artRef: approved/provenance"
+      ],
+      "requiredStates": [
+        "6 cards",
+        "empty curated category",
+        "mobile",
+        "keyboard"
+      ],
+      "acceptance": [
+        "Exactly six agreed categories unless G2 approved",
+        "Planned categories labeled, no fictional 'live' badge",
+        "Cards only clickable if actual destination exists"
+      ],
+      "dependsOn": [
+        "G2",
+        "A6"
+      ],
+      "status": "DESIGN_CONTRACT_PROPOSED"
+    },
+    {
+      "id": "AssetCategoryCard",
+      "owner": "A1",
+      "proposedExclusiveRoot": "apps/web/components/public-landing/",
+      "publicInterface": [
+        "name",
+        "description",
+        "imageAlt",
+        "artRef",
+        "status",
+        "href?: validated"
+      ],
+      "requiredStates": [
+        "static",
+        "link",
+        "focus",
+        "artFallback"
+      ],
+      "acceptance": [
+        "No decorative arrow masquerading as functional click",
+        "Readability >=14px for functional secondary labels",
+        "Image sources licensed; no text hidden in illustration"
+      ],
+      "dependsOn": [
+        "G1",
+        "G2"
+      ],
+      "status": "DESIGN_CONTRACT_PROPOSED"
+    },
+    {
+      "id": "CreativeWorkflow",
+      "owner": "A1",
+      "proposedExclusiveRoot": "apps/web/components/public-landing/",
+      "publicInterface": [
+        "steps: Project, Style reference, Create, Review & refine, Export",
+        "releaseStatus per step"
+      ],
+      "requiredStates": [
+        "five steps",
+        "narrow ordered list",
+        "reduced motion"
+      ],
+      "acceptance": [
+        "Ordered semantics survive no-JS",
+        "Never claim unshipped steps are live",
+        "Localized labels do not overflow"
+      ],
+      "dependsOn": [
+        "G2",
+        "A6"
+      ],
+      "status": "DESIGN_CONTRACT_PROPOSED"
+    },
+    {
+      "id": "ConceptGallery",
+      "owner": "A1",
+      "proposedExclusiveRoot": "apps/web/components/public-landing/",
+      "publicInterface": [
+        "items: approved art manifests",
+        "kind: CONCEPT|VERIFIED_PRODUCT_OUTPUT"
+      ],
+      "requiredStates": [
+        "loaded",
+        "empty/hidden",
+        "mobile",
+        "image-error"
+      ],
+      "acceptance": [
+        "Clear 'concept illustration' vs true output distinction",
+        "No fabricated 'Made with Spryxel' claim",
+        "Hide/replace entire gallery if license missing"
+      ],
+      "dependsOn": [
+        "G2",
+        "A3",
+        "A6"
+      ],
+      "status": "DESIGN_CONTRACT_PROPOSED"
+    },
+    {
+      "id": "CreatorAudience",
+      "owner": "A1",
+      "proposedExclusiveRoot": "apps/web/components/public-landing/",
+      "publicInterface": [
+        "personas: indie developers, pixel artists, small studios"
+      ],
+      "requiredStates": [
+        "3 cards",
+        "narrow layout"
+      ],
+      "acceptance": [
+        "Nonfictional personas, no fabricated endorsements",
+        "Cards wrap/truncate safely in all 3 locales"
+      ],
+      "dependsOn": [
+        "G2",
+        "A6"
+      ],
+      "status": "DESIGN_CONTRACT_PROPOSED"
+    },
+    {
+      "id": "FAQ",
+      "owner": "A4",
+      "proposedExclusiveRoot": "apps/web/components/public-seo/",
+      "publicInterface": [
+        "questions: A6 localized canonical data",
+        "id: faq"
+      ],
+      "requiredStates": [
+        "all collapsed",
+        "expanded",
+        "keyboardFocus"
+      ],
+      "acceptance": [
+        "6+ truthful FAQs, native semantics",
+        "Keyboard operable, no content hidden only by JS",
+        "P0 security/legal statements fact-checked by owners"
+      ],
+      "dependsOn": [
+        "G1",
+        "A6"
+      ],
+      "status": "DESIGN_CONTRACT_PROPOSED"
+    },
+    {
+      "id": "ClosingCTA",
+      "owner": "A1",
+      "proposedExclusiveRoot": "apps/web/components/public-landing/",
+      "publicInterface": [
+        "primaryLink: #asset-types",
+        "secondaryLink: #how-it-works"
+      ],
+      "requiredStates": [
+        "normal",
+        "focus",
+        "reduced motion"
+      ],
+      "acceptance": [
+        "No fake signup/waitlist/credits promises",
+        "Both anchors resolve on same page"
+      ],
+      "dependsOn": [
+        "G2",
+        "A6"
+      ],
+      "status": "DESIGN_CONTRACT_PROPOSED"
+    },
+    {
+      "id": "PublicFooter",
+      "owner": "A5",
+      "proposedExclusiveRoot": "apps/web/components/public-chrome/",
+      "publicInterface": [
+        "groups: Product, Resources, Company, Legal",
+        "legalLinks: only verified routes",
+        "cookieSettingsSlot: accessible button",
+        "realOfficialSocials?: manifest"
+      ],
+      "requiredStates": [
+        "4 columns desktop",
+        "stack mobile",
+        "missing publisher identity prelaunch block",
+        "keyboard focus"
+      ],
+      "acceptance": [
+        "Cookie Settings actually opens consent when implemented",
+        "Unknown legal/company/contact placeholders never masquerade as real destinations",
+        "Theme/locale switch works or omitted rather than static"
+      ],
+      "dependsOn": [
+        "G1",
+        "A2",
+        "A6"
+      ],
+      "status": "DESIGN_CONTRACT_PROPOSED"
+    },
+    {
+      "id": "CookieConsent",
+      "owner": "A2",
+      "proposedExclusiveRoot": "apps/web/components/public-consent/",
+      "publicInterface": [
+        "categories: strictlyNecessary|optional",
+        "onSave: grant/deny/custom",
+        "locale: en|pt-BR|es"
+      ],
+      "requiredStates": [
+        "initial off for optional",
+        "accept optional",
+        "reject optional",
+        "customize",
+        "reopen",
+        "storage unavailable"
+      ],
+      "acceptance": [
+        "No optional tracking before valid consent where required",
+        "Accept/Reject equivalent visibility; revocation via footer",
+        "Do not claim legal signoff until actual publisher/processors verified"
+      ],
+      "dependsOn": [
+        "G1",
+        "A6"
+      ],
+      "status": "DESIGN_CONTRACT_PROPOSED"
+    },
+    {
+      "id": "PublicAuthEntry",
+      "owner": "A7",
+      "proposedExclusiveRoot": "apps/web/components/public-auth-entry/",
+      "publicInterface": [
+        "destination: verified WorkOS existing entry",
+        "availability: publicReady|gated"
+      ],
+      "requiredStates": [
+        "available",
+        "unavailable",
+        "auth failure"
+      ],
+      "acceptance": [
+        "Don't embed a fake credential-collecting form",
+        "No provider/backend replacement",
+        "Only verified login/register routes published"
+      ],
+      "dependsOn": [
+        "G1",
+        "G2"
+      ],
+      "status": "DESIGN_CONTRACT_PROPOSED"
+    },
+    {
+      "id": "PublicSeoMetadata",
+      "owner": "A4",
+      "proposedExclusiveRoot": "apps/web/components/public-seo/",
+      "publicInterface": [
+        "canonical route locale",
+        "ogImage: provenance",
+        "robots/noindex mode",
+        "metaTitle/description: localized"
+      ],
+      "requiredStates": [
+        "live",
+        "prelaunch noindex",
+        "missing locale"
+      ],
+      "acceptance": [
+        "No fake OG share source or claimed domain",
+        "Correct hreflang/canonical/sitemap under G1",
+        "Noindexed unapproved legal pages/preview"
+      ],
+      "dependsOn": [
+        "G1",
+        "A6"
+      ],
+      "status": "DESIGN_CONTRACT_PROPOSED"
+    },
+    {
+      "id": "PublicCopyDictionary",
+      "owner": "A6",
+      "proposedExclusiveRoot": "apps/web/content/public-locales/",
+      "publicInterface": [
+        "locale: en|pt-BR|es",
+        "dictionary: typed key map shared via G1",
+        "namespace: header/hero/assets/workflow/gallery/audience/faq/CTA/footer/consent/auth/SEO",
+        "fallbackLocale: en",
+        "translatableStrings: owned and versioned"
+      ],
+      "requiredStates": [
+        "en canonical",
+        "pt-BR complete",
+        "es complete",
+        "missing key fails review",
+        "pseudo-expanded text ~40%",
+        "invalid locale safe fallback"
+      ],
+      "acceptance": [
+        "A6 is sole writer of public-site locale dictionaries; other builders consume readonly types",
+        "28 Round02 editorial keys mapped without missing/dangling labels before extending legal strings",
+        "No hardcoded untranslated control, consent, error, ALT or SEO text is accepted",
+        "Pluralization, expansion and character normalization checked at 320px and desktop",
+        "Legal policy translations require qualified human review before public deployment"
+      ],
+      "dependsOn": [
+        "G1",
+        "G2"
+      ],
+      "status": "DESIGN_CONTRACT_PROPOSED"
+    }
+  ],
+  "validation": {
+    "componentIdsUnique": true,
+    "sharedPackageModsRequire": "G1/B1 independent review",
+    "mergeGate": "full exact HEAD + independent audit",
+    "visualFreeze": "owner approval required"
+  },
+  "notExecutable": true
+}

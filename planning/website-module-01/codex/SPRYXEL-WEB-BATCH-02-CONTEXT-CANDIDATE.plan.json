@@ -1,0 +1,161 @@
+{
+  "schemaVersion": "SPRYXEL_WEB_BATCH02_CONTEXT_CANDIDATE_V1",
+  "kind": "spryxel.context-lock.candidate",
+  "status": "OWNER_APPROVED_SCOPE_PREPARATION_PENDING_G0_G1_NORMATIVE_INDEPENDENT_AUDIT_CONTEXT_LOCK",
+  "workOrderId": "SPRYXEL-WEB-BATCH-02",
+  "trackingIssue": 81,
+  "repository": "KayzenRoot/spryxel",
+  "target": {
+    "branch": "feat/web-static-batch-02-polish",
+    "draftPRBase": "feat/web-b1-ssr-locale-01",
+    "baseSha": "9e34e76ce8e451a47999cdd354921b5fed0c08c9",
+    "parentPR": 80,
+    "grandparentPR": 76,
+    "baseRequiresExactReadback": true
+  },
+  "authority": {
+    "checkpoint": {
+      "path": ".engineering/CHECKPOINT.json",
+      "branch": "main",
+      "blobSha": "cd1a8729e068d3bc72e57c5c2a6ea9a8f686cbe7",
+      "unchanged": true
+    },
+    "decisionLedger": {
+      "path": ".engineering/DECISIONS-LEDGER.md",
+      "blobSha": "856894e9936780f36c5e9982d1c3fe6e96aed90f",
+      "unchanged": true
+    },
+    "sourceHierarchy": {
+      "path": ".engineering/SOURCE-HIERARCHY.md",
+      "blobSha": "682405cf940db156779f345b0d924747245e2d79",
+      "unchanged": true
+    },
+    "agents": {
+      "path": "AGENTS.md",
+      "blobSha": "4dec6b3e5a88536c507ae810e50e01ecd560f753",
+      "unchanged": true
+    },
+    "packageLock": {
+      "path": "package-lock.json",
+      "blobSha": "5585c5b1eb10deaac1f6f513f38f8bb3ff874e97",
+      "unchanged": true
+    },
+    "gef": "@gef-bootstrap/cli@1.1.1",
+    "decisionStatus": "G0 #63 / G1 #64 / G2 #70 not formally frozen",
+    "requiredIndependentApproval": true,
+    "requiredAdmissionSatisfied": false,
+    "ownerCurrentSpecificApproval": true,
+    "independentAuditComplete": false,
+    "freshCanonicalContextLockExists": false,
+    "canonicalG0SequenceExceptionApproved": false,
+    "g1ContractFrozen": false,
+    "activeWo008RemainsProtected": true,
+    "ownerScopeApprovalClarification": "Owner 2026-10-14 explicitly authorized to PREPARE independent Batch02 off-main branch while PR30 remains open, with NO merges, backend, auth, Blender, payments. This is NOT formal WO admission, not G1 freeze, not approval to change canonical source."
+  },
+  "lanes": [
+    {
+      "id": "C1",
+      "exclusiveWritable": "apps/web/src/public-site/shell.tsx",
+      "sourceBlobSha": "1595ece93227b28d6d246c89c8936a9807fac8d5",
+      "purpose": "Keyboard/mobile nav, responsive public header/footer and theme/locale usability"
+    },
+    {
+      "id": "C2",
+      "exclusiveWritable": "apps/web/src/public-site/content.ts",
+      "sourceBlobSha": "83acf3702e3b78f87c88ad4d8de57229905aa1a6",
+      "purpose": "EN PT-BR ES content parity, truthful asset status, alt"
+    },
+    {
+      "id": "C3",
+      "exclusiveWritable": "apps/web/app/globals.css",
+      "sourceBlobSha": "fa74f66d3e466080588a3d5fbf18d9595e8ada17",
+      "purpose": "Pure CSS responsive dark/light a11y polish"
+    }
+  ],
+  "integrator": {
+    "exclusiveWritable": "apps/web/public-site.spec.ts",
+    "sourceBlobSha": "8913322b377bbc303cae0d949be7644bcf10cb4a",
+    "purpose": "After three lanes, targeted Playwright check updates only",
+    "maxConcurrentTestWriters": 1
+  },
+  "referenceOnly": [
+    {
+      "path": "apps/web/app/[locale]/layout.tsx",
+      "blobSha": "c500658fcb4bb6bba008c6017edcc5c0e6fcfda2",
+      "policy": "NO_EDIT; SSR root must remain safe"
+    }
+  ],
+  "forbiddenMutations": [
+    ".engineering/**",
+    ".gef/**",
+    ".github/workflows/**",
+    "apps/web/proxy.ts",
+    "apps/web/app/(workspace)/**",
+    "apps/web/app/[locale]/**",
+    "apps/web/public/theme-bootstrap.js",
+    "apps/web/public/public-site/images/**",
+    "apps/api/**",
+    "packages/db/**",
+    "packages/contracts/**",
+    "packages/domain/**",
+    "packages/ui/**",
+    "package.json",
+    "package-lock.json",
+    "all secrets/session/tenant/auth/payment/inference/backend files"
+  ],
+  "concurrency": {
+    "maxAgents": 3,
+    "exclusiveWritablePerWorker": true,
+    "serialIntegratorAfterWorkers": true,
+    "providerMultiagentCapabilityNotVerifiedInThisChat": true,
+    "ifUnsupported": "sequential"
+  },
+  "requiredEvidence": [
+    "Git source readback exact parent PR80 HEAD and route/security unchanged",
+    "source hierarchy/Owner/independent audit authorizes proposed off-main work before coding",
+    "No unpublished official Digital Leaf false representation",
+    "Current 24 routes and 7 static WebP unchanged",
+    "Exactly four allowed application paths touched",
+    "Focused TypeScript/Biome/Playwright and uncached build final SHA",
+    "Full real WorkOS/RLS status NOT_RUN if unavailable",
+    "All applicable GitHub hosted checks actual exact final SHA",
+    "No merge and no auto-dispatch"
+  ],
+  "blockers": [
+    "Owner-independent formal G0/G1 off-main execution admission and fresh Context Lock",
+    "PR #80 and #76 both DRAFT and unmmerged",
+    "active WO-008 PR #30 HIGH_ASSURANCE merge/source ordering",
+    "G2 brand owner master #53/#70 remains pending for public release",
+    "real auth/tenant/security independent acceptance for root SSR split before integration"
+  ],
+  "approval": {
+    "ownerApprovedGeneralStaticFrontendDirection": true,
+    "ownerApprovedThisSpecificWorkOrderAdmission": false,
+    "independentAuditorApproved": false,
+    "canonicalCheckpointPromoted": false,
+    "mergeAuthorized": false,
+    "dispatched": false,
+    "ownerApprovedOffMainPreparation": true
+  },
+  "freshness": {
+    "staleIf": [
+      "parent SHA changes",
+      "critical source SHA changes",
+      "task scope or written paths change",
+      "protected merge rules change",
+      "source hierarchy requires further admission"
+    ],
+    "stopOnStale": true
+  },
+  "noBackend": true,
+  "noBlender": true,
+  "noAnimation": true,
+  "noPayments": true,
+  "noCodexDispatchedByChatGPT": true,
+  "preflightStopReason": "STOP before execution. CHECKPOINT.json requires Asset Contract durable Job Work Order as next legal slice; AGENTS.md requires admitted WO + fresh Context Lock; G0 #63/G1 #64 not approved; no authorized exception yet. Candidate is documentary, not an execution credential.",
+  "sourceRisk": {
+    "pr30ChangedPaths": 52,
+    "directOverlapWithFourBatch02WritablePaths": 0,
+    "indirectIntegrationConflict": "PR30 changes apps/web/app/page.tsx and apps/web/app/projects/[projectId]/page.tsx which PR80 relocated into (workspace), so eventual integration may require HIGH_ASSURANCE conflict reconciliation; no merge granted."
+  }
+}
