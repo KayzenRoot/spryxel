@@ -1,9 +1,9 @@
 import { notFound } from 'next/navigation';
 import { GlobalShell } from '../../components/global-shell';
 import { ProjectLoadFailure } from '../../components/project-load-failure';
-import { requireWebSession } from '../../../src/auth/session';
-import { assertProjectApiError, fetchProject } from '../../../src/projects/api';
-import { assertJobApiError, fetchProjectJobs } from '../../../src/jobs/api';
+import { requireWebSession } from '../../../../src/auth/session';
+import { assertProjectApiError, fetchProject } from '../../../../src/projects/api';
+import { assertJobApiError, fetchProjectJobs } from '../../../../src/jobs/api';
 import { JobList, JobLoadProblem } from '../../jobs/job-list';
 
 export default async function ProjectOverviewPage({

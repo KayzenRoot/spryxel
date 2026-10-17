@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import type { ProjectApiError } from '../../src/projects/api';
+import type { ProjectApiError } from '../../../src/projects/api';
 
 export function ProjectLoadFailure({
   error,
