@@ -5,15 +5,15 @@ Status: CANONICAL
 Repository: `KayzenRoot/spryxel`  
 GEF: `@gef-bootstrap/cli@1.1.1`
 
-## SPRYXEL-WO-009 pós-merge — candidato de closeout documental
+## SPRYXEL-WO-009 pós-merge — checkpoint auditado para promoção protegida
 
-- Work Order: `SPRYXEL-WO-009 / SPRYXEL-IMP-005 — Credit Ledger + CostGuard authorization foundation` — COMPLETE no candidato de promoção.
+- Work Order: `SPRYXEL-WO-009 / SPRYXEL-IMP-005 — Credit Ledger + CostGuard authorization foundation` — COMPLETE após integração protegida da PR documental #88.
 - Base de execução: `main@34bad103d8066b6d31c5947c20a07ef52032c5d7`.
 - Candidato de código aprovado: `6cbd9210573815c82f0af60d274c41f31ef0b2bb`; auditoria HIGH_ASSURANCE independente: APPROVED.
 - HEAD revisado da PR #87: `3f14441ac48d0067dfad8214ba29dfcb2e285a8a`; squash merge protegido por PR em `main@f1ce1df2dad7aabb45dd7d725d31821f30e21a2c`.
 - Árvore pós-merge: `efee1dca1a54942f35ab5d0f227e3f0d24919ad8`, idêntica à árvore revisada da PR.
 - Checks no exact main: Repository validation `117263474902`, Pipeline integrity `117263474185`, Gitleaks secrets `117263474196`, Trivy filesystem and configuration `117263474575`, SonarCloud `117263669389` e Socket Project Report `117263477361`: SUCCESS.
-- Estado do checkpoint neste worktree: candidato documental de promoção baseado em `main@f1ce1df`; ainda depende de PR documental protegido para atualizar o checkpoint canônico em `main`. `promotionHeadSha` permanece não definido até haver integração protegida deste candidato.
+- Estado do checkpoint nesta PR #88: auditoria documental independente concluiu a revisão e registrou o commit de promoção `63ff547bb4c61c15ade3200fc57c55ceb1a6dd6f`. O novo estado será canônico **somente após** squash merge protegido da #88 e checks pós-merge. O SHA futuro desse merge não é antecipado.
 - Próxima etapa conforme D-153: Spryxel DNA + Asset core, `NOT_ADMITTED` até Work Order e Context Lock próprios no `main` então atual.
 - Limites: CostGuard default `DENY`; sem saldo pago, preço, pagamento, COGS comprovado, provider ou execução de custo real. A cobertura Sonar de código novo é 0,0%; demais limitações constam do relatório de auditoria.
 
@@ -81,7 +81,7 @@ O próximo incremento NECESSARY é `Credit Ledger + CostGuard authorization foun
 - Limitação UX residual LOW: Jobs Center mostra os 50 resultados mais recentes, sem navegação ao próximo cursor; a API é bounded/paginada. WorkOS/staging real não foi testado.
 - D-001…D-161, WorkOS/AuthKit, GEF 1.1.1, regras e `.gef` foram preservados. Não houve implementação de WO-009.
 
-## SPRYXEL-WO-009 / IMP-005 — COMPLETE no candidato de promoção
+## SPRYXEL-WO-009 / IMP-005 — COMPLETE após closeout auditado e merge protegido
 
 - O PR #87 foi squash-merged em `main@f1ce1df2dad7aabb45dd7d725d31821f30e21a2c` pelo proprietário, após auditoria independente APPROVED no candidato de código `6cbd9210573815c82f0af60d274c41f31ef0b2bb`.
 - O HEAD revisado da PR (`3f14441ac48d0067dfad8214ba29dfcb2e285a8a`) e o merge têm a mesma árvore `efee1dca1a54942f35ab5d0f227e3f0d24919ad8`; a diferença entre candidato de código e HEAD revisado foi documental.
