@@ -12,7 +12,9 @@ export default function proxy(request: NextRequest, event: NextFetchEvent) {
     eagerAuth: false,
     middlewareAuth: {
       enabled: true,
-      unauthenticatedPaths: browserTestSession ? ['/', '/projects', '/projects/:path*'] : [],
+      unauthenticatedPaths: browserTestSession
+        ? ['/', '/projects', '/projects/:path*', '/jobs', '/jobs/:path*']
+        : [],
     },
   })(request, event);
 }

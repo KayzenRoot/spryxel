@@ -38,3 +38,27 @@ describe('AuthKit proxy matcher', () => {
     },
   );
 });
+
+const unauthenticatedPathsLiteral = proxySource.match(
+  /browserTestSession\s*\?\s*(\[[^\]]*\])\s*:/,
+)?.[1];
+const fixtureUnauthenticatedPaths: string[] = unauthenticatedPathsLiteral
+  ? JSON.parse(unauthenticatedPathsLiteral.replaceAll("'", '"'))
+  : [];
+
+describe('fixture unauthenticated paths', () => {
+  it('exposes jobs routes to the browser fixture only when the session is valid', () => {
+    expect(fixtureUnauthenticatedPaths).toContain('/jobs');
+    expect(fixtureUnauthenticatedPaths).toContain('/jobs/:path*');
+  });
+
+  it('keeps the account route outside the fixture bypass list', () => {
+    expect(fixtureUnauthenticatedPaths).not.toContain('/account');
+    expect(fixtureUnauthenticatedPaths).not.toContain('/account/:path*');
+  });
+
+  it('keeps the non-fixture branch empty so production stays protected', () => {
+    const emptyBranch = proxySource.match(/:\s*(\[\s*\])\s*,?\s*\}/)?.[1];
+    expect(emptyBranch).toBe('[]');
+  });
+});
