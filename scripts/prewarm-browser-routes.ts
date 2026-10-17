@@ -4,12 +4,26 @@ import { chromium, type FullConfig } from '@playwright/test';
 const fixtureHeader = 'x-spryxel-e2e-auth';
 const fixtureSecret = 'spryxel-local-browser-e2e-only';
 const routePrewarmScope = 'jobs-populated-prewarm';
+const publicLocales = ['en', 'pt-BR', 'es'] as const;
+const publicPaths = [
+  '',
+  '/features',
+  '/how-it-works',
+  '/faq',
+  '/contact',
+  '/terms',
+  '/privacy',
+  '/cookies',
+] as const;
 
 export default async function prewarmBrowserRoutes(config: FullConfig): Promise<void> {
   const baseUrl = config.projects[0]?.use.baseURL;
   if (typeof baseUrl !== 'string') {
     throw new Error('Playwright browser setup requires a string baseURL');
   }
+
+  // Compile and check every public route before Playwright starts its timed tests.
+  await prewarmPublicRoutes(baseUrl);
 
   const browser = await chromium.launch();
   try {
@@ -70,6 +84,23 @@ export default async function prewarmBrowserRoutes(config: FullConfig): Promise<
     await page.getByText('cancelled', { exact: true }).waitFor({ state: 'visible' });
   } finally {
     await browser.close();
+  }
+}
+
+async function prewarmPublicRoutes(baseUrl: string): Promise<void> {
+  for (const locale of publicLocales) {
+    for (const slug of publicPaths) {
+      const path = `/${locale}${slug}`;
+      const response = await fetch(new URL(path, baseUrl), { redirect: 'manual' });
+      assert.equal(response.status, 200, `Public SSR prewarm failed for ${path}`);
+
+      const html = await response.text();
+      assert.match(
+        html,
+        new RegExp(String.raw`<html\b[^>]*\blang=["']${locale}["']`, 'i'),
+        `Public SSR language mismatch for ${path}`,
+      );
+    }
   }
 }
 
