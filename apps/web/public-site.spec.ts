@@ -142,7 +142,9 @@ test('unverified legal/contact pages are not indexable and display complete draf
     for (const slug of ['/contact', '/terms', '/privacy', '/cookies']) {
       const response = await page.request.get(`/${locale}${slug}`);
       expect(response.status()).toBe(200);
-      expect(await response.text()).toMatch(/<meta[^>]*name="robots"[^>]*content="noindex, nofollow"/);
+      expect(await response.text()).toMatch(
+        /<meta[^>]*name="robots"[^>]*content="noindex, nofollow"/,
+      );
     }
   }
 
