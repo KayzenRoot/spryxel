@@ -1261,7 +1261,7 @@ function escapeFieldInitial(field: string, canonicalPayload: string): string {
     throw new Error(`R4 ${field} vector must begin with an ASCII character for escape coverage`);
   }
   const initialCharacter = String.fromCodePoint(initialCodePoint);
-  const escapedInitial = `\\u${initialCodePoint.toString(16).padStart(4, '0')}`;
+  const escapedInitial = String.raw`\u${initialCodePoint.toString(16).padStart(4, '0')}`;
   return replaceOnce(
     canonicalPayload,
     `${prefix}${initialCharacter}`,
