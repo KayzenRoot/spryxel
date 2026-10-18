@@ -25,7 +25,8 @@
     ],
     "admissionRecord": "governance/wo010-phase1-admission-context-lock",
     "admissionDocsRequiredOnProtectedMain": true,
-    "independentImplementationAudit": "MANDATORY_BEFORE_CODE_PR_MERGE"
+    "independentImplementationAudit": "MANDATORY_BEFORE_CODE_PR_MERGE",
+    "latestScopeAmendment": "OWNER_2026-10-18_TWO_ARCHITECTURE_GUARD_FILES_ONLY"
   },
   "authorizedBranch": "codex/spryxel-wo-010-phase1-dna-asset-core",
   "executionBase": {
@@ -36,11 +37,11 @@
       ".engineering/work-orders/SPRYXEL-WO-010.md",
       ".engineering/context-locks/SPRYXEL-WO-010.json"
     ],
-    "activationRequirement": "At code preflight read final main after protected admission/lock docs merge; confirm its ancestry includes executionBase.sha and only these documented admission/lock changes from executionBase; verify all pinned critical blob SHAs and workOrderSource blob; if any other base/authority changes, BLOCKED and recompile. Do not demand equality to pre-lock commit when a protected docs-only admission merge is accounted for."
+    "activationRequirement": "At code preflight read final main after protected admission/lock docs merge; confirm its ancestry includes executionBase.sha and only these documented admission/lock changes from executionBase; verify all pinned critical blob SHAs and workOrderSource blob; if any other base/authority changes, BLOCKED and recompile. Do not demand equality to pre-lock commit when a protected docs-only admission merge is accounted for. Additional owner-approved documentation-only amendment PR updates the *same two* .engineering Work Order/lock paths without changing implementation base pins; reverify final protected main and all 30 critical-source fingerprints. Codex must merge current main into implementation branch normally, without force-push or editing the canonical documents."
   },
   "workOrderSource": {
     "path": ".engineering/work-orders/SPRYXEL-WO-010.md",
-    "gitBlobSha": "9f3a0ad9d0e04b208502b6016cb0beda20155a03",
+    "gitBlobSha": "d206115141a4ed62ec060231480963023df96a27",
     "authority": "OWNER_ADMITTED_PHASE1_AB_ON_PROTECTED_MAIN",
     "preLockCandidateBlob": "0debb59ffce9b35cc6d9b7b96bf293b8da4bfd0b"
   },
@@ -169,6 +170,14 @@
     {
       "path": "playwright.config.ts",
       "gitBlobSha": "7f67957290be66e9ec4a7cae01a1fb4623b81089"
+    },
+    {
+      "path": "scripts/architecture-guard.ts",
+      "gitBlobSha": "3d429691b0eee4ff3b3ae464cb7594c055245457"
+    },
+    {
+      "path": "scripts/architecture-guard.test.ts",
+      "gitBlobSha": "80816f21d427483a8bc57df8c3bf2a4a0110b01a"
     }
   ],
   "productState": {
@@ -187,7 +196,9 @@
     "packages/contracts/src/",
     "packages/domain/src/",
     "packages/db/src/",
-    "scripts/ (only existing integration-test harness, minimal change when demonstrated)"
+    "scripts/ (only existing integration-test harness, minimal change when demonstrated)",
+    "scripts/architecture-guard.ts (exact 5 migration-0010 table names only)",
+    "scripts/architecture-guard.test.ts (positive and negative coverage only; preserve prior negatives)"
   ],
   "protectedPaths": [
     ".engineering/",
@@ -217,7 +228,8 @@
     "pricingUnfrozen": true,
     "defaultProductionCostAuthorization": "DENY",
     "maxBoundedRootCauseAttempts": 2,
-    "noProviderNetworkCalls": true
+    "noProviderNetworkCalls": true,
+    "requireArchitectureGuardNegativeTests": true
   },
   "acceptanceIds": [
     "A01",
@@ -231,7 +243,33 @@
     "B05",
     "B06",
     "B07",
-    "B08"
+    "B08",
+    "B06-ARCH"
   ],
-  "executionStop": "SPRYXEL_WO010_PHASE1_AB_CODE_AND_RLS_TESTS_READY_FOR_INDEPENDENT_HIGH_ASSURANCE_AUDIT"
+  "executionStop": "SPRYXEL_WO010_PHASE1_AB_CODE_AND_RLS_TESTS_READY_FOR_INDEPENDENT_HIGH_ASSURANCE_AUDIT",
+  "ownerScopeAmendments": [
+    {
+      "id": "WO010_PHASE1_AB_ARCH_GUARD_2026_10_18",
+      "authorizedBy": "OWNER_EXPLICIT_USER_MESSAGE_2026-10-18",
+      "intent": "Permit only exact five tables declared in migration 0010 while retaining all prior negative guard rejections.",
+      "allowedFiles": [
+        "scripts/architecture-guard.ts",
+        "scripts/architecture-guard.test.ts"
+      ],
+      "allowedTables": [
+        "platform.project_dna",
+        "platform.project_dna_version",
+        "platform.asset",
+        "platform.asset_version",
+        "platform.asset_version_lineage"
+      ],
+      "forbidBroadWhitelist": true,
+      "keepExistingNegativeAssertions": true,
+      "forbidOtherCodeSurfaceChanges": true,
+      "phaseCNotAdmitted": true,
+      "implementationMergeAuthorized": false,
+      "deployAuthorized": false,
+      "effectiveAfter": "PROTECTED_DOCS_ONLY_MERGE_AND_EXACT_MAIN_CONTEXT_PREFLIGHT"
+    }
+  ]
 }
