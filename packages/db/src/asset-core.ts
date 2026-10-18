@@ -21,7 +21,12 @@ export type AssetCoreDatabase = {
 
 type AssetLineageRelation = 'derived_from' | 'variant_of' | 'component_of' | 'frame_of' | 'source';
 
-export type VersionedPayloadSchema = DomainVersionedPayloadSchema;
+// SQL owns the canonical payload contract at the persistence boundary.
+const databaseValidatedPayloadSchema: DomainVersionedPayloadSchema = {
+  parse(value) {
+    return value;
+  },
+};
 
 export type AssetCoreProvenance = {
   source: 'manual' | 'import' | 'generation' | 'restore' | 'system';
@@ -126,7 +131,6 @@ export async function createProjectDnaVersion(
     idempotencyKey: string;
     payload: unknown;
     provenance: AssetCoreProvenance;
-    payloadSchema: VersionedPayloadSchema;
   },
 ): Promise<ProjectDnaVersionRecord> {
   const prepared = prepareProjectDnaVersion({
@@ -136,11 +140,9 @@ export async function createProjectDnaVersion(
     versionId: uuidv7(),
     version: 1,
     idempotencyKeySha256: hashIdempotencyKey(input.idempotencyKey),
-    // The canonical schema supplied by the application is parsed in the domain
-    // preparation step before this payload can be persisted.
     payload: input.payload as ProjectDnaPayload,
     provenance: input.provenance,
-    payloadSchema: input.payloadSchema,
+    payloadSchema: databaseValidatedPayloadSchema,
   });
   return executeProjectDnaWrite(database, input, prepared, 'create_project_dna_version');
 }
@@ -152,7 +154,6 @@ export async function appendProjectDnaVersion(
     idempotencyKey: string;
     payload: unknown;
     provenance: AssetCoreProvenance;
-    payloadSchema: VersionedPayloadSchema;
   },
 ): Promise<ProjectDnaVersionRecord> {
   const prepared = prepareProjectDnaVersion({
@@ -162,11 +163,9 @@ export async function appendProjectDnaVersion(
     versionId: uuidv7(),
     version: 1,
     idempotencyKeySha256: hashIdempotencyKey(input.idempotencyKey),
-    // The canonical schema supplied by the application is parsed in the domain
-    // preparation step before this payload can be persisted.
     payload: input.payload as ProjectDnaPayload,
     provenance: input.provenance,
-    payloadSchema: input.payloadSchema,
+    payloadSchema: databaseValidatedPayloadSchema,
   });
   return executeProjectDnaWrite(database, input, prepared, 'append_project_dna_version');
 }
@@ -177,7 +176,6 @@ export async function createAssetVersion(
     idempotencyKey: string;
     payload: unknown;
     provenance: AssetCoreProvenance;
-    payloadSchema: VersionedPayloadSchema;
   },
 ): Promise<AssetVersionRecord> {
   const prepared = prepareAssetVersion({
@@ -187,11 +185,9 @@ export async function createAssetVersion(
     versionId: uuidv7(),
     version: 1,
     idempotencyKeySha256: hashIdempotencyKey(input.idempotencyKey),
-    // The canonical schema supplied by the application is parsed in the domain
-    // preparation step before this payload can be persisted.
     payload: input.payload as AssetMetadataPayload,
     provenance: input.provenance,
-    payloadSchema: input.payloadSchema,
+    payloadSchema: databaseValidatedPayloadSchema,
   });
   return executeAssetWrite(database, input, prepared, 'create_asset_version');
 }
@@ -203,7 +199,6 @@ export async function appendAssetVersion(
     idempotencyKey: string;
     payload: unknown;
     provenance: AssetCoreProvenance;
-    payloadSchema: VersionedPayloadSchema;
   },
 ): Promise<AssetVersionRecord> {
   const prepared = prepareAssetVersion({
@@ -213,11 +208,9 @@ export async function appendAssetVersion(
     versionId: uuidv7(),
     version: 1,
     idempotencyKeySha256: hashIdempotencyKey(input.idempotencyKey),
-    // The canonical schema supplied by the application is parsed in the domain
-    // preparation step before this payload can be persisted.
     payload: input.payload as AssetMetadataPayload,
     provenance: input.provenance,
-    payloadSchema: input.payloadSchema,
+    payloadSchema: databaseValidatedPayloadSchema,
   });
   return executeAssetWrite(database, input, prepared, 'append_asset_version');
 }
@@ -230,7 +223,6 @@ export async function restoreProjectDnaVersion(
     idempotencyKey: string;
     actorSubjectId: string | null;
     recordedAt: string;
-    payloadSchema: VersionedPayloadSchema;
   },
 ): Promise<ProjectDnaVersionRecord> {
   const source = await getProjectDnaVersion(database, {
@@ -247,7 +239,7 @@ export async function restoreProjectDnaVersion(
     idempotencyKeySha256: source.idempotencyKeySha256,
     payload: source.payload,
     provenance: source.provenance,
-    payloadSchema: input.payloadSchema,
+    payloadSchema: databaseValidatedPayloadSchema,
   });
   const prepared = prepareProjectDnaRestore({
     source: preparedSource,
@@ -256,7 +248,7 @@ export async function restoreProjectDnaVersion(
     idempotencyKeySha256: hashIdempotencyKey(input.idempotencyKey),
     actorSubjectId: input.actorSubjectId,
     recordedAt: input.recordedAt,
-    payloadSchema: input.payloadSchema,
+    payloadSchema: databaseValidatedPayloadSchema,
   });
   return executeProjectDnaWrite(database, input, prepared, 'append_project_dna_version');
 }
@@ -269,7 +261,6 @@ export async function restoreAssetVersion(
     idempotencyKey: string;
     actorSubjectId: string | null;
     recordedAt: string;
-    payloadSchema: VersionedPayloadSchema;
   },
 ): Promise<AssetVersionRecord> {
   const source = await getAssetVersion(database, {
@@ -286,7 +277,7 @@ export async function restoreAssetVersion(
     idempotencyKeySha256: source.idempotencyKeySha256,
     payload: source.payload,
     provenance: source.provenance,
-    payloadSchema: input.payloadSchema,
+    payloadSchema: databaseValidatedPayloadSchema,
   });
   const prepared = prepareAssetRestore({
     source: preparedSource,
@@ -295,7 +286,7 @@ export async function restoreAssetVersion(
     idempotencyKeySha256: hashIdempotencyKey(input.idempotencyKey),
     actorSubjectId: input.actorSubjectId,
     recordedAt: input.recordedAt,
-    payloadSchema: input.payloadSchema,
+    payloadSchema: databaseValidatedPayloadSchema,
   });
   return executeAssetWrite(database, input, prepared, 'append_asset_version');
 }

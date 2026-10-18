@@ -16,7 +16,12 @@ import {
   restoreAssetVersion,
   restoreProjectDnaVersion,
 } from '@spryxel/db';
-import { createUuidV7, prepareProjectDnaVersion } from '@spryxel/domain';
+import {
+  createUuidV7,
+  prepareAssetVersion,
+  prepareProjectDnaVersion,
+  type AssetMetadataPayload,
+} from '@spryxel/domain';
 
 type Identity = { subjectId: string; tenantId: string };
 type Scope = { subjectId: string; tenantId: string; projectId: string };
@@ -72,6 +77,24 @@ export async function runAssetCoreIntegration(input: {
     };
 
     const dnaPayload = projectDnaPayload('A canonical pixel style');
+    const payloadValidation = await ownerPool.query<Record<string, boolean>>(
+      `SELECT platform.asset_core_payload_matches_schema($1::jsonb, 'project-dna.v1') AS payload_matches,
+              platform.asset_core_bounded_json_object($1::jsonb) AS bounded_root,
+              platform.asset_core_has_exact_keys(
+                $1::jsonb,
+                ARRAY['schemaVersion', 'status', 'styleIdentity', 'palette', 'visualReferenceIds', 'constraints', 'rules']
+              ) AS exact_root,
+              platform.asset_core_jsonb_is_bounded_text($1::jsonb->'styleIdentity', 1, 256) AS bounded_style,
+              platform.asset_core_bounded_json_object($1::jsonb->'constraints') AS bounded_constraints,
+              platform.asset_core_has_exact_keys($1::jsonb->'palette'->0, ARRAY['name', 'colors']) AS exact_palette_item,
+              platform.asset_core_jsonb_is_bounded_text($1::jsonb->'palette'->0->'name', 1, 80) AS bounded_palette_name`,
+      [JSON.stringify(dnaPayload)],
+    );
+    if (payloadValidation.rows[0]?.payload_matches !== true) {
+      throw new Error(
+        `SQL rejected its canonical DNA fixture: ${JSON.stringify(payloadValidation.rows[0])}`,
+      );
+    }
     const dnaConcurrent = await Promise.all(
       Array.from({ length: 6 }, () =>
         createProjectDnaVersion(database, {
@@ -79,7 +102,6 @@ export async function runAssetCoreIntegration(input: {
           idempotencyKey: 'wo010-dna-create-same-key',
           payload: dnaPayload,
           provenance: provenance(scopeA.subjectId),
-          payloadSchema: projectDnaV1Schema,
         }),
       ),
     );
@@ -93,8 +115,6 @@ export async function runAssetCoreIntegration(input: {
     ) {
       throw new Error('Concurrent DNA replay did not return one stable version identity');
     }
-
-    await assertDirectRpcRejectsMalformedPayloadAndProvenance(database, scopeA);
 
     const reorderedDnaPayload = {
       rules: dnaPayload.rules,
@@ -110,7 +130,6 @@ export async function runAssetCoreIntegration(input: {
       idempotencyKey: 'wo010-dna-create-same-key',
       payload: reorderedDnaPayload,
       provenance: provenance(scopeA.subjectId),
-      payloadSchema: projectDnaV1Schema,
     });
     if (canonicalReplay.versionId !== dna.versionId || !canonicalReplay.replayed) {
       throw new Error('Equivalent DNA key ordering did not preserve the canonical digest');
@@ -122,7 +141,6 @@ export async function runAssetCoreIntegration(input: {
         idempotencyKey: 'wo010-dna-create-same-key',
         payload: projectDnaPayload('conflicting DNA content'),
         provenance: provenance(scopeA.subjectId),
-        payloadSchema: projectDnaV1Schema,
       }),
       'idempotency_conflict',
     );
@@ -133,7 +151,6 @@ export async function runAssetCoreIntegration(input: {
         idempotencyKey: 'wo010-dna-invalid-strict-payload',
         payload: { ...dnaPayload, unexpected: true },
         provenance: provenance(scopeA.subjectId),
-        payloadSchema: projectDnaV1Schema,
       }),
     );
     await expectValidationFailure(
@@ -142,7 +159,6 @@ export async function runAssetCoreIntegration(input: {
         idempotencyKey: 'wo010-dna-invalid-oversized-payload',
         payload: projectDnaPayload('x'.repeat(70_000)),
         provenance: provenance(scopeA.subjectId),
-        payloadSchema: projectDnaV1Schema,
       }),
     );
 
@@ -152,7 +168,6 @@ export async function runAssetCoreIntegration(input: {
       idempotencyKey: 'wo010-dna-append-v2',
       payload: projectDnaPayload('A canonical pixel style v2'),
       provenance: provenance(scopeA.subjectId),
-      payloadSchema: projectDnaV1Schema,
     });
     await expectAssetCoreError(
       appendProjectDnaVersion(database, {
@@ -161,7 +176,6 @@ export async function runAssetCoreIntegration(input: {
         idempotencyKey: 'wo010-dna-invalid-status-transition',
         payload: { ...projectDnaPayload('illegal published-to-draft'), status: 'draft' },
         provenance: provenance(scopeA.subjectId),
-        payloadSchema: projectDnaV1Schema,
       }),
       'invalid_payload',
     );
@@ -172,7 +186,6 @@ export async function runAssetCoreIntegration(input: {
       idempotencyKey: 'wo010-dna-restore-v1',
       actorSubjectId: scopeA.subjectId,
       recordedAt: new Date().toISOString(),
-      payloadSchema: projectDnaV1Schema,
     });
     const dnaRestoreReplay = await restoreProjectDnaVersion(database, {
       ...scopeA,
@@ -181,7 +194,6 @@ export async function runAssetCoreIntegration(input: {
       idempotencyKey: 'wo010-dna-restore-v1',
       actorSubjectId: scopeA.subjectId,
       recordedAt: new Date().toISOString(),
-      payloadSchema: projectDnaV1Schema,
     });
     const dnaHistory = await listProjectDnaVersions(database, {
       ...scopeA,
@@ -228,8 +240,14 @@ export async function runAssetCoreIntegration(input: {
       idempotencyKey: 'wo010-asset-base-v1',
       payload: assetPayload('WO-010 base asset'),
       provenance: provenance(scopeA.subjectId),
-      payloadSchema: assetMetadataV1Schema,
     });
+    await assertDirectRpcRejectsMalformedPayloadAndProvenance(
+      database,
+      scopeA,
+      projectDnaPayload('direct SQL canonical DNA'),
+      assetPayload('direct SQL canonical asset') as AssetMetadataPayload,
+      { assetId: baseAsset.assetId, versionId: baseAsset.versionId },
+    );
     await expectAssetCoreError(
       appendAssetVersion(database, {
         ...scopeA,
@@ -237,7 +255,6 @@ export async function runAssetCoreIntegration(input: {
         idempotencyKey: 'wo010-asset-invalid-status-transition',
         payload: assetPayload('illegal draft-to-archived', { status: 'archived' }),
         provenance: provenance(scopeA.subjectId),
-        payloadSchema: assetMetadataV1Schema,
       }),
       'invalid_payload',
     );
@@ -255,7 +272,6 @@ export async function runAssetCoreIntegration(input: {
       idempotencyKey: 'wo010-asset-derived-v1',
       payload: derivedPayload,
       provenance: provenance(scopeA.subjectId),
-      payloadSchema: assetMetadataV1Schema,
     });
     const assetV2 = await appendAssetVersion(database, {
       ...scopeA,
@@ -263,7 +279,6 @@ export async function runAssetCoreIntegration(input: {
       idempotencyKey: 'wo010-asset-base-v2',
       payload: assetPayload('WO-010 base asset v2'),
       provenance: provenance(scopeA.subjectId),
-      payloadSchema: assetMetadataV1Schema,
     });
     const assetRestore = await restoreAssetVersion(database, {
       ...scopeA,
@@ -272,7 +287,6 @@ export async function runAssetCoreIntegration(input: {
       idempotencyKey: 'wo010-asset-restore-v1',
       actorSubjectId: scopeA.subjectId,
       recordedAt: new Date().toISOString(),
-      payloadSchema: assetMetadataV1Schema,
     });
     const assetRestoreReplay = await restoreAssetVersion(database, {
       ...scopeA,
@@ -281,7 +295,6 @@ export async function runAssetCoreIntegration(input: {
       idempotencyKey: 'wo010-asset-restore-v1',
       actorSubjectId: scopeA.subjectId,
       recordedAt: new Date().toISOString(),
-      payloadSchema: assetMetadataV1Schema,
     });
     const assetHistory = await listAssetVersions(database, {
       ...scopeA,
@@ -316,7 +329,6 @@ export async function runAssetCoreIntegration(input: {
         idempotencyKey: 'wo010-asset-invalid-strict-payload',
         payload: { ...assetPayload('invalid'), unexpected: true },
         provenance: provenance(scopeA.subjectId),
-        payloadSchema: assetMetadataV1Schema,
       }),
     );
 
@@ -325,7 +337,6 @@ export async function runAssetCoreIntegration(input: {
       idempotencyKey: 'wo010-dna-other-project',
       payload: projectDnaPayload('A2 private DNA'),
       provenance: provenance(scopeA2.subjectId),
-      payloadSchema: projectDnaV1Schema,
     });
     const assetOtherProject = await createAssetVersion(database, {
       ...scopeA2,
@@ -335,21 +346,18 @@ export async function runAssetCoreIntegration(input: {
         projectDna: { id: dnaOtherProject.projectDnaId, version: 1 },
       }),
       provenance: provenance(scopeA2.subjectId),
-      payloadSchema: assetMetadataV1Schema,
     });
     const dnaB = await createProjectDnaVersion(database, {
       ...scopeB,
       idempotencyKey: 'wo010-dna-tenant-b',
       payload: projectDnaPayload('Tenant B private DNA'),
       provenance: provenance(scopeB.subjectId),
-      payloadSchema: projectDnaV1Schema,
     });
     const assetB = await createAssetVersion(database, {
       ...scopeB,
       idempotencyKey: 'wo010-asset-tenant-b',
       payload: assetPayload('Tenant B private asset', { assetContract: null, projectDna: null }),
       provenance: provenance(scopeB.subjectId),
-      payloadSchema: assetMetadataV1Schema,
     });
 
     await expectAssetCoreError(
@@ -361,7 +369,6 @@ export async function runAssetCoreIntegration(input: {
           projectDna: { id: dnaOtherProject.projectDnaId, version: 1 },
         }),
         provenance: provenance(scopeA.subjectId),
-        payloadSchema: assetMetadataV1Schema,
       }),
       'invalid_reference',
     );
@@ -381,7 +388,6 @@ export async function runAssetCoreIntegration(input: {
           ],
         }),
         provenance: provenance(scopeA.subjectId),
-        payloadSchema: assetMetadataV1Schema,
       }),
       'invalid_reference',
     );
@@ -403,7 +409,6 @@ export async function runAssetCoreIntegration(input: {
           ],
         }),
         provenance: provenance(scopeA.subjectId),
-        payloadSchema: assetMetadataV1Schema,
       }),
       'invalid_reference',
     );
@@ -554,6 +559,23 @@ async function assertAssetCoreRolePrivileges(pool: Pool): Promise<void> {
     'platform.parse_asset_core_payload(text,text,text)',
     'platform.parse_asset_core_provenance(text,uuid)',
     'platform.lock_asset_core_idempotency(text,text,uuid,uuid,uuid)',
+    'platform.asset_core_has_exact_keys(jsonb,text[])',
+    'platform.asset_core_jsonb_is_uuid_v7(jsonb)',
+    'platform.asset_core_jsonb_is_nullable_uuid_v7(jsonb)',
+    'platform.asset_core_utf16_length(text)',
+    'platform.asset_core_jsonb_is_bounded_text(jsonb,integer,integer)',
+    'platform.asset_core_jsonb_is_integer_in_range(jsonb,numeric,numeric)',
+    'platform.asset_core_jsonb_is_number_in_range(jsonb,numeric,numeric)',
+    'platform.asset_core_jsonb_is_finite_number(jsonb)',
+    'platform.asset_core_jsonb_array_within_size(jsonb,integer,integer)',
+    'platform.asset_core_bounded_json_object(jsonb)',
+    'platform.asset_core_payload_matches_schema(jsonb,text)',
+    'platform.asset_core_provenance_matches_schema(jsonb)',
+    'platform.prepare_asset_core_write(text,uuid,uuid,text,text,text,text)',
+    'platform.resolve_asset_core_replay(text,uuid,uuid,uuid,uuid,text,text,boolean)',
+    'platform.assert_asset_core_version_transition(text,uuid,uuid,uuid,integer,text,text,uuid)',
+    'platform.parse_asset_core_references(jsonb)',
+    'platform.insert_asset_core_lineage(uuid,uuid,integer,uuid,uuid,uuid,jsonb)',
   ];
   const helperResult = await pool.query<{ has_exec: boolean }>(
     `SELECT has_function_privilege('spryxel_app', to_regprocedure(signature), 'EXECUTE') AS has_exec
@@ -591,68 +613,410 @@ async function assertWorkerAssetCoreDenied(
 async function assertDirectRpcRejectsMalformedPayloadAndProvenance(
   database: ReturnType<typeof createDatabase>,
   scope: Scope,
+  dnaPayload: ReturnType<typeof projectDnaPayload>,
+  assetPayload: AssetMetadataPayload,
+  lineageSource: { assetId: string; versionId: string },
 ): Promise<void> {
-  const prepared = prepareProjectDnaVersion({
+  type DirectRpc =
+    | 'create_project_dna_version'
+    | 'append_project_dna_version'
+    | 'create_asset_version'
+    | 'append_asset_version';
+  type DirectResult = {
+    version_id: string;
+    version: number;
+    payload_sha256: string;
+    replayed: boolean;
+  };
+  type DirectPayloadCase = {
+    label: string;
+    mutate(payload: Record<string, unknown>): void;
+  };
+
+  const dnaCreate = prepareProjectDnaVersion({
     id: createUuidV7(),
     tenantId: scope.tenantId,
     projectId: scope.projectId,
     versionId: createUuidV7(),
     version: 1,
-    idempotencyKeySha256: hash('wo010-direct-rpc-null-provenance-key'),
-    payload: projectDnaPayload('direct RPC provenance validation'),
+    idempotencyKeySha256: hash('wo010-direct-sql-dna-create-key'),
+    payload: dnaPayload,
     provenance: provenance(scope.subjectId),
     payloadSchema: projectDnaV1Schema,
   });
-  const schemaVersionMissing = { ...prepared.payload } as Record<string, unknown>;
-  delete schemaVersionMissing.schemaVersion;
-  const schemaVersionNull = { ...prepared.payload, schemaVersion: null };
-  const cases = [
-    ...(['source', 'recordedAt'] as const).map((field) => ({
-      label: `null provenance ${field}`,
-      payload: prepared.payload,
-      provenance: { ...prepared.provenance, [field]: null },
-    })),
+  const dnaAppend = prepareProjectDnaVersion({
+    id: dnaCreate.id,
+    tenantId: scope.tenantId,
+    projectId: scope.projectId,
+    versionId: createUuidV7(),
+    version: 2,
+    idempotencyKeySha256: hash('wo010-direct-sql-dna-append-key'),
+    payload: { ...dnaPayload, styleIdentity: `${dnaPayload.styleIdentity} append` },
+    provenance: provenance(scope.subjectId),
+    payloadSchema: projectDnaV1Schema,
+  });
+  const assetCreate = prepareAssetVersion({
+    assetId: createUuidV7(),
+    tenantId: scope.tenantId,
+    projectId: scope.projectId,
+    versionId: createUuidV7(),
+    version: 1,
+    idempotencyKeySha256: hash('wo010-direct-sql-asset-create-key'),
+    payload: assetPayload,
+    provenance: provenance(scope.subjectId),
+    payloadSchema: assetMetadataV1Schema,
+  });
+  const assetAppend = prepareAssetVersion({
+    assetId: assetCreate.assetId,
+    tenantId: scope.tenantId,
+    projectId: scope.projectId,
+    versionId: createUuidV7(),
+    version: 2,
+    idempotencyKeySha256: hash('wo010-direct-sql-asset-append-key'),
+    payload: { ...assetPayload, name: `${assetPayload.name} append` },
+    provenance: provenance(scope.subjectId),
+    payloadSchema: assetMetadataV1Schema,
+  });
+
+  const dnaCases: DirectPayloadCase[] = [
     {
-      label: 'missing schemaVersion',
-      payload: schemaVersionMissing,
-      provenance: prepared.provenance,
+      label: 'DNA unknown root field',
+      mutate(payload) {
+        payload.unexpected = true;
+      },
     },
     {
-      label: 'null schemaVersion',
-      payload: schemaVersionNull,
-      provenance: prepared.provenance,
+      label: 'DNA missing required styleIdentity',
+      mutate(payload) {
+        delete payload.styleIdentity;
+      },
     },
     {
-      label: 'non-ISO infinity recordedAt',
-      payload: prepared.payload,
-      provenance: { ...prepared.provenance, recordedAt: 'infinity' },
+      label: 'DNA wrong status type',
+      mutate(payload) {
+        payload.status = 7;
+      },
+    },
+    {
+      label: 'DNA unknown nested palette field',
+      mutate(payload) {
+        payload.palette = [{ name: 'Primary', colors: ['#369'], hidden: true }];
+      },
+    },
+    {
+      label: 'DNA missing nested palette name',
+      mutate(payload) {
+        payload.palette = [{ colors: ['#369'] }];
+      },
+    },
+    {
+      label: 'DNA wrong nested palette color type',
+      mutate(payload) {
+        payload.palette = [{ name: 'Primary', colors: [369] }];
+      },
+    },
+    {
+      label: 'DNA constraints must be an object',
+      mutate(payload) {
+        payload.constraints = [];
+      },
+    },
+    {
+      label: 'DNA wrong visualReferenceIds item type',
+      mutate(payload) {
+        payload.visualReferenceIds = ['not-a-uuid'];
+      },
     },
   ];
+  const assetCases: DirectPayloadCase[] = [
+    {
+      label: 'Asset unknown root field',
+      mutate(payload) {
+        payload.unexpected = true;
+      },
+    },
+    {
+      label: 'Asset missing required name',
+      mutate(payload) {
+        delete payload.name;
+      },
+    },
+    {
+      label: 'Asset wrong tags type',
+      mutate(payload) {
+        payload.tags = 'not-an-array';
+      },
+    },
+    {
+      label: 'Asset unknown nested lineage field',
+      mutate(payload) {
+        payload.lineage = [
+          {
+            relation: 'derived_from',
+            assetId: lineageSource.assetId,
+            assetVersionId: lineageSource.versionId,
+            unexpected: true,
+          },
+        ];
+      },
+    },
+    {
+      label: 'Asset missing nested lineage version field',
+      mutate(payload) {
+        payload.lineage = [{ relation: 'derived_from', assetId: lineageSource.assetId }];
+      },
+    },
+    {
+      label: 'Asset wrong nested contract version type',
+      mutate(payload) {
+        payload.assetContract = { id: lineageSource.assetId, version: '1' };
+      },
+    },
+    {
+      label: 'Asset missing nested dimensions width',
+      mutate(payload) {
+        payload.dimensions = { height: 32, frameCount: 1, fps: null };
+      },
+    },
+    {
+      label: 'Asset wrong nested dimensions fps type',
+      mutate(payload) {
+        payload.dimensions = { width: 32, height: 32, frameCount: 1, fps: '24' };
+      },
+    },
+  ];
+
   const client = await database.pool.connect();
   try {
     await client.query('BEGIN');
     await setContext(client, scope);
-    for (const testCase of cases) {
-      await client.query('SAVEPOINT asset_core_null_provenance');
+
+    const callDirectRpc = async (
+      rpc: DirectRpc,
+      entityId: string,
+      versionId: string,
+      idempotencyKeySha256: string,
+      canonicalPayload: string,
+      payloadSha256: string,
+      rpcProvenance: unknown,
+    ): Promise<DirectResult> => {
+      const result = await client.query<DirectResult>(
+        `SELECT * FROM platform.${rpc}($1,$2,$3,$4,$5,$6)`,
+        [
+          entityId,
+          versionId,
+          idempotencyKeySha256,
+          canonicalPayload,
+          payloadSha256,
+          JSON.stringify(rpcProvenance),
+        ],
+      );
+      const row = result.rows[0];
+      if (!row) throw new Error(`Direct PostgreSQL RPC returned no row: ${rpc}`);
+      return row;
+    };
+
+    const assertPositiveControl = async (
+      rpc: DirectRpc,
+      entityId: string,
+      prepared: {
+        versionId: string;
+        idempotencyKeySha256: string;
+        canonicalPayload: string;
+        payloadSha256: string;
+        provenance: unknown;
+      },
+      expectedVersion: number,
+      replayed: boolean,
+      label: string,
+    ): Promise<void> => {
+      const row = await callDirectRpc(
+        rpc,
+        entityId,
+        prepared.versionId,
+        prepared.idempotencyKeySha256,
+        prepared.canonicalPayload,
+        prepared.payloadSha256,
+        prepared.provenance,
+      );
+      if (row.version !== expectedVersion || row.replayed !== replayed) {
+        throw new Error(`Direct PostgreSQL canonical positive control failed: ${label}`);
+      }
+    };
+
+    await assertPositiveControl(
+      'create_project_dna_version',
+      dnaCreate.id,
+      dnaCreate,
+      1,
+      false,
+      'DNA create',
+    );
+    await assertPositiveControl(
+      'create_project_dna_version',
+      dnaCreate.id,
+      dnaCreate,
+      1,
+      true,
+      'DNA create replay',
+    );
+    await assertPositiveControl(
+      'append_project_dna_version',
+      dnaAppend.id,
+      dnaAppend,
+      2,
+      false,
+      'DNA append',
+    );
+    await assertPositiveControl(
+      'append_project_dna_version',
+      dnaAppend.id,
+      dnaAppend,
+      2,
+      true,
+      'DNA append replay',
+    );
+    await assertPositiveControl(
+      'create_asset_version',
+      assetCreate.assetId,
+      assetCreate,
+      1,
+      false,
+      'Asset create',
+    );
+    await assertPositiveControl(
+      'create_asset_version',
+      assetCreate.assetId,
+      assetCreate,
+      1,
+      true,
+      'Asset create replay',
+    );
+    await assertPositiveControl(
+      'append_asset_version',
+      assetAppend.assetId,
+      assetAppend,
+      2,
+      false,
+      'Asset append',
+    );
+    await assertPositiveControl(
+      'append_asset_version',
+      assetAppend.assetId,
+      assetAppend,
+      2,
+      true,
+      'Asset append replay',
+    );
+
+    const rejectDirectPayload = async (
+      rpc: DirectRpc,
+      entityId: string,
+      testCase: DirectPayloadCase,
+      basePayload: object,
+      rpcProvenance: unknown,
+    ): Promise<void> => {
+      const candidate = JSON.parse(JSON.stringify(basePayload)) as Record<string, unknown>;
+      testCase.mutate(candidate);
+      const canonicalPayload = JSON.stringify(candidate);
+      const versionId = createUuidV7();
+      const idempotencyKeySha256 = hash(`wo010-direct-${rpc}-${testCase.label}`);
+      await client.query('SAVEPOINT asset_core_invalid_document');
       let rejected = false;
-      const canonicalPayload = JSON.stringify(testCase.payload);
       try {
-        await client.query('SELECT * FROM platform.create_project_dna_version($1,$2,$3,$4,$5,$6)', [
-          prepared.id,
-          prepared.versionId,
-          prepared.idempotencyKeySha256,
+        await callDirectRpc(
+          rpc,
+          entityId,
+          versionId,
+          idempotencyKeySha256,
           canonicalPayload,
           hash(canonicalPayload),
-          JSON.stringify(testCase.provenance),
-        ]);
+          rpcProvenance,
+        );
       } catch (error) {
         if (sqlState(error) !== '22023') throw error;
         rejected = true;
       }
-      await client.query('ROLLBACK TO SAVEPOINT asset_core_null_provenance');
-      await client.query('RELEASE SAVEPOINT asset_core_null_provenance');
-      if (!rejected) {
-        throw new Error(`Direct Asset Core RPC accepted malformed input: ${testCase.label}`);
+      await client.query('ROLLBACK TO SAVEPOINT asset_core_invalid_document');
+      await client.query('RELEASE SAVEPOINT asset_core_invalid_document');
+      if (!rejected)
+        throw new Error(`Direct PostgreSQL RPC accepted invalid document: ${testCase.label}`);
+    };
+
+    const dnaTargets: Array<{ rpc: DirectRpc; entityId: string }> = [
+      { rpc: 'create_project_dna_version', entityId: createUuidV7() },
+      { rpc: 'append_project_dna_version', entityId: dnaCreate.id },
+    ];
+    for (const target of dnaTargets) {
+      for (const testCase of dnaCases) {
+        await rejectDirectPayload(
+          target.rpc,
+          target.entityId,
+          testCase,
+          dnaCreate.payload,
+          dnaCreate.provenance,
+        );
+      }
+    }
+
+    const assetTargets: Array<{ rpc: DirectRpc; entityId: string }> = [
+      { rpc: 'create_asset_version', entityId: createUuidV7() },
+      { rpc: 'append_asset_version', entityId: assetCreate.assetId },
+    ];
+    for (const target of assetTargets) {
+      for (const testCase of assetCases) {
+        await rejectDirectPayload(
+          target.rpc,
+          target.entityId,
+          testCase,
+          assetCreate.payload,
+          assetCreate.provenance,
+        );
+      }
+    }
+
+    const invalidProvenance = [
+      { label: 'null source', value: { ...dnaCreate.provenance, source: null } },
+      { label: 'null recordedAt', value: { ...dnaCreate.provenance, recordedAt: null } },
+      { label: 'unknown provenance key', value: { ...dnaCreate.provenance, extra: true } },
+      {
+        label: 'non-ISO infinity recordedAt',
+        value: { ...dnaCreate.provenance, recordedAt: 'infinity' },
+      },
+    ];
+    const provenanceTargets: Array<{
+      rpc: DirectRpc;
+      entityId: string;
+      payload: object;
+    }> = [
+      { rpc: 'create_project_dna_version', entityId: createUuidV7(), payload: dnaCreate.payload },
+      { rpc: 'append_project_dna_version', entityId: dnaCreate.id, payload: dnaAppend.payload },
+      { rpc: 'create_asset_version', entityId: createUuidV7(), payload: assetCreate.payload },
+      { rpc: 'append_asset_version', entityId: assetCreate.assetId, payload: assetAppend.payload },
+    ];
+    for (const target of provenanceTargets) {
+      for (const invalid of invalidProvenance) {
+        const canonicalPayload = JSON.stringify(target.payload);
+        await client.query('SAVEPOINT asset_core_invalid_provenance');
+        let rejected = false;
+        try {
+          await callDirectRpc(
+            target.rpc,
+            target.entityId,
+            createUuidV7(),
+            hash(`wo010-direct-${target.rpc}-${invalid.label}`),
+            canonicalPayload,
+            hash(canonicalPayload),
+            invalid.value,
+          );
+        } catch (error) {
+          if (sqlState(error) !== '22023') throw error;
+          rejected = true;
+        }
+        await client.query('ROLLBACK TO SAVEPOINT asset_core_invalid_provenance');
+        await client.query('RELEASE SAVEPOINT asset_core_invalid_provenance');
+        if (!rejected)
+          throw new Error(`Direct PostgreSQL RPC accepted invalid provenance: ${invalid.label}`);
       }
     }
     await client.query('ROLLBACK');

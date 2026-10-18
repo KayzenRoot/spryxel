@@ -153,11 +153,11 @@ export const assetMetadataV1Schema = z
         }
       }),
     assetContract: z
-      .object({ id: uuidV7Schema, version: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER) })
+      .object({ id: uuidV7Schema, version: z.number().int().min(1).max(2_147_483_647) })
       .strict()
       .nullable(),
     projectDna: z
-      .object({ id: uuidV7Schema, version: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER) })
+      .object({ id: uuidV7Schema, version: z.number().int().min(1).max(2_147_483_647) })
       .strict()
       .nullable(),
     dimensions: z

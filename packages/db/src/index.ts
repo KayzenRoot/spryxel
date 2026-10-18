@@ -1724,5 +1724,4 @@ export type {
   AssetCoreScope,
   AssetVersionRecord,
   ProjectDnaVersionRecord,
-  VersionedPayloadSchema,
 } from './asset-core.js';

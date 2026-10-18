@@ -104,6 +104,18 @@ describe('Project DNA and Asset Core v1 contracts', () => {
       },
     };
     expect(assetMetadataV1Schema.parse(asset)).toEqual(asset);
+    expect(() =>
+      assetMetadataV1Schema.parse({
+        ...asset,
+        assetContract: { id, version: 2_147_483_648 },
+      }),
+    ).toThrow();
+    expect(() =>
+      assetMetadataV1Schema.parse({
+        ...asset,
+        projectDna: { id, version: 2_147_483_648 },
+      }),
+    ).toThrow();
     expect(() => assetMetadataV1Schema.parse({ ...asset, tenantId: 'caller-selected' })).toThrow();
     expect(() =>
       assetMetadataV1Schema.parse({
