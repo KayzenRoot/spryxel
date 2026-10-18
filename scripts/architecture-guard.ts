@@ -12,6 +12,11 @@ const admittedProductTables = new Set([
   'platform.credit_event',
   'platform.credit_ledger_entry',
   'platform.credit_integrity_incident',
+  'platform.project_dna',
+  'platform.project_dna_version',
+  'platform.asset',
+  'platform.asset_version',
+  'platform.asset_version_lineage',
 ]);
 
 const outOfScopeProductTableTokens = new Set([
