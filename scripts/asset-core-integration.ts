@@ -1242,7 +1242,11 @@ function reverseJsonObjectKeys(canonicalPayload: string): string {
     const record = value as Record<string, unknown>;
     return Object.fromEntries(
       Object.keys(record)
-        .sort((left, right) => (left < right ? 1 : left > right ? -1 : 0))
+        .sort((left, right) => {
+          if (left < right) return 1;
+          if (left > right) return -1;
+          return 0;
+        })
         .map((key) => [key, reverse(record[key])]),
     );
   };
