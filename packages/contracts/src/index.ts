@@ -32,6 +32,271 @@ export const requestIdPattern = /^[A-Za-z0-9._:-]{1,80}$/;
 export const projectIdPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+export const uuidV7Schema = z
+  .string()
+  .regex(projectIdPattern)
+  .transform((value) => value.toLowerCase());
+export const sha256HexSchema = z.string().regex(/^[0-9a-f]{64}$/);
+
+export const dnaPayloadSchemaVersion = 'project-dna.v1' as const;
+export const assetMetadataSchemaVersion = 'asset-metadata.v1' as const;
+export const versionedPayloadMaxBytes = 65_536;
+export const versionedPayloadMaxDepth = 16;
+export const versionedPayloadMaxNodes = 4_096;
+
+export const versionStatusSchema = z.enum(['draft', 'published', 'archived']);
+
+export const provenanceV1Schema = z
+  .object({
+    source: z.enum(['manual', 'import', 'generation', 'restore', 'system']),
+    actorSubjectId: uuidV7Schema.nullable(),
+    recordedAt: z.iso.datetime(),
+    sourceVersionId: uuidV7Schema.nullable(),
+  })
+  .strict()
+  .superRefine((provenance, context) => {
+    if (provenance.source === 'restore' && provenance.sourceVersionId === null) {
+      context.addIssue({ code: 'custom', message: 'Restore provenance requires a source version' });
+    }
+  });
+
+export type ProvenanceV1 = z.infer<typeof provenanceV1Schema>;
+export type VersionStatus = z.infer<typeof versionStatusSchema>;
+export type BoundedJsonValue =
+  | null
+  | boolean
+  | number
+  | string
+  | BoundedJsonValue[]
+  | { [key: string]: BoundedJsonValue };
+export type BoundedJsonObject = { [key: string]: BoundedJsonValue };
+
+const boundedJsonObjectSchema = z.custom<BoundedJsonObject>(isBoundedJsonObject);
+const boundedTextSchema = (max: number) =>
+  z.string().max(max).refine(isSafeJsonString, 'Text must be valid, PostgreSQL-safe Unicode');
+
+const uniqueUuidV7ListSchema = (max: number) =>
+  z
+    .array(uuidV7Schema)
+    .max(max)
+    .superRefine((values, context) => {
+      if (new Set(values.map((value) => value.toLowerCase())).size !== values.length) {
+        context.addIssue({ code: 'custom', message: 'UUID identifiers must be unique' });
+      }
+    });
+
+export const projectDnaV1Schema = z
+  .object({
+    schemaVersion: z.literal(dnaPayloadSchemaVersion),
+    status: versionStatusSchema,
+    styleIdentity: boundedTextSchema(256).min(1),
+    palette: z
+      .array(
+        z
+          .object({
+            name: boundedTextSchema(80).min(1),
+            colors: z
+              .array(z.string().regex(/^#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3}){0,2}$/))
+              .min(1)
+              .max(32),
+          })
+          .strict(),
+      )
+      .max(32),
+    visualReferenceIds: uniqueUuidV7ListSchema(64),
+    constraints: boundedJsonObjectSchema,
+    rules: z.array(boundedTextSchema(1_024).min(1)).max(100),
+    provenance: provenanceV1Schema,
+  })
+  .strict()
+  .superRefine(checkVersionedPayloadSize);
+
+export const assetMetadataV1Schema = z
+  .object({
+    schemaVersion: z.literal(assetMetadataSchemaVersion),
+    assetType: z.string().regex(/^[a-z][a-z0-9-]{0,63}$/),
+    assetSubtype: z
+      .string()
+      .regex(/^[a-z][a-z0-9-]{0,63}$/)
+      .nullable(),
+    name: boundedTextSchema(160).min(1),
+    description: boundedTextSchema(2_000).nullable(),
+    tags: z
+      .array(boundedTextSchema(64).min(1))
+      .max(64)
+      .superRefine((values, context) => {
+        if (
+          new Set(values.map((value) => value.normalize('NFC').toLocaleLowerCase('en-US'))).size !==
+          values.length
+        ) {
+          context.addIssue({ code: 'custom', message: 'Asset tags must be unique' });
+        }
+      }),
+    status: versionStatusSchema,
+    lineage: z
+      .array(
+        z
+          .object({
+            relation: z.enum(['derived_from', 'variant_of', 'component_of', 'frame_of', 'source']),
+            assetId: uuidV7Schema,
+            assetVersionId: uuidV7Schema.nullable(),
+          })
+          .strict(),
+      )
+      .max(64)
+      .superRefine((entries, context) => {
+        const keys = entries.map(
+          (entry) => `${entry.relation}:${entry.assetId}:${entry.assetVersionId ?? ''}`,
+        );
+        if (new Set(keys).size !== keys.length) {
+          context.addIssue({ code: 'custom', message: 'Asset lineage references must be unique' });
+        }
+      }),
+    assetContract: z
+      .object({ id: uuidV7Schema, version: z.number().int().min(1).max(2_147_483_647) })
+      .strict()
+      .nullable(),
+    projectDna: z
+      .object({ id: uuidV7Schema, version: z.number().int().min(1).max(2_147_483_647) })
+      .strict()
+      .nullable(),
+    dimensions: z
+      .object({
+        width: z.number().int().min(1).max(16_384),
+        height: z.number().int().min(1).max(16_384),
+        frameCount: z.number().int().min(1).max(10_000),
+        fps: z.number().finite().min(0.1).max(240).nullable(),
+      })
+      .strict()
+      .nullable(),
+    paletteId: uuidV7Schema.nullable(),
+    attributes: boundedJsonObjectSchema,
+    provenance: provenanceV1Schema,
+  })
+  .strict()
+  .superRefine(checkVersionedPayloadSize);
+
+export type ProjectDnaV1 = z.infer<typeof projectDnaV1Schema>;
+export type AssetMetadataV1 = z.infer<typeof assetMetadataV1Schema>;
+
+function checkVersionedPayloadSize(value: unknown, context: z.RefinementCtx): void {
+  try {
+    if (new TextEncoder().encode(JSON.stringify(value)).byteLength > versionedPayloadMaxBytes) {
+      context.addIssue({ code: 'custom', message: 'Versioned payload exceeds the byte limit' });
+    }
+  } catch {
+    context.addIssue({ code: 'custom', message: 'Versioned payload must be JSON serializable' });
+  }
+}
+
+function isBoundedJsonObject(value: unknown): value is BoundedJsonObject {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+  try {
+    return visitBoundedJsonValue(value, 0, { nodes: 0, ancestors: new Set() });
+  } catch {
+    return false;
+  }
+}
+
+type BoundedJsonTraversal = { nodes: number; ancestors: Set<object> };
+
+function visitBoundedJsonValue(
+  item: unknown,
+  depth: number,
+  state: BoundedJsonTraversal,
+): item is BoundedJsonValue {
+  state.nodes += 1;
+  if (state.nodes > versionedPayloadMaxNodes || depth > versionedPayloadMaxDepth) return false;
+  if (item === null || typeof item === 'boolean') return true;
+  if (typeof item === 'string') {
+    return isSafeJsonString(item) && new TextEncoder().encode(item).byteLength <= 4_096;
+  }
+  if (typeof item === 'number') return Number.isFinite(item);
+  if (typeof item !== 'object' || item === undefined || state.ancestors.has(item)) return false;
+  return Array.isArray(item)
+    ? isBoundedJsonArray(item, depth, state)
+    : isBoundedJsonRecord(item, depth, state);
+}
+
+function isBoundedJsonArray(item: unknown[], depth: number, state: BoundedJsonTraversal): boolean {
+  if (Object.getPrototypeOf(item) !== Array.prototype || item.length > 512) return false;
+  const descriptors = Object.getOwnPropertyDescriptors(item);
+  state.ancestors.add(item);
+  try {
+    for (let index = 0; index < item.length; index += 1) {
+      const descriptor = descriptors[String(index)];
+      if (
+        !descriptor ||
+        !Object.hasOwn(descriptor, 'value') ||
+        !visitBoundedJsonValue(descriptor.value, depth + 1, state)
+      ) {
+        return false;
+      }
+    }
+    return Object.keys(descriptors).every(
+      (key) => key === 'length' || /^(0|[1-9][0-9]*)$/.test(key),
+    );
+  } finally {
+    state.ancestors.delete(item);
+  }
+}
+
+function isBoundedJsonRecord(item: object, depth: number, state: BoundedJsonTraversal): boolean {
+  const prototype = Object.getPrototypeOf(item);
+  if (prototype !== Object.prototype && prototype !== null) return false;
+  if (Object.keys(item).length === 0) return true;
+  const descriptors = Object.getOwnPropertyDescriptors(item);
+  const normalizedKeys = new Set<string>();
+  state.ancestors.add(item);
+  try {
+    for (const key of Object.keys(descriptors)) {
+      if (!isBoundedJsonRecordProperty(key, descriptors[key], depth, state, normalizedKeys)) {
+        return false;
+      }
+    }
+    return true;
+  } finally {
+    state.ancestors.delete(item);
+  }
+}
+
+function isBoundedJsonRecordProperty(
+  key: string,
+  descriptor: PropertyDescriptor | undefined,
+  depth: number,
+  state: BoundedJsonTraversal,
+  normalizedKeys: Set<string>,
+): boolean {
+  const normalizedKey = key.normalize('NFC');
+  if (
+    !descriptor ||
+    !Object.hasOwn(descriptor, 'value') ||
+    !isSafeJsonString(normalizedKey) ||
+    new TextEncoder().encode(normalizedKey).byteLength > 256 ||
+    normalizedKeys.has(normalizedKey) ||
+    !visitBoundedJsonValue(descriptor.value, depth + 1, state)
+  ) {
+    return false;
+  }
+  normalizedKeys.add(normalizedKey);
+  return true;
+}
+
+function isSafeJsonString(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const codeUnit = value.charCodeAt(index);
+    if (codeUnit === 0) return false;
+    if (codeUnit >= 0xd800 && codeUnit <= 0xdbff) {
+      const nextCodeUnit = value.charCodeAt(index + 1);
+      if (!(nextCodeUnit >= 0xdc00 && nextCodeUnit <= 0xdfff)) return false;
+      index += 1;
+    } else if (codeUnit >= 0xdc00 && codeUnit <= 0xdfff) {
+      return false;
+    }
+  }
+  return true;
+}
+
 const postgresInt8Maximum = 9_223_372_036_854_775_807n;
 const nonNegativeInt8DecimalSchema = z
   .string()
