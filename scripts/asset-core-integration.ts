@@ -235,6 +235,28 @@ export async function runAssetCoreIntegration(input: {
       ...overrides,
     });
 
+    const directAsset = prepareAssetVersion({
+      assetId: createUuidV7(),
+      tenantId: scopeA.tenantId,
+      projectId: scopeA.projectId,
+      versionId: createUuidV7(),
+      version: 1,
+      idempotencyKeySha256: hash('wo010-r4-canonical-asset-preflight'),
+      payload: assetPayload('R4 canonical direct asset preflight'),
+      provenance: provenance(scopeA.subjectId),
+      payloadSchema: assetMetadataV1Schema,
+    });
+    const assetCanonicalizerProbe = await ownerPool.query<{ canonical: string }>(
+      'SELECT platform.asset_core_canonical_jsonb($1::jsonb) AS canonical',
+      [directAsset.canonicalPayload],
+    );
+    const sqlCanonicalPayload = assetCanonicalizerProbe.rows[0]?.canonical;
+    if (sqlCanonicalPayload !== directAsset.canonicalPayload) {
+      throw new Error(
+        `R4 Asset canonicalizer mismatch; expected=${directAsset.canonicalPayload}; actual=${sqlCanonicalPayload ?? 'missing'}`,
+      );
+    }
+    await assertDirectAssetCreateReturnsCanonicalHash(database, scopeA, directAsset);
     const baseAsset = await createAssetVersion(database, {
       ...scopeA,
       idempotencyKey: 'wo010-asset-base-v1',
@@ -247,6 +269,7 @@ export async function runAssetCoreIntegration(input: {
       projectDnaPayload('direct SQL canonical DNA'),
       assetPayload('direct SQL canonical asset') as AssetMetadataPayload,
       { assetId: baseAsset.assetId, versionId: baseAsset.versionId },
+      assetPayload,
     );
     await expectAssetCoreError(
       appendAssetVersion(database, {
@@ -571,6 +594,10 @@ async function assertAssetCoreRolePrivileges(pool: Pool): Promise<void> {
     'platform.asset_core_jsonb_array_within_size(jsonb,integer,integer)',
     'platform.asset_core_bounded_json_object(jsonb)',
     'platform.asset_core_payload_matches_schema(jsonb,text)',
+    'platform.asset_core_utf16_sort_key(text)',
+    'platform.asset_core_json_string(text)',
+    'platform.asset_core_ecmascript_number(jsonb)',
+    'platform.asset_core_canonical_jsonb(jsonb)',
     'platform.asset_core_provenance_matches_schema(jsonb)',
     'platform.prepare_asset_core_write(text,uuid,uuid,text,text,text,text)',
     'platform.resolve_asset_core_replay(text,uuid,uuid,uuid,uuid,text,text,boolean)',
@@ -647,6 +674,7 @@ async function assertDirectRpcRejectsMalformedPayloadAndProvenance(
   dnaPayload: ReturnType<typeof projectDnaPayload>,
   assetPayload: AssetMetadataPayload,
   lineageSource: { assetId: string; versionId: string },
+  assetPayloadFactory: (name: string, overrides?: Record<string, unknown>) => AssetMetadataPayload,
 ): Promise<void> {
   const dnaCreate = prepareProjectDnaVersion({
     id: createUuidV7(),
@@ -697,6 +725,7 @@ async function assertDirectRpcRejectsMalformedPayloadAndProvenance(
     await client.query('BEGIN');
     await setContext(client, scope);
     await assertDirectRpcPositiveControls(client, dnaCreate, dnaAppend, assetCreate, assetAppend);
+    await assertR4CanonicalDigestVectors(client, scope, assetPayloadFactory);
     await assertDirectRestoreStatusEnforcement(client, scope.subjectId, dnaCreate, assetCreate);
     await assertDirectPayloadCases(
       client,
@@ -948,6 +977,397 @@ async function assertDirectRpcPositiveControls(
   );
 }
 
+async function assertR4CanonicalDigestVectors(
+  client: PoolClient,
+  scope: Scope,
+  assetPayloadFactory: (name: string, overrides?: Record<string, unknown>) => AssetMetadataPayload,
+): Promise<void> {
+  const dnaPayload = { ...projectDnaPayload('Pixel'), status: 'draft' as const };
+  const dnaExpected =
+    '{"constraints":{"avoidPublicUrls":true},"palette":[{"colors":["#369"],"name":"Primary"}],"rules":["Preserve silhouette"],"schemaVersion":"project-dna.v1","status":"draft","styleIdentity":"Pixel","visualReferenceIds":[]}';
+  const dna = prepareProjectDnaVersion({
+    id: createUuidV7(),
+    tenantId: scope.tenantId,
+    projectId: scope.projectId,
+    versionId: createUuidV7(),
+    version: 1,
+    idempotencyKeySha256: hash('wo010-r4-vector-dna-create'),
+    payload: dnaPayload,
+    provenance: provenance(scope.subjectId),
+    payloadSchema: projectDnaV1Schema,
+  });
+  if (
+    dna.canonicalPayload !== dnaExpected ||
+    dna.payloadSha256 !== '4fc07797075f5d83242ccd804d1a81296915508baccb87de06e0d81832c29dbf'
+  ) {
+    throw new Error('R4 supplied canonical Project DNA vector differs from the domain SHA-256');
+  }
+
+  const assetVectorPayload: AssetMetadataPayload = {
+    assetContract: null,
+    assetSubtype: 'sprite',
+    assetType: 'image',
+    attributes: { a: 1 },
+    description: null,
+    dimensions: null,
+    lineage: [],
+    name: 'Sprite 01',
+    paletteId: null,
+    projectDna: null,
+    schemaVersion: 'asset-metadata.v1',
+    status: 'draft',
+    tags: ['wo010'],
+  };
+  const assetExpected =
+    '{"assetContract":null,"assetSubtype":"sprite","assetType":"image","attributes":{"a":1},"description":null,"dimensions":null,"lineage":[],"name":"Sprite 01","paletteId":null,"projectDna":null,"schemaVersion":"asset-metadata.v1","status":"draft","tags":["wo010"]}';
+  const asset = prepareAssetVersion({
+    assetId: createUuidV7(),
+    tenantId: scope.tenantId,
+    projectId: scope.projectId,
+    versionId: createUuidV7(),
+    version: 1,
+    idempotencyKeySha256: hash('wo010-r4-vector-asset-create'),
+    payload: assetVectorPayload,
+    provenance: provenance(scope.subjectId),
+    payloadSchema: assetMetadataV1Schema,
+  });
+  if (
+    asset.canonicalPayload !== assetExpected ||
+    asset.payloadSha256 !== 'baf966928ef856dae4275825a92eb4a2d2dce0921a7956fe186f1d93f464b4ad'
+  ) {
+    throw new Error('R4 supplied canonical Asset vector differs from the domain SHA-256');
+  }
+
+  await assertDirectCanonicalCreateAndAppend(client, 'DNA', dna, 'create_project_dna_version');
+  await assertDirectCanonicalCreateAndAppend(client, 'Asset', asset, 'create_asset_version');
+
+  const edgeValues = {
+    '\u{10000}': { z: 'quote " slash \\ line\n tab\t backspace\b', a: true },
+    '\uE000': 'BMP key',
+    nested: { z: 1e21, a: 1e-7 },
+    numbers: {
+      smallExponent: 1e-7,
+      smallFixed: 1e-6,
+      largeFixed: 1e20,
+      largeExponent: 1e21,
+      rounded: 1.0000000000000002,
+      negativeZero: -0,
+      roundedInteger: Number('9007199254740993'),
+      smallestSubnormal: 5e-324,
+      maximumFinite: 1.7976931348623157e308,
+    },
+  };
+  const edgeDna = prepareProjectDnaVersion({
+    id: createUuidV7(),
+    tenantId: scope.tenantId,
+    projectId: scope.projectId,
+    versionId: createUuidV7(),
+    version: 1,
+    idempotencyKeySha256: hash('wo010-r4-edge-dna-create'),
+    payload: {
+      ...projectDnaPayload('Café "Pixel"\n\\ path'),
+      constraints: edgeValues,
+    },
+    provenance: provenance(scope.subjectId),
+    payloadSchema: projectDnaV1Schema,
+  });
+  const edgeAsset = prepareAssetVersion({
+    assetId: createUuidV7(),
+    tenantId: scope.tenantId,
+    projectId: scope.projectId,
+    versionId: createUuidV7(),
+    version: 1,
+    idempotencyKeySha256: hash('wo010-r4-edge-asset-create'),
+    payload: assetPayloadFactory('Café "Sprite"\n\\ path', { attributes: edgeValues }),
+    provenance: provenance(scope.subjectId),
+    payloadSchema: assetMetadataV1Schema,
+  });
+  const edgeDnaAppend = await assertDirectCanonicalCreateAndAppend(
+    client,
+    'DNA edge',
+    edgeDna,
+    'create_project_dna_version',
+  );
+  const edgeAssetAppend = await assertDirectCanonicalCreateAndAppend(
+    client,
+    'Asset edge',
+    edgeAsset,
+    'create_asset_version',
+  );
+
+  const edgeDnaVariants = withJsonNumberLexicalVariants(edgeDna.canonicalPayload, 'styleIdentity');
+  const edgeAssetVariants = withJsonNumberLexicalVariants(edgeAsset.canonicalPayload, 'name');
+  await assertDirectRpcRejectsNoncanonicalDigest(
+    client,
+    'create_project_dna_version',
+    edgeDna.id,
+    edgeDna,
+    'DNA edge create numeric lexemes',
+    edgeDnaVariants,
+  );
+  await assertDirectRpcRejectsNoncanonicalDigest(
+    client,
+    'append_project_dna_version',
+    edgeDna.id,
+    edgeDnaAppend,
+    'DNA edge append numeric lexemes',
+    edgeDnaVariants,
+  );
+  await assertDirectRpcRejectsNoncanonicalDigest(
+    client,
+    'create_asset_version',
+    edgeAsset.assetId,
+    edgeAsset,
+    'Asset edge create numeric lexemes',
+    edgeAssetVariants,
+  );
+  await assertDirectRpcRejectsNoncanonicalDigest(
+    client,
+    'append_asset_version',
+    edgeAsset.assetId,
+    edgeAssetAppend,
+    'Asset edge append numeric lexemes',
+    edgeAssetVariants,
+  );
+  console.log(
+    'R4 canonical digest vectors: PASS (supplied SHA vectors, UTF-16 key ordering, NFC/NFD, JSON escapes, numeric edges, create/append/replay, and 2 idempotency-key rejection modes).',
+  );
+}
+
+async function assertDirectCanonicalCreateAndAppend(
+  client: PoolClient,
+  label: string,
+  prepared: DirectPreparedVersion & { id?: string; assetId?: string },
+  createRpc: 'create_project_dna_version' | 'create_asset_version',
+): Promise<DirectPreparedVersion> {
+  const entityId = createRpc === 'create_project_dna_version' ? prepared.id : prepared.assetId;
+  if (!entityId) throw new Error(`R4 ${label} canonical vector has no entity UUID`);
+  await assertDirectRpcReplayPair(client, createRpc, entityId, prepared, 1, `${label} create`);
+
+  const appendRpc =
+    createRpc === 'create_project_dna_version'
+      ? 'append_project_dna_version'
+      : 'append_asset_version';
+  const append = {
+    ...prepared,
+    versionId: createUuidV7(),
+    idempotencyKeySha256: hash(`wo010-r4-${label}-canonical-append`),
+  };
+  await assertDirectRpcReplayPair(client, appendRpc, entityId, append, 2, `${label} append`);
+  const textField = createRpc === 'create_project_dna_version' ? 'styleIdentity' : 'name';
+  const variants = variantsForPayload(prepared.canonicalPayload, textField);
+  await assertDirectRpcRejectsNoncanonicalDigest(
+    client,
+    createRpc,
+    entityId,
+    prepared,
+    `${label} ${createRpc}`,
+    variants,
+  );
+  await assertDirectRpcRejectsNoncanonicalDigest(
+    client,
+    appendRpc,
+    entityId,
+    append,
+    `${label} ${appendRpc}`,
+    variantsForPayload(append.canonicalPayload, textField),
+  );
+  return append;
+}
+
+function variantsForPayload(canonicalPayload: string, textField: string): CanonicalDigestVariant[] {
+  const parsed = JSON.parse(canonicalPayload) as Record<string, unknown>;
+  const text = parsed[textField];
+  if (typeof text !== 'string') throw new Error(`R4 canonical vector has no ${textField} text`);
+  const nfd = { ...parsed, [textField]: text.normalize('NFD') };
+  const variants: CanonicalDigestVariant[] = [
+    { label: 'one trailing space', canonicalPayload: `${canonicalPayload} ` },
+    {
+      label: 'root and nested key reordering',
+      canonicalPayload: reverseJsonObjectKeys(canonicalPayload),
+    },
+    {
+      label: 'legal Unicode escape spelling',
+      canonicalPayload: escapeFieldInitial(textField, canonicalPayload),
+    },
+  ];
+  if (text !== text.normalize('NFD')) {
+    variants.push({ label: 'NFD equivalent Unicode text', canonicalPayload: JSON.stringify(nfd) });
+  }
+  return variants;
+}
+
+function withJsonNumberLexicalVariants(
+  canonicalPayload: string,
+  textField: string,
+): CanonicalDigestVariant[] {
+  const variants = variantsForPayload(canonicalPayload, textField);
+  variants.push(
+    {
+      label: 'uppercase exponent spelling',
+      canonicalPayload: replaceOnce(
+        canonicalPayload,
+        '"smallExponent":1e-7',
+        '"smallExponent":1E-7',
+      ),
+    },
+    {
+      label: 'equivalent fixed exponent spelling',
+      canonicalPayload: replaceOnce(
+        canonicalPayload,
+        '"largeFixed":100000000000000000000',
+        '"largeFixed":1e+20',
+      ),
+    },
+    {
+      label: 'negative zero spelling',
+      canonicalPayload: replaceOnce(canonicalPayload, '"negativeZero":0', '"negativeZero":-0'),
+    },
+    {
+      label: 'equivalent decimal scale',
+      canonicalPayload: replaceOnce(
+        canonicalPayload,
+        '"rounded":1.0000000000000002',
+        '"rounded":1.0000000000000002000',
+      ),
+    },
+  );
+  return variants;
+}
+
+function reverseJsonObjectKeys(canonicalPayload: string): string {
+  const reverse = (value: unknown): unknown => {
+    if (Array.isArray(value)) return value.map(reverse);
+    if (typeof value !== 'object' || value === null) return value;
+    const record = value as Record<string, unknown>;
+    return Object.fromEntries(
+      Object.keys(record)
+        .sort((left, right) => (left < right ? 1 : left > right ? -1 : 0))
+        .map((key) => [key, reverse(record[key])]),
+    );
+  };
+  return JSON.stringify(reverse(JSON.parse(canonicalPayload)));
+}
+
+function escapeFieldInitial(field: string, canonicalPayload: string): string {
+  const prefix = `"${field}":"`;
+  const valueStart = canonicalPayload.indexOf(prefix) + prefix.length;
+  const initialCodePoint = canonicalPayload.codePointAt(valueStart);
+  if (initialCodePoint === undefined || initialCodePoint > 0x7f) {
+    throw new Error(`R4 ${field} vector must begin with an ASCII character for escape coverage`);
+  }
+  const initialCharacter = String.fromCodePoint(initialCodePoint);
+  const escapedInitial = `\\u${initialCodePoint.toString(16).padStart(4, '0')}`;
+  return replaceOnce(
+    canonicalPayload,
+    `${prefix}${initialCharacter}`,
+    `${prefix}${escapedInitial}`,
+  );
+}
+
+function replaceOnce(value: string, target: string, replacement: string): string {
+  if (!value.includes(target))
+    throw new Error(`R4 vector did not contain expected fragment: ${target}`);
+  return value.replace(target, replacement);
+}
+
+type CanonicalDigestVariant = { label: string; canonicalPayload: string };
+
+async function assertDirectRpcRejectsNoncanonicalDigest(
+  client: PoolClient,
+  rpc: DirectRpc,
+  entityId: string,
+  canonical: DirectPreparedVersion,
+  label: string,
+  variants: CanonicalDigestVariant[],
+): Promise<void> {
+  for (const variant of variants) {
+    const noncanonical = {
+      ...canonical,
+      canonicalPayload: variant.canonicalPayload,
+      payloadSha256: hash(variant.canonicalPayload),
+    };
+    let replayError: unknown;
+    await client.query('SAVEPOINT r4_same_key');
+    try {
+      await callDirectRpc(client, rpc, entityId, noncanonical);
+    } catch (error) {
+      replayError = error;
+    }
+    await client.query('ROLLBACK TO SAVEPOINT r4_same_key');
+    await client.query('RELEASE SAVEPOINT r4_same_key');
+
+    let newKeyResult: DirectResult | undefined;
+    let newKeyError: unknown;
+    const newKey = {
+      ...noncanonical,
+      versionId: createUuidV7(),
+      idempotencyKeySha256: hash(`wo010-r4-noncanonical-new-key-${label}-${variant.label}`),
+    };
+    const newEntityId = rpc.startsWith('create_') ? createUuidV7() : entityId;
+    let persistedSha256: string | undefined;
+    await client.query('SAVEPOINT r4_new_key');
+    try {
+      newKeyResult = await callDirectRpc(client, rpc, newEntityId, newKey);
+      const versionTable = rpc.includes('project_dna') ? 'project_dna_version' : 'asset_version';
+      const stored = await client.query<{ payload_sha256: string }>(
+        `SELECT payload_sha256 FROM platform.${versionTable} WHERE version_id = $1`,
+        [newKeyResult.version_id],
+      );
+      persistedSha256 = stored.rows[0]?.payload_sha256;
+    } catch (error) {
+      newKeyError = error;
+    }
+    await client.query('ROLLBACK TO SAVEPOINT r4_new_key');
+    await client.query('RELEASE SAVEPOINT r4_new_key');
+
+    const rejectedAsNoncanonical = (error: unknown): boolean =>
+      sqlState(error) === '22023' &&
+      error instanceof Error &&
+      error.message === 'invalid_asset_core_payload';
+    if (
+      !rejectedAsNoncanonical(replayError) ||
+      !rejectedAsNoncanonical(newKeyError) ||
+      newKeyResult !== undefined ||
+      persistedSha256 !== undefined
+    ) {
+      const describe = (error: unknown): string =>
+        error instanceof Error
+          ? `${sqlState(error) ?? 'no-sqlstate'}:${error.message}`
+          : 'accepted';
+      throw new Error(
+        `R4 ${label}/${variant.label} noncanonical digest was not rejected: same-key=${describe(replayError)}; new-key=${describe(newKeyError)}; persisted=${persistedSha256 ?? 'none'}`,
+      );
+    }
+  }
+}
+
+async function assertDirectAssetCreateReturnsCanonicalHash(
+  database: ReturnType<typeof createDatabase>,
+  scope: Scope,
+  prepared: DirectPreparedVersion & { assetId: string },
+): Promise<void> {
+  const client = await database.pool.connect();
+  try {
+    await client.query('BEGIN');
+    await setContext(client, scope);
+    const created = await callDirectRpc(client, 'create_asset_version', prepared.assetId, prepared);
+    if (created.payload_sha256 !== prepared.payloadSha256 || created.version !== 1) {
+      throw new Error('R4 direct canonical Asset create returned a different persisted digest');
+    }
+  } catch (error) {
+    throw new Error(
+      `R4 direct canonical Asset create failed (${sqlState(error) ?? 'no-sqlstate'}): ${error instanceof Error ? error.message : String(error)}`,
+    );
+  } finally {
+    try {
+      await client.query('ROLLBACK');
+    } finally {
+      client.release();
+    }
+  }
+}
+
 async function assertDirectRpcReplayPair(
   client: PoolClient,
   rpc: DirectRpc,
@@ -958,7 +1378,11 @@ async function assertDirectRpcReplayPair(
 ): Promise<void> {
   for (const replayed of [false, true]) {
     const row = await callDirectRpc(client, rpc, entityId, prepared);
-    if (row.version !== version || row.replayed !== replayed) {
+    if (
+      row.version !== version ||
+      row.replayed !== replayed ||
+      row.payload_sha256 !== prepared.payloadSha256
+    ) {
       throw new Error(`Direct PostgreSQL canonical positive control failed: ${label}`);
     }
   }

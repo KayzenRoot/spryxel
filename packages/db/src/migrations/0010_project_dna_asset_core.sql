@@ -372,6 +372,7 @@ SET row_security = on
 AS $$
 DECLARE
   v_payload jsonb;
+  v_canonical_payload text;
 BEGIN
   IF p_canonical_payload IS NULL OR p_payload_sha256 IS NULL OR p_payload_sha256 !~ (platform.asset_core_constants()).sha256_pattern
     OR octet_length(convert_to(p_canonical_payload, 'UTF8')) > 65536
@@ -385,6 +386,14 @@ BEGIN
     RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = (platform.asset_core_constants()).error_invalid_payload;
   END;
   IF NOT platform.asset_core_payload_matches_schema(v_payload, p_schema_version) THEN
+    RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = (platform.asset_core_constants()).error_invalid_payload;
+  END IF;
+  BEGIN
+    v_canonical_payload := platform.asset_core_canonical_jsonb(v_payload);
+  EXCEPTION WHEN others THEN
+    RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = (platform.asset_core_constants()).error_invalid_payload;
+  END;
+  IF p_canonical_payload IS DISTINCT FROM v_canonical_payload THEN
     RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = (platform.asset_core_constants()).error_invalid_payload;
   END IF;
   RETURN v_payload;
@@ -781,6 +790,188 @@ BEGIN
   RETURN false;
 EXCEPTION WHEN others THEN
   RETURN false;
+END
+$$;
+
+CREATE FUNCTION platform.asset_core_utf16_sort_key(p_value text)
+RETURNS bytea
+LANGUAGE plpgsql
+IMMUTABLE
+STRICT
+PARALLEL SAFE
+SET search_path = pg_catalog
+AS $$
+DECLARE
+  v_result bytea := ''::bytea;
+  v_codepoint integer;
+  v_surrogate integer;
+  v_index integer;
+BEGIN
+  FOR v_index IN 1..char_length(p_value) LOOP
+    v_codepoint := ascii(substr(p_value, v_index, 1));
+    IF v_codepoint > 65535 THEN
+      v_surrogate := v_codepoint - 65536;
+      v_result := v_result || decode(
+        lpad(to_hex(55296 + v_surrogate / 1024), 4, '0') ||
+        lpad(to_hex(56320 + v_surrogate % 1024), 4, '0'),
+        'hex'
+      );
+    ELSE
+      v_result := v_result || decode(lpad(to_hex(v_codepoint), 4, '0'), 'hex');
+    END IF;
+  END LOOP;
+  RETURN v_result;
+END
+$$;
+
+CREATE FUNCTION platform.asset_core_json_string(p_value text)
+RETURNS text
+LANGUAGE plpgsql
+IMMUTABLE
+STRICT
+PARALLEL SAFE
+SET search_path = pg_catalog
+AS $$
+DECLARE
+  v_result text := '"';
+  v_character text;
+  v_codepoint integer;
+  v_index integer;
+BEGIN
+  FOR v_index IN 1..char_length(p_value) LOOP
+    v_character := substr(p_value, v_index, 1);
+    v_codepoint := ascii(v_character);
+    IF v_codepoint = 34 THEN
+      v_result := v_result || chr(92) || '"';
+    ELSIF v_codepoint = 92 THEN
+      v_result := v_result || chr(92) || chr(92);
+    ELSIF v_codepoint = 8 THEN
+      v_result := v_result || chr(92) || 'b';
+    ELSIF v_codepoint = 9 THEN
+      v_result := v_result || chr(92) || 't';
+    ELSIF v_codepoint = 10 THEN
+      v_result := v_result || chr(92) || 'n';
+    ELSIF v_codepoint = 12 THEN
+      v_result := v_result || chr(92) || 'f';
+    ELSIF v_codepoint = 13 THEN
+      v_result := v_result || chr(92) || 'r';
+    ELSIF v_codepoint < 32 THEN
+      v_result := v_result || chr(92) || 'u' || lpad(to_hex(v_codepoint), 4, '0');
+    ELSE
+      v_result := v_result || v_character;
+    END IF;
+  END LOOP;
+  RETURN v_result || '"';
+END
+$$;
+
+CREATE FUNCTION platform.asset_core_ecmascript_number(p_value jsonb)
+RETURNS text
+LANGUAGE plpgsql
+IMMUTABLE
+STRICT
+PARALLEL SAFE
+SET search_path = pg_catalog
+SET extra_float_digits = 3
+AS $$
+DECLARE
+  v_number double precision;
+  v_formatted text;
+  v_parts text[];
+  v_exponent integer := 0;
+  v_decimal_position integer;
+  v_digits text;
+  v_leading_zeroes integer;
+  v_point integer;
+  v_sign text := '';
+  v_length integer;
+  v_exponent_text text;
+BEGIN
+  v_number := (p_value #>> '{}')::double precision;
+  IF v_number = 0 THEN RETURN '0'; END IF;
+  IF v_number < 0 THEN
+    v_sign := '-';
+    v_number := -v_number;
+  END IF;
+
+  v_formatted := lower(v_number::text);
+  v_parts := string_to_array(v_formatted, 'e');
+  IF cardinality(v_parts) > 1 THEN
+    v_exponent := v_parts[2]::integer;
+    v_formatted := v_parts[1];
+  END IF;
+  v_decimal_position := strpos(v_formatted, '.');
+  IF v_decimal_position = 0 THEN v_decimal_position := char_length(v_formatted) + 1; END IF;
+  v_point := v_decimal_position - 1 + v_exponent;
+  v_digits := replace(v_formatted, '.', '');
+  v_leading_zeroes := char_length(v_digits) - char_length(ltrim(v_digits, '0'));
+  v_digits := substr(v_digits, v_leading_zeroes + 1);
+  v_point := v_point - v_leading_zeroes;
+  v_digits := rtrim(v_digits, '0');
+  v_length := char_length(v_digits);
+
+  IF v_point > 0 AND v_point < v_length THEN
+    RETURN v_sign || substr(v_digits, 1, v_point) || '.' || substr(v_digits, v_point + 1);
+  ELSIF v_point = v_length THEN
+    RETURN v_sign || v_digits;
+  ELSIF v_point > v_length AND v_point <= 21 THEN
+    RETURN v_sign || v_digits || repeat('0', v_point - v_length);
+  ELSIF v_point <= 0 AND v_point > -6 THEN
+    RETURN v_sign || '0.' || repeat('0', -v_point) || v_digits;
+  END IF;
+
+  v_exponent := v_point - 1;
+  v_exponent_text := CASE WHEN v_exponent >= 0 THEN '+' || v_exponent::text ELSE v_exponent::text END;
+  RETURN v_sign || substr(v_digits, 1, 1) ||
+    CASE WHEN v_length > 1 THEN '.' || substr(v_digits, 2) ELSE '' END ||
+    'e' || v_exponent_text;
+END
+$$;
+
+CREATE FUNCTION platform.asset_core_canonical_jsonb(p_value jsonb)
+RETURNS text
+LANGUAGE plpgsql
+IMMUTABLE
+STRICT
+PARALLEL SAFE
+SET search_path = pg_catalog, platform
+AS $$
+DECLARE
+  v_type text := jsonb_typeof(p_value);
+  v_result text;
+  v_entry record;
+  v_first boolean := true;
+BEGIN
+  IF v_type = 'null' THEN RETURN 'null'; END IF;
+  IF v_type = 'boolean' THEN RETURN p_value::text; END IF;
+  IF v_type = 'number' THEN RETURN platform.asset_core_ecmascript_number(p_value); END IF;
+  IF v_type = 'string' THEN
+    RETURN platform.asset_core_json_string(normalize(p_value #>> '{}', NFC));
+  END IF;
+  IF v_type = 'array' THEN
+    v_result := '[';
+    FOR v_entry IN SELECT value FROM jsonb_array_elements(p_value) WITH ORDINALITY AS item(value, position) ORDER BY position LOOP
+      IF NOT v_first THEN v_result := v_result || ','; END IF;
+      v_result := v_result || platform.asset_core_canonical_jsonb(v_entry.value);
+      v_first := false;
+    END LOOP;
+    RETURN v_result || ']';
+  END IF;
+  IF v_type = 'object' THEN
+    v_result := '{';
+    FOR v_entry IN
+      SELECT normalize(key, NFC) AS normalized_key, value
+        FROM jsonb_each(p_value)
+       ORDER BY platform.asset_core_utf16_sort_key(normalize(key, NFC))
+    LOOP
+      IF NOT v_first THEN v_result := v_result || ','; END IF;
+      v_result := v_result || platform.asset_core_json_string(v_entry.normalized_key) || ':' ||
+        platform.asset_core_canonical_jsonb(v_entry.value);
+      v_first := false;
+    END LOOP;
+    RETURN v_result || '}';
+  END IF;
+  RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'invalid_asset_core_payload';
 END
 $$;
 
@@ -1322,6 +1513,10 @@ REVOKE ALL ON FUNCTION platform.asset_core_jsonb_is_finite_number(jsonb) FROM PU
 REVOKE ALL ON FUNCTION platform.asset_core_jsonb_array_within_size(jsonb, integer, integer) FROM PUBLIC, spryxel_app, spryxel_worker;
 REVOKE ALL ON FUNCTION platform.asset_core_bounded_json_object(jsonb) FROM PUBLIC, spryxel_app, spryxel_worker;
 REVOKE ALL ON FUNCTION platform.asset_core_payload_matches_schema(jsonb, text) FROM PUBLIC, spryxel_app, spryxel_worker;
+REVOKE ALL ON FUNCTION platform.asset_core_utf16_sort_key(text) FROM PUBLIC, spryxel_app, spryxel_worker;
+REVOKE ALL ON FUNCTION platform.asset_core_json_string(text) FROM PUBLIC, spryxel_app, spryxel_worker;
+REVOKE ALL ON FUNCTION platform.asset_core_ecmascript_number(jsonb) FROM PUBLIC, spryxel_app, spryxel_worker;
+REVOKE ALL ON FUNCTION platform.asset_core_canonical_jsonb(jsonb) FROM PUBLIC, spryxel_app, spryxel_worker;
 REVOKE ALL ON FUNCTION platform.asset_core_provenance_matches_schema(jsonb) FROM PUBLIC, spryxel_app, spryxel_worker;
 REVOKE ALL ON FUNCTION platform.prepare_asset_core_write(text, uuid, uuid, text, text, text, text) FROM PUBLIC, spryxel_app, spryxel_worker;
 REVOKE ALL ON FUNCTION platform.resolve_asset_core_replay(text, uuid, uuid, uuid, uuid, text, text, boolean) FROM PUBLIC, spryxel_app, spryxel_worker;
