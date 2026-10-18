@@ -26,7 +26,7 @@
     "admissionRecord": "governance/wo010-phase1-admission-context-lock",
     "admissionDocsRequiredOnProtectedMain": true,
     "independentImplementationAudit": "MANDATORY_BEFORE_CODE_PR_MERGE",
-    "latestScopeAmendment": "OWNER_2026-10-18_TWO_ARCHITECTURE_GUARD_FILES_ONLY"
+    "latestScopeAmendment": "OWNER_2026_10_18_EXACT_ASSET_CORE_INTEGRATION_TEST_BLOB"
   },
   "authorizedBranch": "codex/spryxel-wo-010-phase1-dna-asset-core",
   "executionBase": {
@@ -41,7 +41,7 @@
   },
   "workOrderSource": {
     "path": ".engineering/work-orders/SPRYXEL-WO-010.md",
-    "gitBlobSha": "d206115141a4ed62ec060231480963023df96a27",
+    "gitBlobSha": "b278be84a1e30926512bd76da2d234b776efcd73",
     "authority": "OWNER_ADMITTED_PHASE1_AB_ON_PROTECTED_MAIN",
     "preLockCandidateBlob": "0debb59ffce9b35cc6d9b7b96bf293b8da4bfd0b"
   },
@@ -198,7 +198,8 @@
     "packages/db/src/",
     "scripts/ (only existing integration-test harness, minimal change when demonstrated)",
     "scripts/architecture-guard.ts (exact 5 migration-0010 table names only)",
-    "scripts/architecture-guard.test.ts (positive and negative coverage only; preserve prior negatives)"
+    "scripts/architecture-guard.test.ts (positive and negative coverage only; preserve prior negatives)",
+    "scripts/asset-core-integration.ts (new test-only file; Git blob 2306874257dd6a6e0d8e10f48e3b5b9a20747702; A01-A04/B02-B04 only; imported by existing run-integration.ts)"
   ],
   "protectedPaths": [
     ".engineering/",
@@ -269,6 +270,26 @@
       "phaseCNotAdmitted": true,
       "implementationMergeAuthorized": false,
       "deployAuthorized": false,
+      "effectiveAfter": "PROTECTED_DOCS_ONLY_MERGE_AND_EXACT_MAIN_CONTEXT_PREFLIGHT"
+    },
+    {
+      "id": "WO010_PHASE1_AB_ASSET_CORE_INTEGRATION_TEST_FILE_2026_10_18",
+      "authorizedBy": "OWNER_EXPLICIT_USER_MESSAGE_2026-10-18",
+      "authorizationRecord": "https://github.com/KayzenRoot/spryxel/pull/98#issuecomment-6255810097",
+      "intent": "Admit exactly one new integration test-only file after source and B08 evidence review; no general scripts/** broadening.",
+      "allowedFiles": [
+        "scripts/asset-core-integration.ts"
+      ],
+      "authorizedGitBlobSha": "2306874257dd6a6e0d8e10f48e3b5b9a20747702",
+      "implementationCandidateHeadSha": "bf240de115109267eb58509972fc2f10620aaaff",
+      "importedBy": "scripts/run-integration.ts",
+      "allowedPurpose": "Disposable local PostgreSQL tests for A01-A04/B02-B04 exclusively; no production, dependency or additional code changes.",
+      "additionalScriptFilesAuthorized": false,
+      "forbidOtherCodeSurfaceChanges": true,
+      "phaseCNotAdmitted": true,
+      "implementationMergeAuthorized": false,
+      "deployAuthorized": false,
+      "checkpointPromotionAuthorized": false,
       "effectiveAfter": "PROTECTED_DOCS_ONLY_MERGE_AND_EXACT_MAIN_CONTEXT_PREFLIGHT"
     }
   ]
