@@ -1,18 +1,18 @@
-# SPRYXEL-WO-010 — IMP-006 DNA + Asset Core (Phase 1 Admission Candidate)
+# SPRYXEL-WO-010 — IMP-006 DNA + Asset Core (Phase 1 A+B OWNER ADMITTED)
 
-**Status:** PROPOSED / NOT_ADMITTED / NONEXECUTABLE. **Risk:** HIGH_ASSURANCE, tenant-owned durable data, forced RLS, immutable provenance. **Tracking:** [#91](https://github.com/KayzenRoot/spryxel/issues/91); [planning PR #95](https://github.com/KayzenRoot/spryxel/pull/95). **Draft source base:** `main@f544aba74c7609d3ad1bce80538e8218fe555ca8`.
+**Status:** OWNER_ADMITTED_PHASE1_AB / CONTEXT_LOCK_REQUIRES_PROTECTED_MERGE_FOR_EXECUTION. **Risk:** HIGH_ASSURANCE, tenant-owned durable data, forced RLS, immutable provenance. **Tracking:** [#91](https://github.com/KayzenRoot/spryxel/issues/91); [planning PR #95](https://github.com/KayzenRoot/spryxel/pull/95). **Draft source base:** `main@f544aba74c7609d3ad1bce80538e8218fe555ca8`.
 
-**Authority:** `.engineering/CHECKPOINT.json` stop `SPRYXEL_WO_009_COMPLETE`, next `SPRYXEL_DNA_ASSET_CORE_WORK_ORDER_REQUIRED` / `NOT_ADMITTED`; D-153 / implementation sequence order 6. `AGENTS.md` requires an **owner-admitted** WO and new current Context Lock before Codex implementation. This document is a candidate, NOT that admission.
+**Authority:** Owner explicitly authorized the protected docs-only squash merge of PR #95 and **admitted WO-010 Phase 1 A+B**, with documented allowlist/tests/restrictions and explicit prohibition on deployment, Phase C expansion and implementation merge without later independent audit (user directive 2026-10-18, 12:19 America/Sao_Paulo). PR #95 was protected-merged to `main@8c7ea8e7f40146dd1531f4ee772f26cc4d524e8d`. Canonical `.engineering/CHECKPOINT.json` still records `SPRYXEL_WO_009_COMPLETE`, next `SPRYXEL_DNA_ASSET_CORE_WORK_ORDER_REQUIRED` / `NOT_ADMITTED` because **canonical checkpoint promotion has not occurred and is not authorized**. This WO documents a narrower *implementation admission* within that next legal stage, not a claim that WO-010 is COMPLETE or that full Asset Core was admitted. Codex cannot begin until the admitted WO and a FRESH Context Lock are on protected main and preflight matches.
 
-## Single next bounded mission proposed: A+B
+## Authorized bounded implementation mission: A+B only
 
 **A. Contracts & immutable domain models.** Add strict Zod/TS schemas and deterministic canonical JSON SHA-256 digest, versioned Project DNA v1 and Asset metadata v1 with opaque UUIDv7 identifiers, payload bounds and provenance. Stable entity IDs must not be derived from hashes; content digest is integrity evidence. Published versions are append-only; restore/fork creates a new version. Explicit tenant/project association and valid state transitions. Use existing `platform.asset_contract` and `asset_contract_version` as contract references, **not** as a duplicate asset/blob record. Never enable public asset URLs or real generation.
 
 **B. Durable tenant-safe persistence.** Add the minimal next forward-only SQL migration `0010_*.sql` for `project_dna`, `project_dna_version`, `asset`, `asset_version`, and necessary lineage/provenance relations **only after confirming existing schema does not provide equivalent entities**. All tenant-owned tables have explicit tenant+project FK/unique key, `ENABLE` and `FORCE ROW LEVEL SECURITY`, role privilege limits, transaction-scoped principal context and denial of cross-tenant reads/writes/joins/linkage. Adapter functions in existing DB package enforce active project membership, idempotency, safe conflicts and immutable history. No API route or external upload interface in Phase 1.
 
-**Bounded allowlist once explicitly admitted:** `packages/contracts/src/**`, `packages/domain/src/**`, `packages/db/src/**`; narrowly necessary existing local integration tests `scripts/**` only after confirming impact. NO code in `apps/web`, `apps/api`, `apps/worker`, WorkOS/session/proxy, Ledger/CostGuard, `.engineering`, `.gef`, workflows or deployment. NO new dependency/lockfile change without separate explicit justification and permission.
+**Bounded allowlist for the admitted Phase 1 (effective once admission/lock docs are protected-merged): `packages/contracts/src/**`, `packages/domain/src/**`, `packages/db/src/**`; narrowly necessary existing local integration tests `scripts/**` only after confirming impact. NO code in `apps/web`, `apps/api`, `apps/worker`, WorkOS/session/proxy, Ledger/CostGuard, `.engineering`, `.gef`, workflows or deployment. NO new dependency/lockfile change without separate explicit justification and permission.
 
-**Later Phase C NOT_ADMITTED:** private S3-compatible object storage authorization and bounded API ports/endpoint (SeaweedFS local/test only); must be separately authorized and independently audited. Phase D/E (worker/user interface) not admitted. A+B alone does **NOT** satisfy full Asset Core requirement or promote the checkpoint.
+**Later Phase C NOT_ADMITTED (explicitly excluded by owner):** private S3-compatible object storage authorization and bounded API ports/endpoint (SeaweedFS local/test only); must be separately authorized and independently audited. Phase D/E (worker/user interface) not admitted. A+B alone does **NOT** satisfy full Asset Core requirement or promote the checkpoint.
 
 ## Negative acceptance matrix, Phase A+B
 
@@ -59,6 +59,6 @@ Read source order: Checkpoint > Decisions/approved ADRs > Scope > DoD > Architec
 
 Source movement, differing fingerprint, changed current `main`, or new approved authority after this proposal requires preflight reconciliation. An **execution** Context Lock can be issued only **after specific owner scope/admission** and the admitted Work Order is available on current `main`. Do not reuse WO-009 lock. ChatGPT handles GitHub documents, issues, PRs, review/audit, governance. Codex codes/tests/commits only and returns SHA+commands/exit codes.
 
-**Proposed Phase 1 STOP after actual admitted code/tests:** `SPRYXEL_WO010_PHASE1_AB_CODE_AND_RLS_TESTS_READY_FOR_INDEPENDENT_HIGH_ASSURANCE_AUDIT`.
+**Approved Phase 1 implementation STOP after actual admitted code/tests:** `SPRYXEL_WO010_PHASE1_AB_CODE_AND_RLS_TESTS_READY_FOR_INDEPENDENT_HIGH_ASSURANCE_AUDIT`.
 
-**Current status/STOP:** `SPRYXEL_WO010_PHASE1_AB_PLANNED_NOT_ADMITTED_NO_CODE`.
+**Documentation admission STOP:** `SPRYXEL_WO010_PHASE1_AB_OWNER_ADMITTED_CONTEXT_LOCK_PREPARED_WAITING_PROTECTED_DOCS_MERGE`. **Codex execution permitted only after protected admission/lock docs merge and exact preflight**, with implementation STOP as specified above. No independent audit of implementation has yet run.
