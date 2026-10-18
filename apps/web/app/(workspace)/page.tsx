@@ -3,9 +3,9 @@ import Link from 'next/link';
 import { CreateProjectForm } from './components/create-project-form';
 import { GlobalShell } from './components/global-shell';
 import { ProjectLoadFailure } from './components/project-load-failure';
-import { requireWebSession } from '../src/auth/session';
-import { assertProjectApiError, fetchProjects, type ProjectApiError } from '../src/projects/api';
-import { assertJobApiError, fetchJobs } from '../src/jobs/api';
+import { requireWebSession } from '../../src/auth/session';
+import { assertProjectApiError, fetchProjects, type ProjectApiError } from '../../src/projects/api';
+import { assertJobApiError, fetchJobs } from '../../src/jobs/api';
 import { JobList, JobLoadProblem } from './jobs/job-list';
 
 export default async function HomePage({

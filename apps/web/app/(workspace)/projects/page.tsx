@@ -3,8 +3,12 @@ import Link from 'next/link';
 import { CreateProjectForm } from '../components/create-project-form';
 import { GlobalShell } from '../components/global-shell';
 import { ProjectLoadFailure } from '../components/project-load-failure';
-import { requireWebSession } from '../../src/auth/session';
-import { assertProjectApiError, fetchProjects, type ProjectApiError } from '../../src/projects/api';
+import { requireWebSession } from '../../../src/auth/session';
+import {
+  assertProjectApiError,
+  fetchProjects,
+  type ProjectApiError,
+} from '../../../src/projects/api';
 
 export default async function ProjectsPage({
   searchParams,

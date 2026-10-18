@@ -168,7 +168,7 @@ const approvedProviderEdges = new Set([
   'apps/web/app/auth/callback/route.ts',
   'apps/web/app/sign-in/route.ts',
   'apps/web/app/sign-out/route.ts',
-  'apps/web/app/account/page.tsx',
+  'apps/web/app/(workspace)/account/page.tsx',
   'apps/web/src/auth/session.ts',
 ]);
 for (const files of sourceFilesByWorkspace.values()) {

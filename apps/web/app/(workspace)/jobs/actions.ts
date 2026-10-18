@@ -2,8 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { requireWebSession } from '../../src/auth/session';
-import { assertJobApiError, cancelJob } from '../../src/jobs/api';
+import { requireWebSession } from '../../../src/auth/session';
+import { assertJobApiError, cancelJob } from '../../../src/jobs/api';
 
 export async function cancelJobAction(formData: FormData): Promise<void> {
   const tenantId = formData.get('tenantId');
