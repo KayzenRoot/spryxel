@@ -959,6 +959,10 @@ BEGIN
     RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = 'invalid_asset_core_status_transition';
   END IF;
   IF p_provenance_source = (platform.asset_core_constants()).provenance_source_restore THEN
+    -- Restores must create a new draft, as required by both versioned domain constructors.
+    IF p_next_status IS DISTINCT FROM (platform.asset_core_constants()).status_draft THEN
+      RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = 'invalid_asset_core_status_transition';
+    END IF;
     IF p_entity_kind = (platform.asset_core_constants()).entity_project_dna THEN
       SELECT row_value.version INTO v_restore_version
         FROM platform.project_dna_version row_value
