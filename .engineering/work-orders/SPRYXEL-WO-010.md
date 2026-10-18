@@ -12,6 +12,28 @@
 
 **Bounded allowlist for the admitted Phase 1 (effective once admission/lock docs are protected-merged): `packages/contracts/src/**`, `packages/domain/src/**`, `packages/db/src/**`; narrowly necessary existing local integration tests `scripts/**` only after confirming impact. NO code in `apps/web`, `apps/api`, `apps/worker`, WorkOS/session/proxy, Ledger/CostGuard, `.engineering`, `.gef`, workflows or deployment. NO new dependency/lockfile change without separate explicit justification and permission.
 
+## Owner-admitted scope amendment: architecture guard only (2026-10-18)
+
+**Authority:** owner expressly extended the already admitted WO-010 Phase 1 A+B for **only** `scripts/architecture-guard.ts` and `scripts/architecture-guard.test.ts`, exclusively to recognize the five tables introduced by migration `0010_project_dna_asset_core.sql`. This is a **path-and-purpose exception**, not permission to alter any other scripts, expand the migration, change architecture policy or grant database privileges.
+
+**Exactly admitted table identities**, all under the existing `platform` schema:
+
+| New table, qualified exact spelling | Permitted reason |
+| --- | --- |
+| `platform.project_dna` | Versioned project DNA identity |
+| `platform.project_dna_version` | Immutable DNA history |
+| `platform.asset` | Project asset identity |
+| `platform.asset_version` | Immutable asset history |
+| `platform.asset_version_lineage` | Cross-version lineage with tenant/project checks |
+
+**Two-file, minimally invasive guard adjustment:**
+- `scripts/architecture-guard.ts`: recognize **these five exact qualified table names only**, retaining every previous admitted table and all existing rejection rules for unapproved schemas, typo/plural variants, new unrelated project/asset/job/credit tables, legacy dangerous domains, etc. Do not change SQL matching semantics or broadly whitelist the `platform` schema, prefixes, migration directories or products.
+- `scripts/architecture-guard.test.ts`: extend existing positive table list with these five qualified names **and preserve all existing negative assertions**. Add targeted regressions that reject `public.asset`, `platform.assets`, `platform.project_dnas`, `platform.asset_versions`, `platform.asset_version_lineages`, `platform.unapproved_asset`, and other existing out-of-scope job/ledger candidates. Do not delete, weaken, skip or update negative expectations to manufacture PASS.
+
+**Added gate B06-ARCH:** `npm run architecture:check` PASS on the new implementation HEAD, and `scripts/architecture-guard.test.ts` full existing + new positive/negative suite PASS. `format:check`, lint, typecheck, unit and Docker/PostgreSQL RLS integration regressions must remain valid; reuse prior exact-HEAD receipts only when those surfaces were unaffected and the actual DoD allows reuse. Review the changed architecture guard directly for scope expansion. GitHub required checks and independent HIGH_ASSURANCE security review remain mandatory before any later protected code merge.
+
+**Absolutely unchanged exclusions:** Phase C storage/API, Phase D/E worker/web, production Cloudflare/WorkOS, GPU/paid providers, historical migrations, ledger/CostGuard, GEF, `CHECKPOINT.json`, ruleset, and any implementation merge or deployment. No checkpoint promotion. The extension is not admission of WO-010 completion. Only ChatGPT/GitHub updates this Work Order and the matching Context Lock.
+
 **Later Phase C NOT_ADMITTED (explicitly excluded by owner):** private S3-compatible object storage authorization and bounded API ports/endpoint (SeaweedFS local/test only); must be separately authorized and independently audited. Phase D/E (worker/user interface) not admitted. A+B alone does **NOT** satisfy full Asset Core requirement or promote the checkpoint.
 
 ## Negative acceptance matrix, Phase A+B
@@ -28,6 +50,7 @@
 | B04 | Pool-scoped context isolation, no stale tenant principal across transactions |
 | B05 | Asset Contract, Durable Jobs, Credit Ledger and CostGuard default DENY untouched; targeted nonregression |
 | B06 | Node v22.23.3, npm10.9.9, LF format, lint, typecheck, unit, architecture, real Docker/Postgres integration |
+| B06-ARCH | New guard permits exactly 5 platform tables, preserves all preexisting negative rejects, adds typo/schema/near-match rejects; architecture:check PASS |
 | B07 | Four strict exact-final-head GitHub checks, Sonar/Socket findings, zero unresolved high/critical |
 | B08 | Independent HIGH_ASSURANCE reviewer and owner-protected merge authorization, no executor self-approval |
 
