@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { getPublicContent, getPublicMetadata, isPublicLocale } from '../../src/public-site/content';
 import { PublicStaticPage } from '../../src/public-site/pages';
 
-type Props = { params: Promise<{ locale: string }> };
+type Props = Readonly<{ params: Promise<{ locale: string }> }>;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale: localeParam } = await params;

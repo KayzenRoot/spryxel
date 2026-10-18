@@ -11,11 +11,13 @@ import {
   WorkflowSection,
 } from './sections';
 
+type LocalizedPageProps = Readonly<{ locale: PublicLocale; dictionary: PublicDictionary }>;
+
 function localizedPath(locale: PublicLocale, page: 'home' | PublicPageSlug) {
   return page === 'home' ? `/${locale}` : `/${locale}/${page}`;
 }
 
-function HomePage({ locale, dictionary }: { locale: PublicLocale; dictionary: PublicDictionary }) {
+function HomePage({ locale, dictionary }: LocalizedPageProps) {
   const { home } = dictionary;
   const statusItems = [
     {
@@ -84,13 +86,7 @@ function HomePage({ locale, dictionary }: { locale: PublicLocale; dictionary: Pu
   );
 }
 
-function FeaturesPage({
-  locale,
-  dictionary,
-}: {
-  locale: PublicLocale;
-  dictionary: PublicDictionary;
-}) {
+function FeaturesPage({ locale, dictionary }: LocalizedPageProps) {
   const page = dictionary.pages.features;
   const statusItems = page.sections.map((section) => ({
     label: page.plannedLabel,
@@ -143,13 +139,7 @@ function FeaturesPage({
   );
 }
 
-function HowItWorksPage({
-  locale,
-  dictionary,
-}: {
-  locale: PublicLocale;
-  dictionary: PublicDictionary;
-}) {
+function HowItWorksPage({ locale, dictionary }: LocalizedPageProps) {
   const page = dictionary.pages.howItWorks;
 
   return (
@@ -180,7 +170,7 @@ function HowItWorksPage({
   );
 }
 
-function FAQPage({ dictionary }: { dictionary: PublicDictionary }) {
+function FAQPage({ dictionary }: Readonly<{ dictionary: PublicDictionary }>) {
   const page = dictionary.pages.faq;
   return (
     <>
@@ -200,7 +190,7 @@ function FAQPage({ dictionary }: { dictionary: PublicDictionary }) {
   );
 }
 
-function ContactPage({ dictionary }: { dictionary: PublicDictionary }) {
+function ContactPage({ dictionary }: Readonly<{ dictionary: PublicDictionary }>) {
   const page = dictionary.pages.contact;
   return (
     <section className="public-info-page public-contact-page">
@@ -221,10 +211,10 @@ function ContactPage({ dictionary }: { dictionary: PublicDictionary }) {
 function LegalPage({
   dictionary,
   slug,
-}: {
+}: Readonly<{
   dictionary: PublicDictionary;
   slug: 'terms' | 'privacy' | 'cookies';
-}) {
+}>) {
   const page = dictionary.pages.legal[slug];
   return (
     <LegalPageLayout
@@ -240,11 +230,11 @@ export function PublicStaticPage({
   locale,
   dictionary,
   slug,
-}: {
+}: Readonly<{
   locale: PublicLocale;
   dictionary: PublicDictionary;
   slug: 'home' | PublicPageSlug;
-}) {
+}>) {
   if (slug === 'home') return <HomePage locale={locale} dictionary={dictionary} />;
   if (slug === 'features') return <FeaturesPage locale={locale} dictionary={dictionary} />;
   if (slug === 'how-it-works') return <HowItWorksPage locale={locale} dictionary={dictionary} />;

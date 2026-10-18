@@ -88,20 +88,28 @@ export default async function prewarmBrowserRoutes(config: FullConfig): Promise<
 }
 
 async function prewarmPublicRoutes(baseUrl: string): Promise<void> {
-  for (const locale of publicLocales) {
-    for (const slug of publicPaths) {
-      const path = `/${locale}${slug}`;
-      const response = await fetch(new URL(path, baseUrl), { redirect: 'manual' });
-      assert.equal(response.status, 200, `Public SSR prewarm failed for ${path}`);
+  const routes = publicLocales.flatMap((locale) =>
+    publicPaths.map((slug) => ({ locale, path: `/${locale}${slug}` })),
+  );
 
-      const html = await response.text();
-      assert.match(
-        html,
-        new RegExp(String.raw`<html\b[^>]*\blang=["']${locale}["']`, 'i'),
-        `Public SSR language mismatch for ${path}`,
-      );
-    }
+  // Keep route compilation sequential: concurrent cold Next dev compilation was flaky.
+  async function prewarmNext(index: number): Promise<void> {
+    const route = routes[index];
+    if (!route) return;
+
+    const response = await fetch(new URL(route.path, baseUrl), { redirect: 'manual' });
+    assert.equal(response.status, 200, `Public SSR prewarm failed for ${route.path}`);
+
+    const html = await response.text();
+    assert.match(
+      html,
+      new RegExp(String.raw`<html\\b[^>]*\\blang=["']${route.locale}["']`, 'i'),
+      `Public SSR language mismatch for ${route.path}`,
+    );
+    await prewarmNext(index + 1);
   }
+
+  await prewarmNext(0);
 }
 
 async function setFixtureScope(

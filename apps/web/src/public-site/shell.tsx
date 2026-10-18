@@ -7,7 +7,7 @@ import type { PublicDictionary, PublicLocale, PublicPageSlug } from './content';
 type PublicRoute = 'home' | PublicPageSlug;
 
 const publicLocales: readonly PublicLocale[] = ['en', 'pt-BR', 'es'];
-const publicPageRoutes: readonly PublicPageSlug[] = [
+const publicPageRoutes: ReadonlySet<PublicPageSlug> = new Set([
   'features',
   'how-it-works',
   'faq',
@@ -15,10 +15,10 @@ const publicPageRoutes: readonly PublicPageSlug[] = [
   'terms',
   'privacy',
   'cookies',
-];
+]);
 
 function publicPath(locale: PublicLocale, page: PublicRoute): string {
-  return `/${locale}${page === 'home' ? '' : `/${page}`}`;
+  return page === 'home' ? `/${locale}` : `/${locale}/${page}`;
 }
 
 function pageFromPathname(
@@ -32,7 +32,7 @@ function pageFromPathname(
   if (pathLocale !== locale || extraSegments.length > 0) return fallback;
   if (pathPage === undefined) return 'home';
 
-  return publicPageRoutes.includes(pathPage as PublicPageSlug)
+  return publicPageRoutes.has(pathPage as PublicPageSlug)
     ? (pathPage as PublicPageSlug)
     : fallback;
 }
@@ -78,7 +78,7 @@ function PublicNavigation({
   labels,
   ariaLabel,
   className = '',
-}: PublicNavigationProps) {
+}: Readonly<PublicNavigationProps>) {
   const items: ReadonlyArray<{ page: PublicRoute; label: string }> = [
     { page: 'home', label: labels.home },
     { page: 'features', label: labels.features },
@@ -113,7 +113,7 @@ export type LocaleSwitcherProps = {
   names: Record<PublicLocale, string>;
 };
 
-export function LocaleSwitcher({ locale, page, label, names }: LocaleSwitcherProps) {
+export function LocaleSwitcher({ locale, page, label, names }: Readonly<LocaleSwitcherProps>) {
   return (
     <nav aria-label={label} className="public-locale-switcher">
       <ul className="public-locale-list flex flex-wrap items-center gap-1">
@@ -140,7 +140,7 @@ export type ThemeToggleProps = {
   labels: PublicDictionary['shell']['theme'];
 };
 
-export function ThemeToggle({ labels }: ThemeToggleProps) {
+export function ThemeToggle({ labels }: Readonly<ThemeToggleProps>) {
   const [theme, setTheme] = useState<Theme>('dark');
 
   useEffect(() => {
@@ -202,7 +202,7 @@ export type PublicShellProps = {
   dictionary: PublicDictionary;
 };
 
-export function PublicHeader({ locale, page, dictionary }: PublicShellProps) {
+export function PublicHeader({ locale, page, dictionary }: Readonly<PublicShellProps>) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const currentPage = pageFromPathname(pathname, locale, page);
@@ -267,7 +267,7 @@ export function PublicHeader({ locale, page, dictionary }: PublicShellProps) {
   );
 }
 
-export function PublicFooter({ locale, page, dictionary }: PublicShellProps) {
+export function PublicFooter({ locale, page, dictionary }: Readonly<PublicShellProps>) {
   const pathname = usePathname();
   const currentPage = pageFromPathname(pathname, locale, page);
   const { footer, nav } = dictionary.shell;

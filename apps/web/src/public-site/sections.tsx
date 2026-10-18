@@ -23,7 +23,7 @@ export type StatusItem = TextItem & {
   status: 'available' | 'planned' | 'future';
 };
 
-export function SectionTitle({ eyebrow, title, description }: SectionHeading) {
+export function SectionTitle({ eyebrow, title, description }: Readonly<SectionHeading>) {
   return (
     <div className="public-section-heading">
       {eyebrow ? <p className="public-eyebrow">{eyebrow}</p> : null}
@@ -33,7 +33,7 @@ export function SectionTitle({ eyebrow, title, description }: SectionHeading) {
   );
 }
 
-export function Badge({ children }: { children: ReactNode }) {
+export function Badge({ children }: Readonly<{ children: ReactNode }>) {
   return <span className="public-badge">{children}</span>;
 }
 
@@ -82,14 +82,14 @@ function ArrowDownIcon() {
 export function StatusPill({
   children,
   status = 'planned',
-}: {
+}: Readonly<{
   children: ReactNode;
   status?: string;
-}) {
+}>) {
   return <span className={`public-status-pill public-status-pill--${status}`}>{children}</span>;
 }
 
-export function FeatureCard({ title, description, icon }: TextItem & { icon?: string }) {
+export function FeatureCard({ title, description, icon }: Readonly<TextItem & { icon?: string }>) {
   return (
     <article className="public-feature-card">
       {icon ? (
@@ -103,7 +103,7 @@ export function FeatureCard({ title, description, icon }: TextItem & { icon?: st
   );
 }
 
-export function CategoryCard({ title, description, image, imageAlt, status }: CategoryItem) {
+export function CategoryCard({ title, description, image, imageAlt, status }: Readonly<CategoryItem>) {
   return (
     <article className="public-category-card">
       <div className="public-category-art">
@@ -129,11 +129,11 @@ export function MockScreenshotFrame({
   image,
   alt,
   label,
-}: {
+}: Readonly<{
   image: string;
   alt: string;
   label?: string;
-}) {
+}>) {
   return (
     <figure className="public-showcase-frame">
       <div className="public-showcase-chrome" aria-hidden="true">
@@ -159,12 +159,12 @@ export function ShowcasePanel({
   image,
   imageAlt,
   children,
-}: {
+}: Readonly<{
   heading: SectionHeading;
   image: string;
   imageAlt: string;
   children?: ReactNode;
-}) {
+}>) {
   return (
     <section className="public-showcase-panel">
       <div>
@@ -187,7 +187,7 @@ export function HeroSection({
   image,
   imageAlt,
   badge,
-}: {
+}: Readonly<{
   eyebrow: string;
   title: string;
   description: string;
@@ -198,7 +198,7 @@ export function HeroSection({
   image: string;
   imageAlt: string;
   badge?: string;
-}) {
+}>) {
   return (
     <section className="public-hero">
       <div className="public-hero-copy">
@@ -239,10 +239,10 @@ export function HeroSection({
 export function SocialProofOrTrustSection({
   heading,
   principles,
-}: {
+}: Readonly<{
   heading: SectionHeading;
   principles: TextItem[];
-}) {
+}>) {
   return (
     <section className="public-trust-section">
       <SectionTitle {...heading} />
@@ -264,10 +264,10 @@ export function SocialProofOrTrustSection({
 export function AssetCategoryGrid({
   heading,
   categories,
-}: {
+}: Readonly<{
   heading: SectionHeading;
   categories: CategoryItem[];
-}) {
+}>) {
   return (
     <section className="public-section public-categories" id="categories">
       <SectionTitle {...heading} />
@@ -283,10 +283,10 @@ export function AssetCategoryGrid({
 export function WorkflowSection({
   heading,
   steps,
-}: {
+}: Readonly<{
   heading: SectionHeading;
   steps: TextItem[];
-}) {
+}>) {
   return (
     <section className="public-section public-workflow" id="workflow">
       <SectionTitle {...heading} />
@@ -311,10 +311,10 @@ export function WorkflowSection({
 export function RoadmapStatusSection({
   heading,
   items,
-}: {
+}: Readonly<{
   heading: SectionHeading;
   items: StatusItem[];
-}) {
+}>) {
   return (
     <section className="public-section public-status-section">
       <SectionTitle {...heading} />
@@ -334,10 +334,10 @@ export function RoadmapStatusSection({
 export function FAQSection({
   heading,
   items,
-}: {
+}: Readonly<{
   heading: SectionHeading;
   items: { question: string; answer: string }[];
-}) {
+}>) {
   return (
     <section className="public-section public-faq-section" id="faq-list">
       <SectionTitle {...heading} />
@@ -364,7 +364,7 @@ export function CTASection({
   primaryHref,
   secondaryLabel,
   secondaryHref,
-}: {
+}: Readonly<{
   eyebrow: string;
   title: string;
   description: string;
@@ -372,7 +372,7 @@ export function CTASection({
   primaryHref: string;
   secondaryLabel: string;
   secondaryHref: string;
-}) {
+}>) {
   return (
     <section className="public-cta-section">
       <div className="public-cta-glow" aria-hidden="true" />
@@ -399,12 +399,12 @@ export function LegalPageLayout({
   intro,
   sections,
   draftNotice,
-}: {
+}: Readonly<{
   title: string;
   intro: string;
   sections: { heading: string; paragraphs: string[] }[];
   draftNotice: string;
-}) {
+}>) {
   return (
     <article className="public-legal-layout">
       <div className="public-legal-heading">

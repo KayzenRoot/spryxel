@@ -9,11 +9,11 @@ import {
 import type { PublicPageSlug } from '../../../src/public-site/content';
 import { PublicStaticPage } from '../../../src/public-site/pages';
 
-type Props = { params: Promise<{ locale: string; slug: string }> };
+type Props = Readonly<{ params: Promise<{ locale: string; slug: string }> }>;
 
 export const dynamicParams = false;
 
-export async function generateStaticParams() {
+export function generateStaticParams() {
   return publicPageSlugs.map((slug) => ({ slug }));
 }
 

@@ -22,7 +22,7 @@ export const publicPageSlugs: readonly PublicPageSlug[] = [
 ];
 
 const isLocale = (value: string): value is PublicLocale =>
-  locales.some((locale) => locale === value);
+  (locales as readonly string[]).includes(value);
 
 export function isPublicLocale(value: unknown): value is PublicLocale {
   return typeof value === 'string' && isLocale(value);
