@@ -697,6 +697,7 @@ async function assertDirectRpcRejectsMalformedPayloadAndProvenance(
     await client.query('BEGIN');
     await setContext(client, scope);
     await assertDirectRpcPositiveControls(client, dnaCreate, dnaAppend, assetCreate, assetAppend);
+    await assertDirectRestoreStatusEnforcement(client, scope.subjectId, dnaCreate, assetCreate);
     await assertDirectPayloadCases(
       client,
       dnaCreate,
@@ -847,6 +848,60 @@ async function callDirectRpc(
   const row = result.rows[0];
   if (!row) throw new Error(`Direct PostgreSQL RPC returned no row: ${rpc}`);
   return row;
+}
+
+async function assertDirectRestoreStatusEnforcement(
+  client: PoolClient,
+  subjectId: string,
+  dnaCreate: DirectPreparedVersion & { id: string },
+  assetCreate: DirectPreparedVersion & { assetId: string },
+): Promise<void> {
+  const targets: Array<{ rpc: DirectRpc; entityId: string; source: DirectPreparedVersion }> = [
+    { rpc: 'append_project_dna_version', entityId: dnaCreate.id, source: dnaCreate },
+    { rpc: 'append_asset_version', entityId: assetCreate.assetId, source: assetCreate },
+  ];
+  for (const target of targets) {
+    const prepareRestore = (status: 'draft' | 'published' | 'archived'): DirectPreparedVersion => {
+      const payload = { ...target.source.payload, status };
+      const canonicalPayload = JSON.stringify(payload);
+      return {
+        ...target.source,
+        payload,
+        canonicalPayload,
+        payloadSha256: hash(canonicalPayload),
+        versionId: createUuidV7(),
+        idempotencyKeySha256: hash(`wo010-direct-restore-${target.rpc}-${status}`),
+        provenance: {
+          source: 'restore',
+          actorSubjectId: subjectId,
+          recordedAt: new Date().toISOString(),
+          sourceVersionId: target.source.versionId,
+        },
+      };
+    };
+    for (const status of ['published', 'archived'] as const) {
+      await assertDirectRpcRejected(
+        client,
+        target.rpc,
+        target.entityId,
+        prepareRestore(status),
+        'asset_core_invalid_restore_status',
+        `restore of ${target.rpc} directly to ${status}`,
+      );
+    }
+    const candidate = prepareRestore('draft');
+    const restored = await callDirectRpc(client, target.rpc, target.entityId, candidate);
+    const replayed = await callDirectRpc(client, target.rpc, target.entityId, candidate);
+    if (
+      restored.version !== 3 ||
+      restored.replayed ||
+      replayed.version !== 3 ||
+      replayed.version_id !== restored.version_id ||
+      !replayed.replayed
+    ) {
+      throw new Error(`Direct PostgreSQL draft-only restore or idempotent replay failed: ${target.rpc}`);
+    }
+  }
 }
 
 async function assertDirectRpcPositiveControls(
