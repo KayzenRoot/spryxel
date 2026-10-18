@@ -440,45 +440,68 @@ function normalizeJsonValue(
     throw new VersionedPayloadValidationError('invalid_payload');
   }
   if (value === null || typeof value === 'boolean') return value;
-  if (typeof value === 'string') {
-    const normalized = value.normalize('NFC');
-    if (!isJsonbSafeString(normalized) || Buffer.byteLength(normalized, 'utf8') > 4_096) {
-      throw new VersionedPayloadValidationError('invalid_payload');
-    }
-    return normalized;
-  }
+  if (typeof value === 'string') return normalizeJsonString(value);
   if (typeof value === 'number' && Number.isFinite(value)) return Object.is(value, -0) ? 0 : value;
   if (typeof value !== 'object' || value === undefined || ancestors.has(value)) {
     throw new VersionedPayloadValidationError('invalid_payload');
   }
+  if (Array.isArray(value)) return normalizeJsonArray(value, depth, nodes, ancestors);
+  return normalizeJsonObject(value, depth, nodes, ancestors);
+}
+
+function normalizeJsonString(value: string): string {
+  const normalized = value.normalize('NFC');
+  if (!isJsonbSafeString(normalized) || Buffer.byteLength(normalized, 'utf8') > 4_096) {
+    throw new VersionedPayloadValidationError('invalid_payload');
+  }
+  return normalized;
+}
+
+function normalizeJsonArray(
+  value: unknown[],
+  depth: number,
+  nodes: { count: number },
+  ancestors: Set<object>,
+): NormalizedJsonValue[] {
+  if (Object.getPrototypeOf(value) !== Array.prototype || value.length > 512) {
+    throw new VersionedPayloadValidationError('invalid_payload');
+  }
   ancestors.add(value);
   try {
-    if (Array.isArray(value)) {
-      if (Object.getPrototypeOf(value) !== Array.prototype || value.length > 512) {
+    const descriptors = Object.getOwnPropertyDescriptors(value);
+    const output: NormalizedJsonValue[] = [];
+    for (let index = 0; index < value.length; index += 1) {
+      const descriptor = descriptors[String(index)];
+      if (!descriptor || !Object.hasOwn(descriptor, 'value')) {
         throw new VersionedPayloadValidationError('invalid_payload');
       }
-      const descriptors = Object.getOwnPropertyDescriptors(value);
-      const output: NormalizedJsonValue[] = [];
-      for (let index = 0; index < value.length; index += 1) {
-        const descriptor = descriptors[String(index)];
-        if (!descriptor || !Object.hasOwn(descriptor, 'value')) {
-          throw new VersionedPayloadValidationError('invalid_payload');
-        }
-        output.push(normalizeJsonValue(descriptor.value, depth + 1, nodes, ancestors));
-      }
-      if (
-        Object.keys(descriptors).some((key) => key !== 'length' && !/^(0|[1-9][0-9]*)$/.test(key))
-      ) {
-        throw new VersionedPayloadValidationError('invalid_payload');
-      }
-      return output;
+      output.push(normalizeJsonValue(descriptor.value, depth + 1, nodes, ancestors));
     }
-    const prototype = Object.getPrototypeOf(value);
-    if (prototype !== Object.prototype && prototype !== null) {
+    if (
+      Object.keys(descriptors).some((key) => key !== 'length' && !/^(0|[1-9][0-9]*)$/.test(key))
+    ) {
       throw new VersionedPayloadValidationError('invalid_payload');
     }
-    const descriptors = Object.getOwnPropertyDescriptors(value);
-    const output = Object.create(null) as Record<string, NormalizedJsonValue>;
+    return output;
+  } finally {
+    ancestors.delete(value);
+  }
+}
+
+function normalizeJsonObject(
+  value: object,
+  depth: number,
+  nodes: { count: number },
+  ancestors: Set<object>,
+): Record<string, NormalizedJsonValue> {
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null) {
+    throw new VersionedPayloadValidationError('invalid_payload');
+  }
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  const output = Object.create(null) as Record<string, NormalizedJsonValue>;
+  ancestors.add(value);
+  try {
     for (const key of Object.keys(descriptors).sort(compareCanonicalKeys)) {
       const descriptor = descriptors[key];
       const normalizedKey = key.normalize('NFC');

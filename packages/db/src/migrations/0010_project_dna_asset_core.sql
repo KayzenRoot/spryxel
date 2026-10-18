@@ -1,3 +1,76 @@
+CREATE TYPE platform.asset_core_constant_set AS (
+  uuid_v7_pattern text,
+  sha256_pattern text,
+  project_dna_schema_version text,
+  asset_metadata_schema_version text,
+  json_object_type text,
+  json_array_type text,
+  json_number_type text,
+  json_string_type text,
+  schema_version_key text,
+  status_key text,
+  style_identity_key text,
+  palette_key text,
+  rules_key text,
+  visual_reference_ids_key text,
+  colors_key text,
+  description_key text,
+  asset_subtype_key text,
+  asset_type_key text,
+  project_dna_key text,
+  asset_contract_key text,
+  lineage_key text,
+  asset_version_id_key text,
+  asset_id_key text,
+  relation_key text,
+  version_key text,
+  status_published text,
+  status_draft text,
+  status_archived text,
+  actor_subject_id_key text,
+  provenance_source_key text,
+  provenance_recorded_at_key text,
+  provenance_source_version_id_key text,
+  provenance_source_manual text,
+  provenance_source_import text,
+  provenance_source_generation text,
+  provenance_source_restore text,
+  provenance_source_system text,
+  entity_project_dna text,
+  entity_asset text,
+  error_invalid_identity text,
+  error_write_denied text,
+  error_invalid_payload text,
+  error_invalid_provenance text,
+  sqlstate_insufficient_privilege text,
+  sqlstate_invalid_parameter text
+);
+
+CREATE FUNCTION platform.asset_core_constants()
+RETURNS platform.asset_core_constant_set
+LANGUAGE sql
+IMMUTABLE
+PARALLEL SAFE
+SET search_path = pg_catalog, platform
+AS $$
+  SELECT ROW(
+    '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+    '^[0-9a-f]{64}$',
+    'project-dna.v1',
+    'asset-metadata.v1',
+    'object', 'array', 'number', 'string',
+    'schemaVersion', 'status', 'styleIdentity', 'palette', 'rules', 'visualReferenceIds', 'colors',
+    'description', 'assetSubtype', 'assetType', 'projectDna', 'assetContract', 'lineage',
+    'assetVersionId', 'assetId', 'relation', 'version', 'published', 'draft', 'archived',
+    'actorSubjectId', 'source', 'recordedAt', 'sourceVersionId',
+    'manual', 'import', 'generation', 'restore', 'system',
+    'project-dna', 'asset', 'invalid_asset_core_identity', 'asset_core_write_denied',
+    'invalid_asset_core_payload', 'invalid_asset_core_provenance', '42501', '22023'
+  )::platform.asset_core_constant_set
+$$;
+
+-- ASSET_CORE_CONSTANTS_END
+
 CREATE FUNCTION platform.asset_core_iso_utc_timestamp(p_value text) RETURNS boolean
 LANGUAGE plpgsql
 IMMUTABLE
@@ -19,7 +92,7 @@ END
 $$;
 
 CREATE TABLE platform.project_dna (
-  id uuid PRIMARY KEY CHECK (id::text ~ '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'),
+  id uuid PRIMARY KEY CHECK (id::text ~ (platform.asset_core_constants()).uuid_v7_pattern),
   tenant_id uuid NOT NULL,
   project_id uuid NOT NULL,
   created_by_subject_id uuid NOT NULL,
@@ -36,22 +109,22 @@ CREATE TABLE platform.project_dna_version (
   tenant_id uuid NOT NULL,
   project_id uuid NOT NULL,
   version integer NOT NULL CHECK (version > 0),
-  version_id uuid NOT NULL UNIQUE CHECK (version_id::text ~ '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'),
-  schema_version text NOT NULL CHECK (schema_version = 'project-dna.v1'),
+  version_id uuid NOT NULL UNIQUE CHECK (version_id::text ~ (platform.asset_core_constants()).uuid_v7_pattern),
+  schema_version text NOT NULL CHECK (schema_version = (platform.asset_core_constants()).project_dna_schema_version),
   payload jsonb NOT NULL CHECK (
-    jsonb_typeof(payload) = 'object'
-    AND payload->>'schemaVersion' IS NOT DISTINCT FROM 'project-dna.v1'
+    jsonb_typeof(payload) = (platform.asset_core_constants()).json_object_type
+    AND payload->>(platform.asset_core_constants()).schema_version_key IS NOT DISTINCT FROM (platform.asset_core_constants()).project_dna_schema_version
   ),
-  payload_sha256 text NOT NULL CHECK (payload_sha256 ~ '^[0-9a-f]{64}$'),
+  payload_sha256 text NOT NULL CHECK (payload_sha256 ~ (platform.asset_core_constants()).sha256_pattern),
   idempotency_subject_id uuid NOT NULL,
-  idempotency_key_sha256 text NOT NULL CHECK (idempotency_key_sha256 ~ '^[0-9a-f]{64}$'),
+  idempotency_key_sha256 text NOT NULL CHECK (idempotency_key_sha256 ~ (platform.asset_core_constants()).sha256_pattern),
   provenance jsonb NOT NULL CHECK (
-    jsonb_typeof(provenance) = 'object'
+    jsonb_typeof(provenance) = (platform.asset_core_constants()).json_object_type
     AND platform.jsonb_envelope_within_bounds(provenance)
-    AND jsonb_typeof(provenance->'source') IS NOT DISTINCT FROM 'string'
-    AND provenance->>'source' IN ('manual', 'import', 'generation', 'restore', 'system')
-    AND jsonb_typeof(provenance->'recordedAt') IS NOT DISTINCT FROM 'string'
-    AND platform.asset_core_iso_utc_timestamp(provenance->>'recordedAt') IS TRUE
+    AND jsonb_typeof(provenance->(platform.asset_core_constants()).provenance_source_key) IS NOT DISTINCT FROM (platform.asset_core_constants()).json_string_type
+    AND provenance->>(platform.asset_core_constants()).provenance_source_key IN ((platform.asset_core_constants()).provenance_source_manual, (platform.asset_core_constants()).provenance_source_import, (platform.asset_core_constants()).provenance_source_generation, (platform.asset_core_constants()).provenance_source_restore, (platform.asset_core_constants()).provenance_source_system)
+    AND jsonb_typeof(provenance->(platform.asset_core_constants()).provenance_recorded_at_key) IS NOT DISTINCT FROM (platform.asset_core_constants()).json_string_type
+    AND platform.asset_core_iso_utc_timestamp(provenance->>(platform.asset_core_constants()).provenance_recorded_at_key) IS TRUE
   ),
   restored_from_version_id uuid,
   created_by_subject_id uuid NOT NULL,
@@ -68,12 +141,12 @@ CREATE TABLE platform.project_dna_version (
     REFERENCES platform.tenant_membership(tenant_id, subject_id) ON DELETE RESTRICT,
   FOREIGN KEY (restored_from_version_id, project_dna_id, tenant_id, project_id)
     REFERENCES platform.project_dna_version(version_id, project_dna_id, tenant_id, project_id) ON DELETE RESTRICT,
-  CHECK ((provenance->>'source' = 'restore') = (restored_from_version_id IS NOT NULL)),
-  CHECK (NULLIF(provenance->>'sourceVersionId', '')::uuid IS NOT DISTINCT FROM restored_from_version_id)
+  CHECK ((provenance->>(platform.asset_core_constants()).provenance_source_key = (platform.asset_core_constants()).provenance_source_restore) = (restored_from_version_id IS NOT NULL)),
+  CHECK (NULLIF(provenance->>(platform.asset_core_constants()).provenance_source_version_id_key, '')::uuid IS NOT DISTINCT FROM restored_from_version_id)
 );
 
 CREATE TABLE platform.asset (
-  id uuid PRIMARY KEY CHECK (id::text ~ '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'),
+  id uuid PRIMARY KEY CHECK (id::text ~ (platform.asset_core_constants()).uuid_v7_pattern),
   tenant_id uuid NOT NULL,
   project_id uuid NOT NULL,
   asset_contract_id uuid,
@@ -95,22 +168,22 @@ CREATE TABLE platform.asset_version (
   tenant_id uuid NOT NULL,
   project_id uuid NOT NULL,
   version integer NOT NULL CHECK (version > 0),
-  version_id uuid NOT NULL UNIQUE CHECK (version_id::text ~ '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'),
-  schema_version text NOT NULL CHECK (schema_version = 'asset-metadata.v1'),
+  version_id uuid NOT NULL UNIQUE CHECK (version_id::text ~ (platform.asset_core_constants()).uuid_v7_pattern),
+  schema_version text NOT NULL CHECK (schema_version = (platform.asset_core_constants()).asset_metadata_schema_version),
   payload jsonb NOT NULL CHECK (
-    jsonb_typeof(payload) = 'object'
-    AND payload->>'schemaVersion' IS NOT DISTINCT FROM 'asset-metadata.v1'
+    jsonb_typeof(payload) = (platform.asset_core_constants()).json_object_type
+    AND payload->>(platform.asset_core_constants()).schema_version_key IS NOT DISTINCT FROM (platform.asset_core_constants()).asset_metadata_schema_version
   ),
-  payload_sha256 text NOT NULL CHECK (payload_sha256 ~ '^[0-9a-f]{64}$'),
+  payload_sha256 text NOT NULL CHECK (payload_sha256 ~ (platform.asset_core_constants()).sha256_pattern),
   idempotency_subject_id uuid NOT NULL,
-  idempotency_key_sha256 text NOT NULL CHECK (idempotency_key_sha256 ~ '^[0-9a-f]{64}$'),
+  idempotency_key_sha256 text NOT NULL CHECK (idempotency_key_sha256 ~ (platform.asset_core_constants()).sha256_pattern),
   provenance jsonb NOT NULL CHECK (
-    jsonb_typeof(provenance) = 'object'
+    jsonb_typeof(provenance) = (platform.asset_core_constants()).json_object_type
     AND platform.jsonb_envelope_within_bounds(provenance)
-    AND jsonb_typeof(provenance->'source') IS NOT DISTINCT FROM 'string'
-    AND provenance->>'source' IN ('manual', 'import', 'generation', 'restore', 'system')
-    AND jsonb_typeof(provenance->'recordedAt') IS NOT DISTINCT FROM 'string'
-    AND platform.asset_core_iso_utc_timestamp(provenance->>'recordedAt') IS TRUE
+    AND jsonb_typeof(provenance->(platform.asset_core_constants()).provenance_source_key) IS NOT DISTINCT FROM (platform.asset_core_constants()).json_string_type
+    AND provenance->>(platform.asset_core_constants()).provenance_source_key IN ((platform.asset_core_constants()).provenance_source_manual, (platform.asset_core_constants()).provenance_source_import, (platform.asset_core_constants()).provenance_source_generation, (platform.asset_core_constants()).provenance_source_restore, (platform.asset_core_constants()).provenance_source_system)
+    AND jsonb_typeof(provenance->(platform.asset_core_constants()).provenance_recorded_at_key) IS NOT DISTINCT FROM (platform.asset_core_constants()).json_string_type
+    AND platform.asset_core_iso_utc_timestamp(provenance->>(platform.asset_core_constants()).provenance_recorded_at_key) IS TRUE
   ),
   project_dna_id uuid,
   project_dna_version integer,
@@ -133,17 +206,17 @@ CREATE TABLE platform.asset_version (
   FOREIGN KEY (restored_from_version_id, asset_id, tenant_id, project_id)
     REFERENCES platform.asset_version(version_id, asset_id, tenant_id, project_id) ON DELETE RESTRICT,
   CHECK ((project_dna_id IS NULL) = (project_dna_version IS NULL)),
-  CHECK ((provenance->>'source' = 'restore') = (restored_from_version_id IS NOT NULL)),
-  CHECK (NULLIF(provenance->>'sourceVersionId', '')::uuid IS NOT DISTINCT FROM restored_from_version_id)
+  CHECK ((provenance->>(platform.asset_core_constants()).provenance_source_key = (platform.asset_core_constants()).provenance_source_restore) = (restored_from_version_id IS NOT NULL)),
+  CHECK (NULLIF(provenance->>(platform.asset_core_constants()).provenance_source_version_id_key, '')::uuid IS NOT DISTINCT FROM restored_from_version_id)
 );
 
 CREATE TABLE platform.asset_version_lineage (
-  id uuid PRIMARY KEY CHECK (id::text ~ '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'),
+  id uuid PRIMARY KEY CHECK (id::text ~ (platform.asset_core_constants()).uuid_v7_pattern),
   asset_id uuid NOT NULL,
   asset_version_id uuid NOT NULL,
   tenant_id uuid NOT NULL,
   project_id uuid NOT NULL,
-  relation text NOT NULL CHECK (relation IN ('derived_from', 'variant_of', 'component_of', 'frame_of', 'source')),
+  relation text NOT NULL CHECK (relation IN ('derived_from', 'variant_of', 'component_of', 'frame_of', (platform.asset_core_constants()).provenance_source_key)),
   source_asset_id uuid NOT NULL,
   source_asset_version_id uuid,
   created_by_subject_id uuid NOT NULL,
@@ -245,7 +318,7 @@ LANGUAGE plpgsql
 SET search_path = pg_catalog
 AS $$
 BEGIN
-  RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'asset_core_immutable';
+  RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_insufficient_privilege, MESSAGE = 'asset_core_immutable';
 END
 $$;
 
@@ -281,7 +354,7 @@ BEGIN
     OR NOT platform.is_active_tenant_member(v_subject, v_tenant)
     OR NOT EXISTS (SELECT 1 FROM platform.project p WHERE p.id = v_project AND p.tenant_id = v_tenant)
   THEN
-    RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'asset_core_write_denied';
+    RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_insufficient_privilege, MESSAGE = (platform.asset_core_constants()).error_write_denied;
   END IF;
   RETURN QUERY SELECT v_subject, v_tenant, v_project;
 END
@@ -300,19 +373,19 @@ AS $$
 DECLARE
   v_payload jsonb;
 BEGIN
-  IF p_canonical_payload IS NULL OR p_payload_sha256 IS NULL OR p_payload_sha256 !~ '^[0-9a-f]{64}$'
+  IF p_canonical_payload IS NULL OR p_payload_sha256 IS NULL OR p_payload_sha256 !~ (platform.asset_core_constants()).sha256_pattern
     OR octet_length(convert_to(p_canonical_payload, 'UTF8')) > 65536
     OR encode(sha256(convert_to(p_canonical_payload, 'UTF8')), 'hex') <> p_payload_sha256
   THEN
-    RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'invalid_asset_core_payload';
+    RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = (platform.asset_core_constants()).error_invalid_payload;
   END IF;
   BEGIN
     v_payload := p_canonical_payload::jsonb;
   EXCEPTION WHEN others THEN
-    RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'invalid_asset_core_payload';
+    RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = (platform.asset_core_constants()).error_invalid_payload;
   END;
   IF NOT platform.asset_core_payload_matches_schema(v_payload, p_schema_version) THEN
-    RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'invalid_asset_core_payload';
+    RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = (platform.asset_core_constants()).error_invalid_payload;
   END IF;
   RETURN v_payload;
 END
@@ -332,21 +405,21 @@ DECLARE
   v_actor_subject_id uuid;
 BEGIN
   IF p_canonical_provenance IS NULL OR octet_length(convert_to(p_canonical_provenance, 'UTF8')) > 8192 THEN
-    RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'invalid_asset_core_provenance';
+    RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = (platform.asset_core_constants()).error_invalid_provenance;
   END IF;
   BEGIN
     v_provenance := p_canonical_provenance::jsonb;
-    v_actor_subject_id := NULLIF(v_provenance->>'actorSubjectId', '')::uuid;
-    IF NOT platform.asset_core_iso_utc_timestamp(v_provenance->>'recordedAt') THEN
-      RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'invalid_asset_core_provenance';
+    v_actor_subject_id := NULLIF(v_provenance->>(platform.asset_core_constants()).actor_subject_id_key, '')::uuid;
+    IF NOT platform.asset_core_iso_utc_timestamp(v_provenance->>(platform.asset_core_constants()).provenance_recorded_at_key) THEN
+      RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = (platform.asset_core_constants()).error_invalid_provenance;
     END IF;
   EXCEPTION WHEN others THEN
-    RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'invalid_asset_core_provenance';
+    RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = (platform.asset_core_constants()).error_invalid_provenance;
   END;
   IF NOT platform.asset_core_provenance_matches_schema(v_provenance)
     OR (v_actor_subject_id IS NOT NULL AND v_actor_subject_id <> p_subject_id)
   THEN
-    RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'invalid_asset_core_provenance';
+    RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = (platform.asset_core_constants()).error_invalid_provenance;
   END IF;
   RETURN v_provenance;
 END
@@ -380,7 +453,7 @@ AS $$
 DECLARE
   v_key_count integer;
 BEGIN
-  IF jsonb_typeof(p_value) IS DISTINCT FROM 'object' OR cardinality(p_expected_keys) = 0 THEN
+  IF jsonb_typeof(p_value) IS DISTINCT FROM (platform.asset_core_constants()).json_object_type OR cardinality(p_expected_keys) = 0 THEN
     RETURN false;
   END IF;
   SELECT count(*) INTO v_key_count FROM jsonb_object_keys(p_value);
@@ -396,8 +469,8 @@ STRICT
 PARALLEL SAFE
 SET search_path = pg_catalog
 AS $$
-  SELECT jsonb_typeof(p_value) = 'string'
-    AND (p_value #>> '{}') ~* '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+  SELECT jsonb_typeof(p_value) = (platform.asset_core_constants()).json_string_type
+    AND (p_value #>> '{}') ~* (platform.asset_core_constants()).uuid_v7_pattern
 $$;
 
 CREATE FUNCTION platform.asset_core_jsonb_is_nullable_uuid_v7(p_value jsonb)
@@ -434,7 +507,7 @@ STRICT
 PARALLEL SAFE
 SET search_path = pg_catalog, platform
 AS $$
-  SELECT jsonb_typeof(p_value) = 'string'
+  SELECT jsonb_typeof(p_value) = (platform.asset_core_constants()).json_string_type
     AND platform.asset_core_utf16_length(p_value #>> '{}') BETWEEN p_min_chars AND p_max_chars
 $$;
 
@@ -452,7 +525,7 @@ AS $$
 DECLARE
   v_number numeric;
 BEGIN
-  IF jsonb_typeof(p_value) IS DISTINCT FROM 'number' THEN RETURN false; END IF;
+  IF jsonb_typeof(p_value) IS DISTINCT FROM (platform.asset_core_constants()).json_number_type THEN RETURN false; END IF;
   v_number := (p_value #>> '{}')::numeric;
   RETURN v_number = trunc(v_number) AND v_number BETWEEN p_min AND p_max;
 EXCEPTION WHEN others THEN
@@ -474,7 +547,7 @@ AS $$
 DECLARE
   v_number numeric;
 BEGIN
-  IF jsonb_typeof(p_value) IS DISTINCT FROM 'number' THEN RETURN false; END IF;
+  IF jsonb_typeof(p_value) IS DISTINCT FROM (platform.asset_core_constants()).json_number_type THEN RETURN false; END IF;
   v_number := (p_value #>> '{}')::numeric;
   RETURN v_number BETWEEN p_min AND p_max;
 EXCEPTION WHEN others THEN
@@ -493,7 +566,7 @@ AS $$
 DECLARE
   v_number double precision;
 BEGIN
-  IF jsonb_typeof(p_value) IS DISTINCT FROM 'number' THEN RETURN false; END IF;
+  IF jsonb_typeof(p_value) IS DISTINCT FROM (platform.asset_core_constants()).json_number_type THEN RETURN false; END IF;
   v_number := (p_value #>> '{}')::double precision;
   RETURN v_number NOT IN ('Infinity'::double precision, '-Infinity'::double precision, 'NaN'::double precision);
 EXCEPTION WHEN others THEN
@@ -513,7 +586,7 @@ PARALLEL SAFE
 SET search_path = pg_catalog
 AS $$
 BEGIN
-  IF jsonb_typeof(p_value) IS DISTINCT FROM 'array' THEN RETURN false; END IF;
+  IF jsonb_typeof(p_value) IS DISTINCT FROM (platform.asset_core_constants()).json_array_type THEN RETURN false; END IF;
   RETURN jsonb_array_length(p_value) BETWEEN p_min_size AND p_max_size;
 END
 $$;
@@ -533,41 +606,41 @@ AS $$
       FROM nodes parent
       CROSS JOIN LATERAL (
         SELECT entry.value, entry.key AS segment
-          FROM jsonb_each(CASE WHEN jsonb_typeof(parent.value) = 'object' THEN parent.value ELSE '{}'::jsonb END) entry
+          FROM jsonb_each(CASE WHEN jsonb_typeof(parent.value) = (platform.asset_core_constants()).json_object_type THEN parent.value ELSE '{}'::jsonb END) entry
         UNION ALL
         SELECT item.value, item.ordinality::text AS segment
-          FROM jsonb_array_elements(CASE WHEN jsonb_typeof(parent.value) = 'array' THEN parent.value ELSE '[]'::jsonb END)
+          FROM jsonb_array_elements(CASE WHEN jsonb_typeof(parent.value) = (platform.asset_core_constants()).json_array_type THEN parent.value ELSE '[]'::jsonb END)
             WITH ORDINALITY AS item(value, ordinality)
       ) child
   ), object_keys(parent_path, normalized_key) AS (
     SELECT node.path, normalize(keys.key, NFC)
       FROM nodes node
       CROSS JOIN LATERAL jsonb_object_keys(
-        CASE WHEN jsonb_typeof(node.value) = 'object' THEN node.value ELSE '{}'::jsonb END
+        CASE WHEN jsonb_typeof(node.value) = (platform.asset_core_constants()).json_object_type THEN node.value ELSE '{}'::jsonb END
       ) AS keys(key)
   )
-  SELECT jsonb_typeof(p_value) = 'object'
+  SELECT jsonb_typeof(p_value) = (platform.asset_core_constants()).json_object_type
     AND (SELECT count(*) <= 4096 FROM nodes)
     AND NOT EXISTS (SELECT 1 FROM nodes WHERE depth > 16)
     AND NOT EXISTS (
       SELECT 1 FROM nodes
-       WHERE jsonb_typeof(value) = 'array'
+       WHERE jsonb_typeof(value) = (platform.asset_core_constants()).json_array_type
          AND NOT platform.asset_core_jsonb_array_within_size(value, 0, 512)
     )
     AND NOT EXISTS (
       SELECT 1 FROM nodes
-       WHERE jsonb_typeof(value) = 'string'
+       WHERE jsonb_typeof(value) = (platform.asset_core_constants()).json_string_type
          AND octet_length(convert_to(value #>> '{}', 'UTF8')) > 4096
     )
     AND NOT EXISTS (
       SELECT 1 FROM nodes
-       WHERE jsonb_typeof(value) = 'number' AND NOT platform.asset_core_jsonb_is_finite_number(value)
+       WHERE jsonb_typeof(value) = (platform.asset_core_constants()).json_number_type AND NOT platform.asset_core_jsonb_is_finite_number(value)
     )
     AND NOT EXISTS (
       SELECT 1
         FROM nodes node
         CROSS JOIN LATERAL jsonb_object_keys(
-          CASE WHEN jsonb_typeof(node.value) = 'object' THEN node.value ELSE '{}'::jsonb END
+          CASE WHEN jsonb_typeof(node.value) = (platform.asset_core_constants()).json_object_type THEN node.value ELSE '{}'::jsonb END
         ) AS keys(key)
        WHERE octet_length(convert_to(normalize(keys.key, NFC), 'UTF8')) > 256
     )
@@ -592,72 +665,72 @@ DECLARE
   v_distinct_count integer;
   v_keys text[];
 BEGIN
-  IF jsonb_typeof(p_payload) IS DISTINCT FROM 'object'
+  IF jsonb_typeof(p_payload) IS DISTINCT FROM (platform.asset_core_constants()).json_object_type
     OR NOT platform.asset_core_bounded_json_object(p_payload)
   THEN RETURN false; END IF;
 
-  IF p_schema_version = 'project-dna.v1' THEN
-    v_keys := ARRAY['schemaVersion', 'status', 'styleIdentity', 'palette', 'visualReferenceIds', 'constraints', 'rules'];
+  IF p_schema_version = (platform.asset_core_constants()).project_dna_schema_version THEN
+    v_keys := ARRAY[(platform.asset_core_constants()).schema_version_key, (platform.asset_core_constants()).status_key, (platform.asset_core_constants()).style_identity_key, (platform.asset_core_constants()).palette_key, (platform.asset_core_constants()).visual_reference_ids_key, 'constraints', (platform.asset_core_constants()).rules_key];
     IF NOT platform.asset_core_has_exact_keys(p_payload, v_keys)
-      OR jsonb_typeof(p_payload->'schemaVersion') IS DISTINCT FROM 'string'
-      OR p_payload->>'schemaVersion' <> p_schema_version
-      OR jsonb_typeof(p_payload->'status') IS DISTINCT FROM 'string'
-      OR p_payload->>'status' NOT IN ('draft', 'published', 'archived')
-      OR NOT platform.asset_core_jsonb_is_bounded_text(p_payload->'styleIdentity', 1, 256)
-      OR NOT platform.asset_core_jsonb_array_within_size(p_payload->'palette', 0, 32)
-      OR NOT platform.asset_core_jsonb_array_within_size(p_payload->'visualReferenceIds', 0, 64)
+      OR jsonb_typeof(p_payload->(platform.asset_core_constants()).schema_version_key) IS DISTINCT FROM (platform.asset_core_constants()).json_string_type
+      OR p_payload->>(platform.asset_core_constants()).schema_version_key <> p_schema_version
+      OR jsonb_typeof(p_payload->(platform.asset_core_constants()).status_key) IS DISTINCT FROM (platform.asset_core_constants()).json_string_type
+      OR p_payload->>(platform.asset_core_constants()).status_key NOT IN ((platform.asset_core_constants()).status_draft, (platform.asset_core_constants()).status_published, (platform.asset_core_constants()).status_archived)
+      OR NOT platform.asset_core_jsonb_is_bounded_text(p_payload->(platform.asset_core_constants()).style_identity_key, 1, 256)
+      OR NOT platform.asset_core_jsonb_array_within_size(p_payload->(platform.asset_core_constants()).palette_key, 0, 32)
+      OR NOT platform.asset_core_jsonb_array_within_size(p_payload->(platform.asset_core_constants()).visual_reference_ids_key, 0, 64)
       OR NOT platform.asset_core_bounded_json_object(p_payload->'constraints')
-      OR NOT platform.asset_core_jsonb_array_within_size(p_payload->'rules', 0, 100)
+      OR NOT platform.asset_core_jsonb_array_within_size(p_payload->(platform.asset_core_constants()).rules_key, 0, 100)
     THEN RETURN false; END IF;
 
-    FOR v_item IN SELECT value FROM jsonb_array_elements(p_payload->'palette') LOOP
-      IF NOT platform.asset_core_has_exact_keys(v_item, ARRAY['name', 'colors'])
+    FOR v_item IN SELECT value FROM jsonb_array_elements(p_payload->(platform.asset_core_constants()).palette_key) LOOP
+      IF NOT platform.asset_core_has_exact_keys(v_item, ARRAY['name', (platform.asset_core_constants()).colors_key])
         OR NOT platform.asset_core_jsonb_is_bounded_text(v_item->'name', 1, 80)
-        OR NOT platform.asset_core_jsonb_array_within_size(v_item->'colors', 1, 32)
+        OR NOT platform.asset_core_jsonb_array_within_size(v_item->(platform.asset_core_constants()).colors_key, 1, 32)
       THEN RETURN false; END IF;
-      FOR v_text IN SELECT value FROM jsonb_array_elements(v_item->'colors') LOOP
-        IF jsonb_typeof(v_text) IS DISTINCT FROM 'string'
+      FOR v_text IN SELECT value FROM jsonb_array_elements(v_item->(platform.asset_core_constants()).colors_key) LOOP
+        IF jsonb_typeof(v_text) IS DISTINCT FROM (platform.asset_core_constants()).json_string_type
           OR (v_text #>> '{}') !~ '^#[0-9a-fA-F]{3}([0-9a-fA-F]{3}){0,2}$'
         THEN RETURN false; END IF;
       END LOOP;
     END LOOP;
 
-    FOR v_item IN SELECT value FROM jsonb_array_elements(p_payload->'visualReferenceIds') LOOP
+    FOR v_item IN SELECT value FROM jsonb_array_elements(p_payload->(platform.asset_core_constants()).visual_reference_ids_key) LOOP
       IF NOT platform.asset_core_jsonb_is_uuid_v7(v_item) THEN RETURN false; END IF;
     END LOOP;
     SELECT count(*), count(DISTINCT lower(value #>> '{}')) INTO v_count, v_distinct_count
-      FROM jsonb_array_elements(p_payload->'visualReferenceIds') AS entry(value);
+      FROM jsonb_array_elements(p_payload->(platform.asset_core_constants()).visual_reference_ids_key) AS entry(value);
     IF v_count <> v_distinct_count THEN RETURN false; END IF;
 
-    FOR v_text IN SELECT value FROM jsonb_array_elements(p_payload->'rules') LOOP
+    FOR v_text IN SELECT value FROM jsonb_array_elements(p_payload->(platform.asset_core_constants()).rules_key) LOOP
       IF NOT platform.asset_core_jsonb_is_bounded_text(v_text, 1, 1024) THEN RETURN false; END IF;
     END LOOP;
     RETURN true;
   END IF;
 
-  IF p_schema_version = 'asset-metadata.v1' THEN
+  IF p_schema_version = (platform.asset_core_constants()).asset_metadata_schema_version THEN
     v_keys := ARRAY[
-      'schemaVersion', 'assetType', 'assetSubtype', 'name', 'description', 'tags', 'status',
-      'lineage', 'assetContract', 'projectDna', 'dimensions', 'paletteId', 'attributes'
+      (platform.asset_core_constants()).schema_version_key, (platform.asset_core_constants()).asset_type_key, (platform.asset_core_constants()).asset_subtype_key, 'name', (platform.asset_core_constants()).description_key, 'tags', (platform.asset_core_constants()).status_key,
+      (platform.asset_core_constants()).lineage_key, (platform.asset_core_constants()).asset_contract_key, (platform.asset_core_constants()).project_dna_key, 'dimensions', 'paletteId', 'attributes'
     ];
     IF NOT platform.asset_core_has_exact_keys(p_payload, v_keys)
-      OR jsonb_typeof(p_payload->'schemaVersion') IS DISTINCT FROM 'string'
-      OR p_payload->>'schemaVersion' <> p_schema_version
-      OR jsonb_typeof(p_payload->'assetType') IS DISTINCT FROM 'string'
-      OR p_payload->>'assetType' !~ '^[a-z][a-z0-9-]{0,63}$'
+      OR jsonb_typeof(p_payload->(platform.asset_core_constants()).schema_version_key) IS DISTINCT FROM (platform.asset_core_constants()).json_string_type
+      OR p_payload->>(platform.asset_core_constants()).schema_version_key <> p_schema_version
+      OR jsonb_typeof(p_payload->(platform.asset_core_constants()).asset_type_key) IS DISTINCT FROM (platform.asset_core_constants()).json_string_type
+      OR p_payload->>(platform.asset_core_constants()).asset_type_key !~ '^[a-z][a-z0-9-]{0,63}$'
       OR NOT (
-        p_payload->'assetSubtype' = 'null'::jsonb
-        OR (jsonb_typeof(p_payload->'assetSubtype') = 'string' AND p_payload->>'assetSubtype' ~ '^[a-z][a-z0-9-]{0,63}$')
+        p_payload->(platform.asset_core_constants()).asset_subtype_key = 'null'::jsonb
+        OR (jsonb_typeof(p_payload->(platform.asset_core_constants()).asset_subtype_key) = (platform.asset_core_constants()).json_string_type AND p_payload->>(platform.asset_core_constants()).asset_subtype_key ~ '^[a-z][a-z0-9-]{0,63}$')
       )
       OR NOT platform.asset_core_jsonb_is_bounded_text(p_payload->'name', 1, 160)
       OR NOT (
-        p_payload->'description' = 'null'::jsonb
-        OR platform.asset_core_jsonb_is_bounded_text(p_payload->'description', 0, 2000)
+        p_payload->(platform.asset_core_constants()).description_key = 'null'::jsonb
+        OR platform.asset_core_jsonb_is_bounded_text(p_payload->(platform.asset_core_constants()).description_key, 0, 2000)
       )
       OR NOT platform.asset_core_jsonb_array_within_size(p_payload->'tags', 0, 64)
-      OR jsonb_typeof(p_payload->'status') IS DISTINCT FROM 'string'
-      OR p_payload->>'status' NOT IN ('draft', 'published', 'archived')
-      OR NOT platform.asset_core_jsonb_array_within_size(p_payload->'lineage', 0, 64)
+      OR jsonb_typeof(p_payload->(platform.asset_core_constants()).status_key) IS DISTINCT FROM (platform.asset_core_constants()).json_string_type
+      OR p_payload->>(platform.asset_core_constants()).status_key NOT IN ((platform.asset_core_constants()).status_draft, (platform.asset_core_constants()).status_published, (platform.asset_core_constants()).status_archived)
+      OR NOT platform.asset_core_jsonb_array_within_size(p_payload->(platform.asset_core_constants()).lineage_key, 0, 64)
       OR NOT platform.asset_core_jsonb_is_nullable_uuid_v7(p_payload->'paletteId')
       OR NOT platform.asset_core_bounded_json_object(p_payload->'attributes')
     THEN RETURN false; END IF;
@@ -669,25 +742,25 @@ BEGIN
       FROM jsonb_array_elements(p_payload->'tags') AS entry(value);
     IF v_count <> v_distinct_count THEN RETURN false; END IF;
 
-    FOR v_item IN SELECT value FROM jsonb_array_elements(p_payload->'lineage') LOOP
-      IF NOT platform.asset_core_has_exact_keys(v_item, ARRAY['relation', 'assetId', 'assetVersionId'])
-        OR jsonb_typeof(v_item->'relation') IS DISTINCT FROM 'string'
-        OR v_item->>'relation' NOT IN ('derived_from', 'variant_of', 'component_of', 'frame_of', 'source')
-        OR NOT platform.asset_core_jsonb_is_uuid_v7(v_item->'assetId')
-        OR NOT platform.asset_core_jsonb_is_nullable_uuid_v7(v_item->'assetVersionId')
+    FOR v_item IN SELECT value FROM jsonb_array_elements(p_payload->(platform.asset_core_constants()).lineage_key) LOOP
+      IF NOT platform.asset_core_has_exact_keys(v_item, ARRAY[(platform.asset_core_constants()).relation_key, (platform.asset_core_constants()).asset_id_key, (platform.asset_core_constants()).asset_version_id_key])
+        OR jsonb_typeof(v_item->(platform.asset_core_constants()).relation_key) IS DISTINCT FROM (platform.asset_core_constants()).json_string_type
+        OR v_item->>(platform.asset_core_constants()).relation_key NOT IN ('derived_from', 'variant_of', 'component_of', 'frame_of', (platform.asset_core_constants()).provenance_source_key)
+        OR NOT platform.asset_core_jsonb_is_uuid_v7(v_item->(platform.asset_core_constants()).asset_id_key)
+        OR NOT platform.asset_core_jsonb_is_nullable_uuid_v7(v_item->(platform.asset_core_constants()).asset_version_id_key)
       THEN RETURN false; END IF;
     END LOOP;
     SELECT count(*), count(DISTINCT (
-      value->>'relation' || ':' || lower(value->>'assetId') || ':' || coalesce(lower(value->>'assetVersionId'), '')
+      value->>(platform.asset_core_constants()).relation_key || ':' || lower(value->>(platform.asset_core_constants()).asset_id_key) || ':' || coalesce(lower(value->>(platform.asset_core_constants()).asset_version_id_key), '')
     )) INTO v_count, v_distinct_count
-      FROM jsonb_array_elements(p_payload->'lineage') AS entry(value);
+      FROM jsonb_array_elements(p_payload->(platform.asset_core_constants()).lineage_key) AS entry(value);
     IF v_count <> v_distinct_count THEN RETURN false; END IF;
 
-    FOREACH v_nested IN ARRAY ARRAY[p_payload->'assetContract', p_payload->'projectDna'] LOOP
+    FOREACH v_nested IN ARRAY ARRAY[p_payload->(platform.asset_core_constants()).asset_contract_key, p_payload->(platform.asset_core_constants()).project_dna_key] LOOP
       IF v_nested <> 'null'::jsonb AND (
-        NOT platform.asset_core_has_exact_keys(v_nested, ARRAY['id', 'version'])
+        NOT platform.asset_core_has_exact_keys(v_nested, ARRAY['id', (platform.asset_core_constants()).version_key])
         OR NOT platform.asset_core_jsonb_is_uuid_v7(v_nested->'id')
-        OR NOT platform.asset_core_jsonb_is_integer_in_range(v_nested->'version', 1, 2147483647)
+        OR NOT platform.asset_core_jsonb_is_integer_in_range(v_nested->(platform.asset_core_constants()).version_key, 1, 2147483647)
       ) THEN RETURN false; END IF;
     END LOOP;
 
@@ -725,20 +798,20 @@ DECLARE
 BEGIN
   IF NOT platform.asset_core_has_exact_keys(
     p_provenance,
-    ARRAY['source', 'actorSubjectId', 'recordedAt', 'sourceVersionId']
+    ARRAY[(platform.asset_core_constants()).provenance_source_key, (platform.asset_core_constants()).actor_subject_id_key, (platform.asset_core_constants()).provenance_recorded_at_key, (platform.asset_core_constants()).provenance_source_version_id_key]
   )
     OR octet_length(convert_to(p_provenance::text, 'UTF8')) > 8192
     OR NOT platform.jsonb_envelope_within_bounds(p_provenance)
-    OR jsonb_typeof(p_provenance->'source') IS DISTINCT FROM 'string'
-    OR p_provenance->>'source' NOT IN ('manual', 'import', 'generation', 'restore', 'system')
-    OR jsonb_typeof(p_provenance->'recordedAt') IS DISTINCT FROM 'string'
-    OR NOT platform.asset_core_iso_utc_timestamp(p_provenance->>'recordedAt')
-    OR NOT platform.asset_core_jsonb_is_nullable_uuid_v7(p_provenance->'actorSubjectId')
-    OR NOT platform.asset_core_jsonb_is_nullable_uuid_v7(p_provenance->'sourceVersionId')
+    OR jsonb_typeof(p_provenance->(platform.asset_core_constants()).provenance_source_key) IS DISTINCT FROM (platform.asset_core_constants()).json_string_type
+    OR p_provenance->>(platform.asset_core_constants()).provenance_source_key NOT IN ((platform.asset_core_constants()).provenance_source_manual, (platform.asset_core_constants()).provenance_source_import, (platform.asset_core_constants()).provenance_source_generation, (platform.asset_core_constants()).provenance_source_restore, (platform.asset_core_constants()).provenance_source_system)
+    OR jsonb_typeof(p_provenance->(platform.asset_core_constants()).provenance_recorded_at_key) IS DISTINCT FROM (platform.asset_core_constants()).json_string_type
+    OR NOT platform.asset_core_iso_utc_timestamp(p_provenance->>(platform.asset_core_constants()).provenance_recorded_at_key)
+    OR NOT platform.asset_core_jsonb_is_nullable_uuid_v7(p_provenance->(platform.asset_core_constants()).actor_subject_id_key)
+    OR NOT platform.asset_core_jsonb_is_nullable_uuid_v7(p_provenance->(platform.asset_core_constants()).provenance_source_version_id_key)
   THEN RETURN false; END IF;
-  v_source := p_provenance->>'source';
-  v_source_version := p_provenance->'sourceVersionId';
-  RETURN (v_source = 'restore') = (v_source_version <> 'null'::jsonb);
+  v_source := p_provenance->>(platform.asset_core_constants()).provenance_source_key;
+  v_source_version := p_provenance->(platform.asset_core_constants()).provenance_source_version_id_key;
+  RETURN (v_source = (platform.asset_core_constants()).provenance_source_restore) = (v_source_version <> 'null'::jsonb);
 EXCEPTION WHEN others THEN
   RETURN false;
 END
@@ -780,18 +853,18 @@ DECLARE
 BEGIN
   SELECT ctx.subject_id, ctx.tenant_id, ctx.project_id INTO v_subject, v_tenant, v_project
     FROM platform.assert_asset_core_write_context() ctx;
-  IF p_entity_kind = 'project-dna' THEN
-    v_schema_version := 'project-dna.v1';
-  ELSIF p_entity_kind = 'asset' THEN
-    v_schema_version := 'asset-metadata.v1';
+  IF p_entity_kind = (platform.asset_core_constants()).entity_project_dna THEN
+    v_schema_version := (platform.asset_core_constants()).project_dna_schema_version;
+  ELSIF p_entity_kind = (platform.asset_core_constants()).entity_asset THEN
+    v_schema_version := (platform.asset_core_constants()).asset_metadata_schema_version;
   ELSE
-    RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'invalid_asset_core_identity';
+    RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = (platform.asset_core_constants()).error_invalid_identity;
   END IF;
   IF p_entity_id IS NULL OR p_version_id IS NULL OR p_idempotency_key_sha256 IS NULL
-    OR p_entity_id::text !~ '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
-    OR p_version_id::text !~ '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
-    OR p_idempotency_key_sha256 !~ '^[0-9a-f]{64}$'
-  THEN RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'invalid_asset_core_identity'; END IF;
+    OR p_entity_id::text !~ (platform.asset_core_constants()).uuid_v7_pattern
+    OR p_version_id::text !~ (platform.asset_core_constants()).uuid_v7_pattern
+    OR p_idempotency_key_sha256 !~ (platform.asset_core_constants()).sha256_pattern
+  THEN RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = (platform.asset_core_constants()).error_invalid_identity; END IF;
   subject_id := v_subject;
   tenant_id := v_tenant;
   project_id := v_project;
@@ -819,13 +892,13 @@ AS $$
 DECLARE
   v_existing record;
 BEGIN
-  IF p_entity_kind NOT IN ('project-dna', 'asset') THEN
-    RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'invalid_asset_core_identity';
+  IF p_entity_kind NOT IN ((platform.asset_core_constants()).entity_project_dna, (platform.asset_core_constants()).entity_asset) THEN
+    RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = (platform.asset_core_constants()).error_invalid_identity;
   END IF;
   PERFORM platform.lock_asset_core_idempotency(
     p_entity_kind, p_idempotency_key_sha256, p_subject_id, p_tenant_id, p_project_id
   );
-  IF p_entity_kind = 'project-dna' THEN
+  IF p_entity_kind = (platform.asset_core_constants()).entity_project_dna THEN
     SELECT row_value.project_dna_id AS entity_id, row_value.version_id, row_value.version, row_value.payload_sha256
       INTO v_existing FROM platform.project_dna_version row_value
      WHERE row_value.idempotency_subject_id = p_subject_id AND row_value.tenant_id = p_tenant_id
@@ -864,29 +937,29 @@ DECLARE
   v_current_status text;
   v_restore_version integer;
 BEGIN
-  IF p_entity_kind = 'project-dna' THEN
-    SELECT row_value.payload->>'status' INTO v_current_status
+  IF p_entity_kind = (platform.asset_core_constants()).entity_project_dna THEN
+    SELECT row_value.payload->>(platform.asset_core_constants()).status_key INTO v_current_status
       FROM platform.project_dna_version row_value
      WHERE row_value.project_dna_id = p_entity_id AND row_value.tenant_id = p_tenant_id
        AND row_value.project_id = p_project_id ORDER BY row_value.version DESC LIMIT 1;
-  ELSIF p_entity_kind = 'asset' THEN
-    SELECT row_value.payload->>'status' INTO v_current_status
+  ELSIF p_entity_kind = (platform.asset_core_constants()).entity_asset THEN
+    SELECT row_value.payload->>(platform.asset_core_constants()).status_key INTO v_current_status
       FROM platform.asset_version row_value
      WHERE row_value.asset_id = p_entity_id AND row_value.tenant_id = p_tenant_id
        AND row_value.project_id = p_project_id ORDER BY row_value.version DESC LIMIT 1;
   ELSE
-    RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'invalid_asset_core_identity';
+    RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = (platform.asset_core_constants()).error_invalid_identity;
   END IF;
-  IF v_current_status IS NULL THEN RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'asset_core_write_denied'; END IF;
-  IF p_provenance_source <> 'restore' AND NOT (
-    (v_current_status = 'draft' AND p_next_status IN ('draft', 'published')) OR
-    (v_current_status = 'published' AND p_next_status IN ('published', 'archived')) OR
-    (v_current_status = 'archived' AND p_next_status = 'archived')
+  IF v_current_status IS NULL THEN RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_insufficient_privilege, MESSAGE = (platform.asset_core_constants()).error_write_denied; END IF;
+  IF p_provenance_source <> (platform.asset_core_constants()).provenance_source_restore AND NOT (
+    (v_current_status = (platform.asset_core_constants()).status_draft AND p_next_status IN ((platform.asset_core_constants()).status_draft, (platform.asset_core_constants()).status_published)) OR
+    (v_current_status = (platform.asset_core_constants()).status_published AND p_next_status IN ((platform.asset_core_constants()).status_published, (platform.asset_core_constants()).status_archived)) OR
+    (v_current_status = (platform.asset_core_constants()).status_archived AND p_next_status = (platform.asset_core_constants()).status_archived)
   ) THEN
-    RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'invalid_asset_core_status_transition';
+    RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = 'invalid_asset_core_status_transition';
   END IF;
-  IF p_provenance_source = 'restore' THEN
-    IF p_entity_kind = 'project-dna' THEN
+  IF p_provenance_source = (platform.asset_core_constants()).provenance_source_restore THEN
+    IF p_entity_kind = (platform.asset_core_constants()).entity_project_dna THEN
       SELECT row_value.version INTO v_restore_version
         FROM platform.project_dna_version row_value
        WHERE row_value.project_dna_id = p_entity_id AND row_value.version_id = p_restore_source_version_id
@@ -898,7 +971,7 @@ BEGIN
          AND row_value.tenant_id = p_tenant_id AND row_value.project_id = p_project_id;
     END IF;
     IF v_restore_version IS NULL OR v_restore_version >= p_next_version THEN
-      RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'invalid_asset_core_restore_source';
+      RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = 'invalid_asset_core_restore_source';
     END IF;
   END IF;
 END
@@ -913,18 +986,18 @@ SET search_path = pg_catalog, platform
 SET row_security = on
 AS $$
 BEGIN
-  asset_contract_id := CASE WHEN p_payload->'assetContract' = 'null'::jsonb THEN NULL
-    ELSE (p_payload->'assetContract'->>'id')::uuid END;
-  asset_contract_version := CASE WHEN p_payload->'assetContract' = 'null'::jsonb THEN NULL
-    ELSE (p_payload->'assetContract'->>'version')::integer END;
-  project_dna_id := CASE WHEN p_payload->'projectDna' = 'null'::jsonb THEN NULL
-    ELSE (p_payload->'projectDna'->>'id')::uuid END;
-  project_dna_version := CASE WHEN p_payload->'projectDna' = 'null'::jsonb THEN NULL
-    ELSE (p_payload->'projectDna'->>'version')::integer END;
-  lineage := p_payload->'lineage';
+  asset_contract_id := CASE WHEN p_payload->(platform.asset_core_constants()).asset_contract_key = 'null'::jsonb THEN NULL
+    ELSE (p_payload->(platform.asset_core_constants()).asset_contract_key->>'id')::uuid END;
+  asset_contract_version := CASE WHEN p_payload->(platform.asset_core_constants()).asset_contract_key = 'null'::jsonb THEN NULL
+    ELSE (p_payload->(platform.asset_core_constants()).asset_contract_key->>(platform.asset_core_constants()).version_key)::integer END;
+  project_dna_id := CASE WHEN p_payload->(platform.asset_core_constants()).project_dna_key = 'null'::jsonb THEN NULL
+    ELSE (p_payload->(platform.asset_core_constants()).project_dna_key->>'id')::uuid END;
+  project_dna_version := CASE WHEN p_payload->(platform.asset_core_constants()).project_dna_key = 'null'::jsonb THEN NULL
+    ELSE (p_payload->(platform.asset_core_constants()).project_dna_key->>(platform.asset_core_constants()).version_key)::integer END;
+  lineage := p_payload->(platform.asset_core_constants()).lineage_key;
   RETURN NEXT;
 EXCEPTION WHEN others THEN
-  RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'invalid_asset_core_payload';
+  RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = (platform.asset_core_constants()).error_invalid_payload;
 END
 $$;
 
@@ -949,23 +1022,23 @@ DECLARE
   v_source_version integer;
 BEGIN
   FOR v_item IN SELECT value FROM jsonb_array_elements(p_lineage) LOOP
-    v_source_asset_id := (v_item->>'assetId')::uuid;
-    v_source_version_id := NULLIF(v_item->>'assetVersionId', '')::uuid;
+    v_source_asset_id := (v_item->>(platform.asset_core_constants()).asset_id_key)::uuid;
+    v_source_version_id := NULLIF(v_item->>(platform.asset_core_constants()).asset_version_id_key, '')::uuid;
     IF v_source_asset_id = p_asset_id THEN
       IF v_source_version_id IS NULL THEN
-        RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'invalid_asset_core_lineage';
+        RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = 'invalid_asset_core_lineage';
       END IF;
       SELECT row_value.version INTO v_source_version FROM platform.asset_version row_value
        WHERE row_value.asset_id = p_asset_id AND row_value.version_id = v_source_version_id
          AND row_value.tenant_id = p_tenant_id AND row_value.project_id = p_project_id;
       IF v_source_version IS NULL OR v_source_version >= p_version THEN
-        RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'invalid_asset_core_lineage';
+        RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = 'invalid_asset_core_lineage';
       END IF;
     END IF;
     INSERT INTO platform.asset_version_lineage
       (id, asset_id, asset_version_id, tenant_id, project_id, relation, source_asset_id,
        source_asset_version_id, created_by_subject_id)
-    VALUES (uuidv7(), p_asset_id, p_version_id, p_tenant_id, p_project_id, v_item->>'relation',
+    VALUES (uuidv7(), p_asset_id, p_version_id, p_tenant_id, p_project_id, v_item->>(platform.asset_core_constants()).relation_key,
       v_source_asset_id, v_source_version_id, p_subject_id);
   END LOOP;
 END
@@ -994,7 +1067,7 @@ DECLARE
   v_replay record;
 BEGIN
   SELECT * INTO v_prepared FROM platform.prepare_asset_core_write(
-    'project-dna', p_project_dna_id, p_version_id, p_idempotency_key_sha256,
+    (platform.asset_core_constants()).entity_project_dna, p_project_dna_id, p_version_id, p_idempotency_key_sha256,
     p_canonical_payload, p_payload_sha256, p_canonical_provenance
   );
   v_subject := v_prepared.subject_id;
@@ -1003,7 +1076,7 @@ BEGIN
   v_payload := v_prepared.payload;
   v_provenance := v_prepared.provenance;
   SELECT * INTO v_replay FROM platform.resolve_asset_core_replay(
-    'project-dna', v_subject, v_tenant, v_project, p_project_dna_id,
+    (platform.asset_core_constants()).entity_project_dna, v_subject, v_tenant, v_project, p_project_dna_id,
     p_idempotency_key_sha256, p_payload_sha256, false
   );
   IF FOUND THEN
@@ -1015,8 +1088,8 @@ BEGIN
   INSERT INTO platform.project_dna_version
     (project_dna_id, tenant_id, project_id, version, version_id, schema_version, payload, payload_sha256,
      idempotency_subject_id, idempotency_key_sha256, provenance, restored_from_version_id, created_by_subject_id)
-    VALUES (p_project_dna_id, v_tenant, v_project, 1, p_version_id, 'project-dna.v1', v_payload, p_payload_sha256,
-      v_subject, p_idempotency_key_sha256, v_provenance, NULLIF(v_provenance->>'sourceVersionId', '')::uuid, v_subject);
+    VALUES (p_project_dna_id, v_tenant, v_project, 1, p_version_id, (platform.asset_core_constants()).project_dna_schema_version, v_payload, p_payload_sha256,
+      v_subject, p_idempotency_key_sha256, v_provenance, NULLIF(v_provenance->>(platform.asset_core_constants()).provenance_source_version_id_key, '')::uuid, v_subject);
   RETURN QUERY SELECT p_project_dna_id, p_version_id, 1, p_payload_sha256, false;
 END
 $$;
@@ -1046,7 +1119,7 @@ DECLARE
   v_restore_version_id uuid;
 BEGIN
   SELECT * INTO v_prepared FROM platform.prepare_asset_core_write(
-    'project-dna', p_project_dna_id, p_version_id, p_idempotency_key_sha256,
+    (platform.asset_core_constants()).entity_project_dna, p_project_dna_id, p_version_id, p_idempotency_key_sha256,
     p_canonical_payload, p_payload_sha256, p_canonical_provenance
   );
   v_subject := v_prepared.subject_id;
@@ -1055,7 +1128,7 @@ BEGIN
   v_payload := v_prepared.payload;
   v_provenance := v_prepared.provenance;
   SELECT * INTO v_replay FROM platform.resolve_asset_core_replay(
-    'project-dna', v_subject, v_tenant, v_project, p_project_dna_id,
+    (platform.asset_core_constants()).entity_project_dna, v_subject, v_tenant, v_project, p_project_dna_id,
     p_idempotency_key_sha256, p_payload_sha256, true
   );
   IF FOUND THEN
@@ -1064,19 +1137,19 @@ BEGIN
   END IF;
   PERFORM 1 FROM platform.project_dna entity
    WHERE entity.id = p_project_dna_id AND entity.tenant_id = v_tenant AND entity.project_id = v_project FOR UPDATE;
-  IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'asset_core_write_denied'; END IF;
+  IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_insufficient_privilege, MESSAGE = (platform.asset_core_constants()).error_write_denied; END IF;
   SELECT coalesce(max(version_row.version), 0) + 1 INTO v_version
     FROM platform.project_dna_version version_row
    WHERE version_row.project_dna_id = p_project_dna_id AND version_row.tenant_id = v_tenant AND version_row.project_id = v_project;
-  v_restore_version_id := NULLIF(v_provenance->>'sourceVersionId', '')::uuid;
+  v_restore_version_id := NULLIF(v_provenance->>(platform.asset_core_constants()).provenance_source_version_id_key, '')::uuid;
   PERFORM platform.assert_asset_core_version_transition(
-    'project-dna', p_project_dna_id, v_tenant, v_project, v_version,
-    v_payload->>'status', v_provenance->>'source', v_restore_version_id
+    (platform.asset_core_constants()).entity_project_dna, p_project_dna_id, v_tenant, v_project, v_version,
+    v_payload->>(platform.asset_core_constants()).status_key, v_provenance->>(platform.asset_core_constants()).provenance_source_key, v_restore_version_id
   );
   INSERT INTO platform.project_dna_version
     (project_dna_id, tenant_id, project_id, version, version_id, schema_version, payload, payload_sha256,
      idempotency_subject_id, idempotency_key_sha256, provenance, restored_from_version_id, created_by_subject_id)
-    VALUES (p_project_dna_id, v_tenant, v_project, v_version, p_version_id, 'project-dna.v1', v_payload, p_payload_sha256,
+    VALUES (p_project_dna_id, v_tenant, v_project, v_version, p_version_id, (platform.asset_core_constants()).project_dna_schema_version, v_payload, p_payload_sha256,
       v_subject, p_idempotency_key_sha256, v_provenance, v_restore_version_id, v_subject);
   RETURN QUERY SELECT p_project_dna_id, p_version_id, v_version, p_payload_sha256, false;
 END
@@ -1107,7 +1180,7 @@ DECLARE
   v_lineage jsonb;
 BEGIN
   SELECT * INTO v_prepared FROM platform.prepare_asset_core_write(
-    'asset', p_asset_id, p_version_id, p_idempotency_key_sha256,
+    (platform.asset_core_constants()).entity_asset, p_asset_id, p_version_id, p_idempotency_key_sha256,
     p_canonical_payload, p_payload_sha256, p_canonical_provenance
   );
   v_subject := v_prepared.subject_id;
@@ -1116,7 +1189,7 @@ BEGIN
   v_payload := v_prepared.payload;
   v_provenance := v_prepared.provenance;
   SELECT * INTO v_replay FROM platform.resolve_asset_core_replay(
-    'asset', v_subject, v_tenant, v_project, p_asset_id,
+    (platform.asset_core_constants()).entity_asset, v_subject, v_tenant, v_project, p_asset_id,
     p_idempotency_key_sha256, p_payload_sha256, false
   );
   IF FOUND THEN
@@ -1132,10 +1205,10 @@ BEGIN
     (asset_id, tenant_id, project_id, version, version_id, schema_version, payload, payload_sha256,
      idempotency_subject_id, idempotency_key_sha256, provenance, project_dna_id, project_dna_version,
      restored_from_version_id, created_by_subject_id)
-    VALUES (p_asset_id, v_tenant, v_project, 1, p_version_id, 'asset-metadata.v1', v_payload, p_payload_sha256,
+    VALUES (p_asset_id, v_tenant, v_project, 1, p_version_id, (platform.asset_core_constants()).asset_metadata_schema_version, v_payload, p_payload_sha256,
       v_subject, p_idempotency_key_sha256, v_provenance, v_references.project_dna_id,
       v_references.project_dna_version,
-      NULLIF(v_provenance->>'sourceVersionId', '')::uuid, v_subject);
+      NULLIF(v_provenance->>(platform.asset_core_constants()).provenance_source_version_id_key, '')::uuid, v_subject);
   PERFORM platform.insert_asset_core_lineage(
     p_asset_id, p_version_id, 1, v_tenant, v_project, v_subject, v_lineage
   );
@@ -1171,7 +1244,7 @@ DECLARE
   v_lineage jsonb;
 BEGIN
   SELECT * INTO v_prepared FROM platform.prepare_asset_core_write(
-    'asset', p_asset_id, p_version_id, p_idempotency_key_sha256,
+    (platform.asset_core_constants()).entity_asset, p_asset_id, p_version_id, p_idempotency_key_sha256,
     p_canonical_payload, p_payload_sha256, p_canonical_provenance
   );
   v_subject := v_prepared.subject_id;
@@ -1180,7 +1253,7 @@ BEGIN
   v_payload := v_prepared.payload;
   v_provenance := v_prepared.provenance;
   SELECT * INTO v_replay FROM platform.resolve_asset_core_replay(
-    'asset', v_subject, v_tenant, v_project, p_asset_id,
+    (platform.asset_core_constants()).entity_asset, v_subject, v_tenant, v_project, p_asset_id,
     p_idempotency_key_sha256, p_payload_sha256, true
   );
   IF FOUND THEN
@@ -1190,27 +1263,27 @@ BEGIN
   SELECT entity.id, entity.asset_contract_id, entity.asset_contract_version INTO v_asset
     FROM platform.asset entity
    WHERE entity.id = p_asset_id AND entity.tenant_id = v_tenant AND entity.project_id = v_project FOR UPDATE;
-  IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'asset_core_write_denied'; END IF;
+  IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_insufficient_privilege, MESSAGE = (platform.asset_core_constants()).error_write_denied; END IF;
   SELECT * INTO v_references FROM platform.parse_asset_core_references(v_payload);
   IF v_references.asset_contract_id IS DISTINCT FROM v_asset.asset_contract_id
     OR v_references.asset_contract_version IS DISTINCT FROM v_asset.asset_contract_version
   THEN
-    RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'asset_contract_reference_immutable';
+    RAISE EXCEPTION USING ERRCODE = (platform.asset_core_constants()).sqlstate_invalid_parameter, MESSAGE = 'asset_contract_reference_immutable';
   END IF;
   v_lineage := v_references.lineage;
   SELECT coalesce(max(version_row.version), 0) + 1 INTO v_version
     FROM platform.asset_version version_row
    WHERE version_row.asset_id = p_asset_id AND version_row.tenant_id = v_tenant AND version_row.project_id = v_project;
-  v_restore_version_id := NULLIF(v_provenance->>'sourceVersionId', '')::uuid;
+  v_restore_version_id := NULLIF(v_provenance->>(platform.asset_core_constants()).provenance_source_version_id_key, '')::uuid;
   PERFORM platform.assert_asset_core_version_transition(
-    'asset', p_asset_id, v_tenant, v_project, v_version, v_payload->>'status',
-    v_provenance->>'source', v_restore_version_id
+    (platform.asset_core_constants()).entity_asset, p_asset_id, v_tenant, v_project, v_version, v_payload->>(platform.asset_core_constants()).status_key,
+    v_provenance->>(platform.asset_core_constants()).provenance_source_key, v_restore_version_id
   );
   INSERT INTO platform.asset_version
     (asset_id, tenant_id, project_id, version, version_id, schema_version, payload, payload_sha256,
      idempotency_subject_id, idempotency_key_sha256, provenance, project_dna_id, project_dna_version,
      restored_from_version_id, created_by_subject_id)
-    VALUES (p_asset_id, v_tenant, v_project, v_version, p_version_id, 'asset-metadata.v1', v_payload, p_payload_sha256,
+    VALUES (p_asset_id, v_tenant, v_project, v_version, p_version_id, (platform.asset_core_constants()).asset_metadata_schema_version, v_payload, p_payload_sha256,
       v_subject, p_idempotency_key_sha256, v_provenance, v_references.project_dna_id,
       v_references.project_dna_version,
       v_restore_version_id, v_subject);
@@ -1227,6 +1300,8 @@ GRANT SELECT ON platform.project_dna, platform.project_dna_version, platform.ass
   platform.asset_version, platform.asset_version_lineage TO spryxel_app;
 
 REVOKE ALL ON FUNCTION platform.prevent_asset_core_mutation() FROM PUBLIC, spryxel_app, spryxel_worker;
+REVOKE ALL ON FUNCTION platform.asset_core_constants() FROM PUBLIC, spryxel_app, spryxel_worker;
+REVOKE ALL ON TYPE platform.asset_core_constant_set FROM PUBLIC, spryxel_app, spryxel_worker;
 REVOKE ALL ON FUNCTION platform.asset_core_iso_utc_timestamp(text) FROM PUBLIC, spryxel_app, spryxel_worker;
 REVOKE ALL ON FUNCTION platform.assert_asset_core_write_context() FROM PUBLIC, spryxel_app, spryxel_worker;
 REVOKE ALL ON FUNCTION platform.parse_asset_core_payload(text, text, text) FROM PUBLIC, spryxel_app, spryxel_worker;

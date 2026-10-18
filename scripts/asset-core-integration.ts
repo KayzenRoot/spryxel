@@ -556,6 +556,7 @@ async function assertAssetCoreRolePrivileges(pool: Pool): Promise<void> {
 
   const helperNames = [
     'platform.assert_asset_core_write_context()',
+    'platform.asset_core_constants()',
     'platform.parse_asset_core_payload(text,text,text)',
     'platform.parse_asset_core_provenance(text,uuid)',
     'platform.lock_asset_core_idempotency(text,text,uuid,uuid,uuid)',
@@ -577,16 +578,25 @@ async function assertAssetCoreRolePrivileges(pool: Pool): Promise<void> {
     'platform.parse_asset_core_references(jsonb)',
     'platform.insert_asset_core_lineage(uuid,uuid,integer,uuid,uuid,uuid,jsonb)',
   ];
-  const helperResult = await pool.query<{ has_exec: boolean }>(
-    `SELECT has_function_privilege('spryxel_app', to_regprocedure(signature), 'EXECUTE') AS has_exec
+  const helperResult = await pool.query<{ app_executes: boolean; worker_executes: boolean }>(
+    `SELECT has_function_privilege('spryxel_app', to_regprocedure(signature), 'EXECUTE') AS app_executes,
+            has_function_privilege('spryxel_worker', to_regprocedure(signature), 'EXECUTE') AS worker_executes
        FROM unnest($1::text[]) AS functions(signature)`,
     [helperNames],
   );
   if (
     helperResult.rows.length !== helperNames.length ||
-    helperResult.rows.some((row) => row.has_exec)
+    helperResult.rows.some((row) => row.app_executes || row.worker_executes)
   ) {
-    throw new Error('Internal Asset Core helper functions were executable by the app role');
+    throw new Error('Internal Asset Core helper functions were executable by app or worker role');
+  }
+
+  const constantTypeResult = await pool.query<{ app_usage: boolean; worker_usage: boolean }>(
+    `SELECT has_type_privilege('spryxel_app', 'platform.asset_core_constant_set', 'USAGE') AS app_usage,
+            has_type_privilege('spryxel_worker', 'platform.asset_core_constant_set', 'USAGE') AS worker_usage`,
+  );
+  if (constantTypeResult.rows[0]?.app_usage || constantTypeResult.rows[0]?.worker_usage) {
+    throw new Error('Internal Asset Core constant type was usable by app or worker role');
   }
 }
 
@@ -610,6 +620,27 @@ async function assertWorkerAssetCoreDenied(
   }
 }
 
+type DirectRpc =
+  | 'create_project_dna_version'
+  | 'append_project_dna_version'
+  | 'create_asset_version'
+  | 'append_asset_version';
+type DirectResult = {
+  version_id: string;
+  version: number;
+  payload_sha256: string;
+  replayed: boolean;
+};
+type DirectPayloadCase = { label: string; mutate(payload: Record<string, unknown>): void };
+type DirectPreparedVersion = {
+  versionId: string;
+  idempotencyKeySha256: string;
+  canonicalPayload: string;
+  payloadSha256: string;
+  provenance: unknown;
+  payload: object;
+};
+
 async function assertDirectRpcRejectsMalformedPayloadAndProvenance(
   database: ReturnType<typeof createDatabase>,
   scope: Scope,
@@ -617,22 +648,6 @@ async function assertDirectRpcRejectsMalformedPayloadAndProvenance(
   assetPayload: AssetMetadataPayload,
   lineageSource: { assetId: string; versionId: string },
 ): Promise<void> {
-  type DirectRpc =
-    | 'create_project_dna_version'
-    | 'append_project_dna_version'
-    | 'create_asset_version'
-    | 'append_asset_version';
-  type DirectResult = {
-    version_id: string;
-    version: number;
-    payload_sha256: string;
-    replayed: boolean;
-  };
-  type DirectPayloadCase = {
-    label: string;
-    mutate(payload: Record<string, unknown>): void;
-  };
-
   const dnaCreate = prepareProjectDnaVersion({
     id: createUuidV7(),
     tenantId: scope.tenantId,
@@ -677,79 +692,104 @@ async function assertDirectRpcRejectsMalformedPayloadAndProvenance(
     provenance: provenance(scope.subjectId),
     payloadSchema: assetMetadataV1Schema,
   });
+  const client = await database.pool.connect();
+  try {
+    await client.query('BEGIN');
+    await setContext(client, scope);
+    await assertDirectRpcPositiveControls(client, dnaCreate, dnaAppend, assetCreate, assetAppend);
+    await assertDirectPayloadCases(
+      client,
+      dnaCreate,
+      assetCreate,
+      dnaCases(),
+      assetCases(lineageSource),
+    );
+    await assertDirectProvenanceCases(client, dnaCreate, dnaAppend, assetCreate, assetAppend);
+    await client.query('ROLLBACK');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
 
-  const dnaCases: DirectPayloadCase[] = [
+function dnaCases(): DirectPayloadCase[] {
+  return [
     {
       label: 'DNA unknown root field',
-      mutate(payload) {
+      mutate: (payload) => {
         payload.unexpected = true;
       },
     },
     {
       label: 'DNA missing required styleIdentity',
-      mutate(payload) {
+      mutate: (payload) => {
         delete payload.styleIdentity;
       },
     },
     {
       label: 'DNA wrong status type',
-      mutate(payload) {
+      mutate: (payload) => {
         payload.status = 7;
       },
     },
     {
       label: 'DNA unknown nested palette field',
-      mutate(payload) {
+      mutate: (payload) => {
         payload.palette = [{ name: 'Primary', colors: ['#369'], hidden: true }];
       },
     },
     {
       label: 'DNA missing nested palette name',
-      mutate(payload) {
+      mutate: (payload) => {
         payload.palette = [{ colors: ['#369'] }];
       },
     },
     {
       label: 'DNA wrong nested palette color type',
-      mutate(payload) {
+      mutate: (payload) => {
         payload.palette = [{ name: 'Primary', colors: [369] }];
       },
     },
     {
       label: 'DNA constraints must be an object',
-      mutate(payload) {
+      mutate: (payload) => {
         payload.constraints = [];
       },
     },
     {
       label: 'DNA wrong visualReferenceIds item type',
-      mutate(payload) {
+      mutate: (payload) => {
         payload.visualReferenceIds = ['not-a-uuid'];
       },
     },
   ];
-  const assetCases: DirectPayloadCase[] = [
+}
+
+function assetCases(lineageSource: { assetId: string; versionId: string }): DirectPayloadCase[] {
+  return [
     {
       label: 'Asset unknown root field',
-      mutate(payload) {
+      mutate: (payload) => {
         payload.unexpected = true;
       },
     },
     {
       label: 'Asset missing required name',
-      mutate(payload) {
+      mutate: (payload) => {
         delete payload.name;
       },
     },
     {
       label: 'Asset wrong tags type',
-      mutate(payload) {
+      mutate: (payload) => {
         payload.tags = 'not-an-array';
       },
     },
     {
       label: 'Asset unknown nested lineage field',
-      mutate(payload) {
+      mutate: (payload) => {
         payload.lineage = [
           {
             relation: 'derived_from',
@@ -762,270 +802,231 @@ async function assertDirectRpcRejectsMalformedPayloadAndProvenance(
     },
     {
       label: 'Asset missing nested lineage version field',
-      mutate(payload) {
+      mutate: (payload) => {
         payload.lineage = [{ relation: 'derived_from', assetId: lineageSource.assetId }];
       },
     },
     {
       label: 'Asset wrong nested contract version type',
-      mutate(payload) {
+      mutate: (payload) => {
         payload.assetContract = { id: lineageSource.assetId, version: '1' };
       },
     },
     {
       label: 'Asset missing nested dimensions width',
-      mutate(payload) {
+      mutate: (payload) => {
         payload.dimensions = { height: 32, frameCount: 1, fps: null };
       },
     },
     {
       label: 'Asset wrong nested dimensions fps type',
-      mutate(payload) {
+      mutate: (payload) => {
         payload.dimensions = { width: 32, height: 32, frameCount: 1, fps: '24' };
       },
     },
   ];
+}
 
-  const client = await database.pool.connect();
-  try {
-    await client.query('BEGIN');
-    await setContext(client, scope);
+async function callDirectRpc(
+  client: PoolClient,
+  rpc: DirectRpc,
+  entityId: string,
+  prepared: DirectPreparedVersion,
+): Promise<DirectResult> {
+  const result = await client.query<DirectResult>(
+    `SELECT * FROM platform.${rpc}($1,$2,$3,$4,$5,$6)`,
+    [
+      entityId,
+      prepared.versionId,
+      prepared.idempotencyKeySha256,
+      prepared.canonicalPayload,
+      prepared.payloadSha256,
+      JSON.stringify(prepared.provenance),
+    ],
+  );
+  const row = result.rows[0];
+  if (!row) throw new Error(`Direct PostgreSQL RPC returned no row: ${rpc}`);
+  return row;
+}
 
-    const callDirectRpc = async (
-      rpc: DirectRpc,
-      entityId: string,
-      versionId: string,
-      idempotencyKeySha256: string,
-      canonicalPayload: string,
-      payloadSha256: string,
-      rpcProvenance: unknown,
-    ): Promise<DirectResult> => {
-      const result = await client.query<DirectResult>(
-        `SELECT * FROM platform.${rpc}($1,$2,$3,$4,$5,$6)`,
-        [
-          entityId,
-          versionId,
-          idempotencyKeySha256,
-          canonicalPayload,
-          payloadSha256,
-          JSON.stringify(rpcProvenance),
-        ],
-      );
-      const row = result.rows[0];
-      if (!row) throw new Error(`Direct PostgreSQL RPC returned no row: ${rpc}`);
-      return row;
-    };
+async function assertDirectRpcPositiveControls(
+  client: PoolClient,
+  dnaCreate: DirectPreparedVersion & { id: string },
+  dnaAppend: DirectPreparedVersion & { id: string },
+  assetCreate: DirectPreparedVersion & { assetId: string },
+  assetAppend: DirectPreparedVersion & { assetId: string },
+): Promise<void> {
+  await assertDirectRpcReplayPair(
+    client,
+    'create_project_dna_version',
+    dnaCreate.id,
+    dnaCreate,
+    1,
+    'DNA create',
+  );
+  await assertDirectRpcReplayPair(
+    client,
+    'append_project_dna_version',
+    dnaAppend.id,
+    dnaAppend,
+    2,
+    'DNA append',
+  );
+  await assertDirectRpcReplayPair(
+    client,
+    'create_asset_version',
+    assetCreate.assetId,
+    assetCreate,
+    1,
+    'Asset create',
+  );
+  await assertDirectRpcReplayPair(
+    client,
+    'append_asset_version',
+    assetAppend.assetId,
+    assetAppend,
+    2,
+    'Asset append',
+  );
+}
 
-    const assertPositiveControl = async (
-      rpc: DirectRpc,
-      entityId: string,
-      prepared: {
-        versionId: string;
-        idempotencyKeySha256: string;
-        canonicalPayload: string;
-        payloadSha256: string;
-        provenance: unknown;
-      },
-      expectedVersion: number,
-      replayed: boolean,
-      label: string,
-    ): Promise<void> => {
-      const row = await callDirectRpc(
-        rpc,
-        entityId,
-        prepared.versionId,
-        prepared.idempotencyKeySha256,
-        prepared.canonicalPayload,
-        prepared.payloadSha256,
-        prepared.provenance,
-      );
-      if (row.version !== expectedVersion || row.replayed !== replayed) {
-        throw new Error(`Direct PostgreSQL canonical positive control failed: ${label}`);
-      }
-    };
+async function assertDirectRpcReplayPair(
+  client: PoolClient,
+  rpc: DirectRpc,
+  entityId: string,
+  prepared: DirectPreparedVersion,
+  version: number,
+  label: string,
+): Promise<void> {
+  for (const replayed of [false, true]) {
+    const row = await callDirectRpc(client, rpc, entityId, prepared);
+    if (row.version !== version || row.replayed !== replayed) {
+      throw new Error(`Direct PostgreSQL canonical positive control failed: ${label}`);
+    }
+  }
+}
 
-    await assertPositiveControl(
-      'create_project_dna_version',
-      dnaCreate.id,
-      dnaCreate,
-      1,
-      false,
-      'DNA create',
-    );
-    await assertPositiveControl(
-      'create_project_dna_version',
-      dnaCreate.id,
-      dnaCreate,
-      1,
-      true,
-      'DNA create replay',
-    );
-    await assertPositiveControl(
-      'append_project_dna_version',
-      dnaAppend.id,
-      dnaAppend,
-      2,
-      false,
-      'DNA append',
-    );
-    await assertPositiveControl(
-      'append_project_dna_version',
-      dnaAppend.id,
-      dnaAppend,
-      2,
-      true,
-      'DNA append replay',
-    );
-    await assertPositiveControl(
-      'create_asset_version',
-      assetCreate.assetId,
-      assetCreate,
-      1,
-      false,
-      'Asset create',
-    );
-    await assertPositiveControl(
-      'create_asset_version',
-      assetCreate.assetId,
-      assetCreate,
-      1,
-      true,
-      'Asset create replay',
-    );
-    await assertPositiveControl(
-      'append_asset_version',
-      assetAppend.assetId,
-      assetAppend,
-      2,
-      false,
-      'Asset append',
-    );
-    await assertPositiveControl(
-      'append_asset_version',
-      assetAppend.assetId,
-      assetAppend,
-      2,
-      true,
-      'Asset append replay',
-    );
+async function assertDirectPayloadCases(
+  client: PoolClient,
+  dnaCreate: DirectPreparedVersion & { id: string },
+  assetCreate: DirectPreparedVersion & { assetId: string },
+  dnaInvalidCases: DirectPayloadCase[],
+  assetInvalidCases: DirectPayloadCase[],
+): Promise<void> {
+  await rejectDirectPayloadTargets(
+    client,
+    [
+      { rpc: 'create_project_dna_version', entityId: createUuidV7(), prepared: dnaCreate },
+      { rpc: 'append_project_dna_version', entityId: dnaCreate.id, prepared: dnaCreate },
+    ],
+    dnaInvalidCases,
+  );
+  await rejectDirectPayloadTargets(
+    client,
+    [
+      { rpc: 'create_asset_version', entityId: createUuidV7(), prepared: assetCreate },
+      { rpc: 'append_asset_version', entityId: assetCreate.assetId, prepared: assetCreate },
+    ],
+    assetInvalidCases,
+  );
+}
 
-    const rejectDirectPayload = async (
-      rpc: DirectRpc,
-      entityId: string,
-      testCase: DirectPayloadCase,
-      basePayload: object,
-      rpcProvenance: unknown,
-    ): Promise<void> => {
-      const candidate = JSON.parse(JSON.stringify(basePayload)) as Record<string, unknown>;
+async function rejectDirectPayloadTargets(
+  client: PoolClient,
+  targets: Array<{ rpc: DirectRpc; entityId: string; prepared: DirectPreparedVersion }>,
+  cases: DirectPayloadCase[],
+): Promise<void> {
+  for (const target of targets) {
+    for (const testCase of cases) {
+      const candidate = JSON.parse(JSON.stringify(target.prepared.payload)) as Record<
+        string,
+        unknown
+      >;
       testCase.mutate(candidate);
       const canonicalPayload = JSON.stringify(candidate);
-      const versionId = createUuidV7();
-      const idempotencyKeySha256 = hash(`wo010-direct-${rpc}-${testCase.label}`);
-      await client.query('SAVEPOINT asset_core_invalid_document');
-      let rejected = false;
-      try {
-        await callDirectRpc(
-          rpc,
-          entityId,
-          versionId,
-          idempotencyKeySha256,
-          canonicalPayload,
-          hash(canonicalPayload),
-          rpcProvenance,
-        );
-      } catch (error) {
-        if (sqlState(error) !== '22023') throw error;
-        rejected = true;
-      }
-      await client.query('ROLLBACK TO SAVEPOINT asset_core_invalid_document');
-      await client.query('RELEASE SAVEPOINT asset_core_invalid_document');
-      if (!rejected)
-        throw new Error(`Direct PostgreSQL RPC accepted invalid document: ${testCase.label}`);
-    };
-
-    const dnaTargets: Array<{ rpc: DirectRpc; entityId: string }> = [
-      { rpc: 'create_project_dna_version', entityId: createUuidV7() },
-      { rpc: 'append_project_dna_version', entityId: dnaCreate.id },
-    ];
-    for (const target of dnaTargets) {
-      for (const testCase of dnaCases) {
-        await rejectDirectPayload(
-          target.rpc,
-          target.entityId,
-          testCase,
-          dnaCreate.payload,
-          dnaCreate.provenance,
-        );
-      }
+      const altered = {
+        ...target.prepared,
+        canonicalPayload,
+        payloadSha256: hash(canonicalPayload),
+        versionId: createUuidV7(),
+        idempotencyKeySha256: hash(`wo010-direct-${target.rpc}-${testCase.label}`),
+      };
+      await assertDirectRpcRejected(
+        client,
+        target.rpc,
+        target.entityId,
+        altered,
+        'asset_core_invalid_document',
+        `invalid document: ${testCase.label}`,
+      );
     }
-
-    const assetTargets: Array<{ rpc: DirectRpc; entityId: string }> = [
-      { rpc: 'create_asset_version', entityId: createUuidV7() },
-      { rpc: 'append_asset_version', entityId: assetCreate.assetId },
-    ];
-    for (const target of assetTargets) {
-      for (const testCase of assetCases) {
-        await rejectDirectPayload(
-          target.rpc,
-          target.entityId,
-          testCase,
-          assetCreate.payload,
-          assetCreate.provenance,
-        );
-      }
-    }
-
-    const invalidProvenance = [
-      { label: 'null source', value: { ...dnaCreate.provenance, source: null } },
-      { label: 'null recordedAt', value: { ...dnaCreate.provenance, recordedAt: null } },
-      { label: 'unknown provenance key', value: { ...dnaCreate.provenance, extra: true } },
-      {
-        label: 'non-ISO infinity recordedAt',
-        value: { ...dnaCreate.provenance, recordedAt: 'infinity' },
-      },
-    ];
-    const provenanceTargets: Array<{
-      rpc: DirectRpc;
-      entityId: string;
-      payload: object;
-    }> = [
-      { rpc: 'create_project_dna_version', entityId: createUuidV7(), payload: dnaCreate.payload },
-      { rpc: 'append_project_dna_version', entityId: dnaCreate.id, payload: dnaAppend.payload },
-      { rpc: 'create_asset_version', entityId: createUuidV7(), payload: assetCreate.payload },
-      { rpc: 'append_asset_version', entityId: assetCreate.assetId, payload: assetAppend.payload },
-    ];
-    for (const target of provenanceTargets) {
-      for (const invalid of invalidProvenance) {
-        const canonicalPayload = JSON.stringify(target.payload);
-        await client.query('SAVEPOINT asset_core_invalid_provenance');
-        let rejected = false;
-        try {
-          await callDirectRpc(
-            target.rpc,
-            target.entityId,
-            createUuidV7(),
-            hash(`wo010-direct-${target.rpc}-${invalid.label}`),
-            canonicalPayload,
-            hash(canonicalPayload),
-            invalid.value,
-          );
-        } catch (error) {
-          if (sqlState(error) !== '22023') throw error;
-          rejected = true;
-        }
-        await client.query('ROLLBACK TO SAVEPOINT asset_core_invalid_provenance');
-        await client.query('RELEASE SAVEPOINT asset_core_invalid_provenance');
-        if (!rejected)
-          throw new Error(`Direct PostgreSQL RPC accepted invalid provenance: ${invalid.label}`);
-      }
-    }
-    await client.query('ROLLBACK');
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    client.release();
   }
+}
+
+async function assertDirectProvenanceCases(
+  client: PoolClient,
+  dnaCreate: DirectPreparedVersion & { id: string },
+  dnaAppend: DirectPreparedVersion & { id: string },
+  assetCreate: DirectPreparedVersion & { assetId: string },
+  assetAppend: DirectPreparedVersion & { assetId: string },
+): Promise<void> {
+  const invalidProvenance = [
+    { label: 'null source', value: { ...(dnaCreate.provenance as object), source: null } },
+    { label: 'null recordedAt', value: { ...(dnaCreate.provenance as object), recordedAt: null } },
+    {
+      label: 'unknown provenance key',
+      value: { ...(dnaCreate.provenance as object), extra: true },
+    },
+    {
+      label: 'non-ISO infinity recordedAt',
+      value: { ...(dnaCreate.provenance as object), recordedAt: 'infinity' },
+    },
+  ];
+  const targets = [
+    { rpc: 'create_project_dna_version' as const, entityId: createUuidV7(), prepared: dnaCreate },
+    { rpc: 'append_project_dna_version' as const, entityId: dnaCreate.id, prepared: dnaAppend },
+    { rpc: 'create_asset_version' as const, entityId: createUuidV7(), prepared: assetCreate },
+    { rpc: 'append_asset_version' as const, entityId: assetCreate.assetId, prepared: assetAppend },
+  ];
+  for (const target of targets) {
+    for (const invalid of invalidProvenance) {
+      const altered = {
+        ...target.prepared,
+        versionId: createUuidV7(),
+        idempotencyKeySha256: hash(`wo010-direct-${target.rpc}-${invalid.label}`),
+        provenance: invalid.value,
+      };
+      await assertDirectRpcRejected(
+        client,
+        target.rpc,
+        target.entityId,
+        altered,
+        'asset_core_invalid_provenance',
+        `invalid provenance: ${invalid.label}`,
+      );
+    }
+  }
+}
+
+async function assertDirectRpcRejected(
+  client: PoolClient,
+  rpc: DirectRpc,
+  entityId: string,
+  prepared: DirectPreparedVersion,
+  savepoint: string,
+  failureLabel: string,
+): Promise<void> {
+  await client.query(`SAVEPOINT ${savepoint}`);
+  let rejected = false;
+  try {
+    await callDirectRpc(client, rpc, entityId, prepared);
+  } catch (error) {
+    if (sqlState(error) !== '22023') throw error;
+    rejected = true;
+  }
+  await client.query(`ROLLBACK TO SAVEPOINT ${savepoint}`);
+  await client.query(`RELEASE SAVEPOINT ${savepoint}`);
+  if (!rejected) throw new Error(`Direct PostgreSQL RPC accepted ${failureLabel}`);
 }
 
 async function assertRlsIsolationAndContextReset(

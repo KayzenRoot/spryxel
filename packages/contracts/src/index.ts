@@ -191,71 +191,95 @@ function checkVersionedPayloadSize(value: unknown, context: z.RefinementCtx): vo
 
 function isBoundedJsonObject(value: unknown): value is BoundedJsonObject {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
-  const ancestors = new Set<object>();
-  let nodes = 0;
-  const visit = (item: unknown, depth: number): item is BoundedJsonValue => {
-    nodes += 1;
-    if (nodes > versionedPayloadMaxNodes || depth > versionedPayloadMaxDepth) return false;
-    if (item === null || typeof item === 'boolean') return true;
-    if (typeof item === 'string') {
-      return isSafeJsonString(item) && new TextEncoder().encode(item).byteLength <= 4_096;
-    }
-    if (typeof item === 'number') return Number.isFinite(item);
-    if (typeof item !== 'object' || item === undefined || ancestors.has(item)) return false;
-    const prototype = Object.getPrototypeOf(item);
-    if (Array.isArray(item)) {
-      if (prototype !== Array.prototype || item.length > 512) return false;
-      const descriptors = Object.getOwnPropertyDescriptors(item);
-      ancestors.add(item);
-      try {
-        for (let index = 0; index < item.length; index += 1) {
-          const descriptor = descriptors[String(index)];
-          if (
-            !descriptor ||
-            !Object.hasOwn(descriptor, 'value') ||
-            !visit(descriptor.value, depth + 1)
-          ) {
-            return false;
-          }
-        }
-        return Object.keys(descriptors).every(
-          (key) => key === 'length' || /^(0|[1-9][0-9]*)$/.test(key),
-        );
-      } finally {
-        ancestors.delete(item);
-      }
-    }
-    if (prototype !== Object.prototype && prototype !== null) return false;
-    if (Object.keys(item).length === 0) return true;
-    ancestors.add(item);
-    try {
-      const descriptors = Object.getOwnPropertyDescriptors(item);
-      const normalizedKeys = new Set<string>();
-      for (const key of Object.keys(descriptors)) {
-        const descriptor = descriptors[key];
-        const normalizedKey = key.normalize('NFC');
-        if (
-          !descriptor ||
-          !Object.hasOwn(descriptor, 'value') ||
-          !isSafeJsonString(normalizedKey) ||
-          new TextEncoder().encode(normalizedKey).byteLength > 256 ||
-          normalizedKeys.has(normalizedKey) ||
-          !visit(descriptor.value, depth + 1)
-        ) {
-          return false;
-        }
-        normalizedKeys.add(normalizedKey);
-      }
-      return true;
-    } finally {
-      ancestors.delete(item);
-    }
-  };
   try {
-    return visit(value, 0);
+    return visitBoundedJsonValue(value, 0, { nodes: 0, ancestors: new Set() });
   } catch {
     return false;
   }
+}
+
+type BoundedJsonTraversal = { nodes: number; ancestors: Set<object> };
+
+function visitBoundedJsonValue(
+  item: unknown,
+  depth: number,
+  state: BoundedJsonTraversal,
+): item is BoundedJsonValue {
+  state.nodes += 1;
+  if (state.nodes > versionedPayloadMaxNodes || depth > versionedPayloadMaxDepth) return false;
+  if (item === null || typeof item === 'boolean') return true;
+  if (typeof item === 'string') {
+    return isSafeJsonString(item) && new TextEncoder().encode(item).byteLength <= 4_096;
+  }
+  if (typeof item === 'number') return Number.isFinite(item);
+  if (typeof item !== 'object' || item === undefined || state.ancestors.has(item)) return false;
+  return Array.isArray(item)
+    ? isBoundedJsonArray(item, depth, state)
+    : isBoundedJsonRecord(item, depth, state);
+}
+
+function isBoundedJsonArray(item: unknown[], depth: number, state: BoundedJsonTraversal): boolean {
+  if (Object.getPrototypeOf(item) !== Array.prototype || item.length > 512) return false;
+  const descriptors = Object.getOwnPropertyDescriptors(item);
+  state.ancestors.add(item);
+  try {
+    for (let index = 0; index < item.length; index += 1) {
+      const descriptor = descriptors[String(index)];
+      if (
+        !descriptor ||
+        !Object.hasOwn(descriptor, 'value') ||
+        !visitBoundedJsonValue(descriptor.value, depth + 1, state)
+      ) {
+        return false;
+      }
+    }
+    return Object.keys(descriptors).every(
+      (key) => key === 'length' || /^(0|[1-9][0-9]*)$/.test(key),
+    );
+  } finally {
+    state.ancestors.delete(item);
+  }
+}
+
+function isBoundedJsonRecord(item: object, depth: number, state: BoundedJsonTraversal): boolean {
+  const prototype = Object.getPrototypeOf(item);
+  if (prototype !== Object.prototype && prototype !== null) return false;
+  if (Object.keys(item).length === 0) return true;
+  const descriptors = Object.getOwnPropertyDescriptors(item);
+  const normalizedKeys = new Set<string>();
+  state.ancestors.add(item);
+  try {
+    for (const key of Object.keys(descriptors)) {
+      if (!isBoundedJsonRecordProperty(key, descriptors[key], depth, state, normalizedKeys)) {
+        return false;
+      }
+    }
+    return true;
+  } finally {
+    state.ancestors.delete(item);
+  }
+}
+
+function isBoundedJsonRecordProperty(
+  key: string,
+  descriptor: PropertyDescriptor | undefined,
+  depth: number,
+  state: BoundedJsonTraversal,
+  normalizedKeys: Set<string>,
+): boolean {
+  const normalizedKey = key.normalize('NFC');
+  if (
+    !descriptor ||
+    !Object.hasOwn(descriptor, 'value') ||
+    !isSafeJsonString(normalizedKey) ||
+    new TextEncoder().encode(normalizedKey).byteLength > 256 ||
+    normalizedKeys.has(normalizedKey) ||
+    !visitBoundedJsonValue(descriptor.value, depth + 1, state)
+  ) {
+    return false;
+  }
+  normalizedKeys.add(normalizedKey);
+  return true;
 }
 
 function isSafeJsonString(value: string): boolean {
