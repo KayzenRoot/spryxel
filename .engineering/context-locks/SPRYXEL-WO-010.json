@@ -1,0 +1,237 @@
+{
+  "schemaVersion": 1,
+  "kind": "spryxel.context-lock",
+  "workOrderId": "SPRYXEL-WO-010",
+  "implementationIncrement": "SPRYXEL-IMP-006-PHASE-1-AB",
+  "status": "FRESH",
+  "admission": "OWNER_ADMITTED_PHASE1_AB_ONLY_EFFECTIVE_AFTER_PROTECTED_DOCS_MERGE",
+  "risk": "HIGH_ASSURANCE",
+  "repository": "KayzenRoot/spryxel",
+  "trackingIssue": 91,
+  "ownerAdmission": {
+    "docsPullRequest": 95,
+    "docsMergedMainSha": "8c7ea8e7f40146dd1531f4ee772f26cc4d524e8d",
+    "scope": "PHASE1_A_B_CONTRACTS_DOMAIN_POSTGRES_RLS_ONLY",
+    "approval": "USER_EXPLICIT_APPROVED",
+    "approvalSource": "USER_2026-10-18_AUTHORIZED_PR95_PROTECTED_SQUASH_AND_WO010_PHASE1_AB_WITH_CURRENT_ALLOWLIST_TESTS_RESTRICTIONS",
+    "approvalExcludes": [
+      "C_PRIVATE_STORAGE_API",
+      "D_WORKER_JOB_EXPANSION",
+      "E_WEB_UI",
+      "DEPLOY",
+      "IMPLEMENTATION_MERGE_BEFORE_INDEPENDENT_AUDIT",
+      "CHECKPOINT_PROMOTION",
+      "PAID_EXECUTION"
+    ],
+    "admissionRecord": "governance/wo010-phase1-admission-context-lock",
+    "admissionDocsRequiredOnProtectedMain": true,
+    "independentImplementationAudit": "MANDATORY_BEFORE_CODE_PR_MERGE"
+  },
+  "authorizedBranch": "codex/spryxel-wo-010-phase1-dna-asset-core",
+  "executionBase": {
+    "branch": "main",
+    "sha": "8c7ea8e7f40146dd1531f4ee772f26cc4d524e8d",
+    "kind": "AFTER_PR95_DOCS_SQUASH_BEFORE_PHASE1_ADMISSION_LOCK_DOCS",
+    "authorizedDocumentationDelta": [
+      ".engineering/work-orders/SPRYXEL-WO-010.md",
+      ".engineering/context-locks/SPRYXEL-WO-010.json"
+    ],
+    "activationRequirement": "At code preflight read final main after protected admission/lock docs merge; confirm its ancestry includes executionBase.sha and only these documented admission/lock changes from executionBase; verify all pinned critical blob SHAs and workOrderSource blob; if any other base/authority changes, BLOCKED and recompile. Do not demand equality to pre-lock commit when a protected docs-only admission merge is accounted for."
+  },
+  "workOrderSource": {
+    "path": ".engineering/work-orders/SPRYXEL-WO-010.md",
+    "gitBlobSha": "9f3a0ad9d0e04b208502b6016cb0beda20155a03",
+    "authority": "OWNER_ADMITTED_PHASE1_AB_ON_PROTECTED_MAIN",
+    "preLockCandidateBlob": "0debb59ffce9b35cc6d9b7b96bf293b8da4bfd0b"
+  },
+  "decisionBaseline": {
+    "ledgerGitBlobSha": "856894e9936780f36c5e9982d1c3fe6e96aed90f",
+    "protectedDecisionRange": "D-001..D-161",
+    "implementationSequenceDecision": "D-153",
+    "checkpointStopState": "SPRYXEL_WO_009_COMPLETE",
+    "checkpointNextLegalStage": "SPRYXEL_DNA_ASSET_CORE_WORK_ORDER_REQUIRED",
+    "checkpointPromotion": "NOT_AUTHORIZED"
+  },
+  "gef": {
+    "package": "@gef-bootstrap/cli",
+    "version": "1.1.1",
+    "releaseSourceSha": "1dc030f1358eab0347043a3d54c7fc311c7c2123"
+  },
+  "criticalBaseSources": [
+    {
+      "path": "AGENTS.md",
+      "gitBlobSha": "95ebc461596feecefe8766f4cd8b87730ae30e7c"
+    },
+    {
+      "path": ".engineering/CHECKPOINT.json",
+      "gitBlobSha": "1230aa41cc197ad3e58e5e27aba724b43de777dc"
+    },
+    {
+      "path": ".engineering/CHECKPOINT.md",
+      "gitBlobSha": "d537bfa9a68bf0204ec47ee38d50ff2209ba7c02"
+    },
+    {
+      "path": ".engineering/SOURCE-HIERARCHY.md",
+      "gitBlobSha": "bf9f656350da3712b12fa1ecc267855baee27b14"
+    },
+    {
+      "path": ".engineering/DECISIONS-LEDGER.md",
+      "gitBlobSha": "856894e9936780f36c5e9982d1c3fe6e96aed90f"
+    },
+    {
+      "path": ".engineering/SCOPE.md",
+      "gitBlobSha": "cca8420aa6427b9ddd2a16151f44f83a6bfd7cfe"
+    },
+    {
+      "path": ".engineering/DEFINITION-OF-DONE.md",
+      "gitBlobSha": "4d3a24b404cdd70a86168773bc0ac206dec0365d"
+    },
+    {
+      "path": ".engineering/ARCHITECTURE.md",
+      "gitBlobSha": "ea97f66b5776aaa35d6fa2e73db54be4c72a4769"
+    },
+    {
+      "path": ".engineering/REQUIREMENTS.md",
+      "gitBlobSha": "5c0e7199708e9aa2e0014755c18942b48bb4d60d"
+    },
+    {
+      "path": ".engineering/SECURITY.md",
+      "gitBlobSha": "d8aa5007a8cc9429d8860a76d544bd7b1c49516b"
+    },
+    {
+      "path": ".engineering/DATA-MODEL.md",
+      "gitBlobSha": "ff988dcc33cc640e258a058b1f016186ab2b1c14"
+    },
+    {
+      "path": ".engineering/API-CONTRACTS.md",
+      "gitBlobSha": "ed432144a9bf3e47f3eb197869456fc08bfd609a"
+    },
+    {
+      "path": ".engineering/PHYSICAL-DATA-CONVENTIONS.md",
+      "gitBlobSha": "4e65b6778f63ff6664cf6aec6985db60013eead5"
+    },
+    {
+      "path": ".engineering/IMPLEMENTATION-ARCHITECTURE.md",
+      "gitBlobSha": "ad12992ab85841e051bbc482ae7cab96ea07bacb"
+    },
+    {
+      "path": ".engineering/IMPLEMENTATION-SEQUENCE.md",
+      "gitBlobSha": "822290f94688286e6962d79904a77d12c3fae8cd"
+    },
+    {
+      "path": ".engineering/TEST-BENCHMARK-PLAN.md",
+      "gitBlobSha": "157f6a81ccba63a3aa62f747b4b07607a166c8e8"
+    },
+    {
+      "path": ".engineering/DEPLOYMENT.md",
+      "gitBlobSha": "8414fa08258627d8f5c516b62cd30967b423dc3f"
+    },
+    {
+      "path": "package.json",
+      "gitBlobSha": "791cb01c32f7e11e5e962f9016861cf7ad1d1de4"
+    },
+    {
+      "path": "package-lock.json",
+      "gitBlobSha": "56a9dfc05e8aa89e2bb6a4555ab6c54cab7cea01"
+    },
+    {
+      "path": "packages/contracts/src/index.ts",
+      "gitBlobSha": "3a2e2c10a28a07b55f412b57d0cc2520c0987b44"
+    },
+    {
+      "path": "packages/domain/src/index.ts",
+      "gitBlobSha": "c7d8821ec2bc1962f66b3a3c36feee86a643a240"
+    },
+    {
+      "path": "packages/db/src/index.ts",
+      "gitBlobSha": "22463d4e6d636bfdd83d6fa79d3b7c6836957c2c"
+    },
+    {
+      "path": "packages/db/src/migrations/0005_asset_contract_jobs.sql",
+      "gitBlobSha": "d29851784d29d48757183eb0dcdbbf0608b7a18c"
+    },
+    {
+      "path": "packages/db/src/migrations/0009_credit_ledger_costguard.sql",
+      "gitBlobSha": "e998f00aa554ecfafa81fd693b3b93c0ce7a1b27"
+    },
+    {
+      "path": "apps/api/src/server.ts",
+      "gitBlobSha": "13f2774a081adb947e7acdc4708a5418d6c48570"
+    },
+    {
+      "path": "apps/worker/src/durable-jobs.ts",
+      "gitBlobSha": "ebe64e0a976775d4addff17a4fa85950179bb09e"
+    },
+    {
+      "path": "scripts/run-integration.ts",
+      "gitBlobSha": "3761825c4852a527264a7893308396a1f8491b02"
+    },
+    {
+      "path": "playwright.config.ts",
+      "gitBlobSha": "7f67957290be66e9ec4a7cae01a1fb4623b81089"
+    }
+  ],
+  "productState": {
+    "completedThrough": "SPRYXEL-IMP-005",
+    "nextIncrement": "SPRYXEL-IMP-006",
+    "nextIncrementStatus": "OWNER_ADMITTED_PHASE1_AB_ONLY",
+    "phaseC": "NOT_ADMITTED",
+    "phaseDandE": "NOT_ADMITTED",
+    "providerCostBearing": "PROHIBITED",
+    "defaultCostGuardDecision": "DENY",
+    "cloudflareDeployment": "NOT_AUTHORIZED",
+    "workosProductionModification": "NOT_AUTHORIZED",
+    "checkpointPromotion": "NOT_AUTHORIZED"
+  },
+  "writeScope": [
+    "packages/contracts/src/",
+    "packages/domain/src/",
+    "packages/db/src/",
+    "scripts/ (only existing integration-test harness, minimal change when demonstrated)"
+  ],
+  "protectedPaths": [
+    ".engineering/",
+    "AGENTS.md",
+    ".gef/",
+    ".github/workflows/",
+    "apps/api/",
+    "apps/web/",
+    "apps/worker/",
+    "apps/web/proxy.ts",
+    "package-lock.json",
+    "packages/db/src/credit-ledger.ts",
+    "packages/domain/src/credit-ledger.ts",
+    "packages/db/src/migrations/0001_platform_foundation.sql",
+    "packages/db/src/migrations/0009_credit_ledger_costguard.sql"
+  ],
+  "preflight": {
+    "stopOnCriticalSourceChange": true,
+    "requireSourceBlobPins": true,
+    "requireWorkOrderBlob": true,
+    "requireNode": "22.23.3",
+    "requireNpm": "10.9.9",
+    "requireBaselineTestsBeforeProductMutation": true,
+    "requireRealDockerRlsNegativeTests": true,
+    "requireIndependentHighAssuranceAuditBeforeMerge": true,
+    "doNotRewriteGefBaseline": true,
+    "pricingUnfrozen": true,
+    "defaultProductionCostAuthorization": "DENY",
+    "maxBoundedRootCauseAttempts": 2,
+    "noProviderNetworkCalls": true
+  },
+  "acceptanceIds": [
+    "A01",
+    "A02",
+    "A03",
+    "A04",
+    "B01",
+    "B02",
+    "B03",
+    "B04",
+    "B05",
+    "B06",
+    "B07",
+    "B08"
+  ],
+  "executionStop": "SPRYXEL_WO010_PHASE1_AB_CODE_AND_RLS_TESTS_READY_FOR_INDEPENDENT_HIGH_ASSURANCE_AUDIT"
+}
