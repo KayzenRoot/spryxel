@@ -6,8 +6,8 @@ import {
   projectIdPattern,
   type Project,
 } from '@spryxel/contracts';
-import { requireWebSession } from '../../src/auth/session';
-import { ProjectApiError, submitProject } from '../../src/projects/api';
+import { requireWebSession } from '../../../src/auth/session';
+import { ProjectApiError, submitProject } from '../../../src/projects/api';
 
 export type CreateProjectState = {
   error: string | null;

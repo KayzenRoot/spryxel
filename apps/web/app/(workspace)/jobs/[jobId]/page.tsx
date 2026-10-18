@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
 import type { SafeJob } from '@spryxel/contracts';
 import { GlobalShell } from '../../components/global-shell';
-import { requireWebSession } from '../../../src/auth/session';
-import { assertJobApiError, fetchJob } from '../../../src/jobs/api';
+import { requireWebSession } from '../../../../src/auth/session';
+import { assertJobApiError, fetchJob } from '../../../../src/jobs/api';
 import { cancelJobAction } from '../actions';
 import { formatDate, JobLoadProblem } from '../job-list';
 

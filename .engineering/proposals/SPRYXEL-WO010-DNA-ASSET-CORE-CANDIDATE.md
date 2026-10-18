@@ -2,7 +2,7 @@
 
 > **Status: CANDIDATE / PLANNING ONLY / NOT_ADMITTED / NO EXECUTION CONTEXT LOCK / NO PRODUCT CODE.**
 >
-> Issue: [#91](https://github.com/KayzenRoot/spryxel/issues/91). Draft base for analysis: `main@56101f9cb73be0854f434b8c49eb3ce54929b6b2`, read 2026-10-18. Refresh base and all critical source fingerprints before admitting a real Work Order. This is not an approval to mutate tables, routes or provider configuration.
+> Issue: [#91](https://github.com/KayzenRoot/spryxel/issues/91). Current draft analysis base: `main@f544aba74c7609d3ad1bce80538e8218fe555ca8` after protected frontend PR #89 merge, 2026-10-18. Critical source Git blob fingerprints are recorded in the proposed WO-010 below. This is still NOT_ADMITTED. Refresh base and all critical source fingerprints before admitting a real Work Order. This is not an approval to mutate tables, routes or provider configuration.
 
 ## Why this increment, now
 
@@ -16,7 +16,7 @@ Establish **one minimal end-to-end, tenant-safe asset metadata + immutable DNA v
 
 ### 1. DNA domain (candidate contract)
 
-- DNA belongs to a canonical `tenant_id` and `project_id`; immutable `dna_version_id` references a stable `dna_id`. Historical versions are never silently rewritten. Draft/published/version transitions must be explicit and idempotent.
+- DNA belongs to a canonical `tenant_id` and `project_id`; immutable UUIDv7-compatible `dna_version_id` references a stable `dna_id`; deterministic SHA-256 content digest attests version content, not version identity. Historical versions are never silently rewritten. Draft/published/version transitions must be explicit and idempotent.
 - Define a minimally useful typed JSON DNA payload for project creative direction/constraints with schema version, provenance, originator, timestamps and deterministic canonical serialization/checksum; the exact field inventory must be approved before code.
 - Every version transition records actor, tenant/project context and changed content digest. Validate references, size and schema; enforce bounded payloads and reject cross-project version references.
 - Retrieval of project DNA may not enumerate/resolve another tenant's objects based only on caller-provided IDs. Design reversion as a **new version** referencing the restored ancestor, not destructive mutation.
@@ -51,7 +51,7 @@ The `CostGuard` default is still **DENY**, and credit authorization/ledger invar
 | D | worker/job compatibility | Link canonical Jobs and CostGuard DENY invariants where relevant, no generation | idempotency/replay and safe cancellation; no paid operations activated |
 | E | web (only if admitted) | Minimal authenticated project DNA / asset metadata UI | protected route, client never authoritative, cross-tenant 404/403, accessible basics |
 
-If admission limits the first WO to A+B, remaining rows stay **NOT_ADMITTED**. Prefer the smallest vertical slice that demonstrably enforces tenant boundaries without needing real provider credentials or GPU.
+**Recommended first authorized execution inside WO-010 is A+B only** (typed contracts/domain and tenant-safe PostgreSQL with FORCE RLS); C/D/E remain NOT_ADMITTED. Phase A+B alone must not promote WO-010 to COMPLETE: private object/storage authorization required by D-153 is not delivered until separately authorized Phase C is audited. See `.engineering/work-orders/SPRYXEL-WO-010.md` for the proposed bounded Code/Test contract.
 
 ## Admission contract: required before Codex may implement
 
