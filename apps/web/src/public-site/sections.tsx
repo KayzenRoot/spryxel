@@ -103,7 +103,13 @@ export function FeatureCard({ title, description, icon }: Readonly<TextItem & { 
   );
 }
 
-export function CategoryCard({ title, description, image, imageAlt, status }: Readonly<CategoryItem>) {
+export function CategoryCard({
+  title,
+  description,
+  image,
+  imageAlt,
+  status,
+}: Readonly<CategoryItem>) {
   return (
     <article className="public-category-card">
       <div className="public-category-art">

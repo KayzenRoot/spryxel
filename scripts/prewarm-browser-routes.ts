@@ -103,7 +103,7 @@ async function prewarmPublicRoutes(baseUrl: string): Promise<void> {
     const html = await response.text();
     assert.match(
       html,
-      new RegExp(String.raw`<html\\b[^>]*\\blang=["']${route.locale}["']`, 'i'),
+      new RegExp(String.raw`<html\b[^>]*\blang=["']${route.locale}["']`, 'i'),
       `Public SSR language mismatch for ${route.path}`,
     );
     await prewarmNext(index + 1);
