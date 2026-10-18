@@ -900,7 +900,9 @@ async function assertDirectRestoreStatusEnforcement(
       replayed.version_id !== restored.version_id ||
       !replayed.replayed
     ) {
-      throw new Error(`Direct PostgreSQL draft-only restore or idempotent replay failed: ${target.rpc}`);
+      throw new Error(
+        `Direct PostgreSQL draft-only restore or idempotent replay failed: ${target.rpc}`,
+      );
     }
   }
 }
