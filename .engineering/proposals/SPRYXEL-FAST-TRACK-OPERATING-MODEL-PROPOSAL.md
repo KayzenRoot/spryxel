@@ -54,9 +54,28 @@ A change crossing tiers must be routed to the stricter tier. A declared FAST fix
 
 ## Concrete pilot
 
-- [#90](https://github.com/KayzenRoot/spryxel/issues/90) shows the problem: `apps/web/proxy.ts` omitted `/jobs` from the WorkOS/Next proxy matcher even though server components call `requireWebSession`. A 200 streamed error shell is not itself an auth bypass. The owner has separately authorized a narrow HIGH_ASSURANCE *code/test only* fix. The authorized Codex work should add `/jobs` and `/jobs/:path*` coverage and negative tests in an isolated main-based branch, without production E2E fixture or WorkOS real keys. ChatGPT handles the resulting PR, evidence and review.
-- [#89](https://github.com/KayzenRoot/spryxel/pull/89) stays DRAFT. At `d8b770d`, local Codex reported 3 × 33/33 Playwright, 120 unit, lint/typecheck/worker/GEF and Docker integration PASS. Real WorkOS staging is NOT_RUN and must never be reported passed. Existing production fixture guard remains closed. No repeated campaign on unchanged code just to fill time.
+- [#90](https://github.com/KayzenRoot/spryxel/issues/90) pilot **COMPLETED** at code scope: [PR #94](https://github.com/KayzenRoot/spryxel/pull/94) merged by protected squash on `main@56101f9cb73be0854f434b8c49eb3ce54929b6b2` with 7/7 source-HEAD checks, no thread exceptions, matching AuthKit routes for Jobs and conditional development-only fixture exemptions. Real WorkOS sign-in redirect remains `NOT_RUN` and must not be called a production release pass. ChatGPT performed GitHub issue/PR review and merge coordination, Codex code and tests.
+- [#89](https://github.com/KayzenRoot/spryxel/pull/89) stays DRAFT at **combined head `f45a7a45e167db2845c42afa3612f50154937f5c`** after normal merge from new `main`. Codex reported **one full Playwright 33/33 PASS at combined HEAD**, format/lint/typecheck/unit/build/architecture PASS, while earlier branch had 3×33/33 and Docker integration PASS at `d8b770d`. No claim of 3×33/33 on combined SHA; source GEF/DoD/R4.4 must govern final acceptance. Real WorkOS staging `NOT_RUN`; production fixture remains denied. Source GitHub checks 7/7 PASS, Sonar 33 new issues/0 hotspots but issue-level severity unavailable.
 - [#91](https://github.com/KayzenRoot/spryxel/issues/91) stays strictly a future DNA/Asset Core proposal, with no code or checkpoint promotion.
+
+## Reconcile instead of duplicating existing policy proposals
+
+- [#61](https://github.com/KayzenRoot/spryxel/issues/61) already defines **T0 targeted → T1 branch impact → T2 exact integrated HEAD → T3 protected merge/release**, conservative dependency impact, reuse of safe build cache and final full required DoD. Do not establish a rival policy; adopt this single test ladder after its required review.
+- [#62](https://github.com/KayzenRoot/spryxel/issues/62) already defines **ChatGPT-first review and P0/P1/P2/P3 severity routing**, with `UNCLASSIFIED` not silently downgraded. Preserve dependent acceptance blocking for unknown high-assurance findings, but keep unrelated product/documentation lanes moving.
+- [#93](https://github.com/KayzenRoot/spryxel/pull/93) merely reconciles these proposals with the owner's *Codex code/test only* delegation. No new runbook, extra required paid tool, release portal, or second blanket review procedure should be generated.
+- **Sonar #89:** 33 new issues reported, 0 security hotspots, Quality Gate PASS, severity/details not accessible to GitHub-only review. Do not label any individual severity; do not automatically assert P0 or dismiss all 33. If required for exact merge acceptance, request a **single report/export of issue keys, severity, path and line** from an already-authorized Sonar reader. Record missing details once and avoid repeated work.
+- **No deploy workflow discovered in current `.github/workflows`** (only repository-validation, pipeline-integrity, gitleaks and trivy at observed main). This limits *automatic GitHub Actions deployment risk*, but must not be construed as proof that an external service or other GitHub App cannot deploy upon branch updates.
+
+## Proposed single bounded decision for future owner action
+
+Approve one coherent **risk-based process amendment** for Spryxel only, without rewriting the closed GEF history. The proposed decision:
+1. In an admitted scoped patch, let Codex autonomously correct related code/test defects. ChatGPT handles records/review. One owner approval per *sensitive objective*, not per file, path or rerun.
+2. For routine iterative checks, use #61 T0/T1 conservatively. At final candidate HEAD, run the actual mandatory T2 once, including every canonical Work Order-specific test; if the accepted R4.4 mandate of **three complete browser runs on exact final SHA** remains an independently applicable acceptance requirement, it **must be satisfied or explicitly amended through the right authority**, never silently treated as passed because prior SHAs ran 3×.
+3. No duplicate full Docker run on auth/frontend-only edits solely for progress reporting where the governing DoD permits impact reuse; high-assurance requirements that explicitly require current-HEAD integration are still mandatory.
+4. Continue other independent admitted tasks while Docker/WorkOS/Sonar details are unavailable; `NOT_RUN` stops the dependent guarantee (e.g., actual WorkOS sign-in or public release), not every unrelated local code/documentation change.
+5. Keep active ruleset, four required checks, zero unresolved threads, no force push, real data/tenant/finance security barriers, independent high-assurance reviewer, owner merge/deploy authority and product WO admission intact.
+
+This is a **decision candidate**, not an exception to currently binding Source Hierarchy, Definition of Done, Work Orders, or protected branch rules. Owner can grant it prospectively after independent compatibility review; until then keep current gates.
 
 ## Proposal implementation and acceptance gates
 
