@@ -887,6 +887,7 @@ async function assertDirectRestoreStatusEnforcement(
         prepareRestore(status),
         'asset_core_invalid_restore_status',
         `restore of ${target.rpc} directly to ${status}`,
+        'invalid_asset_core_status_transition',
       );
     }
     const candidate = prepareRestore('draft');
@@ -1070,13 +1071,19 @@ async function assertDirectRpcRejected(
   prepared: DirectPreparedVersion,
   savepoint: string,
   failureLabel: string,
+  expectedMessage?: string,
 ): Promise<void> {
   await client.query(`SAVEPOINT ${savepoint}`);
   let rejected = false;
   try {
     await callDirectRpc(client, rpc, entityId, prepared);
   } catch (error) {
-    if (sqlState(error) !== '22023') throw error;
+    if (
+      sqlState(error) !== '22023' ||
+      (expectedMessage && (!(error instanceof Error) || error.message !== expectedMessage))
+    ) {
+      throw error;
+    }
     rejected = true;
   }
   await client.query(`ROLLBACK TO SAVEPOINT ${savepoint}`);
