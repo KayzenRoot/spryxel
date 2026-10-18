@@ -1,3 +1,5 @@
+import { createHash, randomBytes } from 'node:crypto';
+
 export type ReadinessState = 'ready' | 'disabled' | 'unavailable';
 
 export type ReadinessProbe = {
@@ -62,7 +64,457 @@ export function canCreateProject(role: ProjectRole): boolean {
 export function normalizeProjectName(value: string): string {
   return value.normalize('NFC').trim().replace(/\s+/gu, ' ');
 }
-import { createHash } from 'node:crypto';
+
+const uuidV7Pattern = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const sha256Pattern = /^[0-9a-f]{64}$/;
+const versionPayloadMaxBytes = 65_536;
+const versionPayloadMaxDepth = 16;
+const versionPayloadMaxNodes = 4_096;
+
+export type VersionStatus = 'draft' | 'published' | 'archived';
+export type VersionProvenanceSource = 'manual' | 'import' | 'generation' | 'restore' | 'system';
+export type VersionProvenance = Readonly<{
+  source: VersionProvenanceSource;
+  actorSubjectId: string | null;
+  recordedAt: string;
+  sourceVersionId: string | null;
+}>;
+
+export type ProjectDnaPayload = {
+  schemaVersion: 'project-dna.v1';
+  status: VersionStatus;
+  styleIdentity: string;
+  palette: Array<{ name: string; colors: string[] }>;
+  visualReferenceIds: string[];
+  constraints: Record<string, unknown>;
+  rules: string[];
+};
+
+export type AssetMetadataPayload = {
+  schemaVersion: 'asset-metadata.v1';
+  assetType: string;
+  assetSubtype: string | null;
+  name: string;
+  description: string | null;
+  tags: string[];
+  status: VersionStatus;
+  lineage: Array<{
+    relation: 'derived_from' | 'variant_of' | 'component_of' | 'frame_of' | 'source';
+    assetId: string;
+    assetVersionId: string | null;
+  }>;
+  assetContract: { id: string; version: number } | null;
+  projectDna: { id: string; version: number } | null;
+  dimensions: { width: number; height: number; frameCount: number; fps: number | null } | null;
+  paletteId: string | null;
+  attributes: Record<string, unknown>;
+};
+
+export type VersionedPayloadSchema = { parse(value: unknown): unknown };
+type VersionCommand<T> = {
+  tenantId: string;
+  projectId: string;
+  versionId: string;
+  version: number;
+  idempotencyKeySha256: string;
+  payload: T;
+  provenance: VersionProvenance;
+};
+
+export type PreparedProjectDnaVersion = Readonly<{
+  id: string;
+  tenantId: string;
+  projectId: string;
+  versionId: string;
+  version: number;
+  idempotencyKeySha256: string;
+  payload: Readonly<ProjectDnaPayload>;
+  canonicalPayload: string;
+  payloadSha256: string;
+  provenance: VersionProvenance;
+}>;
+
+export type PreparedAssetVersion = Readonly<{
+  assetId: string;
+  tenantId: string;
+  projectId: string;
+  versionId: string;
+  version: number;
+  idempotencyKeySha256: string;
+  payload: Readonly<AssetMetadataPayload>;
+  canonicalPayload: string;
+  payloadSha256: string;
+  provenance: VersionProvenance;
+}>;
+
+export class VersionedEntityConflictError extends Error {
+  readonly code = 'idempotency_payload_conflict' as const;
+
+  constructor() {
+    super('Idempotency key was already used for different version content');
+    this.name = 'VersionedEntityConflictError';
+  }
+}
+
+export class VersionedPayloadValidationError extends Error {
+  constructor(readonly code: 'invalid_payload' | 'payload_too_large') {
+    super('Versioned payload is outside the admitted envelope');
+    this.name = 'VersionedPayloadValidationError';
+  }
+}
+
+export function createUuidV7(now: Date = new Date()): string {
+  const timestamp = now.getTime();
+  if (!Number.isSafeInteger(timestamp) || timestamp < 0 || timestamp > 0xffffffffffff) {
+    throw new RangeError('UUIDv7 timestamp is outside its 48-bit range');
+  }
+  const bytes = randomBytes(16);
+  let remainingTimestamp = timestamp;
+  for (let index = 5; index >= 0; index -= 1) {
+    bytes[index] = remainingTimestamp & 0xff;
+    remainingTimestamp = Math.floor(remainingTimestamp / 256);
+  }
+  bytes[6] = ((bytes[6] ?? 0) & 0x0f) | 0x70;
+  bytes[8] = ((bytes[8] ?? 0) & 0x3f) | 0x80;
+  const hex = bytes.toString('hex');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+export function prepareProjectDnaVersion(
+  input: VersionCommand<ProjectDnaPayload> & {
+    id: string;
+    payloadSchema: VersionedPayloadSchema;
+  },
+): PreparedProjectDnaVersion {
+  validateVersionCommand(input);
+  validateUuidV7(input.id);
+  const parsed = parseVersionPayload(input.payloadSchema, input.payload, input.provenance);
+  const compiled = compileBoundedPayload(parsed.payload);
+  return deepFreeze({
+    id: input.id.toLowerCase(),
+    tenantId: input.tenantId.toLowerCase(),
+    projectId: input.projectId.toLowerCase(),
+    versionId: input.versionId.toLowerCase(),
+    version: input.version,
+    idempotencyKeySha256: input.idempotencyKeySha256,
+    payload: compiled.value as ProjectDnaPayload,
+    canonicalPayload: compiled.canonicalPayload,
+    payloadSha256: compiled.payloadSha256,
+    provenance: parsed.provenance,
+  });
+}
+
+export function prepareAssetVersion(
+  input: VersionCommand<AssetMetadataPayload> & {
+    assetId: string;
+    payloadSchema: VersionedPayloadSchema;
+  },
+): PreparedAssetVersion {
+  validateVersionCommand(input);
+  validateUuidV7(input.assetId);
+  const parsed = parseVersionPayload(input.payloadSchema, input.payload, input.provenance);
+  const compiled = compileBoundedPayload(parsed.payload);
+  return deepFreeze({
+    assetId: input.assetId.toLowerCase(),
+    tenantId: input.tenantId.toLowerCase(),
+    projectId: input.projectId.toLowerCase(),
+    versionId: input.versionId.toLowerCase(),
+    version: input.version,
+    idempotencyKeySha256: input.idempotencyKeySha256,
+    payload: compiled.value as AssetMetadataPayload,
+    canonicalPayload: compiled.canonicalPayload,
+    payloadSha256: compiled.payloadSha256,
+    provenance: parsed.provenance,
+  });
+}
+
+export function assertIdempotentPayloadReplay<T>(
+  existing: { payloadSha256: string; value: T },
+  candidatePayloadSha256: string,
+): T {
+  validateSha256(existing.payloadSha256);
+  validateSha256(candidatePayloadSha256);
+  if (existing.payloadSha256 !== candidatePayloadSha256) throw new VersionedEntityConflictError();
+  return existing.value;
+}
+
+export function assertVersionStatusTransition(
+  current: VersionStatus,
+  next: VersionStatus,
+): VersionStatus {
+  const allowed: Record<VersionStatus, ReadonlySet<VersionStatus>> = {
+    draft: new Set(['draft', 'published']),
+    published: new Set(['published', 'archived']),
+    archived: new Set(['archived']),
+  };
+  if (!allowed[current]?.has(next)) throw new Error('Illegal immutable version status transition');
+  return next;
+}
+
+export function restoreProjectDnaVersionAsNew(input: {
+  source: PreparedProjectDnaVersion;
+  versionId: string;
+  version: number;
+  idempotencyKeySha256: string;
+  actorSubjectId: string | null;
+  recordedAt: string;
+  payloadSchema: VersionedPayloadSchema;
+}): PreparedProjectDnaVersion {
+  validateRestore(input.source, input.versionId, input.version, input.idempotencyKeySha256);
+  return prepareProjectDnaVersion({
+    id: input.source.id,
+    tenantId: input.source.tenantId,
+    projectId: input.source.projectId,
+    versionId: input.versionId,
+    version: input.version,
+    idempotencyKeySha256: input.idempotencyKeySha256,
+    payloadSchema: input.payloadSchema,
+    payload: { ...input.source.payload, status: 'draft' },
+    provenance: {
+      source: 'restore',
+      actorSubjectId: input.actorSubjectId,
+      recordedAt: input.recordedAt,
+      sourceVersionId: input.source.versionId,
+    },
+  });
+}
+
+export function restoreAssetVersionAsNew(input: {
+  source: PreparedAssetVersion;
+  versionId: string;
+  version: number;
+  idempotencyKeySha256: string;
+  actorSubjectId: string | null;
+  recordedAt: string;
+  payloadSchema: VersionedPayloadSchema;
+}): PreparedAssetVersion {
+  validateRestore(input.source, input.versionId, input.version, input.idempotencyKeySha256);
+  return prepareAssetVersion({
+    assetId: input.source.assetId,
+    tenantId: input.source.tenantId,
+    projectId: input.source.projectId,
+    versionId: input.versionId,
+    version: input.version,
+    idempotencyKeySha256: input.idempotencyKeySha256,
+    payloadSchema: input.payloadSchema,
+    payload: { ...input.source.payload, status: 'draft' },
+    provenance: {
+      source: 'restore',
+      actorSubjectId: input.actorSubjectId,
+      recordedAt: input.recordedAt,
+      sourceVersionId: input.source.versionId,
+    },
+  });
+}
+
+function validateVersionCommand(input: VersionCommand<unknown>): void {
+  validateUuidV7(input.tenantId);
+  validateUuidV7(input.projectId);
+  validateUuidV7(input.versionId);
+  validateSha256(input.idempotencyKeySha256);
+  if (!Number.isSafeInteger(input.version) || input.version < 1) {
+    throw new VersionedPayloadValidationError('invalid_payload');
+  }
+}
+
+function validateRestore(
+  source: { versionId: string; version: number },
+  versionId: string,
+  version: number,
+  idempotencyKeySha256: string,
+): void {
+  validateUuidV7(versionId);
+  validateSha256(idempotencyKeySha256);
+  if (
+    versionId === source.versionId ||
+    !Number.isSafeInteger(version) ||
+    version <= source.version
+  ) {
+    throw new VersionedPayloadValidationError('invalid_payload');
+  }
+}
+
+function validateVersionProvenance(value: VersionProvenance): VersionProvenance {
+  if (
+    !['manual', 'import', 'generation', 'restore', 'system'].includes(value.source) ||
+    !isIsoUtcDateTime(value.recordedAt) ||
+    (value.actorSubjectId !== null && !uuidV7Pattern.test(value.actorSubjectId)) ||
+    (value.sourceVersionId !== null && !uuidV7Pattern.test(value.sourceVersionId)) ||
+    (value.source === 'restore' && value.sourceVersionId === null)
+  ) {
+    throw new VersionedPayloadValidationError('invalid_payload');
+  }
+  return deepFreeze({
+    ...value,
+    actorSubjectId: value.actorSubjectId?.toLowerCase() ?? null,
+    sourceVersionId: value.sourceVersionId?.toLowerCase() ?? null,
+  });
+}
+
+function parseVersionPayload<T>(
+  payloadSchema: VersionedPayloadSchema,
+  payload: T,
+  provenance: VersionProvenance,
+): { payload: T; provenance: VersionProvenance } {
+  let parsed: unknown;
+  try {
+    parsed = payloadSchema.parse({ ...payload, provenance });
+  } catch {
+    throw new VersionedPayloadValidationError('invalid_payload');
+  }
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    throw new VersionedPayloadValidationError('invalid_payload');
+  }
+  const descriptors = Object.getOwnPropertyDescriptors(parsed);
+  const provenanceDescriptor = descriptors.provenance;
+  if (!provenanceDescriptor || !Object.hasOwn(provenanceDescriptor, 'value')) {
+    throw new VersionedPayloadValidationError('invalid_payload');
+  }
+  const content = Object.create(null) as Record<string, unknown>;
+  for (const key of Object.keys(descriptors)) {
+    if (key === 'provenance') continue;
+    const descriptor = descriptors[key];
+    if (!descriptor || !Object.hasOwn(descriptor, 'value')) {
+      throw new VersionedPayloadValidationError('invalid_payload');
+    }
+    content[key] = descriptor.value;
+  }
+  return {
+    payload: content as T,
+    provenance: validateVersionProvenance(provenanceDescriptor.value as VersionProvenance),
+  };
+}
+
+function isIsoUtcDateTime(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(value)) return false;
+  const parsed = new Date(value);
+  if (!Number.isFinite(parsed.getTime())) return false;
+  const canonicalInput = value.includes('.') ? value : value.replace(/Z$/, '.000Z');
+  return parsed.toISOString() === canonicalInput;
+}
+
+function validateUuidV7(value: string): void {
+  if (!uuidV7Pattern.test(value)) throw new VersionedPayloadValidationError('invalid_payload');
+}
+
+function validateSha256(value: string): void {
+  if (!sha256Pattern.test(value)) throw new VersionedPayloadValidationError('invalid_payload');
+}
+
+function compileBoundedPayload(value: unknown): {
+  value: Record<string, unknown>;
+  canonicalPayload: string;
+  payloadSha256: string;
+} {
+  const normalized = normalizeJsonValue(value, 0, { count: 0 }, new Set());
+  if (normalized === null || Array.isArray(normalized) || typeof normalized !== 'object') {
+    throw new VersionedPayloadValidationError('invalid_payload');
+  }
+  const canonicalPayload = canonicalJsonValue(normalized);
+  if (Buffer.byteLength(canonicalPayload, 'utf8') > versionPayloadMaxBytes) {
+    throw new VersionedPayloadValidationError('payload_too_large');
+  }
+  return {
+    value: normalized as Record<string, unknown>,
+    canonicalPayload,
+    payloadSha256: createHash('sha256').update(canonicalPayload).digest('hex'),
+  };
+}
+
+type NormalizedJsonValue =
+  | null
+  | boolean
+  | number
+  | string
+  | NormalizedJsonValue[]
+  | { [key: string]: NormalizedJsonValue };
+
+function normalizeJsonValue(
+  value: unknown,
+  depth: number,
+  nodes: { count: number },
+  ancestors: Set<object>,
+): NormalizedJsonValue {
+  nodes.count += 1;
+  if (nodes.count > versionPayloadMaxNodes || depth > versionPayloadMaxDepth) {
+    throw new VersionedPayloadValidationError('invalid_payload');
+  }
+  if (value === null || typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    const normalized = value.normalize('NFC');
+    if (!isJsonbSafeString(normalized) || Buffer.byteLength(normalized, 'utf8') > 4_096) {
+      throw new VersionedPayloadValidationError('invalid_payload');
+    }
+    return normalized;
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) return Object.is(value, -0) ? 0 : value;
+  if (typeof value !== 'object' || value === undefined || ancestors.has(value)) {
+    throw new VersionedPayloadValidationError('invalid_payload');
+  }
+  ancestors.add(value);
+  try {
+    if (Array.isArray(value)) {
+      if (Object.getPrototypeOf(value) !== Array.prototype || value.length > 512) {
+        throw new VersionedPayloadValidationError('invalid_payload');
+      }
+      const descriptors = Object.getOwnPropertyDescriptors(value);
+      const output: NormalizedJsonValue[] = [];
+      for (let index = 0; index < value.length; index += 1) {
+        const descriptor = descriptors[String(index)];
+        if (!descriptor || !Object.hasOwn(descriptor, 'value')) {
+          throw new VersionedPayloadValidationError('invalid_payload');
+        }
+        output.push(normalizeJsonValue(descriptor.value, depth + 1, nodes, ancestors));
+      }
+      if (
+        Object.keys(descriptors).some((key) => key !== 'length' && !/^(0|[1-9][0-9]*)$/.test(key))
+      ) {
+        throw new VersionedPayloadValidationError('invalid_payload');
+      }
+      return output;
+    }
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype !== Object.prototype && prototype !== null) {
+      throw new VersionedPayloadValidationError('invalid_payload');
+    }
+    const descriptors = Object.getOwnPropertyDescriptors(value);
+    const output = Object.create(null) as Record<string, NormalizedJsonValue>;
+    for (const key of Object.keys(descriptors).sort(compareCanonicalKeys)) {
+      const descriptor = descriptors[key];
+      const normalizedKey = key.normalize('NFC');
+      if (
+        !descriptor ||
+        !Object.hasOwn(descriptor, 'value') ||
+        !isJsonbSafeString(normalizedKey) ||
+        Buffer.byteLength(normalizedKey, 'utf8') > 256 ||
+        Object.hasOwn(output, normalizedKey)
+      ) {
+        throw new VersionedPayloadValidationError('invalid_payload');
+      }
+      output[normalizedKey] = normalizeJsonValue(descriptor.value, depth + 1, nodes, ancestors);
+    }
+    return output;
+  } finally {
+    ancestors.delete(value);
+  }
+}
+
+function canonicalJsonValue(value: NormalizedJsonValue): string {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(canonicalJsonValue).join(',')}]`;
+  return `{${Object.keys(value)
+    .sort(compareCanonicalKeys)
+    .map((key) => `${JSON.stringify(key)}:${canonicalJsonValue(value[key] as NormalizedJsonValue)}`)
+    .join(',')}}`;
+}
+
+function deepFreeze<T>(value: T): Readonly<T> {
+  if (typeof value === 'object' && value !== null && !Object.isFrozen(value)) {
+    for (const child of Object.values(value as Record<string, unknown>)) deepFreeze(child);
+    Object.freeze(value);
+  }
+  return value;
+}
 
 export const integrityCheckOperation = 'asset_contract.integrity_check.v1' as const;
 export const assetContractSchemaVersion = 'asset-contract.v1' as const;

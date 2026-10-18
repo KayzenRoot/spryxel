@@ -53,6 +53,7 @@ import { Queue } from 'bullmq';
 import { Redis } from 'ioredis';
 import { buildApiServer } from '../apps/api/src/server.js';
 import { runCreditLedgerIntegration } from './credit-ledger-integration.js';
+import { runAssetCoreIntegration } from './asset-core-integration.js';
 import { rollbackBeforeRethrowing } from './integration-cleanup.js';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -239,14 +240,14 @@ try {
 
   const pristineMigrationStatus = await getMigrationStatus(databaseUrl);
   if (
-    pristineMigrationStatus.length !== 9 ||
+    pristineMigrationStatus.length !== 10 ||
     pristineMigrationStatus.some((migration) => migration.applied)
   ) {
     throw new Error('Pristine PostgreSQL did not report all migrations as unapplied');
   }
 
   const migrationStatus = await runMigrations(databaseUrl);
-  if (migrationStatus.length !== 9 || migrationStatus.some((migration) => !migration.applied)) {
+  if (migrationStatus.length !== 10 || migrationStatus.some((migration) => !migration.applied)) {
     throw new Error(
       'Disposable PostgreSQL migrations did not apply the technical and identity schemas',
     );
@@ -256,7 +257,7 @@ try {
     throw new Error('Migration runner was not idempotent');
   }
   const readStatus = await getMigrationStatus(databaseUrl);
-  if (readStatus.length !== 9 || readStatus.some((migration) => !migration.applied)) {
+  if (readStatus.length !== 10 || readStatus.some((migration) => !migration.applied)) {
     throw new Error('Migration status did not report every applied migration');
   }
 
@@ -270,8 +271,11 @@ try {
     );
     const observed = tables.rows.map((row) => `${row.table_schema}.${row.table_name}`);
     const expectedTables = [
+      'platform.asset',
       'platform.asset_contract',
       'platform.asset_contract_version',
+      'platform.asset_version',
+      'platform.asset_version_lineage',
       'platform.credit_event',
       'platform.credit_integrity_incident',
       'platform.credit_ledger_entry',
@@ -285,6 +289,8 @@ try {
       'platform.job_create_idempotency',
       'platform.project',
       'platform.project_create_idempotency',
+      'platform.project_dna',
+      'platform.project_dna_version',
       'platform.security_event',
       'platform.session_revocation_intent',
       'platform.tenant',
@@ -440,6 +446,8 @@ try {
   ]);
   const projectAdminDatabase = createDatabase(databaseUrl, { max: 1 });
   let mainProjectId = '';
+  let assetCoreContractId = '';
+  let assetCoreContractVersion = 0;
   try {
     await projectAdminDatabase.pool.query(
       `INSERT INTO platform.tenant_membership (tenant_id, subject_id, role, status)
@@ -834,6 +842,8 @@ try {
     ) {
       throw new Error('Concurrent same-key Job creation did not persist exactly one UUIDv7 Job');
     }
+    assetCoreContractId = contractId;
+    assetCoreContractVersion = contractVersion;
     await runCreditLedgerIntegration({
       databaseUrl,
       appDatabaseUrl,
@@ -2821,6 +2831,16 @@ try {
     await api.stop();
   }
   await s3.send(new DeleteBucketCommand({ Bucket: bucket }));
+  await runAssetCoreIntegration({
+    databaseUrl,
+    appDatabaseUrl,
+    workerDatabaseUrl,
+    identityA,
+    identityB,
+    projectA: mainProjectId,
+    contractId: assetCoreContractId,
+    contractVersion: assetCoreContractVersion,
+  });
 } catch (error) {
   const diagnostics = await collectIntegrationDiagnostics();
   const primaryErrorStack = error instanceof Error && error.stack ? error.stack : String(error);
@@ -2865,7 +2885,7 @@ try {
 
 if (primaryError) throw new Error(redact(String(primaryError), allSecrets));
 process.stdout.write(
-  'Real-service integration: PASS (Credit Ledger reserve/commit/release/compensate, double-spend/overcommit denial, replay after lost response/reconnect, immutable postings and reconciliation; CostGuard default-DENY; column-level app/worker ACL rejection; PostgreSQL migrations/FORCE RLS; immutable Asset Contract/hash/caps; Job idempotency, conflict, crash/lease recovery and max attempts; safe API; Redis/BullMQ recovery; WO-006 identity/session regressions; authenticated SeaweedFS S3 and readiness).\n',
+  'Real-service integration: PASS (Credit Ledger reserve/commit/release/compensate, double-spend/overcommit denial, replay after lost response/reconnect, immutable postings and reconciliation; CostGuard default-DENY; column-level app/worker ACL rejection; PostgreSQL migrations/FORCE RLS; immutable Asset Contract/hash/caps; Job idempotency, conflict, crash/lease recovery and max attempts; safe API; Redis/BullMQ recovery; WO-006 identity/session regressions; authenticated SeaweedFS S3 and readiness; WO-010 Project DNA + Asset Core tenant/project isolation).\n',
 );
 process.stdout.write(
   'Migration/queue regressions: PASS (pristine PostgreSQL reports unapplied; two BullMQ probes leave no disposable queue keys).\n',

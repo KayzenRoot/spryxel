@@ -1300,7 +1300,7 @@ async function validateRuntimePoolRole(pool: Pool): Promise<void> {
           )
       )
       AND (
-        SELECT count(*) = 5 AND bool_and(
+        SELECT count(*) = 10 AND bool_and(
           relation.relrowsecurity AND relation.relforcerowsecurity
           AND pg_catalog.has_table_privilege(role.oid, relation.oid, 'SELECT')
           AND NOT pg_catalog.has_table_privilege(role.oid, relation.oid, 'INSERT')
@@ -1313,7 +1313,10 @@ async function validateRuntimePoolRole(pool: Pool): Promise<void> {
         FROM pg_catalog.pg_class relation
         JOIN pg_catalog.pg_namespace namespace ON namespace.oid = relation.relnamespace
         WHERE namespace.nspname = 'platform'
-          AND relation.relname IN ('asset_contract', 'asset_contract_version', 'durable_job', 'job_create_idempotency', 'job_attempt')
+          AND relation.relname IN (
+            'asset_contract', 'asset_contract_version', 'durable_job', 'job_create_idempotency', 'job_attempt',
+            'project_dna', 'project_dna_version', 'asset', 'asset_version', 'asset_version_lineage'
+          )
       )
       AND (
         SELECT count(*) = 6 AND bool_and(
@@ -1358,7 +1361,7 @@ async function validateRuntimePoolRole(pool: Pool): Promise<void> {
       )
       AND (
         (
-          SELECT count(*) = 13 AND bool_and(
+          SELECT count(*) = 17 AND bool_and(
             pg_catalog.has_function_privilege(role.oid, function_name, 'EXECUTE')
           )
           FROM unnest(ARRAY[
@@ -1374,13 +1377,22 @@ async function validateRuntimePoolRole(pool: Pool): Promise<void> {
             'platform.commit_credit_ledger(uuid, bigint, text, text, text)',
             'platform.release_credit_ledger(uuid, bigint, text, text, text)',
             'platform.compensate_credit_ledger(uuid, uuid, bigint, text, text, text, text)',
-            'platform.record_credit_integrity_incident(uuid, uuid, uuid, text, text, text, uuid, uuid)'
+            'platform.record_credit_integrity_incident(uuid, uuid, uuid, text, text, text, uuid, uuid)',
+            'platform.create_project_dna_version(uuid, uuid, text, text, text, text)',
+            'platform.append_project_dna_version(uuid, uuid, text, text, text, text)',
+            'platform.create_asset_version(uuid, uuid, text, text, text, text)',
+            'platform.append_asset_version(uuid, uuid, text, text, text, text)'
           ]::text[]) AS runtime_function(function_name)
         )
         AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.reconcile_jobs(integer)', 'EXECUTE')
         AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.claim_job(uuid, text, integer)', 'EXECUTE')
         AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.finish_job(uuid, uuid, uuid, text, text)', 'EXECUTE')
         AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.read_claimed_job_execution_bounds(uuid, uuid, uuid)', 'EXECUTE')
+        AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.prevent_asset_core_mutation()', 'EXECUTE')
+        AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.assert_asset_core_write_context()', 'EXECUTE')
+        AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.parse_asset_core_payload(text, text, text)', 'EXECUTE')
+        AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.parse_asset_core_provenance(text, uuid)', 'EXECUTE')
+        AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.lock_asset_core_idempotency(text, text, uuid, uuid, uuid)', 'EXECUTE')
         AND NOT EXISTS (
           SELECT 1
           FROM pg_catalog.pg_proc candidate_function
@@ -1418,6 +1430,7 @@ async function validateWorkerPoolRole(pool: Pool): Promise<void> {
     has_schema_create: boolean;
     has_only_bounded_functions: boolean;
     has_no_credit_functions: boolean;
+    has_no_asset_core_functions: boolean;
     has_no_credit_column_access: boolean;
     has_no_table_access: boolean;
   }>(`
@@ -1448,6 +1461,15 @@ async function validateWorkerPoolRole(pool: Pool): Promise<void> {
       AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.request_job_cancel(uuid)', 'EXECUTE')
       AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.reconcile_jobs_before_cancel_safe_point(integer)', 'EXECUTE')
       AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.finish_job_before_cancel_safe_point(uuid, uuid, uuid, text, text)', 'EXECUTE') AS has_only_bounded_functions,
+      NOT pg_catalog.has_function_privilege(role.oid, 'platform.create_project_dna_version(uuid, uuid, text, text, text, text)', 'EXECUTE')
+      AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.append_project_dna_version(uuid, uuid, text, text, text, text)', 'EXECUTE')
+      AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.create_asset_version(uuid, uuid, text, text, text, text)', 'EXECUTE')
+      AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.append_asset_version(uuid, uuid, text, text, text, text)', 'EXECUTE')
+      AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.prevent_asset_core_mutation()', 'EXECUTE')
+      AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.assert_asset_core_write_context()', 'EXECUTE')
+      AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.parse_asset_core_payload(text, text, text)', 'EXECUTE')
+      AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.parse_asset_core_provenance(text, uuid)', 'EXECUTE')
+      AND NOT pg_catalog.has_function_privilege(role.oid, 'platform.lock_asset_core_idempotency(text, text, uuid, uuid, uuid)', 'EXECUTE') AS has_no_asset_core_functions,
       NOT EXISTS (
         SELECT 1
         FROM pg_catalog.pg_proc candidate_function
@@ -1493,6 +1515,7 @@ async function validateWorkerPoolRole(pool: Pool): Promise<void> {
     role.has_schema_create ||
     !role.has_only_bounded_functions ||
     !role.has_no_credit_functions ||
+    !role.has_no_asset_core_functions ||
     !role.has_no_credit_column_access ||
     !role.has_no_table_access
   ) {
@@ -1683,3 +1706,23 @@ export type {
   CreditSummaryContext,
   CreditSummary as DatabaseCreditSummary,
 } from './credit-ledger.js';
+export {
+  AssetCoreRepositoryError,
+  appendAssetVersion,
+  appendProjectDnaVersion,
+  createAssetVersion,
+  createProjectDnaVersion,
+  getAssetVersion,
+  getProjectDnaVersion,
+  listAssetVersions,
+  listProjectDnaVersions,
+  restoreAssetVersion,
+  restoreProjectDnaVersion,
+} from './asset-core.js';
+export type {
+  AssetCoreProvenance,
+  AssetCoreScope,
+  AssetVersionRecord,
+  ProjectDnaVersionRecord,
+  VersionedPayloadSchema,
+} from './asset-core.js';

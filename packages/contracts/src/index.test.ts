@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
+  assetMetadataV1Schema,
   creditSummaryResponseSchema,
   healthResponseSchema,
   projectCreateRequestSchema,
+  projectDnaV1Schema,
+  provenanceV1Schema,
   readinessResponseSchema,
   safeJobSchema,
+  sha256HexSchema,
+  uuidV7Schema,
 } from './index.js';
 
 describe('platform contracts', () => {
@@ -33,6 +38,92 @@ describe('platform contracts', () => {
     expect(() => projectCreateRequestSchema.parse({ name: 'x'.repeat(121) })).toThrow();
     expect(() =>
       projectCreateRequestSchema.parse({ name: 'Studio', tenantId: 'client-choice' }),
+    ).toThrow();
+  });
+});
+
+describe('Project DNA and Asset Core v1 contracts', () => {
+  const id = '0190f000-0000-7000-8000-000000000001';
+
+  it('accepts strict UUIDv7 and content digest values while rejecting other UUID versions', () => {
+    expect(uuidV7Schema.parse(id)).toBe(id);
+    expect(uuidV7Schema.parse(id.toUpperCase())).toBe(id);
+    expect(() => uuidV7Schema.parse('0190f000-0000-4000-8000-000000000001')).toThrow();
+    expect(() => uuidV7Schema.parse('0190f000-0000-7000-7000-000000000001')).toThrow();
+    expect(sha256HexSchema.parse('a'.repeat(64))).toBe('a'.repeat(64));
+    expect(() => sha256HexSchema.parse('A'.repeat(64))).toThrow();
+  });
+
+  it('accepts bounded versioned DNA and rejects unknown, invalid, and oversized content', () => {
+    const dna = {
+      schemaVersion: 'project-dna.v1',
+      status: 'draft',
+      styleIdentity: 'hand-painted pixel fantasy',
+      palette: [{ name: 'Dusk', colors: ['#111827', '#A78BFA'] }],
+      visualReferenceIds: [id],
+      constraints: { canvas: { maxWidth: 256, maxHeight: 256 } },
+      rules: ['Keep silhouettes readable'],
+      provenance: {
+        source: 'manual',
+        actorSubjectId: id,
+        recordedAt: '2026-10-18T12:00:00.000Z',
+        sourceVersionId: null,
+      },
+    };
+    expect(projectDnaV1Schema.parse(dna)).toEqual(dna);
+    expect(() =>
+      projectDnaV1Schema.parse({ ...dna, providerUrl: 'https://example.invalid' }),
+    ).toThrow();
+    expect(() => projectDnaV1Schema.parse({ ...dna, schemaVersion: 'project-dna.v2' })).toThrow();
+    expect(() =>
+      projectDnaV1Schema.parse({ ...dna, palette: [{ name: 'bad', colors: ['red'] }] }),
+    ).toThrow();
+    expect(() => projectDnaV1Schema.parse({ ...dna, rules: ['x'.repeat(70_000)] })).toThrow();
+  });
+
+  it('validates strict asset metadata, tenant/project UUIDv7 associations, and provenance', () => {
+    const asset = {
+      schemaVersion: 'asset-metadata.v1',
+      assetType: 'character',
+      assetSubtype: 'npc',
+      name: 'Forest Keeper',
+      description: 'A non-player character.',
+      tags: ['forest', 'friendly'],
+      status: 'draft',
+      lineage: [],
+      assetContract: { id, version: 1 },
+      projectDna: { id, version: 2 },
+      dimensions: { width: 64, height: 64, frameCount: 1, fps: null },
+      paletteId: null,
+      attributes: {},
+      provenance: {
+        source: 'manual',
+        actorSubjectId: id,
+        recordedAt: '2026-10-18T12:00:00.000Z',
+        sourceVersionId: null,
+      },
+    };
+    expect(assetMetadataV1Schema.parse(asset)).toEqual(asset);
+    expect(() => assetMetadataV1Schema.parse({ ...asset, tenantId: 'caller-selected' })).toThrow();
+    expect(() =>
+      assetMetadataV1Schema.parse({
+        ...asset,
+        projectDna: { id: '0190f000-0000-4000-8000-000000000001', version: 1 },
+      }),
+    ).toThrow();
+    expect(() =>
+      assetMetadataV1Schema.parse({
+        ...asset,
+        provenance: { ...asset.provenance, secret: 'must fail closed' },
+      }),
+    ).toThrow();
+    expect(() =>
+      provenanceV1Schema.parse({
+        source: 'restore',
+        actorSubjectId: id,
+        recordedAt: 'not-a-time',
+        sourceVersionId: id,
+      }),
     ).toThrow();
   });
 });
