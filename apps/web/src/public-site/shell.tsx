@@ -32,9 +32,7 @@ function pageFromPathname(
   if (pathLocale !== locale || extraSegments.length > 0) return fallback;
   if (pathPage === undefined) return 'home';
 
-  return publicPageRoutes.has(pathPage as PublicPageSlug)
-    ? (pathPage as PublicPageSlug)
-    : fallback;
+  return publicPageRoutes.has(pathPage as PublicPageSlug) ? (pathPage as PublicPageSlug) : fallback;
 }
 
 function LeafMark() {
