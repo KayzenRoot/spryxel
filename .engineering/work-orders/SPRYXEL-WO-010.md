@@ -1,10 +1,12 @@
 # SPRYXEL-WO-010 — IMP-006 DNA + Asset Core (Phase 1 A+B OWNER ADMITTED)
 
-**Status:** OWNER_ADMITTED_PHASE1_AB / CONTEXT_LOCK_REQUIRES_PROTECTED_MERGE_FOR_EXECUTION. **Risk:** HIGH_ASSURANCE, tenant-owned durable data, forced RLS, immutable provenance. **Tracking:** [#91](https://github.com/KayzenRoot/spryxel/issues/91); [planning PR #95](https://github.com/KayzenRoot/spryxel/pull/95). **Draft source base:** `main@f544aba74c7609d3ad1bce80538e8218fe555ca8`.
+**Status:** IMPLEMENTATION_MERGED_PHASE1_AB / DOCUMENTAL_HOMOLOGATION_PENDING / CHECKPOINT_PROMOTION_NOT_AUTHORIZED. **Risk:** HIGH_ASSURANCE, tenant-owned durable data, forced RLS, immutable provenance. **Tracking:** [#91](https://github.com/KayzenRoot/spryxel/issues/91); [planning PR #95](https://github.com/KayzenRoot/spryxel/pull/95). **Draft source base:** `main@f544aba74c7609d3ad1bce80538e8218fe555ca8`.
 
 **Authority:** Owner explicitly authorized the protected docs-only squash merge of PR #95 and **admitted WO-010 Phase 1 A+B**, with documented allowlist/tests/restrictions and explicit prohibition on deployment, Phase C expansion and implementation merge without later independent audit (user directive 2026-10-18, 12:19 America/Sao_Paulo). PR #95 was protected-merged to `main@8c7ea8e7f40146dd1531f4ee772f26cc4d524e8d`. Canonical `.engineering/CHECKPOINT.json` still records `SPRYXEL_WO_009_COMPLETE`, next `SPRYXEL_DNA_ASSET_CORE_WORK_ORDER_REQUIRED` / `NOT_ADMITTED` because **canonical checkpoint promotion has not occurred and is not authorized**. This WO documents a narrower *implementation admission* within that next legal stage, not a claim that WO-010 is COMPLETE or that full Asset Core was admitted. Codex cannot begin until the admitted WO and a FRESH Context Lock are on protected main and preflight matches.
 
-## Authorized bounded implementation mission: A+B only
+## Instruções históricas de pré-implementação: escopo e gates originais A+B
+
+**Nota histórica:** o allowlist, o preflight e os gates abaixo registram as instruções emitidas antes da implementação e do merge. Permanecem como registro das restrições originais; o estado integrado e a auditoria posterior estão documentados na seção de homologação ao final deste Work Order.
 
 **A. Contracts & immutable domain models.** Add strict Zod/TS schemas and deterministic canonical JSON SHA-256 digest, versioned Project DNA v1 and Asset metadata v1 with opaque UUIDv7 identifiers, payload bounds and provenance. Stable entity IDs must not be derived from hashes; content digest is integrity evidence. Published versions are append-only; restore/fork creates a new version. Explicit tenant/project association and valid state transitions. Use existing `platform.asset_contract` and `asset_contract_version` as contract references, **not** as a duplicate asset/blob record. Never enable public asset URLs or real generation.
 
@@ -93,4 +95,21 @@ Source movement, differing fingerprint, changed current `main`, or new approved 
 
 **Approved Phase 1 implementation STOP after actual admitted code/tests:** `SPRYXEL_WO010_PHASE1_AB_CODE_AND_RLS_TESTS_READY_FOR_INDEPENDENT_HIGH_ASSURANCE_AUDIT`.
 
-**Documentation admission STOP:** `SPRYXEL_WO010_PHASE1_AB_OWNER_ADMITTED_CONTEXT_LOCK_PREPARED_WAITING_PROTECTED_DOCS_MERGE`. **Codex execution permitted only after protected admission/lock docs merge and exact preflight**, with implementation STOP as specified above. No independent audit of implementation has yet run.
+**Documentation admission STOP:** `SPRYXEL_WO010_PHASE1_AB_OWNER_ADMITTED_CONTEXT_LOCK_PREPARED_WAITING_PROTECTED_DOCS_MERGE`. **Codex execution permitted only after protected admission/lock docs merge and exact preflight**, with implementation STOP as specified above. Historical at issuance, before implementation PR #98 review: no independent audit of the implementation had yet run.
+
+
+## Registro de implementação integrada e homologação documental (2026-10-19)
+
+**Estado registrado:** somente o código/testes de Phase 1 A+B está integrado; a homologação documental está sob revisão; a conclusão canônica da WO-010 permanece pendente. Este registro não muda a admissão, o allowlist, as exclusões ou os critérios originais.
+
+- PR #98 foi squash-merged em main SHA 7d0700921933d91d266d763ea17d8c9b632e9446, com pai 414691bd734f14a37a389a02ea29aca643d7388b.
+- HEAD técnico revisado: 0ba0b78b15a533186415bfd6c4c5ae1354d357c8; tree revisado e integrado idêntico: 463fc8325d7d6b42fb29a126fd7315e55af030bf.
+- Escopo de merge reconciliado: exatamente os 11 caminhos de implementação/teste listados no diff da PR #98; nenhum arquivo de governança entrou naquele merge.
+- Os recibos locais dos testes no HEAD exato, a matriz A01–A04/B01–B08/B06-ARCH, os seis checks pós-merge e riscos estão consolidados em .engineering/evidence/SPRYXEL-WO-010-EVIDENCE.md.
+- O review HIGH_ASSURANCE publicado em PR #98 review 5565529834 aceitou a fonte e evidências para o incremento bounded com limitações registradas. O estado GitHub do review é COMMENTED; esta atualização não converte esse registro em APPROVED nem afirma uma nova execução independente de PostgreSQL.
+- O registro do review, suas limitações e a separação entre aceitação técnica e aprovação objetiva para promoção estão em .engineering/evidence/SPRYXEL-WO-010-INDEPENDENT-AUDIT.md.
+- A proposta semântica, não aprovada e não promovida, está em .engineering/checkpoint-deltas/SPRYXEL-WO-010-PROPOSED.md.
+- O Checkpoint canônico permanece em SPRYXEL_WO_009_COMPLETE. checkpointPromotion permanece NOT_AUTHORIZED; Phase C/D/E continuam NOT_ADMITTED. Nenhuma alteração é feita em CHECKPOINT.json ou CHECKPOINT.md.
+- Esta PR documental foi preparada para revisão. Este Work Order não apresenta fonte verificável e independente de autorização do proprietário para sua criação; portanto, não afirma essa aprovação. Merge, promoção do Checkpoint, deploy, release e expansão do escopo permanecem fora da autoridade registrada aqui.
+
+**Condição de fechamento:** não marcar esta WO como COMPLETE nem promover checkpoint até parecer objetivo APPROVED, aprovação/revisão protegida da proposta e autorização separada do proprietário sob D-0006.
