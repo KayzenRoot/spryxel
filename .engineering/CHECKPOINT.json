@@ -181,7 +181,7 @@
         "socketProjectReport": 118285298723
       },
       "checkpointPostMergeValidation": "PASS_6_OF_6_COMPLETED_SUCCESS_ON_EXACT_MAIN",
-      "contextLockCloseout": "STALE_PROPOSED_IN_SEPARATE_DOC_PR_PENDING_PROTECTED_MERGE"
+      "contextLockCloseout": "STALE_EFFECTIVE_ON_PROTECTED_DOCUMENTARY_CLOSEOUT_MERGE"
     }
   }
 }
