@@ -41,7 +41,7 @@
   },
   "workOrderSource": {
     "path": ".engineering/work-orders/SPRYXEL-WO-010.md",
-    "gitBlobSha": "b278be84a1e30926512bd76da2d234b776efcd73",
+    "gitBlobSha": "537a1fc2663ccaf8ed29674328956a0c8965acde",
     "authority": "OWNER_ADMITTED_PHASE1_AB_ON_PROTECTED_MAIN",
     "preLockCandidateBlob": "0debb59ffce9b35cc6d9b7b96bf293b8da4bfd0b"
   },
