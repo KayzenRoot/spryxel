@@ -4,7 +4,9 @@
 
 **Authority:** Owner explicitly authorized the protected docs-only squash merge of PR #95 and **admitted WO-010 Phase 1 A+B**, with documented allowlist/tests/restrictions and explicit prohibition on deployment, Phase C expansion and implementation merge without later independent audit (user directive 2026-10-18, 12:19 America/Sao_Paulo). PR #95 was protected-merged to `main@8c7ea8e7f40146dd1531f4ee772f26cc4d524e8d`. Canonical `.engineering/CHECKPOINT.json` still records `SPRYXEL_WO_009_COMPLETE`, next `SPRYXEL_DNA_ASSET_CORE_WORK_ORDER_REQUIRED` / `NOT_ADMITTED` because **canonical checkpoint promotion has not occurred and is not authorized**. This WO documents a narrower *implementation admission* within that next legal stage, not a claim that WO-010 is COMPLETE or that full Asset Core was admitted. Codex cannot begin until the admitted WO and a FRESH Context Lock are on protected main and preflight matches.
 
-## Authorized bounded implementation mission: A+B only
+## Instruções históricas de pré-implementação: escopo e gates originais A+B
+
+**Nota histórica:** o allowlist, o preflight e os gates abaixo registram as instruções emitidas antes da implementação e do merge. Permanecem como registro das restrições originais; o estado integrado e a auditoria posterior estão documentados na seção de homologação ao final deste Work Order.
 
 **A. Contracts & immutable domain models.** Add strict Zod/TS schemas and deterministic canonical JSON SHA-256 digest, versioned Project DNA v1 and Asset metadata v1 with opaque UUIDv7 identifiers, payload bounds and provenance. Stable entity IDs must not be derived from hashes; content digest is integrity evidence. Published versions are append-only; restore/fork creates a new version. Explicit tenant/project association and valid state transitions. Use existing `platform.asset_contract` and `asset_contract_version` as contract references, **not** as a duplicate asset/blob record. Never enable public asset URLs or real generation.
 
@@ -93,7 +95,7 @@ Source movement, differing fingerprint, changed current `main`, or new approved 
 
 **Approved Phase 1 implementation STOP after actual admitted code/tests:** `SPRYXEL_WO010_PHASE1_AB_CODE_AND_RLS_TESTS_READY_FOR_INDEPENDENT_HIGH_ASSURANCE_AUDIT`.
 
-**Documentation admission STOP:** `SPRYXEL_WO010_PHASE1_AB_OWNER_ADMITTED_CONTEXT_LOCK_PREPARED_WAITING_PROTECTED_DOCS_MERGE`. **Codex execution permitted only after protected admission/lock docs merge and exact preflight**, with implementation STOP as specified above. No independent audit of implementation has yet run.
+**Documentation admission STOP:** `SPRYXEL_WO010_PHASE1_AB_OWNER_ADMITTED_CONTEXT_LOCK_PREPARED_WAITING_PROTECTED_DOCS_MERGE`. **Codex execution permitted only after protected admission/lock docs merge and exact preflight**, with implementation STOP as specified above. Historical at issuance, before implementation PR #98 review: no independent audit of the implementation had yet run.
 
 
 ## Registro de implementação integrada e homologação documental (2026-10-19)
@@ -108,6 +110,6 @@ Source movement, differing fingerprint, changed current `main`, or new approved 
 - O registro do review, suas limitações e a separação entre aceitação técnica e aprovação objetiva para promoção estão em .engineering/evidence/SPRYXEL-WO-010-INDEPENDENT-AUDIT.md.
 - A proposta semântica, não aprovada e não promovida, está em .engineering/checkpoint-deltas/SPRYXEL-WO-010-PROPOSED.md.
 - O Checkpoint canônico permanece em SPRYXEL_WO_009_COMPLETE. checkpointPromotion permanece NOT_AUTHORIZED; Phase C/D/E continuam NOT_ADMITTED. Nenhuma alteração é feita em CHECKPOINT.json ou CHECKPOINT.md.
-- A autorização do proprietário nesta missão cobre exclusivamente preparar e submeter uma única PR documental para revisão. Ela não autoriza merge, promoção, deploy, release ou expansão do escopo.
+- Esta PR documental foi preparada para revisão. Este Work Order não apresenta fonte verificável e independente de autorização do proprietário para sua criação; portanto, não afirma essa aprovação. Merge, promoção do Checkpoint, deploy, release e expansão do escopo permanecem fora da autoridade registrada aqui.
 
 **Condição de fechamento:** não marcar esta WO como COMPLETE nem promover checkpoint até parecer objetivo APPROVED, aprovação/revisão protegida da proposta e autorização separada do proprietário sob D-0006.

@@ -8,7 +8,7 @@
 - HEAD de implementação auditado: 0ba0b78b15a533186415bfd6c4c5ae1354d357c8.
 - Merge squash e main atual: 7d0700921933d91d266d763ea17d8c9b632e9446; o commit de merge tem um pai.
 - Tree do HEAD auditado e do main pós-merge: 463fc8325d7d6b42fb29a126fd7315e55af030bf (idêntico).
-- A presente PR é documental e foi expressamente solicitada pelo proprietário nesta missão. Isso autoriza preparar e submeter esta PR para revisão; não autoriza merge, promoção do checkpoint, deploy ou fases posteriores.
+- Esta PR documental está apresentada para revisão. Este registro não fornece uma fonte verificável e independente de autorização do proprietário para sua criação; não autoriza merge, promoção do checkpoint, deploy, release ou fases posteriores.
 - A revisão HIGH_ASSURANCE confirmou 30/30 fingerprints críticos da base protegida de preflight e o blob de teste autorizado. Seis blobs de fontes pinadas mudaram no HEAD, todos dentro dos caminhos admitidos. Fonte: [review exato de PR #98](https://github.com/KayzenRoot/spryxel/pull/98#pullrequestreview-5565529834).
 - O Context Lock de execução está preservado como FRESH; checkpointPromotion continua NOT_AUTHORIZED e Phase C/D/E continuam NOT_ADMITTED.
 
@@ -63,7 +63,7 @@ Na main pós-merge, os seis checks de push disponíveis passaram: [SonarCloud](h
 |---|---|---|
 | A01 schema estrito, limites, UUIDv7 e fail-closed | PASS | testes unitários e 32 negativos SQL de payload inválido |
 | A02 JSON canônico e SHA-256 determinístico | PASS | digests persistidos; 120 variações não canônicas rejeitadas |
-| A03 imutabilidade e restore em nova versão | PASS | UPDATE/DELETE negados e RESTORE criando nova versão observados |
+| A03 imutabilidade e restore em nova versão | PASS | Harness source asserts historical UPDATE/DELETE denied; executor reported assertion pass and local trace SQLSTATE 42501. Those calls are absent from the published excerpt; see SQL evidence classification below. |
 | A04 idempotência/replay e conflito | PASS | replay preserva identidade; conflitos rejeitados |
 | B01 migration 0010 forward-only | PASS | suite PostgreSQL validou caminho de migração 9→10 |
 | B02 FORCE RLS e privilégios mínimos | PASS | integração e assertions de catálogo/ACL reportaram PASS |
@@ -75,18 +75,23 @@ Na main pós-merge, os seis checks de push disponíveis passaram: [SonarCloud](h
 | B07 checks, Sonar e Socket | PASS | 7/7 no HEAD; Sonar 22 MINOR, zero MAJOR ou superior |
 | B08 review HIGH_ASSURANCE e merge protegido | PASS para o incremento integrado | review aceitou fonte/evidência com limitações; autorização e squash protegido documentados |
 
-Trace SQL: o reviewer analisou os 188 registros publicados, 16 chamadas aceitas e 172 rejeitadas com SQLSTATE 22023: 120 variantes não canônicas, 32 payloads malformados, 16 negativas de proveniência e quatro transições RESTORE proibidas. O digest canônico permaneceu igual nos pares/replays e UPDATE/DELETE históricos receberam 42501 nos registros indicados. O executor reteve trace completo de 4.237 linhas localmente; ele não foi todo publicado nem reexecutado por outro executor PostgreSQL.
+### Classificação da evidência SQL
+
+- **Verificado no excerto publicado:** o reviewer parseou 188 registros únicos: 16 RPCs aceitas e 172 rejeições SQLSTATE 22023 (120 variantes não canônicas, 32 payloads malformados, 16 negativas de proveniência e quatro transições RESTORE proibidas). Os registros publicados incluem os digests de DNA `4fc07797075f5d83242ccd804d1a81296915508baccb87de06e0d81832c29dbf` e Asset `baf966928ef856dae4275825a92eb4a2d2dce0921a7956fe186f1d93f464b4ad` nos pares/create-append-replay observados, além das transições RESTORE publicadas.
+- **Verificado na fonte:** o harness contém assertions que esperam SQLSTATE `42501` para UPDATE/DELETE da história imutável.
+- **Reportado pelo executor, não publicado por chamada:** o executor relata que essas assertions passaram e que o trace completo local de 4.237 eventos continha as respostas `42501`. As chamadas individuais de UPDATE/DELETE não estão no excerto público de 188 eventos e não foram executadas independentemente pelo reviewer.
 
 ## Riscos residuais e follow-ups não bloqueantes
 
 1. As 48 negativas gerais de payload/proveniência verificam SQLSTATE, não texto exato; os textos observados estavam corretos.
-2. Não houve segunda execução independente do banco pelo reviewer; parte das provas de ACL, pool e isolamento é assertion/resultado agregado, não valor per-call no excerto.
+2. Não houve segunda execução independente do banco pelo reviewer; parte das provas de ACL, pool, isolamento e UPDATE/DELETE é assertion/resultado agregado ou trace local do executor, não valor por chamada no excerto público.
 3. Typecheck/build reaproveitaram cache Turbo validado; o build interno de integração também foi cache hit.
 4. Sonar registrou 22 MINOR, nenhum MAJOR+; new_lines_to_cover=0, portanto cobertura nova não foi medida e não é correto dizer “0% medido”.
 5. pg reportou warning de query concorrente/depreciação, sem falha de teste.
 6. O arquivo test-only scripts/asset-core-integration.ts tem cerca de 1.706 linhas.
+7. Durante a execução no HEAD técnico auditado, Turbo 2.11.6 acrescentou um bloco gerenciado `turborepo-agent-rules` a `AGENTS.md` no worktree. O bloco permaneceu durante comandos posteriores e foi removido pelo executor com `git checkout -- AGENTS.md`; não entrou no commit e a worktree final foi registrada limpa. O repositório não define `agentGuidance`; decidir se configura esse comportamento permanece um follow-up. Fonte: [Evidence Bundle exato](https://github.com/KayzenRoot/spryxel/pull/98#issuecomment-6256355377).
 
-Follow-ups separados: adicionar assertions de mensagens para negativas; capturar/republicar evidência per-call completa ou uma execução auditora independente se exigida; corrigir uso concorrente de client.query; triar 22 MINOR e acompanhar cobertura se houver novas linhas cobertas; avaliar modularização do harness. Nenhuma dessas tarefas foi iniciada nesta homologação.
+Follow-ups separados: adicionar assertions de mensagens para negativas; capturar/republicar evidência per-call completa ou uma execução auditora independente se exigida; corrigir uso concorrente de client.query; triar 22 MINOR e acompanhar cobertura se houver novas linhas cobertas; avaliar modularização do harness; revisar o comportamento de `agentGuidance` e decidir separadamente se deve ser configurado. Nenhuma dessas tarefas foi iniciada nesta homologação.
 
 ## Estado e limite de promoção
 

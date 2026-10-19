@@ -23,7 +23,9 @@ O reviewer registrou: “TECHNICAL SOURCE + B08 EVIDENCE REVIEW ACCEPTED FOR BOU
 
 A01, A02, A03, A04, B01, B02, B03, B04, B05, B06, B06-ARCH, B07 e B08: SUPPORTED_BY_EXACT_HEAD_EVIDENCE; review aceitou o resultado delimitado, sem afirmar uma nova execução. A matriz detalhada, comandos, logs e resultados reside em [SPRYXEL-WO-010-EVIDENCE.md](SPRYXEL-WO-010-EVIDENCE.md).
 
-A revisão parseou os 188 registros SQL publicados: 16 RPCs aceitas e 172 rejeições SQLSTATE 22023, incluindo 120 payloads não canônicos, 32 payloads malformados, 16 negativas de proveniência e 4 transições RESTORE proibidas. Digest DNA canônico 4fc07797075f5d83242ccd804d1a81296915508baccb87de06e0d81832c29dbf e Asset baf966928ef856dae4275825a92eb4a2d2dce0921a7956fe186f1d93f464b4ad foram observados nos registros de persistência/replay. UPDATE/DELETE de história receberam 42501 em registros citados pelo reviewer.
+A revisão parseou os 188 registros SQL publicados e verificou 16 RPCs aceitas e 172 rejeições SQLSTATE 22023 (120 payloads não canônicos, 32 payloads malformados, 16 negativas de proveniência e 4 transições RESTORE proibidas). O excerto publicado mostra os digests DNA 4fc07797075f5d83242ccd804d1a81296915508baccb87de06e0d81832c29dbf e Asset baf966928ef856dae4275825a92eb4a2d2dce0921a7956fe186f1d93f464b4ad em chamadas de persistência/replay. Esses eventos, incluindo as transições RESTORE publicadas, são observações verificáveis no excerto.
+
+Para UPDATE/DELETE da história, a fonte do harness contém assertions que esperam SQLSTATE 42501. O executor reportou que a execução passou e que o trace completo local continha essas respostas; as chamadas individuais não aparecem no excerto público de 188 registros. Portanto, os 42501 são classificados como assertion presente na fonte e resultado reportado pelo executor, não como observação per-call publicada nem como reexecução independente do reviewer.
 
 ## Limitações aceitas para este escopo
 
