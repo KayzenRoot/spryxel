@@ -3,7 +3,7 @@
   "kind": "spryxel.context-lock",
   "workOrderId": "SPRYXEL-WO-010",
   "implementationIncrement": "SPRYXEL-IMP-006-PHASE-1-AB",
-  "status": "FRESH",
+  "status": "STALE",
   "admission": "OWNER_ADMITTED_PHASE1_AB_ONLY_EFFECTIVE_AFTER_PROTECTED_DOCS_MERGE",
   "risk": "HIGH_ASSURANCE",
   "repository": "KayzenRoot/spryxel",
@@ -292,5 +292,30 @@
       "checkpointPromotionAuthorized": false,
       "effectiveAfter": "PROTECTED_DOCS_ONLY_MERGE_AND_EXACT_MAIN_CONTEXT_PREFLIGHT"
     }
-  ]
+  ],
+  "closure": {
+    "status": "STALE_CLOSED_AFTER_BOUNDED_PHASE_1_AB_CHECKPOINT_PROMOTION",
+    "scope": "PHASE_1_AB_ONLY",
+    "checkpointPromotionPullRequest": 102,
+    "checkpointPromotionCandidateHeadSha": "c1f475b2981b9f70ce289eaf462edc3086679415",
+    "checkpointPromotionMainSha": "81990f5492ca91a7d433f81a8a28e11d8945ac67",
+    "checkpointPromotionTreeSha": "8966160d30b54910d118f6d63353c7a5c39dbfff",
+    "checkpointPostMergeChecks": {
+      "repositoryValidation": 118285294072,
+      "pipelineIntegrity": 118285294478,
+      "gitleaksSecrets": 118285294504,
+      "trivyFilesystemAndConfiguration": 118285294382,
+      "sonarCloud": 118285643469,
+      "socketProjectReport": 118285298723
+    },
+    "checkpointPostMergeValidation": "SIX_OF_SIX_HOSTED_COMPLETED_SUCCESS",
+    "historicalDecisionBaseline": "PREFLIGHT_SNAPSHOT_NOT_CURRENT_PROMOTION_STATUS",
+    "historicalPinsRetained": true,
+    "implementationContextReuse": "PROHIBITED",
+    "fullWorkOrder": "INCOMPLETE",
+    "phaseC": "NOT_ADMITTED",
+    "phaseD": "NOT_ADMITTED",
+    "phaseE": "NOT_ADMITTED",
+    "effectiveOnlyAfter": "SEPARATE_PROTECTED_CLOSEOUT_PR_MERGE"
+  }
 }
