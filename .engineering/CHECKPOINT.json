@@ -1,10 +1,10 @@
 {
   "schemaVersion": 2,
   "status": "CANONICAL",
-  "phase": "CREDIT_LEDGER_COSTGUARD_AUTHORIZATION_FOUNDATION_COMPLETE",
-  "stopState": "SPRYXEL_WO_009_COMPLETE",
-  "completedThroughModule": "SPRYXEL_IMP_005_CREDIT_LEDGER_COSTGUARD_FOUNDATION",
-  "nextLegalStage": "SPRYXEL_DNA_ASSET_CORE_WORK_ORDER_REQUIRED",
+  "phase": "DNA_ASSET_CORE_PHASE_1_AB_COMPLETE",
+  "stopState": "SPRYXEL_WO_010_PHASE_1_AB_COMPLETE",
+  "completedThroughModule": "SPRYXEL-IMP-006-PHASE-1-AB",
+  "nextLegalStage": "SPRYXEL_DNA_ASSET_CORE_PHASE_C_OWNER_ADMISSION_AND_NEW_WORK_ORDER_CONTEXT_LOCK_REQUIRED",
   "v11": {
     "gefVersion": "1.1.1",
     "gefReleaseSourceSha": "1dc030f1358eab0347043a3d54c7fc311c7c2123",
@@ -16,11 +16,11 @@
     "correctionDelta01": "SATISFIED",
     "correctionDelta02": "SATISFIED",
     "postMergeValidation": "PASS",
-    "productImplementation": "CREDIT_LEDGER_COSTGUARD_AUTHORIZATION_FOUNDATION_COMPLETE",
+    "productImplementation": "DNA_ASSET_CORE_PHASE_1_AB_COMPLETE",
     "productBaseline": "CANONICAL_PRODUCT_MASTER_V0_6_0_DECOMPOSED",
     "planningCompletedThrough": "SPR-PLAN-007",
-    "implementationCompletedThrough": "SPRYXEL-IMP-005",
-    "nextImplementationIncrement": "SPRYXEL_DNA_ASSET_CORE",
+    "implementationCompletedThrough": "SPRYXEL-IMP-006-PHASE-1-AB",
+    "nextImplementationIncrement": "SPRYXEL_DNA_ASSET_CORE_PHASE_C",
     "nextImplementationIncrementStatus": "NOT_ADMITTED",
     "commercialPricing": "NOT_FROZEN",
     "benchmarksAndMeasuredCogs": "NOT_RUN_NOT_AVAILABLE",
@@ -120,6 +120,52 @@
       "newCodeCoveragePercent": 0.0,
       "duplicationPercent": 2.7
     },
-    "sonarIssueInventoryWorkOrder": "SPRYXEL-WO-009"
+    "sonarIssueInventoryWorkOrder": "SPRYXEL-WO-009",
+    "dnaAssetCorePhase1Ab": {
+      "promotionState": "COMPLETE_ON_PROTECTED_CHECKPOINT_PR_MERGE",
+      "workOrder": "SPRYXEL-WO-010",
+      "implementationIncrement": "SPRYXEL-IMP-006-PHASE-1-AB",
+      "phase1AbStatus": "COMPLETE_WITH_DISCLOSED_LIMITATIONS",
+      "fullWorkOrderStatus": "INCOMPLETE_PHASES_C_D_E_NOT_ADMITTED",
+      "implementationPullRequest": 98,
+      "auditedImplementationHeadSha": "0ba0b78b15a533186415bfd6c4c5ae1354d357c8",
+      "implementationMainSha": "7d0700921933d91d266d763ea17d8c9b632e9446",
+      "implementationTreeSha": "463fc8325d7d6b42fb29a126fd7315e55af030bf",
+      "documentationPullRequest": 101,
+      "documentationMainSha": "17e093491fd5365cfdced15d7930b68fa3a37bb5",
+      "documentationTreeSha": "4ba1107ceb3002dd3ea8951306ab61d5123736d5",
+      "objectiveEvidenceDisposition": "APPROVED_WITH_DISCLOSED_LIMITATIONS",
+      "reviewEvent": "COMMENTED_NOT_FORMAL_GITHUB_APPROVE",
+      "objectiveAuditSource": "https://github.com/KayzenRoot/spryxel/pull/101#issuecomment-6257497258",
+      "evidence": ".engineering/evidence/SPRYXEL-WO-010-EVIDENCE.md",
+      "independentAudit": ".engineering/evidence/SPRYXEL-WO-010-INDEPENDENT-AUDIT.md",
+      "proposedDelta": ".engineering/checkpoint-deltas/SPRYXEL-WO-010-PROPOSED.md",
+      "implementationPostMergeChecks": {
+        "sonarCloud": 117824447732,
+        "socketProjectReport": 117824299224,
+        "trivyFilesystemAndConfiguration": 117824296041,
+        "repositoryValidation": 117824295746,
+        "pipelineIntegrity": 117824295703,
+        "gitleaksSecrets": 117824295446
+      },
+      "documentationMainChecks": {
+        "sonarCloud": 117839679622,
+        "socketProjectReport": 117839417780,
+        "pipelineIntegrity": 117839403631,
+        "gitleaksSecrets": 117839403542,
+        "trivyFilesystemAndConfiguration": 117839403497,
+        "repositoryValidation": 117839403490
+      },
+      "phaseC": "NOT_ADMITTED",
+      "phaseD": "NOT_ADMITTED",
+      "phaseE": "NOT_ADMITTED",
+      "defaultCostGuardDecision": "DENY",
+      "realCostBearingExecution": "PROHIBITED",
+      "paidBalance": "NOT_ACTIVATED",
+      "commercialActivation": "NOT_ACTIVATED",
+      "publicAssetUpload": "NOT_ENABLED",
+      "productionGeneration": "NOT_ENABLED",
+      "productionProviders": "NOT_FROZEN"
+    }
   }
 }

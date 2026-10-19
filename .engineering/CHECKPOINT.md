@@ -5,7 +5,19 @@ Status: CANONICAL
 Repository: `KayzenRoot/spryxel`  
 GEF: `@gef-bootstrap/cli@1.1.1`
 
-## SPRYXEL-WO-009 pós-merge — checkpoint auditado para promoção protegida
+## SPRYXEL-WO-010 / SPRYXEL-IMP-006-PHASE-1-AB — Fase 1 A+B completa com limitações declaradas
+
+- Estado proposto nesta PR: contratos/domínio e persistência PostgreSQL da Fase 1 A+B; a WO-010 inteira permanece incompleta. O estado só se torna canônico após squash merge protegido e checks pós-merge.
+- Implementação: PR #98, HEAD auditado `0ba0b78b15a533186415bfd6c4c5ae1354d357c8`; merge main `7d0700921933d91d266d763ea17d8c9b632e9446`; tree `463fc8325d7d6b42fb29a126fd7315e55af030bf`.
+- Homologação documental: PR #101, main `17e093491fd5365cfdced15d7930b68fa3a37bb5`; tree `4ba1107ceb3002dd3ea8951306ab61d5123736d5`.
+- Parecer objetivo: `APPROVED_WITH_DISCLOSED_LIMITATIONS` somente para evidência A+B; não aprova WO-010 completa, não é GitHub APPROVE e não prova reexecução independente de PostgreSQL.
+- Checks registrados: 7/7 no HEAD documental da PR #101 e 6/6 checks de push disponíveis na main `17e0934`. Recibos locais são do HEAD `0ba0b78`; não foram reexecutados nesta homologação.
+- Evidências: `.engineering/evidence/SPRYXEL-WO-010-EVIDENCE.md` e `.engineering/evidence/SPRYXEL-WO-010-INDEPENDENT-AUDIT.md`.
+- Phase C, D e E: `NOT_ADMITTED`; cada fase requer escopo e autorização próprios.
+- CostGuard: `DENY`; execução com custo real `PROHIBITED`; saldo pago e ativação comercial `NOT_ACTIVATED`; upload público e geração de produção `NOT_ENABLED`; providers de produção `NOT_FROZEN`.
+- Próxima etapa possível: nova admissão do proprietário, Work Order e Context Lock para Phase C; nada fica automaticamente admitido.
+
+## Histórico — SPRYXEL-WO-009 pós-merge — checkpoint auditado para promoção protegida
 
 - Work Order: `SPRYXEL-WO-009 / SPRYXEL-IMP-005 — Credit Ledger + CostGuard authorization foundation` — COMPLETE após integração protegida da PR documental #88.
 - Base de execução: `main@34bad103d8066b6d31c5947c20a07ef52032c5d7`.
@@ -14,7 +26,7 @@ GEF: `@gef-bootstrap/cli@1.1.1`
 - Árvore pós-merge: `efee1dca1a54942f35ab5d0f227e3f0d24919ad8`, idêntica à árvore revisada da PR.
 - Checks no exact main: Repository validation `117263474902`, Pipeline integrity `117263474185`, Gitleaks secrets `117263474196`, Trivy filesystem and configuration `117263474575`, SonarCloud `117263669389` e Socket Project Report `117263477361`: SUCCESS.
 - Estado do checkpoint nesta PR #88: auditoria documental independente concluiu a revisão e registrou o commit de promoção `63ff547bb4c61c15ade3200fc57c55ceb1a6dd6f`. O novo estado será canônico **somente após** squash merge protegido da #88 e checks pós-merge. O SHA futuro desse merge não é antecipado.
-- Próxima etapa conforme D-153: Spryxel DNA + Asset core, `NOT_ADMITTED` até Work Order e Context Lock próprios no `main` então atual.
+- Próxima etapa registrada naquele checkpoint WO-009: Spryxel DNA + Asset core, `NOT_ADMITTED` até Work Order e Context Lock próprios no `main` então atual.
 - Limites: CostGuard default `DENY`; sem saldo pago, preço, pagamento, COGS comprovado, provider ou execução de custo real. A cobertura Sonar de código novo é 0,0%; demais limitações constam do relatório de auditoria.
 
 ## Snapshot histórico do checkpoint antes do merge de WO-009
