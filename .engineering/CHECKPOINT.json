@@ -117,12 +117,12 @@
       "major": 5,
       "minor": 28,
       "securityHotspots": 0,
-      "newCodeCoveragePercent": 0.0,
+      "newCodeCoveragePercent": 0,
       "duplicationPercent": 2.7
     },
     "sonarIssueInventoryWorkOrder": "SPRYXEL-WO-009",
     "dnaAssetCorePhase1Ab": {
-      "promotionState": "COMPLETE_ON_PROTECTED_CHECKPOINT_PR_MERGE",
+      "promotionState": "COMPLETE_AFTER_OWNER_AUTHORIZED_PROTECTED_MERGE_AND_POST_MERGE_AUDIT",
       "workOrder": "SPRYXEL-WO-010",
       "implementationIncrement": "SPRYXEL-IMP-006-PHASE-1-AB",
       "phase1AbStatus": "COMPLETE_WITH_DISCLOSED_LIMITATIONS",
@@ -165,7 +165,23 @@
       "commercialActivation": "NOT_ACTIVATED",
       "publicAssetUpload": "NOT_ENABLED",
       "productionGeneration": "NOT_ENABLED",
-      "productionProviders": "NOT_FROZEN"
+      "productionProviders": "NOT_FROZEN",
+      "checkpointPromotionPullRequest": 102,
+      "checkpointPromotionCandidateHeadSha": "c1f475b2981b9f70ce289eaf462edc3086679415",
+      "checkpointPromotionMainSha": "81990f5492ca91a7d433f81a8a28e11d8945ac67",
+      "checkpointPromotionTreeSha": "8966160d30b54910d118f6d63353c7a5c39dbfff",
+      "checkpointPromotionObjectiveDisposition": "APPROVED_FOR_PHASE_1_AB_CHECKPOINT_MERGE_CONDITIONAL_OWNER_AUTH_SATISFIED",
+      "checkpointReviewSource": "https://github.com/KayzenRoot/spryxel/pull/102",
+      "checkpointPostMergeChecks": {
+        "repositoryValidation": 118285294072,
+        "pipelineIntegrity": 118285294478,
+        "gitleaksSecrets": 118285294504,
+        "trivyFilesystemAndConfiguration": 118285294382,
+        "sonarCloud": 118285643469,
+        "socketProjectReport": 118285298723
+      },
+      "checkpointPostMergeValidation": "PASS_6_OF_6_COMPLETED_SUCCESS_ON_EXACT_MAIN",
+      "contextLockCloseout": "STALE_PROPOSED_IN_SEPARATE_DOC_PR_PENDING_PROTECTED_MERGE"
     }
   }
 }
