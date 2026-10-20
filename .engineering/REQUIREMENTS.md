@@ -5,15 +5,15 @@ Source: Product Master v0.6.0; stable decision ownership remains in DECISIONS-LE
 
 ## Governance requirements
 
-- REQ-GOV-001: Keep GEF Bootstrap CLI pinned exactly to 1.1.1 until a separately admitted upgrade.
+- REQ-GOV-001 (SUPERSEDED 2026-10-20): GEF Bootstrap is no longer a dependency. Follow build-first development with small GitHub PRs and product-specific test workflows.
 - REQ-GOV-002: Use GitHub for durable task and evidence transport; keep canonical decisions versioned in this repository.
-- REQ-GOV-003: Bound each implementation increment with a stable Work Order and Context Lock.
-- REQ-GOV-004: Codex executes implementation, tests, and CI; ChatGPT specifies and audits.
+- REQ-GOV-003 (SUPERSEDED): Historical Work Orders and Context Locks are archival; ordinary product changes require an issue/PR scope and suitable tests, not admission or a fresh lock.
+- REQ-GOV-004 (UPDATED): Codex, ChatGPT and contributors may prepare scoped product changes using ordinary branches and PRs; test results and reviews remain evidence, not delegated unchecked self-approval.
 - REQ-GOV-005: Prove exact check contexts exist and pass before requiring them in a ruleset.
 - REQ-GOV-006: Protect main against deletion and non-fast-forward updates and require PR integration.
 - REQ-GOV-007: Introduce no bypass actor by default.
 - REQ-GOV-008: Read back provider-side changes as evidence.
-- REQ-ASSURE-001: Preserve the established npm/GEF identity, doctor, deterministic status, checkpoint-schema, and repository-cleanliness proofs.
+- REQ-ASSURE-001 (SUPERSEDED): Verify reproducible npm installation, application build and relevant unit/integration/browser checks. Keep historical checkpoint receipts as archival provenance, not operational blockers.
 - REQ-ASSURE-002: Keep repository validation, pipeline integrity, Gitleaks, and Trivy in the governance CI profile.
 - REQ-ASSURE-003: Pin third-party Actions immutably and use least-privilege permissions.
 - REQ-ASSURE-004: Unresolved HIGH or CRITICAL findings block advancement.

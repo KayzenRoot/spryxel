@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main, codex/spryxel-wo-001-gef-github-governance]
+    branches: [main]
   workflow_dispatch:
 
 permissions:

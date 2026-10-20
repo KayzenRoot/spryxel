@@ -24,8 +24,8 @@ A Work Order/Context Lock is STALE if its base SHA changes or a critical authori
 
 ## Current bindings
 - Repository: `KayzenRoot/spryxel`
-- GEF package: `@gef-bootstrap/cli@1.1.1`
-- GEF v1.1.1 immutable release source: `KayzenRoot/gef-bootstrap@1dc030f1358eab0347043a3d54c7fc311c7c2123`
+- Active development framework: repository-native build-first GitHub PRs + product-specific tests, no GEF CLI.
+- Historical GEF v1.1.1 release record: archived provenance only, not an active execution dependency or prerequisite.
 - Product seed: v0.6.0 / `cbb93ec44886eba6cc9b24a072eb23e0ad5ea05a`
 - Last **fully** completed Work Order: `SPRYXEL-WO-009 / SPRYXEL-IMP-005`; `v11.lastApprovedWorkOrder=SPRYXEL-WO-009` retains that historical full-WO identity.
 - Latest bounded canonical promotion: `SPRYXEL-WO-010 / SPRYXEL-IMP-006-PHASE-1-AB`, **Phase 1 A+B only**, on protected PR #102; the full WO-010 remains INCOMPLETE.
@@ -120,3 +120,7 @@ Six post-promotion GitHub check runs on exact `main@81990f5492ca91a7d433f81a8a28
 The versioned `.engineering/evidence/SPRYXEL-WO-010-INDEPENDENT-AUDIT.md` is a **historical** Phase A+B technical review; its then-pending checkpoint-promotion verdict must be interpreted in its original time context. The later checkpoint-specific objective candidate disposition is recorded in [PR #102](https://github.com/KayzenRoot/spryxel/pull/102). This documentation-only closeout proposes `STALE` closure of the completed execution Context Lock while preserving historical critical-source fingerprints and original preflight decision fields. The lock becomes canonically closed only if this separate closeout PR is reviewed and owner-authorized for protected merge.
 
 Checkpoint `SPRYXEL_WO_010_PHASE_1_AB_COMPLETE` records *only A+B*. `v11.lastApprovedWorkOrder` remains WO-009 as expressly ratified; Phase C/D/E are NOT_ADMITTED, CostGuard remains `DENY`, real-cost execution remains `PROHIBITED` and public upload, production generation and commercial activation remain disabled. Do not infer deploy, release, model/provider selection, funding, full WO closure or future implementation admission.
+
+## Post-GEF operational supersession (owner-directed, 2026-10-20)
+
+This Source Pack is a **product-domain reference**, not an admission/Context Lock dependency for new ordinary code changes. Original GEF/Work Order/Context Lock/Checkpoint enforcement wording below documents the historical execution model and remains traceable, not active instructions. Current workflow is `AGENTS.md` + `docs/BUILD_FIRST.md` + GitHub PR/CI. Preserve existing product authorization, RLS, secret handling, cost guard and no-production-deploy boundaries; removing a tool does not permit bypassing security. Old evidence and Checkpoint remain read-only history. GitHub rulesets are separately configured in GitHub Settings and are not removed by this document.

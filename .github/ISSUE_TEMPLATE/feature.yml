@@ -1,0 +1,21 @@
+name: Feature or defect
+description: Track a practical Spryxel feature, test or bug without GEF admission.
+title: "[Spryxel] "
+body:
+  - type: textarea
+    id: objective
+    attributes:
+      label: Expected product behavior
+      description: What should work, and for whom?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Suggested scope and files
+      description: Smallest implementable change and dependencies.
+  - type: textarea
+    id: test
+    attributes:
+      label: Acceptance tests
+      description: Unit, real PostgreSQL/RLS, worker, browser, or security regression.
