@@ -7,9 +7,13 @@ Read in order: `.engineering/CHECKPOINT.json`, Decisions Ledger/ADRs, Scope, Def
 Codex executes only an explicitly admitted Work Order and its current Context Lock. Inspect the exact base before mutation. Do not invent missing product decisions or provider selections.
 
 ## Current execution
-`SPRYXEL-WO-009 / SPRYXEL-IMP-005` is APPROVED and code-merged at `main@f1ce1df2dad7aabb45dd7d725d31821f30e21a2c`, with canonical COMPLETE effective upon protected merge of auditor-reviewed checkpoint PR #88. The WO-009 Context Lock is historical and must remain stale/closed after this promotion; do not reuse it.
+The **last fully completed Work Order** remains `SPRYXEL-WO-009 / SPRYXEL-IMP-005`, as recorded by `v11.lastApprovedWorkOrder=SPRYXEL-WO-009` in the canonical Checkpoint. Its protected closeout was PR #88; its Context Lock is historical/stale and MUST NOT be reused.
 
-The next NECESSARY slice is Spryxel DNA + Asset core. It remains `NOT_ADMITTED` until a new Work Order and Context Lock are created from the then-current `main` base.
+The latest **bounded, approved and checkpoint-promoted implementation increment** is `SPRYXEL-WO-010 / SPRYXEL-IMP-006-PHASE-1-AB`: Project DNA + Asset Core **Phase 1 A+B only**, with disclosed test/evidence limitations. Implementation PR #98, documentary homologation PR #101, bounded Checkpoint promotion PR #102, and post-promotion documentary closeout PR #103 are integrated; the final closeout main is `8205ea9ac5f76a83280fb488765a89a0b92d2e26`. The WO-010 historical A+B execution Context Lock is now `STALE` and not reusable. The full WO-010 remains `INCOMPLETE_PHASES_C_D_E_NOT_ADMITTED`, never COMPLETE by implication.
+
+The next candidate is **Phase C** (private tenant/project-scoped S3-compatible asset storage authorization and bounded API ports), but it remains **`NOT_ADMITTED`**, as do Phases D/E. `SPRYXEL_DNA_ASSET_CORE_PHASE_C_OWNER_ADMISSION_AND_NEW_WORK_ORDER_CONTEXT_LOCK_REQUIRED` is a *next legal stage*, not execution authority. Any implementation needs a **separately owner-admitted Work Order and fresh, base-pinned Context Lock** on then-current protected main, scoped allowlist, test/security evidence and independent review. A draft readiness plan in `.engineering/plans/SPRYXEL-PHASE-C-READINESS.md` is `PROPOSAL_ONLY` and confers no authority. CostGuard remains `DENY`, real-cost execution `PROHIBITED`, public uploads and production generation disabled, and production storage provider `NOT_FROZEN`; local/test S3 compatibility uses SeaweedFS under existing canonical decisions.
+
+Historical SHA references above are evidence, not substitute Context Lock fingerprints for new work. Always consult the current `.engineering/CHECKPOINT.json` and `.engineering/SOURCE-HIERARCHY.md` before acting.
 
 ## Safety
 No force-push, history rewrite, destructive GitHub mutation, visibility change or executor self-promotion. Checkpoint promotion is an auditor action after objective `APPROVED`, under D-0006. Critical source/base drift makes an execution Context Lock STALE. Missing required permissions means BLOCKED, not weakened controls.
