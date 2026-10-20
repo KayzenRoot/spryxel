@@ -1,10 +1,12 @@
 # Source Hierarchy
 
-Status: CANONICAL
+Status: CANONICAL PRODUCT DOMAIN REFERENCE / GEF EXECUTION PROCESS ARCHIVAL
+
+> **Active workflow**: `AGENTS.md` and `docs/BUILD_FIRST.md`; ordinary scoped PRs with product tests, not GEF, Context Lock, WO admission or Checkpoint promotion. The ranked source hierarchy below is historical provenance for prior approvals, **not** a current blocker for implementing approved product scope.
 
 ## Authority
 When sources conflict, use this order:
-1. CHECKPOINT (machine then human projection)
+1. CHECKPOINT (machine then human projection; historical product progress and audit facts only after GEF retirement)
 2. Decisions Ledger / approved ADRs
 3. Scope
 4. Definition of Done
@@ -24,12 +26,12 @@ A Work Order/Context Lock is STALE if its base SHA changes or a critical authori
 
 ## Current bindings
 - Repository: `KayzenRoot/spryxel`
-- GEF package: `@gef-bootstrap/cli@1.1.1`
-- GEF v1.1.1 immutable release source: `KayzenRoot/gef-bootstrap@1dc030f1358eab0347043a3d54c7fc311c7c2123`
+- Active development framework: repository-native build-first GitHub PRs + product-specific tests, no GEF CLI.
+- Historical GEF v1.1.1 release record: archived provenance only, not an active execution dependency or prerequisite.
 - Product seed: v0.6.0 / `cbb93ec44886eba6cc9b24a072eb23e0ad5ea05a`
 - Last **fully** completed Work Order: `SPRYXEL-WO-009 / SPRYXEL-IMP-005`; `v11.lastApprovedWorkOrder=SPRYXEL-WO-009` retains that historical full-WO identity.
 - Latest bounded canonical promotion: `SPRYXEL-WO-010 / SPRYXEL-IMP-006-PHASE-1-AB`, **Phase 1 A+B only**, on protected PR #102; the full WO-010 remains INCOMPLETE.
-- Next legal implementation: DNA + Asset Core Phase C, `NOT_ADMITTED` until a separately admitted new Work Order and Context Lock; Phases D/E also `NOT_ADMITTED`.
+- Next product work: DNA + Asset Core Phase C and later D/E remain **unimplemented**; the former framework recorded them as `NOT_ADMITTED` historically. Under build-first, the owner may authorize bounded implementation in a normal branch/PR, without a GEF Work Order/Context Lock gate.
 
 Post-release commits in the GEF repository may be consulted only for evidence about publication/rollout. They do not redefine the installed v1.1.1 runtime contract.
 
@@ -37,7 +39,7 @@ Post-release commits in the GEF repository may be consulted only for evidence ab
 
 SPRYXEL-WO-004 / SPR-PLAN-007 was objectively audited and promoted. D-123…D-153 and the implementation-planning documents are canonical; they do not supersede or edit D-001…D-122. The historical execution Context Lock is stale/closed after promotion.
 
-Within this increment, the authority order above still applies. The Decisions Ledger owns the decision IDs; `IMPLEMENTATION-ARCHITECTURE.md` integrates process/domain boundaries; `RUNTIME-STACK.md`, `REPOSITORY-TOPOLOGY.md`, `PHYSICAL-DATA-CONVENTIONS.md`, `API-FOUNDATION-CONTRACT.md`, `LOCAL-DEVELOPMENT.md`, `IMPLEMENTATION-SEQUENCE.md` and `FIRST-IMPLEMENTATION-SLICE.md` detail those decisions; the dependency/open-choice matrix captures edge rules and intentional deferrals. These files are canonical planning, not implemented state. The immutable v0.6.0 seed, GEF 1.1.1 release and `.gef` baseline remain unchanged.
+Within this increment, the authority order above still applies. The Decisions Ledger owns the decision IDs; `IMPLEMENTATION-ARCHITECTURE.md` integrates process/domain boundaries; `RUNTIME-STACK.md`, `REPOSITORY-TOPOLOGY.md`, `PHYSICAL-DATA-CONVENTIONS.md`, `API-FOUNDATION-CONTRACT.md`, `LOCAL-DEVELOPMENT.md`, `IMPLEMENTATION-SEQUENCE.md` and `FIRST-IMPLEMENTATION-SLICE.md` detail those decisions; the dependency/open-choice matrix captures edge rules and intentional deferrals. These files are canonical planning, not implemented state. The immutable v0.6.0 seed and prior GEF 1.1.1 release references are historical Git evidence; the `.gef/` working-tree files are removed by this migration.
 
 
 ## SPRYXEL-WO-005 preflight supersession binding
@@ -120,3 +122,7 @@ Six post-promotion GitHub check runs on exact `main@81990f5492ca91a7d433f81a8a28
 The versioned `.engineering/evidence/SPRYXEL-WO-010-INDEPENDENT-AUDIT.md` is a **historical** Phase A+B technical review; its then-pending checkpoint-promotion verdict must be interpreted in its original time context. The later checkpoint-specific objective candidate disposition is recorded in [PR #102](https://github.com/KayzenRoot/spryxel/pull/102). This documentation-only closeout proposes `STALE` closure of the completed execution Context Lock while preserving historical critical-source fingerprints and original preflight decision fields. The lock becomes canonically closed only if this separate closeout PR is reviewed and owner-authorized for protected merge.
 
 Checkpoint `SPRYXEL_WO_010_PHASE_1_AB_COMPLETE` records *only A+B*. `v11.lastApprovedWorkOrder` remains WO-009 as expressly ratified; Phase C/D/E are NOT_ADMITTED, CostGuard remains `DENY`, real-cost execution remains `PROHIBITED` and public upload, production generation and commercial activation remain disabled. Do not infer deploy, release, model/provider selection, funding, full WO closure or future implementation admission.
+
+## Post-GEF operational supersession (owner-directed, 2026-10-20)
+
+This Source Pack is a **product-domain reference**, not an admission/Context Lock dependency for new ordinary code changes. Original GEF/Work Order/Context Lock/Checkpoint enforcement wording below documents the historical execution model and remains traceable, not active instructions. Current workflow is `AGENTS.md` + `docs/BUILD_FIRST.md` + GitHub PR/CI. Preserve existing product authorization, RLS, secret handling, cost guard and no-production-deploy boundaries; removing a tool does not permit bypassing security. Old evidence and Checkpoint remain read-only history. GitHub rulesets are separately configured in GitHub Settings and are not removed by this document.

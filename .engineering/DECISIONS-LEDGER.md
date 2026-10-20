@@ -851,3 +851,7 @@ Source: Auth provider preflight, 2026-10-02.
 Decision: Tenant authorization/RLS correctness must be provable in deterministic local/CI tests without requiring live provider credentials. Tests include local JWT/JWKS contract fixtures, invalid signature/issuer/audience/expiry cases and real PostgreSQL cross-tenant RLS evidence. Optional provider staging smoke is additive when credentials exist. No fake/local identity adapter may be enabled in production configuration.
 Status: APPROVED FOR PLANNING
 Source: Auth provider preflight, 2026-10-02.
+
+## Owner-directed framework supersession, 2026-10-20
+
+The owner replaced active GEF Bootstrap / historical mandatory Work Order admission / executable Context Lock / checkpoint promotion workflow with CoinBlink-style build-first development. D-0001 and the GEF-dependent execution-process clauses of D-0006/D-0007 and legacy implementation reviews remain immutable **historical decisions only**, not current prerequisites for feature branches or GitHub PRs. Do not falsify/delete past evidence. Product/domain decisions D-001..D-161, tenant isolation, PostgreSQL FORCE RLS, CostGuard default DENY, signed storage access boundaries, licensing/security requirements and explicit no-deploy/no-paid-spend policy are **not** superseded. GitHub ruleset #24340349 is separately configured and continues enforcing its four checks unless changed via GitHub Settings; do not claim it is gone because this file changed.

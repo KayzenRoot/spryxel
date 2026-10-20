@@ -1,31 +1,23 @@
-## Work Order
+## Feature or fix
 
-- ID and issue:
-- Context Lock:
-- Bound base SHA:
+- GitHub issue / module:
+- Visible outcome:
+- Scope and changed paths:
 
-## Scope
+## Build and tests
 
-- [ ] Changes stay within the admitted Work Order.
-- [ ] No product implementation was introduced unless separately admitted.
+- `npm ci` / build result:
+- Relevant focused unit, integration, worker or browser regressions:
+- Exact-head CI check status (do not reuse old SHA evidence):
+- Known limits or untested cases:
 
-## Validation
+## Security and rollout
 
-- Commands and local results:
-- Exact-head GitHub check runs:
+- Tenant isolation / auth / RLS / CostGuard impact:
+- Public endpoints or credential changes:
+- Provider/security-control changes: before/after evidence, no secret contents, production authorization:
+- Deployment or paid provider required? (default **NO**)
 
-## Provider changes
+## Merge decision
 
-- Before/after snapshot:
-- Read-back evidence:
-
-## GEF drift reconciliation
-
-- Baseline reference and fingerprint:
-- Changed paths and authorization source:
-
-## Evidence and checkpoint
-
-- Evidence Bundle:
-- Proposed Checkpoint Delta:
-- Stop condition:
+No automatic merge. Owner confirmation and actual repository settings apply.

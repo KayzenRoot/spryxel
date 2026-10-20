@@ -1,39 +1,25 @@
-# Spryxel Agent Contract
+# Spryxel development instructions
 
-## Authority
-Read in order: `.engineering/CHECKPOINT.json`, Decisions Ledger/ADRs, Scope, Definition of Done, Architecture, Requirements, then specialized canonical sources. Git/code/tests/provider evidence govern descriptive state.
+## Build the product first
 
-## Executor boundary
-Codex executes only an explicitly admitted Work Order and its current Context Lock. Inspect the exact base before mutation. Do not invent missing product decisions or provider selections.
+Follow the same practical development pattern as CoinBlink: implement working Spryxel features in small, reviewable branches/PRs. **GEF Bootstrap is not installed, and no GEF CLI, mandatory Work Order, Context Lock, checkpoint promotion or extra governance admission is required for ordinary implementation.** Use GitHub Issues/PRs to track scope and tests; prefer actual working code over repeated planning cycles.
 
-## Current execution
-The **last fully completed Work Order** remains `SPRYXEL-WO-009 / SPRYXEL-IMP-005`, as recorded by `v11.lastApprovedWorkOrder=SPRYXEL-WO-009` in the canonical Checkpoint. Its protected closeout was PR #88; its Context Lock is historical/stale and MUST NOT be reused.
+Start with `README.md` and `docs/BUILD_FIRST.md`. Spryxel is a Node 22/npm monorepo with Next.js web, Fastify API, worker, PostgreSQL, Redis and a local/test S3-compatible adapter. **Do not copy CoinBlink's Astro/D1 commands into this stack.**
 
-The latest **bounded, approved and checkpoint-promoted implementation increment** is `SPRYXEL-WO-010 / SPRYXEL-IMP-006-PHASE-1-AB`: Project DNA + Asset Core **Phase 1 A+B only**, with disclosed test/evidence limitations. Implementation PR #98, documentary homologation PR #101, bounded Checkpoint promotion PR #102, and post-promotion documentary closeout PR #103 are integrated; the final closeout main is `8205ea9ac5f76a83280fb488765a89a0b92d2e26`. The WO-010 historical A+B execution Context Lock is now `STALE` and not reusable. The full WO-010 remains `INCOMPLETE_PHASES_C_D_E_NOT_ADMITTED`, never COMPLETE by implication.
+## Development and validation
 
-The next candidate is **Phase C** (private tenant/project-scoped S3-compatible asset storage authorization and bounded API ports), but it remains **`NOT_ADMITTED`**, as do Phases D/E. `SPRYXEL_DNA_ASSET_CORE_PHASE_C_OWNER_ADMISSION_AND_NEW_WORK_ORDER_CONTEXT_LOCK_REQUIRED` is a *next legal stage*, not execution authority. Any implementation needs a **separately owner-admitted Work Order and fresh, base-pinned Context Lock** on then-current protected main, scoped allowlist, test/security evidence and independent review. A draft readiness plan in `.engineering/plans/SPRYXEL-PHASE-C-READINESS.md` is `PROPOSAL_ONLY` and confers no authority. CostGuard remains `DENY`, real-cost execution `PROHIBITED`, public uploads and production generation disabled, and production storage provider `NOT_FROZEN`; local/test S3 compatibility uses SeaweedFS under existing canonical decisions.
+Run `npm ci --ignore-scripts`, `npm run build`, and run `npm run dev` to inspect UI/API locally. Use focused `npm run test:unit`, `npm run test:worker`, `npm run test:integration` (disposable PostgreSQL/Redis/SeaweedFS and Docker) or `npm run test:browser` (Chromium) when affected. CI uses a CoinBlink-style always-on build and path-filtered module tests. Fix reproducible regressions, keep `main` usable, do not invent passing local tests.
 
-Historical SHA references above are evidence, not substitute Context Lock fingerprints for new work. Always consult the current `.engineering/CHECKPOINT.json` and `.engineering/SOURCE-HIERARCHY.md` before acting.
+## Product protections remain non-negotiable
 
-## Safety
-No force-push, history rewrite, destructive GitHub mutation, visibility change or executor self-promotion. Checkpoint promotion is an auditor action after objective `APPROVED`, under D-0006. Critical source/base drift makes an execution Context Lock STALE. Missing required permissions means BLOCKED, not weakened controls.
+Preserve canonical PostgreSQL tenant/project membership and FORCE RLS, immutable DNA/Asset versions and provenance, WorkOS session verification, fail-closed CostGuard, private object access and data integrity. Do not commit secrets, do not weaken authentication or cross-tenant isolation, and do not turn on real paid/production GPU, provider, storage, payment, deployment or release without distinct owner consent. Avoid rewriting applied SQL migrations or Git history. No silent bypass of GitHub settings or failed checks.
 
-## Agent skills
+## Current product state
 
-### Matt Pocock skill invocation
+Identity/Tenancy, Projects, durable Job/Asset Contract, credit ledger/CostGuard and DNA/Asset core **Phase A+B** have existing implementations. Phase C private storage/API, Phase D and Phase E are **not implemented or admitted by the previous system**. Their draft proposals, including PR #105, are suggestions, not executable authority or proof that a feature works. Under the new build-first approach the owner can scope future implementation directly in a normal issue/PR; until then, do not claim Phase C implemented.
 
-When the `mattpocock-skills` plugin is available, automatically use a model-invoked skill whose description matches the current task; these skills do not require the user to type a slash command. Use `/ask-matt` when skill routing is unclear. User-invoked workflows remain user-led. Do not force-fit a skill or let it override the user's request, this repository's governance/security rules, or deterministic evidence.
+The `.engineering/` Source Pack and `CHECKPOINT` are **historical/product reference** materials. Their prior GEF-related execution gates are superseded for development; do not fabricate or delete past evidence. Runtime/test behavior and current code supersede stale implementation-status prose. Keep security/economic domain decisions.
 
-Prefer deterministic Git, text search, AST, hashes, tests, lint, typecheck, and build checks whenever they are sufficient. Use Jev only when available and useful for bounded context relevance, triage, classification, reranking, claim verification, comparison, or explicit-gate decisions. Jev output is advisory; never send it secrets or credentials.
+## Collaboration
 
-### Issue tracker
-
-Issues and specs for this repository live in GitHub Issues. Use the `gh` CLI and follow `docs/agents/issue-tracker.md`.
-
-### Triage labels
-
-Use `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, and `wontfix` for the five canonical triage roles. Follow `docs/agents/triage-labels.md`.
-
-### Domain docs
-
-Follow `.engineering/SOURCE-HIERARCHY.md` and the canonical `.engineering/` Source Pack for domain vocabulary and decisions. See `docs/agents/domain.md` for Spryxel-specific paths; generic skills examples must never replace an approved decision.
+Use the CoinBlink-style concise PR reviews and explicit clickable choice/authorization controls when available; they request consent and never auto-merge. See `docs/CHAT_WORKFLOW_AND_HANDOFF.md`. Do not merge or deploy without actual authorization.

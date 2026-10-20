@@ -1,57 +1,38 @@
-name: Repository validation
+name: Spryxel build
 
 on:
   pull_request:
     branches: [main]
   push:
-    branches: [main, codex/spryxel-wo-001-gef-github-governance]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: repository-validation-${{ github.event.pull_request.number || github.ref }}
+  group: spryxel-build-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  validate:
+  build:
     name: Repository validation
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
     steps:
-      - name: Check out exact PR head
+      - name: Checkout exact candidate
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
-      - name: Set up Node.js 22
+      - name: Node.js 22
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22
+          node-version: '22.23.3'
           cache: npm
-      - name: Install exact lockfile dependencies
+      - name: Install locked dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Verify exact GEF CLI identity
-        shell: bash
-        run: |
-          set -euo pipefail
-          npx --no-install gef --version --json > "$RUNNER_TEMP/gef-version.json"
-          node -e 'const fs=require("node:fs"); const x=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); if(x.ok!==true || x.name!=="gef" || x.version!=="1.1.1") { console.error(x); process.exit(1); }' "$RUNNER_TEMP/gef-version.json"
-      - name: Validate GEF doctor and checkpoint governance
-        shell: bash
-        run: |
-          set -euo pipefail
-          npx --no-install gef doctor --target "$GITHUB_WORKSPACE" --json > "$RUNNER_TEMP/gef-doctor.json"
-          node -e 'const fs=require("node:fs"); const x=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); const d=x.value?.doctor; if(x.ok!==true || x.terminal!=="SUCCEEDED" || d?.governance?.present!==true || d?.governance?.readable!==true || d?.governance?.valid!==true) { console.error(x); process.exit(1); }' "$RUNNER_TEMP/gef-doctor.json"
-      - name: Verify deterministic GEF status
-        shell: bash
-        run: |
-          set -euo pipefail
-          npx --no-install gef status --target "$GITHUB_WORKSPACE" --json > "$RUNNER_TEMP/gef-status-1.json"
-          npx --no-install gef status --target "$GITHUB_WORKSPACE" --json > "$RUNNER_TEMP/gef-status-2.json"
-          cmp "$RUNNER_TEMP/gef-status-1.json" "$RUNNER_TEMP/gef-status-2.json"
-          node -e 'const fs=require("node:fs"); const x=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); const s=x.value?.status; if(x.ok!==true || x.terminal!=="SUCCEEDED" || s?.driftBaseline?.state!=="RECORDED" || typeof s?.drift?.changed!=="boolean") { console.error(x); process.exit(1); }' "$RUNNER_TEMP/gef-status-1.json"
-      - name: Validate checkpoint schema
-        run: |
-          node -e 'const fs=require("node:fs"); const x=JSON.parse(fs.readFileSync(".engineering/CHECKPOINT.json","utf8")); if(x.schemaVersion!==2 || x.v11?.gefVersion!=="1.1.1") { console.error(x); process.exit(1); }'
+      - name: Build app and packages
+        run: npm run build
+      - name: Check architecture and tenant boundaries
+        run: npm run architecture:check

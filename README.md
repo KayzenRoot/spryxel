@@ -1,24 +1,22 @@
-# Spryxel platform foundation
+# Spryxel
 
-This repository contains the bounded SPRYXEL-IMP-001 platform bootstrap: a minimal web shell, health/readiness API, separate worker process, and shared technical packages. Product authentication, tenancy, billing, generation, asset workflows, AI/model execution, and production storage providers are outside this slice.
+AI Game Asset Platform in a Node.js 22/npm monorepo. Development follows the same **build-first, GitHub PR, modular CI** pattern as CoinBlink, adapted to Spryxel's actual stack. **GEF Bootstrap is no longer an active dependency or execution gate.**
 
-## Local runtime
+## Local development
 
-- Node.js `22.23.3` and npm `10.9.9` are the validated runtime/tool versions.
-- Install the single workspace graph with `npm ci --ignore-scripts`.
-- Start the local PostgreSQL, Redis, and authenticated S3-compatible SeaweedFS profile with `npm run infra:up`. It binds service ports to loopback and writes generated local credentials to the ignored `.env.local-infra` file.
-- Stop those containers with `npm run infra:down`. The local named data volumes and ignored credentials stay in place.
-- Start the web shell, API, and idle worker with `npm run dev`.
+- Node.js `22.23.3`, npm `10.9.9`; `npm ci --ignore-scripts`.
+- `npm run dev` runs web/API/worker development services.
+- `npm run infra:up` starts local-only PostgreSQL, Redis and authenticated SeaweedFS test stack using ignored local credentials. `npm run infra:down` stops it.
+- `npm run build` compiles all workspaces. `npm run architecture:check` checks architecture boundaries.
+- Focused regressions: `npm run test:unit`, `npm run test:worker`, `npm run test:integration` (Docker required), `npm run test:browser` (Chromium required).
+- `npm run lint`, `npm run typecheck`, `npm run format:check` when relevant. No production deploy, external credentials, paid service or release is part of development CI.
 
-The API reads typed values documented in `.env.example`; secret values are not committed. The worker starts with no product job consumers. Database migrations run only through the explicit `npm run db:migrate` command against a configured database.
+## Current scope
 
-## Validation
+Existing modules include identity/tenancy, Projects and shell, Asset Contract and durable Jobs, credit ledger/CostGuard, and Phase A+B DNA/Asset Core. Private storage/API Phase C and later D/E have only proposals; do not present planned endpoints or generation as implemented. Production object storage provider, GPU model and commercial pricing remain unfrozen; CostGuard defaults to deny. Preserve auth and cross-tenant RLS regressions.
 
-Run `npm run format`, `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm run build`, `npm run architecture:check`, and `npm test`. The integration suite builds isolated, randomized Docker services, checks authenticated S3 operations and real PostgreSQL/Redis connections, then removes its containers and named volumes. The browser smoke suite uses headless Chromium.
+## Workflow
 
-GEF remains pinned at `@gef-bootstrap/cli@1.1.1`; its doctor and status commands remain available as `npm run gef:doctor` and `npm run gef:status`.
+Read [build-first guide](docs/BUILD_FIRST.md) and [chat approval conventions](docs/CHAT_WORKFLOW_AND_HANDOFF.md). Work on a focused branch, verify build and affected tests, open a PR and apply protected GitHub settings as configured. Independent review on risky auth/RLS/cost work is recommended, without historical GEF admission rituals.
 
-
-## Canonical implementation status
-
-SPRYXEL-IMP-001 is COMPLETE under SPRYXEL-WO-005 after objective audit, canonical promotion, squash merge and post-merge validation. This repository contains the canonical platform foundation only. Identity/Tenancy and later product capabilities are not yet admitted.
+The existing `.engineering/` documents and past commits are **historical engineering/product records**, not active GEF requirements. Keep evidence and product definitions; remove obsolete CLI tool bindings instead of erasing historical Git history.

@@ -44,3 +44,7 @@ The executor evidence must also prove no product code, app/package scaffold, pro
 ## Future production-asset release gate
 
 A product pipeline is eligible for paid Production only after applicable contract/integrity/quality gates, license review, fixed benchmark version, qualified and reproducible pipeline evidence, Golden Asset regression, measured cost per accepted asset and bounded worst-case cost, financial stress/working-capital checks, rollback plan, TrustShield and tenant-isolation controls, legal/privacy review, and an admitted implementation/release Work Order.
+
+## Current build-first done definition (post-GEF, owner-directed 2026-10-20)
+
+For ordinary PRs: install locked packages, compile/build, run focused tests relevant to the changed surface, document reproducible local evidence when available, run emitted GitHub CI, resolve substantive security/data bugs and merge only with deliberate authorization. A historical Work Order, GEF `doctor`/`status`, Context Lock or checkpoint delta is no longer a mandatory step. Tests requiring Docker/PostgreSQL must run against disposable local services with real cross-tenant negatives when the change touches those boundaries. **No automatic paid operations, production deployment, public storage exposure, release, or credentials in logs.** Historic completion sections above are archival and not commands.

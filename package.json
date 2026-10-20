@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Spryxel project governed by GEF Bootstrap 1.1.1",
+  "description": "Spryxel AI Game Asset Platform, modular build-first development",
   "packageManager": "npm@10.9.9",
   "engines": {
     "node": ">=22.11.0"
@@ -13,9 +13,6 @@
     "packages/*"
   ],
   "scripts": {
-    "gef": "gef",
-    "gef:doctor": "gef doctor --target . --json",
-    "gef:status": "gef status --target . --json",
     "dev": "turbo run dev --parallel",
     "format": "biome format package.json package-lock.json tsconfig.json turbo.json biome.json vitest.config.ts playwright.config.ts README.md apps packages scripts infra --write",
     "format:check": "biome format package.json package-lock.json tsconfig.json turbo.json biome.json vitest.config.ts playwright.config.ts README.md apps packages scripts infra",
@@ -35,7 +32,6 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
-    "@gef-bootstrap/cli": "1.1.1",
     "@playwright/test": "1.63.0",
     "@types/node": "22.20.5",
     "@types/react": "19.3.0",

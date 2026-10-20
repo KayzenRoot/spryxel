@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main, codex/spryxel-wo-001-gef-github-governance]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -65,11 +65,7 @@ jobs:
             push)
               valid_sha "$EVENT_SHA" && valid_sha "$PUSH_BEFORE_SHA" || { echo "::error::Invalid push event SHA"; exit 1; }
               test "$(git rev-parse HEAD)" = "$EVENT_SHA" || { echo "::error::Checkout does not match event SHA"; exit 1; }
-              if [ "$EVENT_REF" = "refs/heads/codex/spryxel-wo-001-gef-github-governance" ]; then
-                git fetch --no-tags origin main
-                merge_base="$(git merge-base origin/main "$EVENT_SHA")"
-                log_opts="$merge_base..$EVENT_SHA --diff-merges=separate"
-              elif [ "$PUSH_BEFORE_SHA" = "$zero_sha" ]; then
+              if [ "$PUSH_BEFORE_SHA" = "$zero_sha" ]; then
                 log_opts="--all --diff-merges=separate"
               else
                 git cat-file -e "$PUSH_BEFORE_SHA^{commit}" || { echo "::error::Prior push commit unavailable"; exit 1; }
