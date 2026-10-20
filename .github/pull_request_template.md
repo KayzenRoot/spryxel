@@ -15,6 +15,7 @@
 
 - Tenant isolation / auth / RLS / CostGuard impact:
 - Public endpoints or credential changes:
+- Provider/security-control changes: before/after evidence, no secret contents, production authorization:
 - Deployment or paid provider required? (default **NO**)
 
 ## Merge decision
