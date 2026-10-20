@@ -7,19 +7,23 @@ const projectId = '0190f000-0000-7000-8000-000000000003';
 const assetVersionId = '0190f000-0000-7000-8000-000000000004';
 const other = '0190f000-0000-7000-8000-000000000005';
 const initiator = '0190f000-0000-7000-8000-000000000006';
+const attemptId = '0190f000-0000-7000-8000-000000000007';
 const good: PrivateAssetPolicyInput = {
   operation: 'begin', principal: { subjectId, tenantId },
   requestedProjectId: projectId, requestedAssetVersionId: assetVersionId,
+  requestedUploadAttemptId: null,
   resolved: {
     tenantId, projectId, assetVersionId, versionStatus: 'draft',
-    assetReadAllowed: true, uploadInitiatorSubjectId: initiator,
+    assetReadAllowed: true,
+    uploadAttempt: { id: attemptId, tenantId, projectId, assetVersionId, initiatorSubjectId: initiator },
     membership: { subjectId, tenantId, projectId, role: 'OWNER', active: true },
   },
 };
 describe('private asset fail-closed tenant/project/version scope policy', () => {
   it('allows current privileged membership for begin/finalize/revoke', () => {
     for (const operation of ['begin', 'finalize', 'revoke'] as const)
-      expect(canAccessPrivateAsset({ ...good, operation })).toBe(true);
+      expect(canAccessPrivateAsset({ ...good, operation,
+        requestedUploadAttemptId: operation === 'finalize' ? attemptId : null })).toBe(true);
   });
   it('rejects mismatched tenant, project, version, subject and membership', () => {
     const r = good.resolved!;
@@ -64,17 +68,58 @@ describe('private asset fail-closed tenant/project/version scope policy', () => 
     const r = good.resolved!;
     const member = { ...r.membership!, subjectId: initiator, role: 'MEMBER' as const };
     const own = { ...good, principal: { subjectId: initiator, tenantId },
-      operation: 'abort' as const, resolved: { ...r, membership: member } };
+      operation: 'abort' as const, requestedUploadAttemptId: attemptId,
+      resolved: { ...r, membership: member } };
     expect(canAccessPrivateAsset(own)).toBe(true);
-    expect(canAccessPrivateAsset({ ...own, resolved: { ...own.resolved, uploadInitiatorSubjectId: other } })).toBe(false);
+    expect(canAccessPrivateAsset({ ...own, resolved: { ...own.resolved, uploadAttempt: { ...r.uploadAttempt!, initiatorSubjectId: other } } })).toBe(false);
     for (const versionStatus of ['published', 'archived'] as const)
       for (const operation of ['begin', 'finalize', 'abort'] as const)
         expect(canAccessPrivateAsset({ ...good, operation, resolved: {
           ...r, versionStatus,
         } })).toBe(false);
-    expect(canAccessPrivateAsset({ ...good, operation: 'finalize', resolved: {
-      ...r, uploadInitiatorSubjectId: null,
+    expect(canAccessPrivateAsset({ ...good, operation: 'finalize', requestedUploadAttemptId: attemptId, resolved: {
+      ...r, uploadAttempt: null,
     } })).toBe(false);
+  });
+  it('binds finalize and abort to the exact authoritative upload attempt', () => {
+    const scope = good.resolved!;
+    const attempt = scope.uploadAttempt!;
+    const scopedFinalize = { ...good, operation: 'finalize' as const,
+      requestedUploadAttemptId: attemptId };
+    const scopedAbort = { ...good, operation: 'abort' as const,
+      requestedUploadAttemptId: attemptId };
+    expect(canAccessPrivateAsset(scopedFinalize)).toBe(true);
+    expect(canAccessPrivateAsset(scopedAbort)).toBe(true);
+    for (const command of [scopedFinalize, scopedAbort]) {
+      expect(canAccessPrivateAsset({ ...command, requestedUploadAttemptId: other })).toBe(false);
+      expect(canAccessPrivateAsset({ ...command, requestedUploadAttemptId: null })).toBe(false);
+      expect(canAccessPrivateAsset({ ...command, resolved: {
+        ...scope, uploadAttempt: null,
+      } })).toBe(false);
+      for (const change of [
+        { id: other }, { tenantId: other }, { projectId: other },
+        { assetVersionId: other }, { initiatorSubjectId: 'invalid' },
+      ]) expect(canAccessPrivateAsset({ ...command, resolved: {
+        ...scope, uploadAttempt: { ...attempt, ...change },
+      } })).toBe(false);
+    }
+    expect(canAccessPrivateAsset({ ...good, requestedUploadAttemptId: attemptId })).toBe(false);
+  });
+
+  it('rejects forged unknown version status at runtime, including read and revoke', () => {
+    const scope = good.resolved!;
+    for (const operation of ['begin', 'read', 'revoke', 'finalize', 'abort'] as const) {
+      expect(canAccessPrivateAsset({
+        ...good, operation,
+        requestedUploadAttemptId: operation === 'finalize' || operation === 'abort'
+          ? attemptId : null,
+        resolved: { ...scope, versionStatus: 'deleted' as never },
+      })).toBe(false);
+    }
+    for (const status of ['published', 'archived'] as const) {
+      expect(canAccessPrivateAsset({ ...good, operation: 'read',
+        resolved: { ...scope, versionStatus: status } })).toBe(true);
+    }
   });
   it('denies future unknown operations and unknown roles', () => {
     expect(canAccessPrivateAsset({ ...good, operation: 'delete' as never })).toBe(false);

@@ -7,15 +7,20 @@ export type PrivateAssetMembership = Readonly<{
   subjectId: string; tenantId: string; projectId: string;
   role: 'OWNER' | 'ADMIN' | 'MEMBER'; active: boolean;
 }>;
+export type PrivateAssetResolvedAttempt = Readonly<{
+  id: string; tenantId: string; projectId: string;
+  assetVersionId: string; initiatorSubjectId: string;
+}>;
 export type PrivateAssetResolvedScope = Readonly<{
   tenantId: string; projectId: string; assetVersionId: string;
   versionStatus: 'draft' | 'published' | 'archived';
-  assetReadAllowed: boolean; uploadInitiatorSubjectId: string | null;
+  assetReadAllowed: boolean; uploadAttempt: PrivateAssetResolvedAttempt | null;
   membership: PrivateAssetMembership | null;
 }>;
 export type PrivateAssetPolicyInput = Readonly<{
   operation: PrivateAssetOperation; principal: PrivateAssetPrincipal | null;
   requestedProjectId: string; requestedAssetVersionId: string;
+  requestedUploadAttemptId: string | null;
   resolved: PrivateAssetResolvedScope | null;
 }>;
 const uuidV7Pattern = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
@@ -37,17 +42,34 @@ export function canAccessPrivateAsset(input: PrivateAssetPolicyInput): boolean {
     resolved.projectId !== input.requestedProjectId ||
     resolved.assetVersionId !== input.requestedAssetVersionId) return false;
 
+  // TypeScript unions do not validate runtime snapshots from a DB or adapter.
+  if (resolved.versionStatus !== 'draft' &&
+    resolved.versionStatus !== 'published' &&
+    resolved.versionStatus !== 'archived') return false;
+
+  if (operation !== 'finalize' && operation !== 'abort' &&
+    input.requestedUploadAttemptId !== null) return false;
+
   const privileged = membership.role === 'OWNER' || membership.role === 'ADMIN';
   if (operation === 'read') return resolved.assetReadAllowed === true &&
     (privileged || membership.role === 'MEMBER');
   if (operation === 'revoke') return privileged;
   if (resolved.versionStatus !== 'draft') return false;
   if (operation === 'begin') return privileged;
-  if (operation === 'finalize') return privileged &&
-    validId(resolved.uploadInitiatorSubjectId);
-  if (operation === 'abort') return privileged ||
-    (membership.role === 'MEMBER' &&
-      validId(resolved.uploadInitiatorSubjectId) &&
-      resolved.uploadInitiatorSubjectId === principal.subjectId);
+  if (operation === 'finalize' || operation === 'abort') {
+    const attempt = resolved.uploadAttempt;
+    // Even privileged actors may not finalize or abort a foreign upload.
+    if (!attempt || !validId(input.requestedUploadAttemptId) ||
+      !validId(attempt.id) || !validId(attempt.tenantId) ||
+      !validId(attempt.projectId) || !validId(attempt.assetVersionId) ||
+      !validId(attempt.initiatorSubjectId) ||
+      attempt.id !== input.requestedUploadAttemptId ||
+      attempt.tenantId !== principal.tenantId ||
+      attempt.projectId !== input.requestedProjectId ||
+      attempt.assetVersionId !== input.requestedAssetVersionId) return false;
+    if (operation === 'finalize') return privileged;
+    return privileged || (membership.role === 'MEMBER' &&
+      attempt.initiatorSubjectId === principal.subjectId);
+  }
   return false;
 }

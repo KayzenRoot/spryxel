@@ -10,9 +10,13 @@ const begin = { ...target, operation: 'begin' as const, mediaType: 'image/png' a
 
 describe('internal private asset commands, no storage access', () => {
   it('accepts bounded begin and canonicalizes UUIDv7', () => {
+    const mixedCaseId = '0190fabc-0000-7a00-8abc-00000000000a';
     expect(privateAssetBeginCommandSchema.parse({
-      ...begin, projectId: projectId.toUpperCase(),
-    }).projectId).toBe(projectId);
+      ...begin, projectId: mixedCaseId.toUpperCase(),
+    }).projectId).toBe(mixedCaseId);
+    expect(privateAssetBeginCommandSchema.parse({
+      ...begin, assetVersionId: mixedCaseId.toUpperCase(),
+    }).assetVersionId).toBe(mixedCaseId);
   });
   it('rejects supplied tenant/actor/role/bucket/object keys and URLs', () => {
     for (const extra of [
