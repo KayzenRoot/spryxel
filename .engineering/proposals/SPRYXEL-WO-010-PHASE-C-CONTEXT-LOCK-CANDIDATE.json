@@ -17,7 +17,7 @@
   },
   "candidateWorkOrder": {
     "path": ".engineering/proposals/SPRYXEL-WO-010-PHASE-C-WORK-ORDER-CANDIDATE.md",
-    "gitBlobSha": "305ab7c62cebb5502308483964514c064ace9718",
+    "gitBlobSha": "e6b2ff8d480509d4b44659d1bbb7a09ae4336491",
     "kind": "proposal_only",
     "notCanonicalWorkOrder": true
   },
@@ -204,5 +204,51 @@
   },
   "selfActivationForbidden": true,
   "notAcceptedAs": "spryxel.context-lock",
-  "stopCondition": "SPRYXEL_PHASE_C_CANDIDATE_LOCK_NOT_EXECUTABLE_OWNER_ADMISSION_PENDING"
+  "stopCondition": "SPRYXEL_PHASE_C_CANDIDATE_LOCK_NOT_EXECUTABLE_OWNER_ADMISSION_PENDING",
+  "ownerDecisionOptions": {
+    "status": "OPEN_ALL_NINE_RECOMMENDATION_ONLY",
+    "recommendedOption": "A_IN_ALL_NINE_FOR_OWNER_CONSIDERATION_ONLY",
+    "admitted": false,
+    "selectedByOwner": [],
+    "proofOfOwnerApproval": "NOT_AVAILABLE",
+    "workOrderSection": "4A. Owner decision options and conservative recommendations (NOT APPROVED)",
+    "candidates": [
+      {
+        "gate": "C-OD-01",
+        "recommendation": "least_privilege_roles_per_operation"
+      },
+      {
+        "gate": "C-OD-02",
+        "recommendation": "separate_internal_contract_slice_explicit_exact_file_allowlist_only"
+      },
+      {
+        "gate": "C-OD-03",
+        "recommendation": "local_test_png_webp_10MiB_sha256_no_multipart"
+      },
+      {
+        "gate": "C-OD-04",
+        "recommendation": "proposed_10min_lease_24h_idempotency_3_retries_no_prod_destructive_gc"
+      },
+      {
+        "gate": "C-OD-05",
+        "recommendation": "server_stream_proxy_only_no_presigned_client_urls"
+      },
+      {
+        "gate": "C-OD-06",
+        "recommendation": "private_env_bucket_opaque_keys_quarantine_scanning_fail_closed"
+      },
+      {
+        "gate": "C-OD-07",
+        "recommendation": "redacted_audit_disposable_7days_prod_retention_unresolved"
+      },
+      {
+        "gate": "C-OD-08",
+        "recommendation": "local_disposable_seaweedfs_digest_pin_only_at_admission_no_prod_provider"
+      },
+      {
+        "gate": "C-OD-09",
+        "recommendation": "internal_ports_first_stop_if_route_or_forward_only_migration_needed"
+      }
+    ]
+  }
 }
