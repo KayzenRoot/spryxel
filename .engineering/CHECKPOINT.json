@@ -122,7 +122,7 @@
     },
     "sonarIssueInventoryWorkOrder": "SPRYXEL-WO-009",
     "dnaAssetCorePhase1Ab": {
-      "promotionState": "COMPLETE_AFTER_OWNER_AUTHORIZED_PROTECTED_MERGE_AND_POST_MERGE_AUDIT",
+      "promotionState": "COMPLETE_AFTER_OWNER_AUTHORIZED_PROTECTED_MERGE_AND_POST_MERGE_VALIDATION",
       "workOrder": "SPRYXEL-WO-010",
       "implementationIncrement": "SPRYXEL-IMP-006-PHASE-1-AB",
       "phase1AbStatus": "COMPLETE_WITH_DISCLOSED_LIMITATIONS",
