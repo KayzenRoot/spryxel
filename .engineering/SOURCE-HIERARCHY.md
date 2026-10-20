@@ -27,8 +27,9 @@ A Work Order/Context Lock is STALE if its base SHA changes or a critical authori
 - GEF package: `@gef-bootstrap/cli@1.1.1`
 - GEF v1.1.1 immutable release source: `KayzenRoot/gef-bootstrap@1dc030f1358eab0347043a3d54c7fc311c7c2123`
 - Product seed: v0.6.0 / `cbb93ec44886eba6cc9b24a072eb23e0ad5ea05a`
-- Last objectively approved Work Order: `SPRYXEL-WO-009 / SPRYXEL-IMP-005` (code APPROVED + PR #87 merged and validated; canonical completion effective on protected #88 closeout merge)
-- Next legal stage: Spryxel DNA + Asset core under a new Work Order and Context Lock; remains NOT_ADMITTED
+- Last **fully** completed Work Order: `SPRYXEL-WO-009 / SPRYXEL-IMP-005`; `v11.lastApprovedWorkOrder=SPRYXEL-WO-009` retains that historical full-WO identity.
+- Latest bounded canonical promotion: `SPRYXEL-WO-010 / SPRYXEL-IMP-006-PHASE-1-AB`, **Phase 1 A+B only**, on protected PR #102; the full WO-010 remains INCOMPLETE.
+- Next legal implementation: DNA + Asset Core Phase C, `NOT_ADMITTED` until a separately admitted new Work Order and Context Lock; Phases D/E also `NOT_ADMITTED`.
 
 Post-release commits in the GEF repository may be consulted only for evidence about publication/rollout. They do not redefine the installed v1.1.1 runtime contract.
 
@@ -108,3 +109,14 @@ The WO-008 Context Lock is closed/stale after canonical promotion and must not b
 `SPRYXEL-WO-009 / SPRYXEL-IMP-005 — Credit Ledger + CostGuard authorization foundation` is COMPLETE on merged `main@f1ce1df2dad7aabb45dd7d725d31821f30e21a2c` after independent HIGH_ASSURANCE APPROVAL of code candidate `6cbd9210573815c82f0af60d274c41f31ef0b2bb`, PR #87 protected squash merge from reviewed PR head `3f14441ac48d0067dfad8214ba29dfcb2e285a8a`, and successful exact-main required/security/quality checks. The merged tree `efee1dca1a54942f35ab5d0f227e3f0d24919ad8` equals the reviewed PR tree. Audit scope, AC01–AC28 results, known limits and post-merge receipts are recorded in `.engineering/evidence/SPRYXEL-WO-009-INDEPENDENT-AUDIT.md` and `.engineering/evidence/SPRYXEL-WO-009-EVIDENCE.md`.
 
 The historical WO-009 Context Lock remains unchanged and is stale/closed after merge; it must not be reused. Credit Ledger + CostGuard is a non-commercial authorization foundation: CostGuard defaults to DENY, paid balance/spend and providers remain inactive/unfrozen, and no real-cost execution is enabled. The next NECESSARY increment is Spryxel DNA + Asset core, NOT_ADMITTED until a new Work Order and Context Lock are created from the then-current `main` base.
+
+
+## SPRYXEL-WO-010 — bounded Phase 1 A+B post-checkpoint binding (2026-10-19)
+
+Phase 1 A+B (contracts/domain/PostgreSQL RLS) was integrated in PR #98 (audited code HEAD `0ba0b78b15a533186415bfd6c4c5ae1354d357c8`, main `7d0700921933d91d266d763ea17d8c9b632e9446`). The evidence documentation followed via PR #101 (main `17e093491fd5365cfdced15d7930b68fa3a37bb5`). The owner expressly authorized the exact bounded Checkpoint literals/HEAD/base and protected squash PR #102, following a separate objective checkpoint-candidate review. The checkpoint was promoted on `main@81990f5492ca91a7d433f81a8a28e11d8945ac67` (tree `8966160d30b54910d118f6d63353c7a5c39dbfff`). This **does not** close the full WO-010.
+
+Six post-promotion GitHub check runs on exact `main@81990f5492ca91a7d433f81a8a28e11d8945ac67` completed successfully: Repository validation `118285294072`, Pipeline integrity `118285294478`, Gitleaks secrets `118285294504`, Trivy filesystem and configuration `118285294382`, SonarCloud Code Analysis `118285643469`, Socket Security: Project Report `118285298723`. These are hosted receipts, not new local/database test runs.
+
+The versioned `.engineering/evidence/SPRYXEL-WO-010-INDEPENDENT-AUDIT.md` is a **historical** Phase A+B technical review; its then-pending checkpoint-promotion verdict must be interpreted in its original time context. The later checkpoint-specific objective candidate disposition is recorded in [PR #102](https://github.com/KayzenRoot/spryxel/pull/102). This documentation-only closeout proposes `STALE` closure of the completed execution Context Lock while preserving historical critical-source fingerprints and original preflight decision fields. The lock becomes canonically closed only if this separate closeout PR is reviewed and owner-authorized for protected merge.
+
+Checkpoint `SPRYXEL_WO_010_PHASE_1_AB_COMPLETE` records *only A+B*. `v11.lastApprovedWorkOrder` remains WO-009 as expressly ratified; Phase C/D/E are NOT_ADMITTED, CostGuard remains `DENY`, real-cost execution remains `PROHIBITED` and public upload, production generation and commercial activation remain disabled. Do not infer deploy, release, model/provider selection, funding, full WO closure or future implementation admission.

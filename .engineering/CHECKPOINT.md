@@ -7,7 +7,12 @@ GEF: `@gef-bootstrap/cli@1.1.1`
 
 ## SPRYXEL-WO-010 / SPRYXEL-IMP-006-PHASE-1-AB — Fase 1 A+B completa com limitações declaradas
 
-- Estado proposto nesta PR: contratos/domínio e persistência PostgreSQL da Fase 1 A+B; a WO-010 inteira permanece incompleta. O estado só se torna canônico após squash merge protegido e checks pós-merge.
+- Estado canônico promovido: contratos/domínio e persistência PostgreSQL da Fase 1 A+B **somente**, via PR #102 e squash protegido em `main@81990f5492ca91a7d433f81a8a28e11d8945ac67`. WO-010 integral permanece `INCOMPLETE`.
+- Promoção do Checkpoint: PR #102, candidato `c1f475b2981b9f70ce289eaf462edc3086679415`, squash `main@81990f5492ca91a7d433f81a8a28e11d8945ac67`, tree `8966160d30b54910d118f6d63353c7a5c39dbfff`. Auditoria objetiva específica e autorização expressa do proprietário foram limitadas à Fase 1 A+B, HEAD/base exatos e dois arquivos do delta.
+- Seis checks GitHub posteriores ao merge em `main@81990f5492ca91a7d433f81a8a28e11d8945ac67` (todos `completed/success`): Repository validation `118285294072`; Pipeline integrity `118285294478`; Gitleaks secrets `118285294504`; Trivy filesystem and configuration `118285294382`; SonarCloud Code Analysis `118285643469`; Socket Security: Project Report `118285298723`.
+- Context Lock A+B: `STALE` neste delta documental, **com eficácia canônica exclusivamente após o merge protegido desta PR de closeout**. O campo histórico `decisionBaseline.checkpointPromotion=NOT_AUTHORIZED` retrata a autorização de preflight na época; não nega a promoção posterior.
+- O parecer anterior `.engineering/evidence/SPRYXEL-WO-010-INDEPENDENT-AUDIT.md` preserva seu `PENDING` temporal; a avaliação objetiva **específica** da promoção e o consentimento condicionado encontram-se na [PR #102](https://github.com/KayzenRoot/spryxel/pull/102). Revisões do GitHub continuam `COMMENTED`, sem reivindicar evento formal `APPROVE`.
+- Limitações históricas preservadas: 188/4.237 eventos SQL publicados, sem reexecução independente de PostgreSQL, 48 negativos gerais SQLSTATE-only, caches Turbo, 22 achados Sonar MINOR e cobertura de código novo não medida. Este closeout não reexecuta testes de produto.
 - Implementação: PR #98, HEAD auditado `0ba0b78b15a533186415bfd6c4c5ae1354d357c8`; merge main `7d0700921933d91d266d763ea17d8c9b632e9446`; tree `463fc8325d7d6b42fb29a126fd7315e55af030bf`.
 - Homologação documental: PR #101, main `17e093491fd5365cfdced15d7930b68fa3a37bb5`; tree `4ba1107ceb3002dd3ea8951306ab61d5123736d5`.
 - Parecer objetivo: `APPROVED_WITH_DISCLOSED_LIMITATIONS` somente para evidência A+B; não aprova WO-010 completa, não é GitHub APPROVE e não prova reexecução independente de PostgreSQL.
