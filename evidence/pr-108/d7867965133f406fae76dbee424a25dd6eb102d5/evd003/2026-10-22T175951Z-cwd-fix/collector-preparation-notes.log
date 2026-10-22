@@ -1,0 +1,2 @@
+This directory records the only completed npm ci / Biome / format:check validation.
+Collector preparation attempts before this run stopped before npm ci and before format:check: run 2026-10-22T175458Z stopped at package metadata command exit 1 (collector exit 36); run 2026-10-22T175756Z stopped at the temporary EOL validator syntax (collector exit 38). They are not project-test results and were not retried as formatter runs. A separate PowerShell launch typo did not start a collector process.

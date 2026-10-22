@@ -1,0 +1,13 @@
+GIT_DIFF_CACHED_CHECK_EXIT=2
+WHITESPACE_DIAGNOSTICS=5
+STDOUT:
+evidence/pr-108/d7867965133f406fae76dbee424a25dd6eb102d5/evd003/2026-10-22T175951Z-cwd-fix/execution-cwd.log:18: new blank line at EOF.
+evidence/pr-108/d7867965133f406fae76dbee424a25dd6eb102d5/evd003/2026-10-22T175951Z-cwd-fix/raw/biome_version.stdout.log:2: new blank line at EOF.
+evidence/pr-108/d7867965133f406fae76dbee424a25dd6eb102d5/evd003/2026-10-22T175951Z-cwd-fix/raw/command-metadata.log:192: new blank line at EOF.
+evidence/pr-108/d7867965133f406fae76dbee424a25dd6eb102d5/evd003/2026-10-22T175951Z-cwd-fix/raw/execution-cwd.private.log:18: new blank line at EOF.
+evidence/pr-108/d7867965133f406fae76dbee424a25dd6eb102d5/evd003/2026-10-22T175951Z-cwd-fix/raw/node_version.stdout.log:1: trailing whitespace.
++v26.4.0
+
+STDERR:
+
+Raw command outputs were preserved byte-for-byte; they were not normalized to suppress these diagnostics.

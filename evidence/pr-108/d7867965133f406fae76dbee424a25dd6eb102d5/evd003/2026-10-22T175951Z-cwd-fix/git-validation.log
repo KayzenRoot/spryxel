@@ -1,0 +1,9 @@
+COMMAND: git diff --check; exit 0
+COMMAND: git diff --exit-code; diff_worktree=0
+COMMAND: git diff --cached --exit-code; diff_cached=0
+COMMAND: git status --porcelain=v1 before and after npm/test
+BEFORE: clean (stdout empty); exit 0
+AFTER: clean (stdout empty); exit 0
+TRACKED_FILES_CHANGED: no
+STAGED_FILES_CHANGED: no
+NONZERO_COLLECTED_COMMAND_EXITS=0

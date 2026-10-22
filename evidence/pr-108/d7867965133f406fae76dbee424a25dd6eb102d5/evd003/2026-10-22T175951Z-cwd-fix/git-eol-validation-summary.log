@@ -1,0 +1,3 @@
+BEFORE_NPM: text i/lf w/lf=304; binary i/-text w/-text=7; other_or_mismatch=0; command_exit=0
+AFTER_NPM: text i/lf w/lf=304; binary i/-text w/-text=7; other_or_mismatch=0; command_exit=0
+COUNTS_RECOMPUTED_FROM_CAPTURED_git_ls_files_eol_OUTPUT=true

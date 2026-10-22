@@ -1,0 +1,117 @@
+{
+  "mission": "SPRYXEL-PR108-EVD-003-CWD-FIX",
+  "runId": "2026-10-22T175951Z",
+  "repository": "KayzenRoot/spryxel",
+  "pullRequest": 108,
+  "sourceHead": {
+    "expected": "d7867965133f406fae76dbee424a25dd6eb102d5",
+    "localBeforeNpm": "d7867965133f406fae76dbee424a25dd6eb102d5",
+    "localImmediatelyBeforeNpm": "d7867965133f406fae76dbee424a25dd6eb102d5",
+    "localAfter": "d7867965133f406fae76dbee424a25dd6eb102d5",
+    "remoteBefore": "d7867965133f406fae76dbee424a25dd6eb102d5",
+    "remoteAfter": "d7867965133f406fae76dbee424a25dd6eb102d5"
+  },
+  "main": {
+    "expected": "6a6b0fe3263e8af9daa026f94d0e9d7ca48b9b2f",
+    "remoteBefore": "6a6b0fe3263e8af9daa026f94d0e9d7ca48b9b2f",
+    "remoteAfter": "6a6b0fe3263e8af9daa026f94d0e9d7ca48b9b2f"
+  },
+  "evidenceBranch": {
+    "name": "evidence/spryxel",
+    "tipBeforePublication": "90248de701e99f90f81622a1181babeadca8261f"
+  },
+  "timestampsUtc": {
+    "start": "2026-10-22T18:00:30Z",
+    "end": "2026-10-22T18:02:14Z"
+  },
+  "tools": {
+    "node": "v26.4.0",
+    "nodeRequirement": ">=22.11.0",
+    "npm": "11.17.0",
+    "projectPackageManager": "npm@10.9.9",
+    "npmVersionDrift": true,
+    "git": "git version 2.55.0.windows.3",
+    "biome": "2.5.15"
+  },
+  "workingDirectory": {
+    "helper": "run_in_clone() { ( cd \"$WORK/repo\" || return 90; \"$@\" ); }",
+    "checksBeforeOperations": [
+      "npm ci",
+      "Biome --version",
+      "npm run format:check"
+    ],
+    "checkCount": 3,
+    "allChecksMatched": true,
+    "publishedPath": "[SCRATCH_ROOT]/work/clone-0HhIYL/repo",
+    "fullLocalPathRedacted": true
+  },
+  "lineEndings": {
+    "config": {
+      "coreEol": "lf",
+      "coreAutocrlf": "false"
+    },
+    "beforeNpm": {
+      "binaryFiles": 7,
+      "otherOrMismatch": 0,
+      "textFilesIandWlf": 304
+    },
+    "afterNpm": {
+      "binaryFiles": 7,
+      "otherOrMismatch": 0,
+      "textFilesIandWlf": 304
+    },
+    "source": "git ls-files --eol raw output; counts independently recomputed from captured output"
+  },
+  "commands": {
+    "npmCi": {
+      "command": "npm ci --ignore-scripts --no-audit --no-fund",
+      "workingDirectory": "[SCRATCH_ROOT]/work/clone-0HhIYL/repo",
+      "exitCode": 0
+    },
+    "biomeVersion": {
+      "command": "./node_modules/.bin/biome --version",
+      "workingDirectory": "[SCRATCH_ROOT]/work/clone-0HhIYL/repo",
+      "exitCode": 0,
+      "observed": "2.5.15"
+    },
+    "formatCheck": {
+      "command": "npm run format:check",
+      "workingDirectory": "[SCRATCH_ROOT]/work/clone-0HhIYL/repo",
+      "exitCode": 0,
+      "filesChecked": 135,
+      "fixesApplied": 0,
+      "executionCount": 1
+    }
+  },
+  "integrity": {
+    "diffCheckExit": 0,
+    "diffExit": 0,
+    "cachedDiffExit": 0,
+    "statusBefore": "clean",
+    "statusAfter": "clean",
+    "nonzeroCommandExitCount": 0,
+    "protectedSourceBranchAndMainUnchanged": true
+  },
+  "sanitization": {
+    "localScratchAndInvokerPathsRedacted": true,
+    "sensitivePatternScan": "PASS",
+    "localPathRedactionScan": "PASS",
+    "filesScanned": 86
+  },
+  "result": "FORMAT_PASS",
+  "collectorExitCode": 0,
+  "merge": "NOT_DONE",
+  "deploy": "NOT_DONE",
+  "manifestValidation": {
+    "command": "sha256sum -c manifest.sha256",
+    "finalExitCode": 0,
+    "manifestExcludesItself": true
+  },
+  "publicationDiffCheck": {
+    "command": "git diff --cached --check",
+    "exitCode": 2,
+    "whitespaceDiagnostics": 5,
+    "rawLogsPreservedUnchanged": true,
+    "stagedPathsOutsideEvidenceDirectory": 0
+  }
+}
