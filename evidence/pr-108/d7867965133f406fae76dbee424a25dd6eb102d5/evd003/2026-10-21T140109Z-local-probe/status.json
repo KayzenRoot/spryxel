@@ -1,0 +1,23 @@
+{
+  "schema": "spryxel-evidence/v1",
+  "repository": "KayzenRoot/spryxel",
+  "pull_request": 108,
+  "source_head_sha": "d7867965133f406fae76dbee424a25dd6eb102d5",
+  "source_main_sha": "6a6b0fe3263e8af9daa026f94d0e9d7ca48b9b2f",
+  "mission": "SPRYXEL-PR108-EVD-003",
+  "run_id": "2026-10-21T140109Z-local-probe",
+  "source_environment": "isolated local evidence probe, NOT Codex Windows",
+  "result": "BLOCKED_REMOTE_HEAD",
+  "source_exit_codes": {"node_version": 0, "npm_version": 0, "git_version": 0, "git_ls_remote": 128, "collector": 46},
+  "biome_version": "NOT_RUN",
+  "git_eol_validation": "NOT_RUN",
+  "format_check": "NOT_RUN",
+  "independent_exact_head_review": "NOT_VERIFIED",
+  "local_manifest_sha256_verified": true,
+  "original_local_bundle_manifest_entries_checked": 13,
+  "original_local_run_manifest_entries_checked": 6,
+  "published_log_manifest_entries": 5,
+  "provenance": "locally verified earlier EVD003 LF bundle",
+  "decision": "BLOCKED_NO_MERGE",
+  "remote_repository_mutation": "evidence-branch-only"
+}

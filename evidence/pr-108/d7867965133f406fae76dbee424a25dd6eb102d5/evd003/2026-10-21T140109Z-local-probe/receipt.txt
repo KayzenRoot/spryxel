@@ -1,0 +1,17 @@
+MISSION=SPRYXEL-PR108-EVD-003
+MODE=REMOTE_READ_ONLY_CLONE_TEMPORARY
+EXPECTED_HEAD=d7867965133f406fae76dbee424a25dd6eb102d5
+EXPECTED_MAIN=6a6b0fe3263e8af9daa026f94d0e9d7ca48b9b2f
+UTC_START=2026-10-21T14:01:09Z
+EOL_STRATEGY=git-clone-no-checkout + clone-local autocrlf=false eol=lf before checkout
+COMMAND_node_version=node --version
+EXIT_node_version=0
+COMMAND_npm_version=npm --version
+EXIT_npm_version=0
+COMMAND_git_version=git --version
+EXIT_git_version=0
+COMMAND_branch_ref_before=git ls-remote https://github.com/KayzenRoot/spryxel.git refs/heads/feat/spryxel-phase-c-private-asset-contracts-clean-20261020
+EXIT_branch_ref_before=128
+RESULT=BLOCKED_REMOTE_HEAD
+COLLECTOR_EXIT=46
+UTC_END=2026-10-21T14:01:10Z
