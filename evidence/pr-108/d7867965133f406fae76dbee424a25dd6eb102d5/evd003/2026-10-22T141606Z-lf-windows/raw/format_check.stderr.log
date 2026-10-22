@@ -1,0 +1,825 @@
+apps\api\package.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+     1    │ - {␍
+     2    │ - ··"name":·"@spryxel/api",␍
+     3    │ - ··"version":·"0.0.0",␍
+     4    │ - ··"private":·true,␍
+     5    │ - ··"type":·"module",␍
+     6    │ - ··"scripts":·{␍
+     7    │ - ····"dev":·"tsx·watch·src/main.ts",␍
+     8    │ - ····"build":·"tsc·-p·tsconfig.json",␍
+     9    │ - ····"typecheck":·"tsc·-p·tsconfig.json·--noEmit",␍
+    10    │ - ····"start":·"node·dist/main.js"␍
+    11    │ - ··},␍
+    12    │ - ··"dependencies":·{␍
+    13    │ - ····"@aws-sdk/client-s3":·"3.1145.0",␍
+    14    │ - ····"@spryxel/config":·"0.0.0",␍
+    15    │ - ····"@spryxel/contracts":·"0.0.0",␍
+    16    │ - ····"@spryxel/db":·"0.0.0",␍
+    17    │ - ····"@spryxel/domain":·"0.0.0",␍
+    18    │ - ····"@spryxel/identity":·"0.0.0",␍
+    19    │ - ····"@spryxel/observability":·"0.0.0",␍
+    20    │ - ····"@workos-inc/node":·"10.14.0",␍
+    21    │ - ····"fastify":·"5.12.5",␍
+    22    │ - ····"jose":·"6.2.12"␍
+    23    │ - ··}␍
+    24    │ - }␍
+        1 │ + {
+        2 │ + ··"name":·"@spryxel/api",
+        3 │ + ··"version":·"0.0.0",
+        4 │ + ··"private":·true,
+        5 │ + ··"type":·"module",
+        6 │ + ··"scripts":·{
+        7 │ + ····"dev":·"tsx·watch·src/main.ts",
+        8 │ + ····"build":·"tsc·-p·tsconfig.json",
+        9 │ + ····"typecheck":·"tsc·-p·tsconfig.json·--noEmit",
+       10 │ + ····"start":·"node·dist/main.js"
+       11 │ + ··},
+       12 │ + ··"dependencies":·{
+       13 │ + ····"@aws-sdk/client-s3":·"3.1145.0",
+       14 │ + ····"@spryxel/config":·"0.0.0",
+       15 │ + ····"@spryxel/contracts":·"0.0.0",
+       16 │ + ····"@spryxel/db":·"0.0.0",
+       17 │ + ····"@spryxel/domain":·"0.0.0",
+       18 │ + ····"@spryxel/identity":·"0.0.0",
+       19 │ + ····"@spryxel/observability":·"0.0.0",
+       20 │ + ····"@workos-inc/node":·"10.14.0",
+       21 │ + ····"fastify":·"5.12.5",
+       22 │ + ····"jose":·"6.2.12"
+       23 │ + ··}
+       24 │ + }
+    25 25 │   
+  
+
+apps\api\tsconfig.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+    1   │ - {␍
+    2   │ - ··"extends":·"../../tsconfig.json",␍
+    3   │ - ··"compilerOptions":·{␍
+    4   │ - ····"rootDir":·"src",␍
+    5   │ - ····"outDir":·"dist"␍
+    6   │ - ··},␍
+    7   │ - ··"include":·["src/**/*.ts"]␍
+    8   │ - }␍
+      1 │ + {
+      2 │ + ··"extends":·"../../tsconfig.json",
+      3 │ + ··"compilerOptions":·{
+      4 │ + ····"rootDir":·"src",
+      5 │ + ····"outDir":·"dist"
+      6 │ + ··},
+      7 │ + ··"include":·["src/**/*.ts"]
+      8 │ + }
+    9 9 │   
+  
+
+apps\web\package.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+     1    │ - {␍
+     2    │ - ··"name":·"@spryxel/web",␍
+     3    │ - ··"version":·"0.0.0",␍
+     4    │ - ··"private":·true,␍
+     5    │ - ··"type":·"module",␍
+     6    │ - ··"scripts":·{␍
+     7    │ - ····"dev":·"next·dev",␍
+     8    │ - ····"build":·"next·build",␍
+     9    │ - ····"typecheck":·"tsc·--noEmit",␍
+    10    │ - ····"start":·"next·start"␍
+    11    │ - ··},␍
+    12    │ - ··"dependencies":·{␍
+    13    │ - ····"@workos-inc/authkit-nextjs":·"4.4.0",␍
+    14    │ - ····"@workos-inc/node":·"10.14.0",␍
+    15    │ - ····"@spryxel/contracts":·"0.0.0",␍
+    16    │ - ····"@spryxel/ui":·"0.0.0",␍
+    17    │ - ····"next":·"16.3.8",␍
+    18    │ - ····"react":·"19.3.0",␍
+    19    │ - ····"react-dom":·"19.3.0"␍
+    20    │ - ··},␍
+    21    │ - ··"devDependencies":·{␍
+    22    │ - ····"@tailwindcss/postcss":·"4.3.3",␍
+    23    │ - ····"tailwindcss":·"4.3.3"␍
+    24    │ - ··}␍
+    25    │ - }␍
+        1 │ + {
+        2 │ + ··"name":·"@spryxel/web",
+        3 │ + ··"version":·"0.0.0",
+        4 │ + ··"private":·true,
+        5 │ + ··"type":·"module",
+        6 │ + ··"scripts":·{
+        7 │ + ····"dev":·"next·dev",
+        8 │ + ····"build":·"next·build",
+        9 │ + ····"typecheck":·"tsc·--noEmit",
+       10 │ + ····"start":·"next·start"
+       11 │ + ··},
+       12 │ + ··"dependencies":·{
+       13 │ + ····"@workos-inc/authkit-nextjs":·"4.4.0",
+       14 │ + ····"@workos-inc/node":·"10.14.0",
+       15 │ + ····"@spryxel/contracts":·"0.0.0",
+       16 │ + ····"@spryxel/ui":·"0.0.0",
+       17 │ + ····"next":·"16.3.8",
+       18 │ + ····"react":·"19.3.0",
+       19 │ + ····"react-dom":·"19.3.0"
+       20 │ + ··},
+       21 │ + ··"devDependencies":·{
+       22 │ + ····"@tailwindcss/postcss":·"4.3.3",
+       23 │ + ····"tailwindcss":·"4.3.3"
+       24 │ + ··}
+       25 │ + }
+    26 26 │   
+  
+
+apps\worker\tsconfig.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+    1   │ - {␍
+    2   │ - ··"extends":·"../../tsconfig.json",␍
+    3   │ - ··"compilerOptions":·{␍
+    4   │ - ····"rootDir":·"src",␍
+    5   │ - ····"outDir":·"dist"␍
+    6   │ - ··},␍
+    7   │ - ··"include":·["src/**/*.ts"]␍
+    8   │ - }␍
+      1 │ + {
+      2 │ + ··"extends":·"../../tsconfig.json",
+      3 │ + ··"compilerOptions":·{
+      4 │ + ····"rootDir":·"src",
+      5 │ + ····"outDir":·"dist"
+      6 │ + ··},
+      7 │ + ··"include":·["src/**/*.ts"]
+      8 │ + }
+    9 9 │   
+  
+
+biome.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+     1    │ - {␍
+     2    │ - ··"$schema":·"https://biomejs.dev/schemas/2.5.15/schema.json",␍
+     3    │ - ··"files":·{␍
+     4    │ - ····"includes":·["**",·"!apps/web/next-env.d.ts"]␍
+     5    │ - ··},␍
+     6    │ - ··"vcs":·{␍
+     7    │ - ····"enabled":·true,␍
+     8    │ - ····"clientKind":·"git",␍
+     9    │ - ····"useIgnoreFile":·true␍
+    10    │ - ··},␍
+    11    │ - ··"formatter":·{␍
+    12    │ - ····"enabled":·true,␍
+    13    │ - ····"indentStyle":·"space",␍
+    14    │ - ····"indentWidth":·2,␍
+    15    │ - ····"lineWidth":·100␍
+    16    │ - ··},␍
+    17    │ - ··"linter":·{␍
+    18    │ - ····"enabled":·true,␍
+    19    │ - ····"rules":·{␍
+    20    │ - ······"preset":·"recommended"␍
+    21    │ - ····}␍
+    22    │ - ··},␍
+    23    │ - ··"javascript":·{␍
+    24    │ - ····"formatter":·{␍
+    25    │ - ······"quoteStyle":·"single",␍
+    26    │ - ······"jsxQuoteStyle":·"double",␍
+    27    │ - ······"semicolons":·"always",␍
+    28    │ - ······"trailingCommas":·"all"␍
+    29    │ - ····}␍
+    30    │ - ··},␍
+    31    │ - ··"css":·{␍
+    32    │ - ····"parser":·{␍
+    33    │ - ······"tailwindDirectives":·true␍
+    34    │ - ····}␍
+    35    │ - ··}␍
+    36    │ - }␍
+        1 │ + {
+        2 │ + ··"$schema":·"https://biomejs.dev/schemas/2.5.15/schema.json",
+        3 │ + ··"files":·{
+        4 │ + ····"includes":·["**",·"!apps/web/next-env.d.ts"]
+        5 │ + ··},
+        6 │ + ··"vcs":·{
+        7 │ + ····"enabled":·true,
+        8 │ + ····"clientKind":·"git",
+        9 │ + ····"useIgnoreFile":·true
+       10 │ + ··},
+       11 │ + ··"formatter":·{
+       12 │ + ····"enabled":·true,
+       13 │ + ····"indentStyle":·"space",
+       14 │ + ····"indentWidth":·2,
+       15 │ + ····"lineWidth":·100
+       16 │ + ··},
+       17 │ + ··"linter":·{
+       18 │ + ····"enabled":·true,
+       19 │ + ····"rules":·{
+       20 │ + ······"preset":·"recommended"
+       21 │ + ····}
+       22 │ + ··},
+       23 │ + ··"javascript":·{
+       24 │ + ····"formatter":·{
+       25 │ + ······"quoteStyle":·"single",
+       26 │ + ······"jsxQuoteStyle":·"double",
+       27 │ + ······"semicolons":·"always",
+       28 │ + ······"trailingCommas":·"all"
+       29 │ + ····}
+       30 │ + ··},
+       31 │ + ··"css":·{
+       32 │ + ····"parser":·{
+       33 │ + ······"tailwindDirectives":·true
+       34 │ + ····}
+       35 │ + ··}
+       36 │ + }
+    37 37 │   
+  
+
+package.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+     1    │ - {␍
+     2    │ - ··"name":·"spryxel",␍
+     3    │ - ··"version":·"0.0.0",␍
+     4    │ - ··"private":·true,␍
+     5    │ - ··"type":·"module",␍
+     6    │ - ··"description":·"Spryxel·project·governed·by·GEF·Bootstrap·1.1.1",␍
+     7    │ - ··"packageManager":·"npm@10.9.9",␍
+     8    │ - ··"engines":·{␍
+     9    │ - ····"node":·">=22.11.0"␍
+    10    │ - ··},␍
+    11    │ - ··"workspaces":·[␍
+    12    │ - ····"apps/*",␍
+    13    │ - ····"packages/*"␍
+    14    │ - ··],␍
+    15    │ - ··"scripts":·{␍
+    16    │ - ····"gef":·"gef",␍
+    17    │ - ····"gef:doctor":·"gef·doctor·--target·.·--json",␍
+    18    │ - ····"gef:status":·"gef·status·--target·.·--json",␍
+    19    │ - ····"dev":·"turbo·run·dev·--parallel",␍
+    20    │ - ····"format":·"biome·format·package.json·package-lock.json·tsconfig.json·turbo.json·biome.json·vitest.config.ts·playwright.config.ts·README.md·apps·packages·scripts·infra·--write",␍
+    21    │ - ····"format:check":·"biome·format·package.json·package-lock.json·tsconfig.json·turbo.json·biome.json·vitest.config.ts·playwright.config.ts·README.md·apps·packages·scripts·infra",␍
+    22    │ - ····"lint":·"biome·lint·package.json·package-lock.json·tsconfig.json·turbo.json·biome.json·vitest.config.ts·playwright.config.ts·apps·packages·scripts·infra",␍
+    23    │ - ····"typecheck":·"turbo·run·typecheck",␍
+    24    │ - ····"build":·"turbo·run·build",␍
+    25    │ - ····"test":·"npm·run·test:unit·&&·npm·run·test:worker·&&·npm·run·test:integration·&&·npm·run·test:browser",␍
+    26    │ - ····"test:unit":·"npm·run·build·&&·vitest·run",␍
+    27    │ - ····"test:integration":·"npm·run·build·&&·tsx·scripts/run-integration.ts",␍
+    28    │ - ····"test:browser":·"npm·run·build·&&·playwright·test",␍
+    29    │ - ····"test:worker":·"npm·run·build·&&·tsx·scripts/run-worker-smoke.ts",␍
+    30    │ - ····"architecture:check":·"tsx·scripts/check-architecture.ts",␍
+    31    │ - ····"db:migrate":·"npm·run·build·&&·tsx·scripts/migrate.ts",␍
+    32    │ - ····"db:migrate:status":·"npm·run·build·&&·tsx·scripts/migrate-status.ts",␍
+    33    │ - ····"infra:up":·"tsx·scripts/local-infra.ts·up",␍
+    34    │ - ····"infra:down":·"tsx·scripts/local-infra.ts·down",␍
+    35    │ - ····"app:up":·"tsx·scripts/local-app.ts·up",␍
+    36    │ - ····"app:down":·"tsx·scripts/local-app.ts·down"␍
+    37    │ - ··},␍
+    38    │ - ··"devDependencies":·{␍
+    39    │ - ····"@biomejs/biome":·"2.5.15",␍
+    40    │ - ····"@gef-bootstrap/cli":·"1.1.1",␍
+    41    │ - ····"@playwright/test":·"1.63.0",␍
+    42    │ - ····"@types/node":·"22.20.5",␍
+    43    │ - ····"@types/react":·"19.3.0",␍
+    44    │ - ····"@types/react-dom":·"19.3.0",␍
+    45    │ - ····"tsx":·"4.23.15",␍
+    46    │ - ····"turbo":·"2.11.6",␍
+    47    │ - ····"typescript":·"6.0.3",␍
+    48    │ - ····"vite":·"8.3.2",␍
+    49    │ - ····"vitest":·"5.0.3"␍
+    50    │ - ··}␍
+    51    │ - }␍
+        1 │ + {
+        2 │ + ··"name":·"spryxel",
+        3 │ + ··"version":·"0.0.0",
+        4 │ + ··"private":·true,
+        5 │ + ··"type":·"module",
+        6 │ + ··"description":·"Spryxel·project·governed·by·GEF·Bootstrap·1.1.1",
+        7 │ + ··"packageManager":·"npm@10.9.9",
+        8 │ + ··"engines":·{
+        9 │ + ····"node":·">=22.11.0"
+       10 │ + ··},
+       11 │ + ··"workspaces":·[
+       12 │ + ····"apps/*",
+       13 │ + ····"packages/*"
+       14 │ + ··],
+       15 │ + ··"scripts":·{
+       16 │ + ····"gef":·"gef",
+       17 │ + ····"gef:doctor":·"gef·doctor·--target·.·--json",
+       18 │ + ····"gef:status":·"gef·status·--target·.·--json",
+       19 │ + ····"dev":·"turbo·run·dev·--parallel",
+       20 │ + ····"format":·"biome·format·package.json·package-lock.json·tsconfig.json·turbo.json·biome.json·vitest.config.ts·playwright.config.ts·README.md·apps·packages·scripts·infra·--write",
+       21 │ + ····"format:check":·"biome·format·package.json·package-lock.json·tsconfig.json·turbo.json·biome.json·vitest.config.ts·playwright.config.ts·README.md·apps·packages·scripts·infra",
+       22 │ + ····"lint":·"biome·lint·package.json·package-lock.json·tsconfig.json·turbo.json·biome.json·vitest.config.ts·playwright.config.ts·apps·packages·scripts·infra",
+       23 │ + ····"typecheck":·"turbo·run·typecheck",
+       24 │ + ····"build":·"turbo·run·build",
+       25 │ + ····"test":·"npm·run·test:unit·&&·npm·run·test:worker·&&·npm·run·test:integration·&&·npm·run·test:browser",
+       26 │ + ····"test:unit":·"npm·run·build·&&·vitest·run",
+       27 │ + ····"test:integration":·"npm·run·build·&&·tsx·scripts/run-integration.ts",
+       28 │ + ····"test:browser":·"npm·run·build·&&·playwright·test",
+       29 │ + ····"test:worker":·"npm·run·build·&&·tsx·scripts/run-worker-smoke.ts",
+       30 │ + ····"architecture:check":·"tsx·scripts/check-architecture.ts",
+       31 │ + ····"db:migrate":·"npm·run·build·&&·tsx·scripts/migrate.ts",
+       32 │ + ····"db:migrate:status":·"npm·run·build·&&·tsx·scripts/migrate-status.ts",
+       33 │ + ····"infra:up":·"tsx·scripts/local-infra.ts·up",
+       34 │ + ····"infra:down":·"tsx·scripts/local-infra.ts·down",
+       35 │ + ····"app:up":·"tsx·scripts/local-app.ts·up",
+       36 │ + ····"app:down":·"tsx·scripts/local-app.ts·down"
+       37 │ + ··},
+       38 │ + ··"devDependencies":·{
+       39 │ + ····"@biomejs/biome":·"2.5.15",
+       40 │ + ····"@gef-bootstrap/cli":·"1.1.1",
+       41 │ + ····"@playwright/test":·"1.63.0",
+       42 │ + ····"@types/node":·"22.20.5",
+       43 │ + ····"@types/react":·"19.3.0",
+       44 │ + ····"@types/react-dom":·"19.3.0",
+       45 │ + ····"tsx":·"4.23.15",
+       46 │ + ····"turbo":·"2.11.6",
+       47 │ + ····"typescript":·"6.0.3",
+       48 │ + ····"vite":·"8.3.2",
+       49 │ + ····"vitest":·"5.0.3"
+       50 │ + ··}
+       51 │ + }
+    52 52 │   
+  
+
+packages\config\package.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+     1    │ - {␍
+     2    │ - ··"name":·"@spryxel/config",␍
+     3    │ - ··"version":·"0.0.0",␍
+     4    │ - ··"private":·true,␍
+     5    │ - ··"type":·"module",␍
+     6    │ - ··"exports":·{␍
+     7    │ - ····".":·{␍
+     8    │ - ······"types":·"./dist/index.d.ts",␍
+     9    │ - ······"import":·"./dist/index.js"␍
+    10    │ - ····}␍
+    11    │ - ··},␍
+    12    │ - ··"scripts":·{␍
+    13    │ - ····"build":·"tsc·-p·tsconfig.json",␍
+    14    │ - ····"typecheck":·"tsc·-p·tsconfig.json·--noEmit"␍
+    15    │ - ··},␍
+    16    │ - ··"dependencies":·{␍
+    17    │ - ····"@spryxel/contracts":·"0.0.0"␍
+    18    │ - ··}␍
+    19    │ - }␍
+        1 │ + {
+        2 │ + ··"name":·"@spryxel/config",
+        3 │ + ··"version":·"0.0.0",
+        4 │ + ··"private":·true,
+        5 │ + ··"type":·"module",
+        6 │ + ··"exports":·{
+        7 │ + ····".":·{
+        8 │ + ······"types":·"./dist/index.d.ts",
+        9 │ + ······"import":·"./dist/index.js"
+       10 │ + ····}
+       11 │ + ··},
+       12 │ + ··"scripts":·{
+       13 │ + ····"build":·"tsc·-p·tsconfig.json",
+       14 │ + ····"typecheck":·"tsc·-p·tsconfig.json·--noEmit"
+       15 │ + ··},
+       16 │ + ··"dependencies":·{
+       17 │ + ····"@spryxel/contracts":·"0.0.0"
+       18 │ + ··}
+       19 │ + }
+    20 20 │   
+  
+
+packages\config\tsconfig.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+    1   │ - {␍
+    2   │ - ··"extends":·"../../tsconfig.json",␍
+    3   │ - ··"compilerOptions":·{␍
+    4   │ - ····"rootDir":·"src",␍
+    5   │ - ····"outDir":·"dist"␍
+    6   │ - ··},␍
+    7   │ - ··"include":·["src/**/*.ts"]␍
+    8   │ - }␍
+      1 │ + {
+      2 │ + ··"extends":·"../../tsconfig.json",
+      3 │ + ··"compilerOptions":·{
+      4 │ + ····"rootDir":·"src",
+      5 │ + ····"outDir":·"dist"
+      6 │ + ··},
+      7 │ + ··"include":·["src/**/*.ts"]
+      8 │ + }
+    9 9 │   
+  
+
+packages\contracts\package.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+     1    │ - {␍
+     2    │ - ··"name":·"@spryxel/contracts",␍
+     3    │ - ··"version":·"0.0.0",␍
+     4    │ - ··"private":·true,␍
+     5    │ - ··"type":·"module",␍
+     6    │ - ··"exports":·{␍
+     7    │ - ····".":·{␍
+     8    │ - ······"types":·"./dist/index.d.ts",␍
+     9    │ - ······"import":·"./dist/index.js"␍
+    10    │ - ····}␍
+    11    │ - ··},␍
+    12    │ - ··"scripts":·{␍
+    13    │ - ····"build":·"tsc·-p·tsconfig.json",␍
+    14    │ - ····"typecheck":·"tsc·-p·tsconfig.json·--noEmit"␍
+    15    │ - ··},␍
+    16    │ - ··"dependencies":·{␍
+    17    │ - ····"zod":·"4.6.5"␍
+    18    │ - ··}␍
+    19    │ - }␍
+        1 │ + {
+        2 │ + ··"name":·"@spryxel/contracts",
+        3 │ + ··"version":·"0.0.0",
+        4 │ + ··"private":·true,
+        5 │ + ··"type":·"module",
+        6 │ + ··"exports":·{
+        7 │ + ····".":·{
+        8 │ + ······"types":·"./dist/index.d.ts",
+        9 │ + ······"import":·"./dist/index.js"
+       10 │ + ····}
+       11 │ + ··},
+       12 │ + ··"scripts":·{
+       13 │ + ····"build":·"tsc·-p·tsconfig.json",
+       14 │ + ····"typecheck":·"tsc·-p·tsconfig.json·--noEmit"
+       15 │ + ··},
+       16 │ + ··"dependencies":·{
+       17 │ + ····"zod":·"4.6.5"
+       18 │ + ··}
+       19 │ + }
+    20 20 │   
+  
+
+packages\contracts\tsconfig.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+    1   │ - {␍
+    2   │ - ··"extends":·"../../tsconfig.json",␍
+    3   │ - ··"compilerOptions":·{␍
+    4   │ - ····"rootDir":·"src",␍
+    5   │ - ····"outDir":·"dist"␍
+    6   │ - ··},␍
+    7   │ - ··"include":·["src/**/*.ts"]␍
+    8   │ - }␍
+      1 │ + {
+      2 │ + ··"extends":·"../../tsconfig.json",
+      3 │ + ··"compilerOptions":·{
+      4 │ + ····"rootDir":·"src",
+      5 │ + ····"outDir":·"dist"
+      6 │ + ··},
+      7 │ + ··"include":·["src/**/*.ts"]
+      8 │ + }
+    9 9 │   
+  
+
+packages\db\package.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+     1    │ - {␍
+     2    │ - ··"name":·"@spryxel/db",␍
+     3    │ - ··"version":·"0.0.0",␍
+     4    │ - ··"private":·true,␍
+     5    │ - ··"type":·"module",␍
+     6    │ - ··"exports":·{␍
+     7    │ - ····".":·{␍
+     8    │ - ······"types":·"./dist/index.d.ts",␍
+     9    │ - ······"import":·"./dist/index.js"␍
+    10    │ - ····}␍
+    11    │ - ··},␍
+    12    │ - ··"scripts":·{␍
+    13    │ - ····"build":·"tsc·-p·tsconfig.json",␍
+    14    │ - ····"typecheck":·"tsc·-p·tsconfig.json·--noEmit"␍
+    15    │ - ··},␍
+    16    │ - ··"dependencies":·{␍
+    17    │ - ····"@spryxel/domain":·"0.0.0",␍
+    18    │ - ····"@spryxel/identity":·"0.0.0",␍
+    19    │ - ····"drizzle-orm":·"0.45.3",␍
+    20    │ - ····"pg":·"8.23.1",␍
+    21    │ - ····"uuid":·"14.0.2"␍
+    22    │ - ··},␍
+    23    │ - ··"devDependencies":·{␍
+    24    │ - ····"@types/pg":·"8.23.1"␍
+    25    │ - ··}␍
+    26    │ - }␍
+        1 │ + {
+        2 │ + ··"name":·"@spryxel/db",
+        3 │ + ··"version":·"0.0.0",
+        4 │ + ··"private":·true,
+        5 │ + ··"type":·"module",
+        6 │ + ··"exports":·{
+        7 │ + ····".":·{
+        8 │ + ······"types":·"./dist/index.d.ts",
+        9 │ + ······"import":·"./dist/index.js"
+       10 │ + ····}
+       11 │ + ··},
+       12 │ + ··"scripts":·{
+       13 │ + ····"build":·"tsc·-p·tsconfig.json",
+       14 │ + ····"typecheck":·"tsc·-p·tsconfig.json·--noEmit"
+       15 │ + ··},
+       16 │ + ··"dependencies":·{
+       17 │ + ····"@spryxel/domain":·"0.0.0",
+       18 │ + ····"@spryxel/identity":·"0.0.0",
+       19 │ + ····"drizzle-orm":·"0.45.3",
+       20 │ + ····"pg":·"8.23.1",
+       21 │ + ····"uuid":·"14.0.2"
+       22 │ + ··},
+       23 │ + ··"devDependencies":·{
+       24 │ + ····"@types/pg":·"8.23.1"
+       25 │ + ··}
+       26 │ + }
+    27 27 │   
+  
+
+packages\db\tsconfig.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+    1   │ - {␍
+    2   │ - ··"extends":·"../../tsconfig.json",␍
+    3   │ - ··"compilerOptions":·{␍
+    4   │ - ····"rootDir":·"src",␍
+    5   │ - ····"outDir":·"dist"␍
+    6   │ - ··},␍
+    7   │ - ··"include":·["src/**/*.ts"]␍
+    8   │ - }␍
+      1 │ + {
+      2 │ + ··"extends":·"../../tsconfig.json",
+      3 │ + ··"compilerOptions":·{
+      4 │ + ····"rootDir":·"src",
+      5 │ + ····"outDir":·"dist"
+      6 │ + ··},
+      7 │ + ··"include":·["src/**/*.ts"]
+      8 │ + }
+    9 9 │   
+  
+
+packages\domain\package.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+     1    │ - {␍
+     2    │ - ··"name":·"@spryxel/domain",␍
+     3    │ - ··"version":·"0.0.0",␍
+     4    │ - ··"private":·true,␍
+     5    │ - ··"type":·"module",␍
+     6    │ - ··"exports":·{␍
+     7    │ - ····".":·{␍
+     8    │ - ······"types":·"./dist/index.d.ts",␍
+     9    │ - ······"import":·"./dist/index.js"␍
+    10    │ - ····}␍
+    11    │ - ··},␍
+    12    │ - ··"scripts":·{␍
+    13    │ - ····"build":·"tsc·-p·tsconfig.json",␍
+    14    │ - ····"typecheck":·"tsc·-p·tsconfig.json·--noEmit"␍
+    15    │ - ··}␍
+    16    │ - }␍
+        1 │ + {
+        2 │ + ··"name":·"@spryxel/domain",
+        3 │ + ··"version":·"0.0.0",
+        4 │ + ··"private":·true,
+        5 │ + ··"type":·"module",
+        6 │ + ··"exports":·{
+        7 │ + ····".":·{
+        8 │ + ······"types":·"./dist/index.d.ts",
+        9 │ + ······"import":·"./dist/index.js"
+       10 │ + ····}
+       11 │ + ··},
+       12 │ + ··"scripts":·{
+       13 │ + ····"build":·"tsc·-p·tsconfig.json",
+       14 │ + ····"typecheck":·"tsc·-p·tsconfig.json·--noEmit"
+       15 │ + ··}
+       16 │ + }
+    17 17 │   
+  
+
+packages\domain\tsconfig.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+    1   │ - {␍
+    2   │ - ··"extends":·"../../tsconfig.json",␍
+    3   │ - ··"compilerOptions":·{␍
+    4   │ - ····"rootDir":·"src",␍
+    5   │ - ····"outDir":·"dist"␍
+    6   │ - ··},␍
+    7   │ - ··"include":·["src/**/*.ts"]␍
+    8   │ - }␍
+      1 │ + {
+      2 │ + ··"extends":·"../../tsconfig.json",
+      3 │ + ··"compilerOptions":·{
+      4 │ + ····"rootDir":·"src",
+      5 │ + ····"outDir":·"dist"
+      6 │ + ··},
+      7 │ + ··"include":·["src/**/*.ts"]
+      8 │ + }
+    9 9 │   
+  
+
+packages\identity\package.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+     1    │ - {␍
+     2    │ - ··"name":·"@spryxel/identity",␍
+     3    │ - ··"version":·"0.0.0",␍
+     4    │ - ··"private":·true,␍
+     5    │ - ··"type":·"module",␍
+     6    │ - ··"exports":·{␍
+     7    │ - ····".":·{␍
+     8    │ - ······"types":·"./dist/index.d.ts",␍
+     9    │ - ······"import":·"./dist/index.js"␍
+    10    │ - ····}␍
+    11    │ - ··},␍
+    12    │ - ··"scripts":·{␍
+    13    │ - ····"build":·"tsc·-p·tsconfig.json",␍
+    14    │ - ····"typecheck":·"tsc·-p·tsconfig.json·--noEmit"␍
+    15    │ - ··}␍
+    16    │ - }␍
+        1 │ + {
+        2 │ + ··"name":·"@spryxel/identity",
+        3 │ + ··"version":·"0.0.0",
+        4 │ + ··"private":·true,
+        5 │ + ··"type":·"module",
+        6 │ + ··"exports":·{
+        7 │ + ····".":·{
+        8 │ + ······"types":·"./dist/index.d.ts",
+        9 │ + ······"import":·"./dist/index.js"
+       10 │ + ····}
+       11 │ + ··},
+       12 │ + ··"scripts":·{
+       13 │ + ····"build":·"tsc·-p·tsconfig.json",
+       14 │ + ····"typecheck":·"tsc·-p·tsconfig.json·--noEmit"
+       15 │ + ··}
+       16 │ + }
+    17 17 │   
+  
+
+packages\identity\tsconfig.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+    1   │ - {␍
+    2   │ - ··"extends":·"../../tsconfig.json",␍
+    3   │ - ··"compilerOptions":·{␍
+    4   │ - ····"rootDir":·"src",␍
+    5   │ - ····"outDir":·"dist"␍
+    6   │ - ··},␍
+    7   │ - ··"include":·["src/**/*.ts"]␍
+    8   │ - }␍
+      1 │ + {
+      2 │ + ··"extends":·"../../tsconfig.json",
+      3 │ + ··"compilerOptions":·{
+      4 │ + ····"rootDir":·"src",
+      5 │ + ····"outDir":·"dist"
+      6 │ + ··},
+      7 │ + ··"include":·["src/**/*.ts"]
+      8 │ + }
+    9 9 │   
+  
+
+packages\observability\package.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+     1    │ - {␍
+     2    │ - ··"name":·"@spryxel/observability",␍
+     3    │ - ··"version":·"0.0.0",␍
+     4    │ - ··"private":·true,␍
+     5    │ - ··"type":·"module",␍
+     6    │ - ··"exports":·{␍
+     7    │ - ····".":·{␍
+     8    │ - ······"types":·"./dist/index.d.ts",␍
+     9    │ - ······"import":·"./dist/index.js"␍
+    10    │ - ····}␍
+    11    │ - ··},␍
+    12    │ - ··"scripts":·{␍
+    13    │ - ····"build":·"tsc·-p·tsconfig.json",␍
+    14    │ - ····"typecheck":·"tsc·-p·tsconfig.json·--noEmit"␍
+    15    │ - ··},␍
+    16    │ - ··"dependencies":·{␍
+    17    │ - ····"@opentelemetry/api":·"1.9.1",␍
+    18    │ - ····"pino":·"10.3.1"␍
+    19    │ - ··}␍
+    20    │ - }␍
+        1 │ + {
+        2 │ + ··"name":·"@spryxel/observability",
+        3 │ + ··"version":·"0.0.0",
+        4 │ + ··"private":·true,
+        5 │ + ··"type":·"module",
+        6 │ + ··"exports":·{
+        7 │ + ····".":·{
+        8 │ + ······"types":·"./dist/index.d.ts",
+        9 │ + ······"import":·"./dist/index.js"
+       10 │ + ····}
+       11 │ + ··},
+       12 │ + ··"scripts":·{
+       13 │ + ····"build":·"tsc·-p·tsconfig.json",
+       14 │ + ····"typecheck":·"tsc·-p·tsconfig.json·--noEmit"
+       15 │ + ··},
+       16 │ + ··"dependencies":·{
+       17 │ + ····"@opentelemetry/api":·"1.9.1",
+       18 │ + ····"pino":·"10.3.1"
+       19 │ + ··}
+       20 │ + }
+    21 21 │   
+  
+
+packages\observability\tsconfig.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+    1   │ - {␍
+    2   │ - ··"extends":·"../../tsconfig.json",␍
+    3   │ - ··"compilerOptions":·{␍
+    4   │ - ····"rootDir":·"src",␍
+    5   │ - ····"outDir":·"dist"␍
+    6   │ - ··},␍
+    7   │ - ··"include":·["src/**/*.ts"]␍
+    8   │ - }␍
+      1 │ + {
+      2 │ + ··"extends":·"../../tsconfig.json",
+      3 │ + ··"compilerOptions":·{
+      4 │ + ····"rootDir":·"src",
+      5 │ + ····"outDir":·"dist"
+      6 │ + ··},
+      7 │ + ··"include":·["src/**/*.ts"]
+      8 │ + }
+    9 9 │   
+  
+
+packages\testkit\package.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+     1    │ - {␍
+     2    │ - ··"name":·"@spryxel/testkit",␍
+     3    │ - ··"version":·"0.0.0",␍
+     4    │ - ··"private":·true,␍
+     5    │ - ··"type":·"module",␍
+     6    │ - ··"exports":·{␍
+     7    │ - ····".":·{␍
+     8    │ - ······"types":·"./dist/index.d.ts",␍
+     9    │ - ······"import":·"./dist/index.js"␍
+    10    │ - ····}␍
+    11    │ - ··},␍
+    12    │ - ··"scripts":·{␍
+    13    │ - ····"build":·"tsc·-p·tsconfig.json",␍
+    14    │ - ····"typecheck":·"tsc·-p·tsconfig.json·--noEmit"␍
+    15    │ - ··}␍
+    16    │ - }␍
+        1 │ + {
+        2 │ + ··"name":·"@spryxel/testkit",
+        3 │ + ··"version":·"0.0.0",
+        4 │ + ··"private":·true,
+        5 │ + ··"type":·"module",
+        6 │ + ··"exports":·{
+        7 │ + ····".":·{
+        8 │ + ······"types":·"./dist/index.d.ts",
+        9 │ + ······"import":·"./dist/index.js"
+       10 │ + ····}
+       11 │ + ··},
+       12 │ + ··"scripts":·{
+       13 │ + ····"build":·"tsc·-p·tsconfig.json",
+       14 │ + ····"typecheck":·"tsc·-p·tsconfig.json·--noEmit"
+       15 │ + ··}
+       16 │ + }
+    17 17 │   
+  
+
+packages\testkit\tsconfig.json format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+    1   │ - {␍
+    2   │ - ··"extends":·"../../tsconfig.json",␍
+    3   │ - ··"compilerOptions":·{␍
+    4   │ - ····"rootDir":·"src",␍
+    5   │ - ····"outDir":·"dist"␍
+    6   │ - ··},␍
+    7   │ - ··"include":·["src/**/*.ts"]␍
+    8   │ - }␍
+      1 │ + {
+      2 │ + ··"extends":·"../../tsconfig.json",
+      3 │ + ··"compilerOptions":·{
+      4 │ + ····"rootDir":·"src",
+      5 │ + ····"outDir":·"dist"
+      6 │ + ··},
+      7 │ + ··"include":·["src/**/*.ts"]
+      8 │ + }
+    9 9 │   
+  
+
+format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Some errors were emitted while running checks.
+  
+

@@ -1,0 +1,8 @@
+
+> spryxel@0.0.0 format:check
+> biome format package.json package-lock.json tsconfig.json turbo.json biome.json vitest.config.ts playwright.config.ts README.md apps packages scripts infra
+
+The number of diagnostics exceeds the limit allowed. Use --max-diagnostics to increase it.
+Diagnostics not shown: 100.
+Checked 122 files in 1244ms. No fixes applied.
+Found 120 errors.

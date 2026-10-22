@@ -1,0 +1,5 @@
+branch_ref.raw.log: OK
+git_version.raw.log: OK
+node_version.raw.log: OK
+npm_version.raw.log: OK
+receipt.txt: OK

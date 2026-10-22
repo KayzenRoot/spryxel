@@ -1,0 +1,89 @@
+WORKFLOW=gitleaks.yml BLOB=313a6edb124b05e9e092e32daa8f8a7341213470
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+WORKFLOW=module-browser.yml BLOB=64a6327993003aaeaabd05a88ee0b2eb641e5582
+on:
+  pull_request:
+    branches: [main]
+      - 'apps/web/**'
+      - 'apps/api/**'
+      - 'packages/**'
+      - 'scripts/**'
+      - 'playwright.config.ts'
+      - 'tsconfig.json'
+      - 'turbo.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/module-browser.yml'
+
+WORKFLOW=module-core.yml BLOB=8d27a0d8861c7acd1ca3d0c067a181dbe8167a14
+on:
+  pull_request:
+    branches: [main]
+      - 'apps/**'
+      - 'packages/**'
+      - 'scripts/**'
+      - 'vitest.config.ts'
+      - 'tsconfig.json'
+      - 'turbo.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/module-core.yml'
+
+WORKFLOW=module-integration.yml BLOB=4dcccbe4720b7fd36997723ad531a58ebb80e91b
+on:
+  pull_request:
+    branches: [main]
+      - 'apps/api/**'
+      - 'apps/worker/**'
+      - 'packages/**'
+      - 'scripts/**'
+      - 'infra/**'
+      - 'tsconfig.json'
+      - 'turbo.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/module-integration.yml'
+
+WORKFLOW=module-worker.yml BLOB=325d89c0527c08c61e360bdae16ffaaf8c3be3d2
+on:
+  pull_request:
+    branches: [main]
+      - 'apps/worker/**'
+      - 'packages/**'
+      - 'scripts/**'
+      - 'tsconfig.json'
+      - 'turbo.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/module-worker.yml'
+
+WORKFLOW=pipeline-integrity.yml BLOB=62a290e82e1013cbd3587a598736206a995c1e1d
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+WORKFLOW=repository-validation.yml BLOB=83a62af9d1eca17cf7af4ce594b83b3b724ba93f
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+WORKFLOW=trivy.yml BLOB=b48c62a1f724aa814f5e6ae8eea3b0473b296575
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
