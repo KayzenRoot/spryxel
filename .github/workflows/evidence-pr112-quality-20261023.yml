@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   verify:
-    if: github.repository == 'KayzenRoot/spryxel' && github.event.head_commit.message == 'chore(evidence): temporary read-only quality probe PR112'
+    if: "github.repository == 'KayzenRoot/spryxel' && github.event.head_commit.message == 'chore(evidence): temporary read-only quality probe PR112'"
     name: Exact SHA 112 format and lint (read-only)
     runs-on: ubuntu-24.04
     timeout-minutes: 20
