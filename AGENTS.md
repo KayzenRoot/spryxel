@@ -23,3 +23,14 @@ The `.engineering/` Source Pack and `CHECKPOINT` are **historical/product refere
 ## Collaboration
 
 Use the CoinBlink-style concise PR reviews and explicit clickable choice/authorization controls when available; they request consent and never auto-merge. See `docs/CHAT_WORKFLOW_AND_HANDOFF.md`. Do not merge or deploy without actual authorization.
+
+## Selective ECC-derived project skills (opt-in, lightweight)
+
+Five local task skills live under `.agents/skills/spryxel-*/SKILL.md`. They are checked into the repository, require no global plugin, hooks, MCP servers, background agents or paid service, and must not override this file:
+- `spryxel-search-first` when choosing libraries/tools or about to build duplicate utilities.
+- `spryxel-change-impact` for cross-package or data/security boundary changes.
+- `spryxel-contract-first` for API/Zod/service contract changes.
+- `spryxel-secure-review` for identity, tenant isolation, RLS, assets, cost or input-handling changes.
+- `spryxel-verify` before PR handoff to report real build/lint/format/tests/diffs.
+
+Use only the relevant skill(s); avoid ritual multi-agent handoffs. Project commands in package.json and active GitHub Actions remain authoritative. No skill can certify an unrun test, change permissions, auto-merge, deploy or incur cost. See `docs/engineering/CI_TOOLING_AND_ECC.md` for source, license and workflow details.

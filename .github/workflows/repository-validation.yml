@@ -32,6 +32,10 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Fast-fail Biome formatting (read-only)
+        run: npm run format:check
+      - name: Fast-fail Biome lint (read-only)
+        run: npm run lint
       - name: Build app and packages
         run: npm run build
       - name: Check architecture and tenant boundaries
