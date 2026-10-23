@@ -1,0 +1,45 @@
+{
+  "schema": "spryxel-pr110-casefold-diagnosis/v1",
+  "date": "2026-10-23",
+  "head": "b2c4d4fbb1cf60459cfccdf56eacd57120a4f11b",
+  "main": "126e3a17265e38c94c5057d5d423eb14a12bb9c9",
+  "prior_forensic_commit": "952ae3d9f684d71ae24041cc9a4585fb3bf1ab0e",
+  "conclusion": "CONFIRMED_WINDOWS_CASE_INSENSITIVE_PATH_COLLISION",
+  "caseInsensitiveDuplicateCount": 1,
+  "headTreeEntries": 394,
+  "mainTreeEntries": 378,
+  "files": [
+    {
+      "path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "blob": "042e00c0560887f90a0b7d69e75010a21c10c8a3",
+      "bytes": 673,
+      "lf": 17,
+      "existsInMain": false
+    },
+    {
+      "path": ".github/pull_request_template.md",
+      "blob": "90e8d37ddee973aafcb230e48e15dd83cab4c2a6",
+      "bytes": 683,
+      "lf": 23,
+      "existsInMain": true
+    }
+  ],
+  "windowsWorktree": {
+    "clones": 2,
+    "physicalBlob": "90e8d37ddee973aafcb230e48e15dd83cab4c2a6",
+    "equalLowercaseTrackedBlob": true,
+    "exit": "BLOCKED_DIRTY_BOTH"
+  },
+  "proposedFix": {
+    "status": "NOT_EXECUTED",
+    "delete": ".github/PULL_REQUEST_TEMPLATE.md",
+    "update": ".github/pull_request_template.md",
+    "newBlob": "042e00c0560887f90a0b7d69e75010a21c10c8a3"
+  },
+  "fiveSkillsRuntime": "NOT_RUN",
+  "pr110Draft": true,
+  "ciOldHead": "7_OF_7_SUCCESS",
+  "noMerge": true,
+  "noDeploy": true,
+  "noSourceModificationInThisAudit": true
+}
