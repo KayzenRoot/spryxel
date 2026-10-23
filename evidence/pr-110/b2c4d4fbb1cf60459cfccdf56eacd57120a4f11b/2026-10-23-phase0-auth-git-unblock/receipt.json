@@ -1,0 +1,42 @@
+{
+  "schema": "spryxel-evidence-phase0-screenshot/v1",
+  "date": "2026-10-23",
+  "mission": "SPRYXEL-PR110-ECC-CODEX-WIN-FUNCTIONAL-001",
+  "base_original_evidence_commit": "cc4fae084eedafb9514182654a80e36ffef95462",
+  "pr_head": "b2c4d4fbb1cf60459cfccdf56eacd57120a4f11b",
+  "main_sha": "126e3a17265e38c94c5057d5d423eb14a12bb9c9",
+  "screenshot_report": {
+    "source": "user-provided screenshot; not independently inspected Windows log files",
+    "phase": "PHASE_0",
+    "status": "BLOCKED_AUTH_ENV_AND_GIT_IDENTITY",
+    "skills_run": 0,
+    "skill_status": "NOT_RUN",
+    "local_manifest_entries_reported": 19,
+    "raw_stdout_stderr_files_reported_empty": 10,
+    "git_commit_published": false,
+    "github_readback": false,
+    "api_secret_value_not_seen": true
+  },
+  "github_verified": {
+    "pr_open": true,
+    "pr_draft": true,
+    "code_head_unchanged": true,
+    "main_sha_unchanged": true,
+    "original_evidence_sha": "cc4fae084eedafb9514182654a80e36ffef95462",
+    "ci_success": 7,
+    "ci_total": 7
+  },
+  "this_addendum": {
+    "supercedes": [
+      "original stop-on-API-env-presence check",
+      "local-only evidence git author setup"
+    ],
+    "cost_mode": "ChatGPT login only; no incremental billed API",
+    "functional_runs_executed_in_this_chat": 0,
+    "token_usage": "NOT_AVAILABLE",
+    "status": "PHASE0_PATCH_PUBLISHED_FUNCTIONAL_NOT_RUN"
+  },
+  "no_merge": true,
+  "no_deploy": true,
+  "no_product_code_change": true
+}
