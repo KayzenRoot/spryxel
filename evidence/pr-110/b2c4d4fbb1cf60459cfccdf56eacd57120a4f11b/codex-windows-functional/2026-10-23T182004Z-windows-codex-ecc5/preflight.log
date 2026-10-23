@@ -1,0 +1,14 @@
+Mission=SPRYXEL-PR110-ECC-CODEX-WIN-FUNCTIONAL-001
+RunId=2026-10-23T182004Z-windows-codex-ecc5
+Expected/verified PR source HEAD=b2c4d4fbb1cf60459cfccdf56eacd57120a4f11b
+Expected/verified main=126e3a17265e38c94c5057d5d423eb14a12bb9c9
+PR state=OPEN; draft=true; branch=chore/spryxel-ecc-curated-workflow-20261023
+Evidence branch starting SHA=f532ab217f21ab6e15322ec38832ba511b561c70
+Source clone checkout exit=0; actual HEAD=b2c4d4fbb1cf60459cfccdf56eacd57120a4f11b
+Clean source gate=FAIL; status:  M .github/PULL_REQUEST_TEMPLATE.md
+Diff numstat: 19	13	.github/PULL_REQUEST_TEMPLATE.md
+Focused ignore-EOL comparison exit=1: difference is not explained only by line endings.
+Root AGENTS.md and all five requested skill files report i/lf and w/lf.
+Phase0 process-scoped API-variable isolation and ChatGPT CLI login confirmation=NOT_RUN in this attempt. No secret values were read.
+Functional Codex invocations=0; all five skill cases NOT_RUN; no token usage is available.
+No functional output, MCP/plugin/hook execution, install, model/API call, merge or deploy occurred.

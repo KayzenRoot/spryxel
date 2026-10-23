@@ -1,0 +1,1 @@
+Blocked PR #110 run 2026-10-23T182004Z-windows-codex-ecc5. Overall status BLOCKED_SOURCE_WORKTREE_DIRTY. All five functional cases are NOT_RUN. See audit.md and receipt.json.
