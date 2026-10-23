@@ -1,0 +1,41 @@
+{
+  "schema": "spryxel-evidence-diagnostic-plan/v1",
+  "date": "2026-10-23",
+  "source": "User screenshot and independently read-back GitHub evidence",
+  "repository": "KayzenRoot/spryxel",
+  "pr": 110,
+  "head": "b2c4d4fbb1cf60459cfccdf56eacd57120a4f11b",
+  "base_main": "126e3a17265e38c94c5057d5d423eb14a12bb9c",
+  "prior_result_commit": "4bf0445f843e8421d1f5e050b90bf6a4d4169847",
+  "prior_result": {
+    "status": "BLOCKED_SOURCE_WORKTREE_DIRTY",
+    "dirty_path": ".github/PULL_REQUEST_TEMPLATE.md",
+    "numstat": {
+      "added": 19,
+      "deleted": 13
+    },
+    "ignore_eol_diff_still_present": true,
+    "template_expected_blob": "042e00c0560887f90a0b7d69e75010a21c10c8a3",
+    "root_cause": "UNDETERMINED",
+    "five_skills": "NOT_RUN",
+    "auth_gate": "NOT_RUN",
+    "reported_remote_readback": "20/20 files; 19/19 manifest entries"
+  },
+  "independently_verified": {
+    "evidence_branch_head": "4bf0445f843e8421d1f5e050b90bf6a4d4169847",
+    "pr_open_draft": true,
+    "source_head_unchanged": true,
+    "main_unchanged": true,
+    "ci_success": 7,
+    "ci_total": 7,
+    "evidence_delta_paths": 20,
+    "read_original_audit_receipt_preflight": true
+  },
+  "diagnostic": {
+    "status": "PREPARED_NOT_RUN",
+    "run_cost": "no model tokens in Git-only test; ordinary git remote access",
+    "scope": "2 isolated clones for comparison if needed; no source edits, no checkout cleanup, no feature invocation"
+  },
+  "no_merge": true,
+  "no_deploy": true
+}
