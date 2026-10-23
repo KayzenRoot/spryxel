@@ -1,0 +1,82 @@
+name: Temporary read-only PR112 format and lint evidence
+
+on:
+  push:
+    branches: [evidence/spryxel]
+    paths:
+      - '.github/workflows/evidence-pr112-quality-20261023.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: temporary-pr112-format-lint-probe
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: github.repository == 'KayzenRoot/spryxel' && github.event.head_commit.message == 'chore(evidence): temporary read-only quality probe PR112'
+    name: Exact SHA 112 format and lint (read-only)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact immutable PR112 code SHA
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: dd4a6ddfaa24afeba0225daffe519322b146cab4
+          persist-credentials: false
+      - name: Set up pinned Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22.23.3'
+          cache: npm
+      - name: Confirm exact candidate, versions and clean checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'audit_target=dd4a6ddfaa24afeba0225daffe519322b146cab4'
+          echo "cwd=$(pwd -P)"
+          echo "git_head=$(git rev-parse HEAD)"
+          echo "node_version=$(node --version)"
+          echo "npm_version=$(npm --version)"
+          test "$(git rev-parse HEAD)" = 'dd4a6ddfaa24afeba0225daffe519322b146cab4'
+          test "$(node --version)" = 'v22.23.3'
+          test "$(npm --version)" = '10.9.9'
+          node -e "const p=require('./apps/web/package.json');if(p.dependencies.next !== '16.4.1') process.exit(1)"
+          test -z "$(git status --porcelain)"
+      - name: Reproducible locked npm install without lifecycle scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts --no-audit --no-fund
+          test -z "$(git status --porcelain)"
+      - name: Run read-only format and lint with truthful exit codes
+        shell: bash
+        run: |
+          set -uo pipefail
+          f_stdout="$RUNNER_TEMP/pr112-format.stdout.log"
+          f_stderr="$RUNNER_TEMP/pr112-format.stderr.log"
+          l_stdout="$RUNNER_TEMP/pr112-lint.stdout.log"
+          l_stderr="$RUNNER_TEMP/pr112-lint.stderr.log"
+          npm run format:check >"$f_stdout" 2>"$f_stderr"
+          f_rc=$?
+          npm run lint >"$l_stdout" 2>"$l_stderr"
+          l_rc=$?
+          echo "format_exit=$f_rc"
+          echo "lint_exit=$l_rc"
+          echo "git_head_after=$(git rev-parse HEAD)"
+          echo "tracked_changed_count=$(git status --porcelain | wc -l)"
+          echo '### format stdout'
+          cat "$f_stdout"
+          echo '### format stderr'
+          cat "$f_stderr"
+          echo '### lint stdout'
+          cat "$l_stdout"
+          echo '### lint stderr'
+          cat "$l_stderr"
+          echo '### SHA256 evidence stdout and stderr'
+          sha256sum "$f_stdout" "$f_stderr" "$l_stdout" "$l_stderr"
+          test "$f_rc" -eq 0 && test "$l_rc" -eq 0 || exit 1
+          test "$(git rev-parse HEAD)" = 'dd4a6ddfaa24afeba0225daffe519322b146cab4' || exit 1
+          test -z "$(git status --porcelain)" || exit 1
+          echo 'RESULT=FORMAT_AND_LINT_PASS_EXACT_PR112_SHA'
