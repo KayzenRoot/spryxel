@@ -1,0 +1,73 @@
+{
+  "schema": "spryxel-pr110-casefold-fix/v1",
+  "recorded_date": "2026-10-23",
+  "repository": "KayzenRoot/spryxel",
+  "pr": 110,
+  "main_sha": "126e3a17265e38c94c5057d5d423eb14a12bb9c9",
+  "source_head_before": "b2c4d4fbb1cf60459cfccdf56eacd57120a4f11b",
+  "source_head_after": "ae9e6aa5fa19ed9cb257024a22e8cecbbf8ce13a",
+  "source_tree_sha": "acbc9876bdc369d06ecbfe580b9db34b9eb67dff",
+  "old_entries": 394,
+  "new_entries": 393,
+  "casefold_collisions_after": 0,
+  "changed_paths": [
+    {
+      "path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "action": "DELETE",
+      "old_blob": "042e00c0560887f90a0b7d69e75010a21c10c8a3"
+    },
+    {
+      "path": ".github/pull_request_template.md",
+      "action": "MODIFY",
+      "old_blob": "90e8d37ddee973aafcb230e48e15dd83cab4c2a6",
+      "new_blob": "d0a7235dfb0f72b4e02446f351d19dbb5a552a49"
+    }
+  ],
+  "pr_vs_main": {
+    "changed_files": 10,
+    "ahead": 3,
+    "behind": 0
+  },
+  "ci": {
+    "head": "ae9e6aa5fa19ed9cb257024a22e8cecbbf8ce13a",
+    "total": 7,
+    "successful": 7,
+    "failed": 0,
+    "pending": 0,
+    "repository_validation_run": 40020677104,
+    "trivy_run": 40020677133,
+    "gitleaks_run": 40020677214,
+    "pipeline_run": 40020677132,
+    "sonar": {
+      "quality_gate": "PASS",
+      "new_issues": 0,
+      "new_hotspots": 0,
+      "coverage_new_code": "0.0%"
+    },
+    "trivy": {
+      "lockfile_vulnerabilities": 0,
+      "dockerfile_misconfigs": 0
+    }
+  },
+  "gates": {
+    "allRequiredChecks": "PASS",
+    "githubReviewThreadsUnresolved": 0,
+    "windows_new_head_clean_checkout": "NOT_RUN",
+    "ecc5_runtime_invocations": "NOT_RUN",
+    "worker_postgres_browser_on_this_head": "NOT_RUN"
+  },
+  "governance": {
+    "draft": true,
+    "merged": false,
+    "main_unchanged": true,
+    "other_prs_preserved": [
+      105,
+      108
+    ],
+    "ruleset_changed": false,
+    "checkpoints_changed": false,
+    "deploy": false,
+    "paid_services": false
+  },
+  "status": "FIX_APPLIED_CI_PASS_WINDOWS_ECC5_NOT_RUN_NO_MERGE"
+}
