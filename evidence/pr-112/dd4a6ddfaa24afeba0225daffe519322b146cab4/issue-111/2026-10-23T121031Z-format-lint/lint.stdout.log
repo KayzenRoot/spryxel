@@ -1,0 +1,5 @@
+
+> spryxel@0.0.0 lint
+> biome lint package.json package-lock.json tsconfig.json turbo.json biome.json vitest.config.ts playwright.config.ts apps packages scripts infra
+
+Checked 131 files in 116ms. No fixes applied.

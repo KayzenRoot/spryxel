@@ -1,0 +1,5 @@
+
+> spryxel@0.0.0 format:check
+> biome format package.json package-lock.json tsconfig.json turbo.json biome.json vitest.config.ts playwright.config.ts README.md apps packages scripts infra
+
+Checked 131 files in 64ms. No fixes applied.
