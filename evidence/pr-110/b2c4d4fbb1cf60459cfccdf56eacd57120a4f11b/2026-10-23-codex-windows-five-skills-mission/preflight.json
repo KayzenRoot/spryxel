@@ -1,0 +1,32 @@
+{
+  "schema": "spryxel-evidence-preflight/v1",
+  "mission_id": "SPRYXEL-PR110-ECC-CODEX-WIN-FUNCTIONAL-001",
+  "created_date": "2026-10-23",
+  "repository": "KayzenRoot/spryxel",
+  "pr": 110,
+  "code_head": "b2c4d4fbb1cf60459cfccdf56eacd57120a4f11b",
+  "main_sha": "126e3a17265e38c94c5057d5d423eb14a12bb9c9",
+  "prior_evidence_branch_head": "bf4733f9583e7b563b8c2924ab5a78b460a3c02f",
+  "ci": {
+    "head": "b2c4d4fbb1cf60459cfccdf56eacd57120a4f11b",
+    "total": 7,
+    "success": 7
+  },
+  "skills": [
+    "spryxel-search-first",
+    "spryxel-change-impact",
+    "spryxel-contract-first",
+    "spryxel-secure-review",
+    "spryxel-verify"
+  ],
+  "static_review": "PASS_5_OF_5",
+  "functional_discovery": "NOT_RUN",
+  "actual_invocations": 0,
+  "windows_codex_attached": false,
+  "reason": "No authenticated Windows Codex executable session or authorized turn_token is available in this ChatGPT environment.",
+  "next_required_action": "Execute mission.md in a new local Codex Windows session; publish sanitized verified outputs append-only",
+  "no_merge": true,
+  "no_deploy": true,
+  "no_code_change": true,
+  "status": "INSTRUCTIONS_PREPARED_FUNCTIONAL_NOT_RUN"
+}
