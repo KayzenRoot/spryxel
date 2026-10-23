@@ -1,0 +1,11 @@
+B | git ls-files --eol -- .github/PULL_REQUEST_TEMPLATE.md | exit 0
+i/lf    w/lf    attr/                 	.github/PULL_REQUEST_TEMPLATE.md
+B | git check-attr --all -- .github/PULL_REQUEST_TEMPLATE.md | exit 0
+[no attributes emitted]
+B | git check-attr text eol filter -- .github/PULL_REQUEST_TEMPLATE.md | exit 0
+.github/PULL_REQUEST_TEMPLATE.md: text: unspecified
+.github/PULL_REQUEST_TEMPLATE.md: eol: unspecified
+.github/PULL_REQUEST_TEMPLATE.md: filter: unspecified
+B | git ls-files --stage -- .github/PULL_REQUEST_TEMPLATE.md | exit 0
+100644 042e00c0560887f90a0b7d69e75010a21c10c8a3 0	.github/PULL_REQUEST_TEMPLATE.md
+B local config names/values relevant to checkout: core.autocrlf=false; core.eol=lf; core.attributesFile=NUL; hooks disabled via empty local hooks directory.

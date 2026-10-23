@@ -1,0 +1,671 @@
+{
+  "mission": "SPRYXEL-PR110-ECC5-WINDOWS-WORKTREE-FORENSICS-002",
+  "runId": "2026-10-23T195055Z-template-forensics",
+  "startedUtc": "2026-10-23T19:50:55Z",
+  "completedUtc": "2026-10-23T19:54:52Z",
+  "repository": "KayzenRoot/spryxel",
+  "pr": {
+    "baseSha": "126e3a17265e38c94c5057d5d423eb14a12bb9c9",
+    "number": 110,
+    "isDraft": true,
+    "state": "OPEN",
+    "headSha": "b2c4d4fbb1cf60459cfccdf56eacd57120a4f11b",
+    "baseBranch": "main"
+  },
+  "sourceBranchRemoteSha": "b2c4d4fbb1cf60459cfccdf56eacd57120a4f11b",
+  "evidenceBranchBeforePublicationSha": "653d3bcaf92c81c26d815070d5cd0ade41848416",
+  "primaryCheckout": {
+    "statusEntryCountAfter": 6,
+    "branch": "codex/spryxel-wo-009-imp-005-credit-ledger-costguard",
+    "headSha": "3f14441ac48d0067dfad8214ba29dfcb2e285a8a",
+    "statusEntryCountBefore": 6
+  },
+  "tools": {
+    "gitEnvironmentVariableNames": [
+      "GIT_PAGER"
+    ],
+    "powershell": "7.6.5",
+    "git": "2.55.0.windows.3"
+  },
+  "targetPath": ".github/PULL_REQUEST_TEMPLATE.md",
+  "expected": {
+    "gitBlob": "042e00c0560887f90a0b7d69e75010a21c10c8a3",
+    "stats": {
+      "bytes": 673,
+      "loneLf": 17,
+      "nul": 0,
+      "utf8Characters": 673,
+      "crlf": 0,
+      "bomUtf8": false,
+      "endsWithLf": true,
+      "lf": 17
+    },
+    "sha256": "1d153ad725149b74a12bb6582e84c7b65559454a4a403e51d6296d8048e94674"
+  },
+  "cloneA": {
+    "numstat": "19 13",
+    "indexBlob": "042e00c0560887f90a0b7d69e75010a21c10c8a3",
+    "stats": {
+      "bytes": 683,
+      "loneLf": 23,
+      "nul": 0,
+      "utf8Characters": 683,
+      "crlf": 0,
+      "bomUtf8": false,
+      "endsWithLf": true,
+      "lf": 23
+    },
+    "attributes": "text/eol/filter unspecified",
+    "eol": "index LF, worktree LF",
+    "headSha": "b2c4d4fbb1cf60459cfccdf56eacd57120a4f11b",
+    "diffCheckExit": 0,
+    "diffQuietExit": 1,
+    "untrackedCount": 0,
+    "trackedChangedPaths": [
+      ".github/PULL_REQUEST_TEMPLATE.md"
+    ],
+    "pathCleanedWorktreeBlob": "90e8d37ddee973aafcb230e48e15dd83cab4c2a6",
+    "sha256": "3b98ecf1a8043c7f8c48e7ba49ddc27b024fab409b367f02ddc6987614264248",
+    "ignoreSpaceAtEolQuietExit": 1,
+    "statusExit": 0,
+    "checkIgnoreExit": 1,
+    "rawWorktreeBlob": "90e8d37ddee973aafcb230e48e15dd83cab4c2a6"
+  },
+  "cloneB": {
+    "numstat": "19 13",
+    "indexBlob": "042e00c0560887f90a0b7d69e75010a21c10c8a3",
+    "stats": {
+      "bytes": 683,
+      "loneLf": 23,
+      "nul": 0,
+      "utf8Characters": 683,
+      "crlf": 0,
+      "bomUtf8": false,
+      "endsWithLf": true,
+      "lf": 23
+    },
+    "attributes": "text/eol/filter unspecified",
+    "eol": "index LF, worktree LF",
+    "headSha": "b2c4d4fbb1cf60459cfccdf56eacd57120a4f11b",
+    "diffCheckExit": 0,
+    "diffQuietExit": 1,
+    "untrackedCount": 0,
+    "trackedChangedPaths": [
+      ".github/PULL_REQUEST_TEMPLATE.md"
+    ],
+    "pathCleanedWorktreeBlob": "90e8d37ddee973aafcb230e48e15dd83cab4c2a6",
+    "sha256": "3b98ecf1a8043c7f8c48e7ba49ddc27b024fab409b367f02ddc6987614264248",
+    "ignoreSpaceAtEolQuietExit": 1,
+    "statusExit": 0,
+    "checkIgnoreExit": 1,
+    "rawWorktreeBlob": "90e8d37ddee973aafcb230e48e15dd83cab4c2a6"
+  },
+  "comparison": {
+    "cause": "UNRESOLVED",
+    "aAndBIgnoreEolPatchSha256": "822ccb40d09c090517bd834a43cf201e571f77721b4d4d8f2ee7ed32913f7a3b",
+    "aAndBDiffPatchSha256": "822ccb40d09c090517bd834a43cf201e571f77721b4d4d8f2ee7ed32913f7a3b",
+    "globalAttributesSuppressionChangedResult": false,
+    "aAndBWorktreeBlobEqual": true
+  },
+  "skills": {
+    "skill4": "NOT_RUN",
+    "skill3": "NOT_RUN",
+    "skill5": "NOT_RUN",
+    "skill2": "NOT_RUN",
+    "skill1": "NOT_RUN"
+  },
+  "verdict": "BLOCKED_DIRTY_BOTH",
+  "mutations": {
+    "deploy": "none",
+    "merge": "none",
+    "productCode": "none",
+    "templateRestoreOrEdit": "none",
+    "stageCommitOnSource": "none"
+  },
+  "commandLog": [
+    {
+      "command": "clone-a-attribute-files",
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-a-attributes-all",
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-a-attributes-text-eol-filter",
+      "exitCode": 0,
+      "stdoutBytes": 157,
+      "stdoutSha256": "276b0c7eb8a7cda6cae12ed51643277dd25bc760769e219a772e0d8f57d66d15",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-a-attrs-source",
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-a-autocrlf",
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-a-check-ignore",
+      "exitCode": 1,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-a-checkout",
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 93,
+      "stderrSha256": "7b93151cfd0421c1d9a398de4bdf54348539d728f7b00881c23b963e4bd54cc1"
+    },
+    {
+      "command": "clone-a-config-names",
+      "exitCode": 0,
+      "stdoutBytes": 1398,
+      "stdoutSha256": "eb40ddebc78df9b1b7e736a4e37b7effd205a8280f605f5c07bfc9c7962f8da7",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-a-diff-check",
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-a-diff-ignore-space-at-eol-quiet",
+      "exitCode": 1,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-a-diff-ignore-space-at-eol",
+      "exitCode": 0,
+      "stdoutBytes": 1595,
+      "stdoutSha256": "822ccb40d09c090517bd834a43cf201e571f77721b4d4d8f2ee7ed32913f7a3b",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-a-diff-quiet",
+      "exitCode": 1,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-a-diff",
+      "exitCode": 0,
+      "stdoutBytes": 1595,
+      "stdoutSha256": "822ccb40d09c090517bd834a43cf201e571f77721b4d4d8f2ee7ed32913f7a3b",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-a-eol",
+      "exitCode": 0,
+      "stdoutBytes": 72,
+      "stdoutSha256": "415fb81448929165985522e3fbb28beabd17a45b40613dfb1fc1fdebfb692009",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-a-full-status",
+      "exitCode": 0,
+      "stdoutBytes": 36,
+      "stdoutSha256": "89bdaa5da6da0cf3f9f5c212b15f6e3914719be06066cbf40177018c554772bd",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-a-hash-path-clean",
+      "exitCode": 0,
+      "stdoutBytes": 41,
+      "stdoutSha256": "acc3fa642ebcdc09ee8e299ff63df8f764dd1b9f589c3940426d4d444789b781",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-a-hash-raw",
+      "exitCode": 0,
+      "stdoutBytes": 41,
+      "stdoutSha256": "acc3fa642ebcdc09ee8e299ff63df8f764dd1b9f589c3940426d4d444789b781",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-a-head",
+      "exitCode": 0,
+      "stdoutBytes": 41,
+      "stdoutSha256": "5ed200c798010bb0fcda48a42c6a33d0fc1ad70e219e10667fa1962a95d028e8",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-a-hooks",
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-a-ls-files-stage",
+      "exitCode": 0,
+      "stdoutBytes": 83,
+      "stdoutSha256": "2cd707dfc995622fdc92a99c3ea266acbbdfae6aeecb433629d9d1ce7f66a577",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-a-numstat",
+      "exitCode": 0,
+      "stdoutBytes": 39,
+      "stdoutSha256": "8bfbc3e8443054ac4b7c457ef65fdf63577228cc7be0076f5d91c4e067c34cd8",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-a-status",
+      "exitCode": 0,
+      "stdoutBytes": 36,
+      "stdoutSha256": "89bdaa5da6da0cf3f9f5c212b15f6e3914719be06066cbf40177018c554772bd",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-a",
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 109,
+      "stderrSha256": "4b9f173b81317d202ed113393707ead343ceedfc72eee1eac4ae5771cb839e55"
+    },
+    {
+      "command": "clone-b-attribute-files",
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b-attributes-all",
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b-attributes-text-eol-filter",
+      "exitCode": 0,
+      "stdoutBytes": 157,
+      "stdoutSha256": "276b0c7eb8a7cda6cae12ed51643277dd25bc760769e219a772e0d8f57d66d15",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b-attributesfile",
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b-attrs-source",
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b-autocrlf",
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b-check-ignore",
+      "exitCode": 1,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b-checkout",
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 93,
+      "stderrSha256": "7b93151cfd0421c1d9a398de4bdf54348539d728f7b00881c23b963e4bd54cc1"
+    },
+    {
+      "command": "clone-b-config-names",
+      "exitCode": 0,
+      "stdoutBytes": 1435,
+      "stdoutSha256": "10a0e06ba67f9c1342e26e8e7099bd9046336fde9baa04cf448d34301eaf08c5",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b-diff-check",
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b-diff-ignore-space-at-eol-quiet",
+      "exitCode": 1,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b-diff-ignore-space-at-eol",
+      "exitCode": 0,
+      "stdoutBytes": 1595,
+      "stdoutSha256": "822ccb40d09c090517bd834a43cf201e571f77721b4d4d8f2ee7ed32913f7a3b",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b-diff-quiet",
+      "exitCode": 1,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b-diff",
+      "exitCode": 0,
+      "stdoutBytes": 1595,
+      "stdoutSha256": "822ccb40d09c090517bd834a43cf201e571f77721b4d4d8f2ee7ed32913f7a3b",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b-eol",
+      "exitCode": 0,
+      "stdoutBytes": 72,
+      "stdoutSha256": "415fb81448929165985522e3fbb28beabd17a45b40613dfb1fc1fdebfb692009",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b-full-status",
+      "exitCode": 0,
+      "stdoutBytes": 36,
+      "stdoutSha256": "89bdaa5da6da0cf3f9f5c212b15f6e3914719be06066cbf40177018c554772bd",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b-hash-path-clean",
+      "exitCode": 0,
+      "stdoutBytes": 41,
+      "stdoutSha256": "acc3fa642ebcdc09ee8e299ff63df8f764dd1b9f589c3940426d4d444789b781",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b-hash-raw",
+      "exitCode": 0,
+      "stdoutBytes": 41,
+      "stdoutSha256": "acc3fa642ebcdc09ee8e299ff63df8f764dd1b9f589c3940426d4d444789b781",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b-head",
+      "exitCode": 0,
+      "stdoutBytes": 41,
+      "stdoutSha256": "5ed200c798010bb0fcda48a42c6a33d0fc1ad70e219e10667fa1962a95d028e8",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b-hooks",
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b-ls-files-stage",
+      "exitCode": 0,
+      "stdoutBytes": 83,
+      "stdoutSha256": "2cd707dfc995622fdc92a99c3ea266acbbdfae6aeecb433629d9d1ce7f66a577",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b-numstat",
+      "exitCode": 0,
+      "stdoutBytes": 39,
+      "stdoutSha256": "8bfbc3e8443054ac4b7c457ef65fdf63577228cc7be0076f5d91c4e067c34cd8",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b-status",
+      "exitCode": 0,
+      "stdoutBytes": 36,
+      "stdoutSha256": "89bdaa5da6da0cf3f9f5c212b15f6e3914719be06066cbf40177018c554772bd",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "clone-b",
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 109,
+      "stderrSha256": "3f3e151f11aef69bef6fcf6245084cf6e70ea173b19fe3aac8b52760a481fc87"
+    },
+    {
+      "command": "expected-template-blob",
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": null,
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "remote-refs",
+      "exitCode": 0,
+      "stdoutBytes": 222,
+      "stdoutSha256": "1bde390f3fdc198f3b9132a38ad70d37c2ffc2f18f29092ac40cea2fff88f9ef",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "commands": [
+    {
+      "command": "git ls-remote https://github.com/KayzenRoot/spryxel.git refs/heads/main refs/heads/chore/spryxel-ecc-curated-workflow-20261023 refs/heads/evidence/spryxel",
+      "exitCode": 0
+    },
+    {
+      "command": "git clone --no-checkout https://github.com/KayzenRoot/spryxel.git <source-A>",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-A> config --local core.autocrlf false",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-A> config --local core.eol lf",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-A> checkout --detach b2c4d4fbb1cf60459cfccdf56eacd57120a4f11b",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-A> diff --quiet --no-ext-diff --no-textconv -- .github/PULL_REQUEST_TEMPLATE.md",
+      "exitCode": 1
+    },
+    {
+      "command": "git -C <source-A> diff --quiet --no-ext-diff --no-textconv --ignore-space-at-eol -- .github/PULL_REQUEST_TEMPLATE.md",
+      "exitCode": 1
+    },
+    {
+      "command": "git clone --no-checkout https://github.com/KayzenRoot/spryxel.git <source-B>",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-B> config --local core.autocrlf false",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-B> config --local core.eol lf",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-B> config --local core.attributesFile NUL",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-B> checkout --detach b2c4d4fbb1cf60459cfccdf56eacd57120a4f11b",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-B> diff --quiet --no-ext-diff --no-textconv -- .github/PULL_REQUEST_TEMPLATE.md",
+      "exitCode": 1
+    },
+    {
+      "command": "git -C <source-B> diff --quiet --no-ext-diff --no-textconv --ignore-space-at-eol -- .github/PULL_REQUEST_TEMPLATE.md",
+      "exitCode": 1
+    },
+    {
+      "command": "git -C <source-A> diff --check -- .github/PULL_REQUEST_TEMPLATE.md",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-B> diff --check -- .github/PULL_REQUEST_TEMPLATE.md",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-A> check-ignore -v -- .github/PULL_REQUEST_TEMPLATE.md",
+      "exitCode": 1
+    },
+    {
+      "command": "git -C <source-B> check-ignore -v -- .github/PULL_REQUEST_TEMPLATE.md",
+      "exitCode": 1
+    },
+    {
+      "command": "git -C <source-A> check-attr text eol filter -- .github/PULL_REQUEST_TEMPLATE.md",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-B> check-attr text eol filter -- .github/PULL_REQUEST_TEMPLATE.md",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-A> ls-files --eol -- .github/PULL_REQUEST_TEMPLATE.md",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-B> ls-files --eol -- .github/PULL_REQUEST_TEMPLATE.md",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-A> ls-files --stage -- .github/PULL_REQUEST_TEMPLATE.md",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-B> ls-files --stage -- .github/PULL_REQUEST_TEMPLATE.md",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-A> ls-tree -r --name-only b2c4d4fbb1cf60459cfccdf56eacd57120a4f11b -- .gitattributes .github/.gitattributes",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-B> ls-tree -r --name-only b2c4d4fbb1cf60459cfccdf56eacd57120a4f11b -- .gitattributes .github/.gitattributes",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-A> hash-object --no-filters -- <template>",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-A> hash-object --path=.github/PULL_REQUEST_TEMPLATE.md -- <template>",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-B> hash-object --no-filters -- <template>",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-B> hash-object --path=.github/PULL_REQUEST_TEMPLATE.md -- <template>",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C <source-A> cat-file blob 042e00c0560887f90a0b7d69e75010a21c10c8a3",
+      "exitCode": 0
+    }
+  ],
+  "notes": [
+    "All published text is sanitized. Temporary checkout paths were replaced in the two clone and checkout stderr records.",
+    "The exit code 1 from check-ignore means the target is not ignored; the exit code 1 from diff --quiet means a difference exists."
+  ],
+  "publicationPreparation": {
+    "sourceCheckoutDiffCheckExit": {
+      "cloneB": 0,
+      "cloneA": 0
+    },
+    "cleanBeforeCopy": true,
+    "firstStagedDiffCheckExit": 2,
+    "gitIdentityScope": "local configuration in evidence clone only; authenticated GitHub identity KayzenRoot",
+    "evidenceCloneBaseSha": "653d3bcaf92c81c26d815070d5cd0ade41848416",
+    "firstOrdinaryGitAddExit": 0,
+    "stagedBlobComparisonFoundMismatchCount": 8,
+    "firstStageWasPublished": false,
+    "correction": "Preserve the exact manifested bytes in the new evidence subtree by writing Git objects with hash-object --no-filters and adding only the explicit new paths to the temporary evidence clone index.",
+    "evidenceStagedDiffCheck": "Expected to flag whitespace inside raw unified-diff evidence; this is an evidence-payload check, not a product source validation.",
+    "stagedDiffCheckDiagnosticLines": 198,
+    "trailingWhitespaceDiagnostics": 99,
+    "finalRawBlobInsertionCommand": "git hash-object -w --no-filters <file>; git update-index --add --cacheinfo 100644,<blob>,<exact-new-path>",
+    "finalExactBlobVerificationFiles": 25,
+    "finalExactBlobVerificationMismatches": 0,
+    "finalStagedDiffCheckExit": 2,
+    "explanation": "The staged diff check reports whitespace diagnostics in the added evidence payload; its result is recorded, and the raw capture files are preserved byte-for-byte. It does not run against a product source change."
+  }
+}

@@ -1,0 +1,41 @@
+diff --git a/.github/PULL_REQUEST_TEMPLATE.md b/.github/PULL_REQUEST_TEMPLATE.md
+index 042e00c..90e8d37 100644
+--- a/.github/PULL_REQUEST_TEMPLATE.md
++++ b/.github/PULL_REQUEST_TEMPLATE.md
+@@ -1,17 +1,23 @@
+-## Vertical scope
++## Feature or fix
+ 
+-- What working behavior changed, and where is the authoritative contract?
+-- Why is this the smallest safe diff?
++- GitHub issue / module:
++- Visible outcome:
++- Scope and changed paths:
+ 
+-## Evidence (exact HEAD)
++## Build and tests
+ 
+-- [ ] `npm run format:check`
+-- [ ] `npm run lint`
+-- [ ] `npm run build` and `npm run architecture:check`
+-- [ ] Affected tests identified and run, or explicitly NOT_RUN/BLOCKED
+-- [ ] Tenant/RLS/private assets/CostGuard checked if impacted
+-- [ ] GitHub required checks, SonarCloud, Gitleaks, Trivy, Socket reviewed
+-- [ ] Independent substantive review completed where required by project
+-- [ ] No unapproved deploy/merge/spend
++- `npm ci` / build result:
++- Relevant focused unit, integration, worker or browser regressions:
++- Exact-head CI check status (do not reuse old SHA evidence):
++- Known limits or untested cases:
+ 
+-List evidence links, actual exits and missing proof. A checkmark is not proof by itself.
++## Security and rollout
++
++- Tenant isolation / auth / RLS / CostGuard impact:
++- Public endpoints or credential changes:
++- Provider/security-control changes: before/after evidence, no secret contents, production authorization:
++- Deployment or paid provider required? (default **NO**)
++
++## Merge decision
++
++No automatic merge. Owner confirmation and actual repository settings apply.
