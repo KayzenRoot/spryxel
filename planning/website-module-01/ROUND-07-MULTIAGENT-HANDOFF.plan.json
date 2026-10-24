@@ -1,0 +1,368 @@
+{
+  "schemaVersion": "SPRYXEL_WEB_ROUND07_CODEX_HANDOFF_V1",
+  "mode": "SPEC_ONLY_DO_NOT_EXECUTE",
+  "reusablePromptId": "SPRYXEL_WEB_A_BATCH_AFTER_FORMAL_ADMISSION",
+  "repository": "KayzenRoot/spryxel",
+  "baseSha": "MUST_FETCH_AT_ADMISSION_NOT_FIXED_HERE",
+  "requiredCurrentBranch": "approved admitted base after G0/G1/G2",
+  "approval": {
+    "g0": {
+      "issue": 63,
+      "state": "PROPOSED_NOT_APPROVED"
+    },
+    "g1": {
+      "issue": 64,
+      "state": "PROPOSED_NOT_FROZEN"
+    },
+    "g2": {
+      "issue": 70,
+      "state": "VISUAL_NOT_APPROVED"
+    },
+    "brand": {
+      "issue": 53,
+      "state": "FAITHFUL_MASTER_NOT_VERIFIED"
+    },
+    "wos": "ALL_NOT_ADMITTED",
+    "contextLocks": "MISSING",
+    "independentAudit": "PENDING",
+    "forbid": "This manifest MUST NOT be used by a runner as an authority. Fresh GitHub Source Check, independent WO admission and actual Context Locks are mandatory."
+  },
+  "concurrency": {
+    "plannedMax": 4,
+    "defaultAtAdmission": "up to 4 if supported, measured and authorized",
+    "budget": {
+      "promptTokenLimit": "OWNER_VALUE_REQUIRED",
+      "perAgentTokenLimit": "OWNER_VALUE_REQUIRED",
+      "elapsedMinutesLimit": "OWNER_VALUE_REQUIRED",
+      "noUnboundedProviderBill": true
+    },
+    "startup": [
+      "A1",
+      "A3",
+      "A5",
+      "A6"
+    ],
+    "refill": [
+      "A4",
+      "A2",
+      "A7"
+    ],
+    "dispatchedCount": 0
+  },
+  "contractsReadOnly": [
+    "planning/website-module-01/contracts/WEB-G1-PUBLIC-ROUTES.plan.json",
+    "planning/website-module-01/master-design/ROUND-04-COMPONENT-CONTRACTS.plan.json",
+    "planning/website-module-01/master-design/ROUND-04-DESIGN-TOKENS.plan.json",
+    "planning/website-module-01/master-design/ROUND-05-FREEZE-LOCK.plan.json",
+    "planning/website-module-01/ROUND-07-ASSET-INTAKE.plan.json"
+  ],
+  "sharedForbiddenToBuilders": [
+    "apps/web/app/",
+    "apps/web/proxy.ts",
+    "apps/web/app/layout.tsx",
+    "apps/web/app/globals.css",
+    "apps/web/app/page.tsx",
+    "apps/web/app/page.spec.ts",
+    "apps/web/content/public-locales/ (except A6)",
+    "packages/",
+    "package.json",
+    "package-lock.json",
+    ".engineering/",
+    ".gef/",
+    ".github/workflows/"
+  ],
+  "work": [
+    {
+      "id": "A1",
+      "issue": 65,
+      "name": "Game asset showcase and landing structure",
+      "risk": "STANDARD",
+      "paths": [
+        "apps/web/components/public-landing/"
+      ],
+      "tokens": [
+        "G1 public copy types (read-only)",
+        "G2 approved design refs",
+        "A3 HeroArtwork slot"
+      ],
+      "done": [
+        "6 assets classes: characters, sprites, mobs, maps, items, UI",
+        "hero and product roadmap truthful copy",
+        "responsive category cards/CTA/gallery concept labels"
+      ],
+      "tests": [
+        "affected TS types and component render",
+        "real anchor targets, keyboard card state",
+        "localized 40% expansion in UI"
+      ],
+      "woCandidate": "SPRYXEL-WEB-WO-A1",
+      "issueUrl": "https://github.com/KayzenRoot/spryxel/issues/65",
+      "mode": "NOT_ADMITTED",
+      "baseSha": "UNFROZEN",
+      "contextLock": "MISSING",
+      "agent": "UNASSIGNED",
+      "branch": "UNCREATED",
+      "worktree": "UNCREATED",
+      "riskCheck": "CONSERVATIVE"
+    },
+    {
+      "id": "A2",
+      "issue": 66,
+      "name": "Legal content and consent UX",
+      "risk": "ELEVATED",
+      "paths": [
+        "apps/web/components/public-consent/",
+        "apps/web/content/legal/"
+      ],
+      "tokens": [
+        "G1 legal routes and consent categories",
+        "A5 cookie reopen slot",
+        "legal controller and processor data, qualified review gate"
+      ],
+      "done": [
+        "consent categories and accept/reject/customize/revoke behavior",
+        "do not run optional trackers before valid consent when required",
+        "legal placeholders gated until verified signoff"
+      ],
+      "tests": [
+        "clean-context consent opt-in/opt-out and withdrawal",
+        "no premature tracking",
+        "keyboard/focus/privacy fact review"
+      ],
+      "woCandidate": "SPRYXEL-WEB-WO-A2",
+      "issueUrl": "https://github.com/KayzenRoot/spryxel/issues/66",
+      "mode": "NOT_ADMITTED",
+      "baseSha": "UNFROZEN",
+      "contextLock": "MISSING",
+      "agent": "UNASSIGNED",
+      "branch": "UNCREATED",
+      "worktree": "UNCREATED",
+      "riskCheck": "CONSERVATIVE"
+    },
+    {
+      "id": "A3",
+      "issue": 67,
+      "name": "Licensed floating worlds hero artwork",
+      "risk": "STANDARD",
+      "paths": [
+        "apps/web/components/public-hero-art/",
+        "design/website/3d-worlds/"
+      ],
+      "tokens": [
+        "G2 original Option07 board",
+        "license+hash manifest",
+        "A1 public slot signature"
+      ],
+      "done": [
+        "responsive static hero with proper provenance",
+        "reduced-motion and WebGL-disabled fallback",
+        "no fake brand logo"
+      ],
+      "tests": [
+        "image load/fallback with disabled scripts",
+        "responsive crop at 320..1920",
+        "LCP and CLS later measured at integrated exact HEAD"
+      ],
+      "woCandidate": "SPRYXEL-WEB-WO-A3",
+      "issueUrl": "https://github.com/KayzenRoot/spryxel/issues/67",
+      "mode": "NOT_ADMITTED",
+      "baseSha": "UNFROZEN",
+      "contextLock": "MISSING",
+      "agent": "UNASSIGNED",
+      "branch": "UNCREATED",
+      "worktree": "UNCREATED",
+      "riskCheck": "CONSERVATIVE"
+    },
+    {
+      "id": "A4",
+      "issue": 68,
+      "name": "Localized SEO, FAQ and help semantics",
+      "risk": "STANDARD",
+      "paths": [
+        "apps/web/components/public-seo/",
+        "apps/web/content/public-support/"
+      ],
+      "tokens": [
+        "G1 8-route key inventory",
+        "A6 locale key schema",
+        "actual public canonical domain when owner verifies"
+      ],
+      "done": [
+        "FAQ accessible and honest",
+        "SEO metadata data model, no verified-domain fabrication",
+        "unpublished legal route noindex behavior"
+      ],
+      "tests": [
+        "FAQ semantics and keyboard",
+        "hreflang/canonical and link crawl at B1",
+        "three-locale title/description presence"
+      ],
+      "woCandidate": "SPRYXEL-WEB-WO-A4",
+      "issueUrl": "https://github.com/KayzenRoot/spryxel/issues/68",
+      "mode": "NOT_ADMITTED",
+      "baseSha": "UNFROZEN",
+      "contextLock": "MISSING",
+      "agent": "UNASSIGNED",
+      "branch": "UNCREATED",
+      "worktree": "UNCREATED",
+      "riskCheck": "CONSERVATIVE"
+    },
+    {
+      "id": "A5",
+      "issue": 71,
+      "name": "Header, footer and theme/language selectors",
+      "risk": "STANDARD",
+      "paths": [
+        "apps/web/components/public-chrome/"
+      ],
+      "tokens": [
+        "G1 route map",
+        "A6 typed copy schema",
+        "A2 cookie preference slot",
+        "A7 auth CTA slot",
+        "owner-approved brand asset #53"
+      ],
+      "done": [
+        "usable mobile nav and footer links",
+        "theme and locale controls with callbacks",
+        "cookie settings reopening slot and actual verified destinations"
+      ],
+      "tests": [
+        "keyboard menu focus restore",
+        "mobile/touch and two themes",
+        "footer route and cookie settings accessibility"
+      ],
+      "woCandidate": "SPRYXEL-WEB-WO-A5",
+      "issueUrl": "https://github.com/KayzenRoot/spryxel/issues/71",
+      "mode": "NOT_ADMITTED",
+      "baseSha": "UNFROZEN",
+      "contextLock": "MISSING",
+      "agent": "UNASSIGNED",
+      "branch": "UNCREATED",
+      "worktree": "UNCREATED",
+      "riskCheck": "CONSERVATIVE"
+    },
+    {
+      "id": "A6",
+      "issue": 72,
+      "name": "EN / PT-BR / ES typed dictionaries",
+      "risk": "STANDARD",
+      "paths": [
+        "apps/web/content/public-locales/"
+      ],
+      "tokens": [
+        "G1 FROZEN keys/namespace and plurals",
+        "Round02 three locale copy draft",
+        "design G2 typography expansion budget"
+      ],
+      "done": [
+        "three complete dictionaries and typed key compiler",
+        "translate controls, metadata, alt/error/cookie labels",
+        "no ad hoc feature availability claims"
+      ],
+      "tests": [
+        "typed key parity and pseudo-locale 40% expansion",
+        "correct locale fallback",
+        "native strings for all visible functional labels"
+      ],
+      "woCandidate": "SPRYXEL-WEB-WO-A6",
+      "issueUrl": "https://github.com/KayzenRoot/spryxel/issues/72",
+      "mode": "NOT_ADMITTED",
+      "baseSha": "UNFROZEN",
+      "contextLock": "MISSING",
+      "agent": "UNASSIGNED",
+      "branch": "UNCREATED",
+      "worktree": "UNCREATED",
+      "riskCheck": "CONSERVATIVE"
+    },
+    {
+      "id": "A7",
+      "issue": 73,
+      "name": "WorkOS existing login entry adapter",
+      "risk": "ELEVATED",
+      "paths": [
+        "apps/web/components/public-auth-entry/"
+      ],
+      "tokens": [
+        "existing /sign-in route read-only",
+        "G1 auth and route contract",
+        "no authkit implementation changes"
+      ],
+      "done": [
+        "safe sign-in CTA only to verified existing WorkOS endpoint",
+        "fallback if account registration is not available",
+        "no unprotected credential form"
+      ],
+      "tests": [
+        "CTA href and disabled states",
+        "no session token surfaced in public markup",
+        "integration with WorkOS/auth route in B1 HIGH_ASSURANCE if auth/proxy touched"
+      ],
+      "woCandidate": "SPRYXEL-WEB-WO-A7",
+      "issueUrl": "https://github.com/KayzenRoot/spryxel/issues/73",
+      "mode": "NOT_ADMITTED",
+      "baseSha": "UNFROZEN",
+      "contextLock": "MISSING",
+      "agent": "UNASSIGNED",
+      "branch": "UNCREATED",
+      "worktree": "UNCREATED",
+      "riskCheck": "CONSERVATIVE"
+    }
+  ],
+  "integration": {
+    "id": "B1",
+    "issue": 69,
+    "risk": "HIGH_ASSURANCE_IF_ROOT_OR_PROXY_CHANGES",
+    "dependsOn": [
+      "A1",
+      "A2",
+      "A3",
+      "A4",
+      "A5",
+      "A6",
+      "A7"
+    ],
+    "initialStage": "additive locale routes, preserve protected root",
+    "conditionalStage": "separate authorized auth/root cutover",
+    "ownerOfSharedFiles": true
+  },
+  "release": {
+    "id": "B2",
+    "issue": 74,
+    "dependsOn": [
+      "B1"
+    ],
+    "fullRealAcceptanceAndCounselReview": true,
+    "default": "NO_GO_UNTIL_PROVEN"
+  },
+  "review": {
+    "afterEachBatch": "ChatGPT-first #62 directly fixes scoped GitHub errors",
+    "always": "independent head-specific audit before merge",
+    "critical": "P0/P1 cannot defer",
+    "p2": "only non-required polish tracked module closeout",
+    "never": "Codex repeatedly fix single typo"
+  },
+  "acceptance": {
+    "beforeDispatch": [
+      "exact admitted WO+Context Lock",
+      "all G0/G1/G2/brand gates",
+      "verified binary provenance",
+      "real file conflict preflight",
+      "actual local Codex concurrency interface validated"
+    ],
+    "afterAgent": [
+      "separate PR per issue",
+      "exact SHA acceptance tests",
+      "review findings and evidence bundle",
+      "no self-merge or checkpoint promotion"
+    ],
+    "afterB1": [
+      "all 3 locales server html lang",
+      "protected WorkOS regression evidence",
+      "consent withdraw/persistence",
+      "SEO canonical and noindex gates"
+    ]
+  },
+  "executionAuthorized": false,
+  "mergeAuthorized": false
+}

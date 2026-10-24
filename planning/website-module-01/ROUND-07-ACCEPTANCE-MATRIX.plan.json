@@ -1,0 +1,256 @@
+{
+  "schemaVersion": "SPRYXEL_WEB_ROUND07_ACCEPTANCE_MATRIX_V1",
+  "status": "CANDIDATE_REQUIREMENTS_NOT_ADMITTED",
+  "module": "Public homepage / game assets Pixel+2D",
+  "references": [
+    "#54",
+    "#63",
+    "#64",
+    "#70",
+    "#53",
+    "#62",
+    "#61",
+    "#75",
+    "ROUND-07-MULTIAGENT-HANDOFF.plan.json",
+    "ROUND-07-ASSET-INTAKE.plan.json"
+  ],
+  "riskPolicy": {
+    "P0": "immediate safety stop, not deferrable",
+    "P1": "required for same task or module admission, cannot waive",
+    "P2": "only if outside formally admitted WO/DoD and explicitly tracked until module closeout",
+    "P3": "optional future backlog",
+    "unknown": "treat P1 until classified with objective evidence"
+  },
+  "columns": [
+    "id",
+    "responsibleWO",
+    "severity",
+    "check",
+    "requiredEvidence",
+    "phase",
+    "status"
+  ],
+  "checks": [
+    {
+      "id": "R7-001",
+      "responsibleWO": "G0",
+      "severity": "P1",
+      "check": "Audited public-site-first sequencing decision approved",
+      "requiredEvidence": "Owner approval, independent architectural review, canonical Decision Delta, current HEAD, active WO-008 disposition",
+      "phase": "BEFORE_ANY_CODE"
+    },
+    {
+      "id": "R7-002",
+      "responsibleWO": "G1",
+      "severity": "P1",
+      "check": "Frozen G1 route contract, source ownership and built/shared API schema",
+      "requiredEvidence": "Versioned route manifest, non-overlap preflight, current SHA/context lock",
+      "phase": "BEFORE_A_AGENTS"
+    },
+    {
+      "id": "R7-003",
+      "responsibleWO": "G2",
+      "severity": "P1",
+      "check": "Four exact reference screenshots approved",
+      "requiredEvidence": "Owner signoff per dark/light desktop/mobile PNG SHA",
+      "phase": "BEFORE_A_AGENTS"
+    },
+    {
+      "id": "R7-004",
+      "responsibleWO": "G2",
+      "severity": "P1",
+      "check": "Logo accurately reproduces original double-leaf Digital Leaf",
+      "requiredEvidence": "Original owner source, #53 faithful source/export and side-by-side visual signoff, legal provenance",
+      "phase": "BEFORE_BRAND_PUBLISH"
+    },
+    {
+      "id": "R7-005",
+      "responsibleWO": "G2",
+      "severity": "P1",
+      "check": "ZIP and binaries imported, no path traversal, hashes match",
+      "requiredEvidence": "Actual Git commit + GitHub blob path readback, expected SHA256, MIME/dimensions, rights",
+      "phase": "BEFORE_A_AGENTS"
+    },
+    {
+      "id": "R7-006",
+      "responsibleWO": "A1",
+      "severity": "P1",
+      "check": "Hero and above-the-fold assets factual, Pixel/2D creators first",
+      "requiredEvidence": "Real rendered browser screenshots, planned vs available audit, 6 assets categories",
+      "phase": "PER_WO_ACCEPTANCE"
+    },
+    {
+      "id": "R7-007",
+      "responsibleWO": "A1",
+      "severity": "P1",
+      "check": "No dead click targets and CTA anchors exist",
+      "requiredEvidence": "Component and integrated href/anchor smoke",
+      "phase": "PER_WO_ACCEPTANCE"
+    },
+    {
+      "id": "R7-008",
+      "responsibleWO": "A2",
+      "severity": "P1",
+      "check": "Optional tracking blocked before valid consent where required; preferences persist, withdraw via footer",
+      "requiredEvidence": "Real clean-browser functional test including refusal, allowance, change, reopen, storage failure",
+      "phase": "B1_B2_MANDATORY"
+    },
+    {
+      "id": "R7-009",
+      "responsibleWO": "A2",
+      "severity": "P1",
+      "check": "Legal terms/privacy/cookie text factual and approved for applicable audiences",
+      "requiredEvidence": "Verified controller/entity/contact and process inventory; qualified legal review; public links or NO_GO",
+      "phase": "B2_PUBLIC_LAUNCH"
+    },
+    {
+      "id": "R7-010",
+      "responsibleWO": "A3",
+      "severity": "P1",
+      "check": "3D Worlds illustration always degrades to static fallback",
+      "requiredEvidence": "No WebGL, reduced motion, low bandwidth and alternate source tested",
+      "phase": "PER_WO_ACCEPTANCE"
+    },
+    {
+      "id": "R7-011",
+      "responsibleWO": "A3",
+      "severity": "P1",
+      "check": "Graphics rights and provenance documented",
+      "requiredEvidence": "Source file, generator/rights/usage approval, SHA, true image dimensions, alt classification",
+      "phase": "PER_WO_ACCEPTANCE"
+    },
+    {
+      "id": "R7-012",
+      "responsibleWO": "A4",
+      "severity": "P1",
+      "check": "Accurate metadata/robots/canonical/hreflang/noindex on approved public routes",
+      "requiredEvidence": "Route crawl; actual verified domain; noindex before legal/live publication",
+      "phase": "B1_B2_MANDATORY"
+    },
+    {
+      "id": "R7-013",
+      "responsibleWO": "A4",
+      "severity": "P1",
+      "check": "FAQ accurate and keyboard operable",
+      "requiredEvidence": "Real accessible details/accordion and translated truths",
+      "phase": "PER_WO_ACCEPTANCE"
+    },
+    {
+      "id": "R7-014",
+      "responsibleWO": "A5",
+      "severity": "P1",
+      "check": "Header mobile/desktop keyboard and footer valid destinations",
+      "requiredEvidence": "Escape/focus restore, tab order, responsive and real links",
+      "phase": "B1_B2_MANDATORY"
+    },
+    {
+      "id": "R7-015",
+      "responsibleWO": "A5",
+      "severity": "P1",
+      "check": "Theme and locale selectors have working behavior",
+      "requiredEvidence": "SSR, keyboard, light/dark and EN/pt-BR/es route traversal",
+      "phase": "B1_B2_MANDATORY"
+    },
+    {
+      "id": "R7-016",
+      "responsibleWO": "A6",
+      "severity": "P1",
+      "check": "All visible text plus alt/metadata/consent available in three locales",
+      "requiredEvidence": "Typed parity, copy QA, legal translations human verified",
+      "phase": "PER_WO_ACCEPTANCE"
+    },
+    {
+      "id": "R7-017",
+      "responsibleWO": "A6",
+      "severity": "P1",
+      "check": "pt-BR/es text expansion does not truncate mobile controls",
+      "requiredEvidence": "320/390/768 layout snapshots with 40% pseudo-expansion and natural translations",
+      "phase": "B1_B2_MANDATORY"
+    },
+    {
+      "id": "R7-018",
+      "responsibleWO": "A7",
+      "severity": "P1",
+      "check": "Public sign-in points only to actual WorkOS route; no fake credential collector",
+      "requiredEvidence": "Existing AuthKit route verified; auth flow or truthful gated CTA",
+      "phase": "B1_B2_MANDATORY"
+    },
+    {
+      "id": "R7-019",
+      "responsibleWO": "B1",
+      "severity": "P0",
+      "check": "Existing authenticated root, projects and tenant isolation unchanged in additive phase",
+      "requiredEvidence": "Authenticated and anonymous E2E, forced Postgres RLS and no WorkOS-proxy relaxation",
+      "phase": "B1_B2_MANDATORY"
+    },
+    {
+      "id": "R7-020",
+      "responsibleWO": "B1",
+      "severity": "P1",
+      "check": "SSR html language matches /en, /pt-BR, /es responses",
+      "requiredEvidence": "HTML response snapshot including <html lang> and SEO/hreflang",
+      "phase": "B1_B2_MANDATORY"
+    },
+    {
+      "id": "R7-021",
+      "responsibleWO": "B1",
+      "severity": "P0",
+      "check": "If public root cutover, separate HIGH_ASSURANCE authorization and rollback",
+      "requiredEvidence": "Auth/proxy route graph, no redirect loops, E2E legacy links, exact-head security audit",
+      "phase": "OPTIONAL_ROOT_CUTOVER"
+    },
+    {
+      "id": "R7-022",
+      "responsibleWO": "B1",
+      "severity": "P1",
+      "check": "Responsive/light/dark fallback, keyboard, motion and focus reviewed",
+      "requiredEvidence": "320,375,390,768,1024,1440,1920 snapshots + manual WCAG 2.2 AA testing",
+      "phase": "B1_B2_MANDATORY"
+    },
+    {
+      "id": "R7-023",
+      "responsibleWO": "B2",
+      "severity": "P1",
+      "check": "Exact final PR HEAD mandatory checks, Work Order tests and evidence pass",
+      "requiredEvidence": "Four named hosted checks, functional tests actually run, independent reviewer, no stale HEAD",
+      "phase": "BEFORE_MERGE"
+    },
+    {
+      "id": "R7-024",
+      "responsibleWO": "B2",
+      "severity": "P1",
+      "check": "All URLs including footer/Terms/Privacy/Cookies fully tested prior launch",
+      "requiredEvidence": "24 route candidate crawl after actual implementation; verified legal pages/contact; no dead links",
+      "phase": "B2_PUBLIC_LAUNCH"
+    },
+    {
+      "id": "R7-025",
+      "responsibleWO": "B2",
+      "severity": "P1",
+      "check": "Explicit public launch owner/legal/security GO and rollback",
+      "requiredEvidence": "Owner/qualified signoff, production smoke and rollback evidence, consent/security review",
+      "phase": "PUBLIC_LAUNCH"
+    },
+    {
+      "id": "R7-026",
+      "responsibleWO": "B2",
+      "severity": "P2",
+      "check": "Cosmetic shadows and subtle art-depth polish",
+      "requiredEvidence": "Linked issue for module closeout if reviewer verifies outside acceptance and design owner agrees",
+      "phase": "MODULE_CLOSEOUT"
+    }
+  ],
+  "releaseDecision": {
+    "current": "NO_GO",
+    "reason": "G0/G1, official brand master, binary import, owner design freeze, actual website code and production acceptance all pending"
+  },
+  "protections": [
+    "No claims that GitHub four governance checks execute browser functional tests",
+    "No weakening RLS/AuthKit/cookie/legal/source-pack gates for development speed",
+    "No 'P2' relabeling of already-required Work Order acceptance",
+    "No fake experiments/measurements"
+  ],
+  "ownerApprovalRequired": true,
+  "mergeAllowed": false,
+  "executionAuthorized": false
+}

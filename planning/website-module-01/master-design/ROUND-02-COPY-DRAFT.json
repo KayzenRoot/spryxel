@@ -1,0 +1,197 @@
+{
+  "$comment": "DRAFT i18n editorial source proposal for A6 (#72), not executable nor an approved dictionary. English is canonical. No legal boilerplate/claimed feature releases. Owner/counsel approval required before publication.",
+  "status": "PLANNING_NOT_ADMITTED",
+  "source": "ROUND-02-SECTIONS-FOOTER.md",
+  "assetReference": "Option 07 (3D FOCADO EM WORLDS), Digital Leaf #53 pending faithful logo master",
+  "locales": {
+    "en": {
+      "heroTitle": "The creative home for game assets.",
+      "heroEyebrow": "CREATE. PLAY. BUILD.",
+      "heroDescription": "A creative workspace taking shape for game creators, with an initial focus on pixel art and 2D assets.",
+      "mainCta": "Explore asset types",
+      "secondaryCta": "How it works",
+      "stageStatus": "In development",
+      "assetHeading": "Explore the building blocks of game worlds.",
+      "assetLead": "From heroes and creatures to maps and inventory icons, discover the kinds of workflows we're building around.",
+      "categories": [
+        "Characters & NPCs",
+        "Sprites & Pixel Art",
+        "Mobs & Creatures",
+        "Maps & Tilesets",
+        "Items & Props",
+        "UI & HUD"
+      ],
+      "workflowHeading": "From idea to game assets",
+      "workflowStatus": "A workflow we're building",
+      "workflowSteps": [
+        "Project",
+        "Style reference",
+        "Create",
+        "Review & refine",
+        "Export"
+      ],
+      "galleryHeading": "A glimpse into creative worlds",
+      "galleryLabel": "Concept illustration",
+      "galleryEmpty": "Showcase coming soon",
+      "personasHeading": "Made with game creators in mind",
+      "personas": [
+        "Indie developers",
+        "Pixel artists",
+        "Small studios"
+      ],
+      "valuesHeading": "Built for thoughtful creative work.",
+      "faqHeading": "Frequently asked questions",
+      "faqQuestions": [
+        "What is Spryxel?",
+        "Who is Spryxel for?",
+        "Which game assets are in scope?",
+        "Does Spryxel create 3D models today?",
+        "How can I sign in?",
+        "Can I export to a game engine?",
+        "How much does it cost?",
+        "Where can I read the privacy and cookie policies?"
+      ],
+      "finalHeading": "Your next game deserves a world of possibilities.",
+      "finalDescription": "Follow Spryxel as we build a workspace for game creators.",
+      "footerGroups": [
+        "Product",
+        "Resources",
+        "Company",
+        "Legal"
+      ],
+      "cookieSettings": "Cookie settings",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Use",
+      "cookies": "Cookie Policy",
+      "noPrice": "Pricing has not been announced."
+    },
+    "pt-BR": {
+      "heroTitle": "O espaço criativo para assets de jogos.",
+      "heroEyebrow": "CREATE. PLAY. BUILD.",
+      "heroDescription": "Um espaço de criação em desenvolvimento para criadores de jogos, com foco inicial em pixel art e assets 2D.",
+      "mainCta": "Explorar tipos de assets",
+      "secondaryCta": "Como funciona",
+      "stageStatus": "Em desenvolvimento",
+      "assetHeading": "Explore os elementos que dão vida aos jogos.",
+      "assetLead": "De heróis e criaturas a mapas e ícones de inventário, conheça os fluxos de trabalho que estamos construindo.",
+      "categories": [
+        "Personagens e NPCs",
+        "Sprites e pixel art",
+        "Mobs e criaturas",
+        "Mapas e tilesets",
+        "Itens e objetos",
+        "UI e HUD"
+      ],
+      "workflowHeading": "Da ideia aos assets para jogos",
+      "workflowStatus": "Um fluxo de trabalho em construção",
+      "workflowSteps": [
+        "Projeto",
+        "Referência de estilo",
+        "Criação",
+        "Revisão e refinamento",
+        "Exportação"
+      ],
+      "galleryHeading": "Um vislumbre de mundos criativos",
+      "galleryLabel": "Ilustração conceitual",
+      "galleryEmpty": "Galeria em breve",
+      "personasHeading": "Pensado para quem cria jogos",
+      "personas": [
+        "Desenvolvedores independentes",
+        "Artistas de pixel art",
+        "Pequenos estúdios"
+      ],
+      "valuesHeading": "Feito para um processo criativo cuidadoso.",
+      "faqHeading": "Perguntas frequentes",
+      "faqQuestions": [
+        "O que é o Spryxel?",
+        "Para quem é o Spryxel?",
+        "Quais assets para jogos estão no escopo?",
+        "O Spryxel já cria modelos 3D?",
+        "Como faço login?",
+        "Posso exportar para uma engine?",
+        "Quanto vai custar?",
+        "Onde encontro as políticas de privacidade e cookies?"
+      ],
+      "finalHeading": "Seu próximo jogo merece um mundo de possibilidades.",
+      "finalDescription": "Acompanhe o Spryxel enquanto construímos um espaço para criadores de jogos.",
+      "footerGroups": [
+        "Produto",
+        "Recursos",
+        "Empresa",
+        "Legal"
+      ],
+      "cookieSettings": "Configurações de cookies",
+      "privacy": "Política de Privacidade",
+      "terms": "Termos de Uso",
+      "cookies": "Política de Cookies",
+      "noPrice": "Os preços ainda não foram anunciados."
+    },
+    "es": {
+      "heroTitle": "El espacio creativo para recursos de videojuegos.",
+      "heroEyebrow": "CREATE. PLAY. BUILD.",
+      "heroDescription": "Un espacio creativo en desarrollo para creadores de videojuegos, con un enfoque inicial en pixel art y recursos 2D.",
+      "mainCta": "Explorar tipos de recursos",
+      "secondaryCta": "Cómo funciona",
+      "stageStatus": "En desarrollo",
+      "assetHeading": "Explora los elementos que dan vida a los videojuegos.",
+      "assetLead": "Desde héroes y criaturas hasta mapas e iconos de inventario, descubre los flujos de trabajo que estamos creando.",
+      "categories": [
+        "Personajes y PNJ",
+        "Sprites y pixel art",
+        "Enemigos y criaturas",
+        "Mapas y tilesets",
+        "Objetos y accesorios",
+        "Interfaz y HUD"
+      ],
+      "workflowHeading": "De la idea a los recursos para videojuegos",
+      "workflowStatus": "Un flujo de trabajo en desarrollo",
+      "workflowSteps": [
+        "Proyecto",
+        "Referencia de estilo",
+        "Creación",
+        "Revisión y refinamiento",
+        "Exportación"
+      ],
+      "galleryHeading": "Una mirada a mundos creativos",
+      "galleryLabel": "Ilustración conceptual",
+      "galleryEmpty": "Galería próximamente",
+      "personasHeading": "Pensado para quienes crean videojuegos",
+      "personas": [
+        "Desarrolladores independientes",
+        "Artistas de pixel art",
+        "Estudios pequeños"
+      ],
+      "valuesHeading": "Creado para un proceso creativo cuidadoso.",
+      "faqHeading": "Preguntas frecuentes",
+      "faqQuestions": [
+        "¿Qué es Spryxel?",
+        "¿Para quién es Spryxel?",
+        "¿Qué recursos de videojuegos están previstos?",
+        "¿Spryxel ya crea modelos 3D?",
+        "¿Cómo puedo iniciar sesión?",
+        "¿Puedo exportar a un motor de videojuegos?",
+        "¿Cuánto costará?",
+        "¿Dónde están las políticas de privacidad y cookies?"
+      ],
+      "finalHeading": "Tu próximo videojuego merece un mundo de posibilidades.",
+      "finalDescription": "Sigue a Spryxel mientras construimos un espacio para creadores de videojuegos.",
+      "footerGroups": [
+        "Producto",
+        "Recursos",
+        "Empresa",
+        "Información legal"
+      ],
+      "cookieSettings": "Configuración de cookies",
+      "privacy": "Política de privacidad",
+      "terms": "Términos de uso",
+      "cookies": "Política de cookies",
+      "noPrice": "Los precios todavía no se han anunciado."
+    }
+  },
+  "caveats": [
+    "These strings are copy candidates, not final licensed trademark statements.",
+    "The 3D Worlds reference is an art direction, not an available 3D generator.",
+    "SEO metadata, alt text, consent and legal translations require A6 completion plus qualified legal review.",
+    "Do not import directly into the live app without G0/G1/G2 admission and owner approval."
+  ]
+}
