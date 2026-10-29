@@ -37,6 +37,21 @@ async function expectPublicContentWithinViewport(page: Page, label: string) {
   expect(layout.outOfBoundsCount, `${label}: visible content outside viewport`).toBe(0);
 }
 
+async function appendFortyPercentMoreCopy(page: Page) {
+  await page.evaluate(() => {
+    const site = document.querySelector('.public-site');
+    if (!site) throw new Error('Public site root is missing');
+
+    for (const element of site.querySelectorAll<HTMLElement>('h1, h2, h3, p, a, button, summary')) {
+      if (element.childElementCount > 0) continue;
+      const original = element.textContent?.trim();
+      if (!original) continue;
+      const extra = original.slice(0, Math.ceil(original.length * 0.4));
+      element.textContent = `${original} ${extra}`;
+    }
+  });
+}
+
 test('localized public pages render with language-specific metadata and landmarks', async ({
   page,
 }) => {
@@ -181,24 +196,46 @@ test('public pages reflow across target widths, locales, and themes', async ({ p
       }
     }
 
-    await page.evaluate(() => {
-      const copy = document.querySelector('.public-site');
-      if (!copy) throw new Error('Public site root is missing');
-
-      for (const element of copy.querySelectorAll<HTMLElement>(
-        'h1, h2, h3, p, a, button, summary',
-      )) {
-        if (element.childElementCount > 0) continue;
-        const original = element.textContent?.trim();
-        if (!original) continue;
-        const extra = original.slice(0, Math.ceil(original.length * 0.4));
-        element.textContent = `${original} ${extra}`;
-      }
-    });
+    await appendFortyPercentMoreCopy(page);
 
     for (const width of widths) {
       await page.setViewportSize({ width, height: 900 });
       await expectPublicContentWithinViewport(page, `${locale} with 40% longer copy at ${width}px`);
+    }
+  }
+});
+
+test('all localized public routes reflow with longer copy in mobile, tablet, and desktop views', async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  const widths = [320, 768, 1440] as const;
+  const themes = ['dark', 'light'] as const;
+
+  for (const locale of locales) {
+    for (const slug of pages) {
+      await page.goto(`/${locale}${slug}`);
+
+      for (const theme of themes) {
+        await page.evaluate((selectedTheme) => {
+          window.localStorage.setItem('spryxel.theme', selectedTheme);
+          document.documentElement.dataset.theme = selectedTheme;
+        }, theme);
+
+        for (const width of widths) {
+          await page.setViewportSize({ width, height: 900 });
+          await expectPublicContentWithinViewport(page, `${locale}${slug}/${theme} at ${width}px`);
+        }
+      }
+
+      await appendFortyPercentMoreCopy(page);
+      for (const width of widths) {
+        await page.setViewportSize({ width, height: 900 });
+        await expectPublicContentWithinViewport(
+          page,
+          `${locale}${slug} with 40% longer copy at ${width}px`,
+        );
+      }
     }
   }
 });
