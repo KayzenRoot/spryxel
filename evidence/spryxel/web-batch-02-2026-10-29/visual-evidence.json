@@ -5,7 +5,6 @@
   "sourceWorktreePatchSha256": "13ec25b1d55490a6e51c8e84900dc2a966bd11c23561d5570a9ca1f87d807489",
   "capturedAt": "2026-10-29T15:37:14.3266912Z",
   "browser": "Playwright Chromium, local disposable app/API fixtures",
-  "browserCommand": "npm exec -- playwright test apps/web/public-site.spec.ts --config=evidence/spryxel/web-batch-02-2026-10-29/playwright.local.config.ts --workers=1",
   "screenSample": "Before and after, 320px dark/light and 1440px dark/light for en, pt-BR and es",
   "fullMatrix": {
     "locales": [
@@ -32,5 +31,7 @@
     "afterViewportOverflow": 0,
     "beforeContentOutOfBounds": 0,
     "afterContentOutOfBounds": 0
-  }
+  },
+  "browserCommandExecuted": "npm exec -- playwright test apps/web/public-site.spec.ts --config=test-results/batch02-local.config.ts --workers=1",
+  "browserRunConfiguration": "Temporary ignored local configuration: Next.js Webpack mode with disposable local API and test-only fixtures. Config intentionally omitted from committed evidence."
 }
