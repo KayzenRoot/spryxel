@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 
 const locales = ['en', 'pt-BR', 'es'] as const;
 const pages = [
@@ -11,6 +11,46 @@ const pages = [
   '/privacy',
   '/cookies',
 ] as const;
+
+async function expectPublicContentWithinViewport(page: Page, label: string) {
+  const layout = await page.evaluate(() => {
+    const site = document.querySelector<HTMLElement>('.public-site');
+    if (!site) throw new Error('Public site root is missing');
+
+    const visibleContent = Array.from(
+      site.querySelectorAll<HTMLElement>('a, button, summary, img, h1, h2, p, main, section'),
+    ).filter((element) => element.getClientRects().length > 0);
+    const outOfBounds = visibleContent
+      .map((element) => element.getBoundingClientRect())
+      .filter((rect) => rect.left < -1 || rect.right > window.innerWidth + 1);
+
+    return {
+      viewport: window.innerWidth,
+      documentScrollWidth: document.documentElement.scrollWidth,
+      outOfBoundsCount: outOfBounds.length,
+    };
+  });
+
+  expect(layout.documentScrollWidth, `${label}: document scroll width`).toBeLessThanOrEqual(
+    layout.viewport + 1,
+  );
+  expect(layout.outOfBoundsCount, `${label}: visible content outside viewport`).toBe(0);
+}
+
+async function appendFortyPercentMoreCopy(page: Page) {
+  await page.evaluate(() => {
+    const site = document.querySelector('.public-site');
+    if (!site) throw new Error('Public site root is missing');
+
+    for (const element of site.querySelectorAll<HTMLElement>('h1, h2, h3, p, a, button, summary')) {
+      if (element.childElementCount > 0) continue;
+      const original = element.textContent?.trim();
+      if (!original) continue;
+      const extra = original.slice(0, Math.ceil(original.length * 0.4));
+      element.textContent = `${original} ${extra}`;
+    }
+  });
+}
 
 test('localized public pages render with language-specific metadata and landmarks', async ({
   page,
@@ -66,6 +106,40 @@ test('public navigation keeps the current page when switching locales', async ({
   );
 });
 
+test('mobile navigation is keyboard-operable and exposes its expanded state', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/pt-BR');
+
+  const collapsedToggle = page.getByRole('button', { name: 'Abrir menu' });
+  const disclosure = page.locator('.public-header__mobile-menu');
+  await expect(collapsedToggle).toHaveAttribute('aria-expanded', 'false');
+  await collapsedToggle.focus();
+  await page.keyboard.press('Space');
+
+  const expandedToggle = page.getByRole('button', { name: 'Fechar menu' });
+  await expect(expandedToggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(expandedToggle).toHaveAttribute('aria-controls', 'public-mobile-navigation');
+  await expect(disclosure.locator('#public-mobile-navigation')).toBeVisible();
+
+  const homeLink = page.locator('.public-header__mobile-nav a[href="/pt-BR"]');
+  const featuresLink = page.locator('.public-header__mobile-nav a[href="/pt-BR/features"]');
+  await page.keyboard.press('Tab');
+  await expect(homeLink).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(featuresLink).toBeFocused();
+  await page.keyboard.press('Escape');
+  const closedToggle = page.getByRole('button', { name: 'Abrir menu' });
+  await expect(closedToggle).toBeFocused();
+  await expect(closedToggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(featuresLink).toBeHidden();
+
+  await page.keyboard.press('Space');
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/pt-BR\/features$/);
+});
+
 test('public theme toggle changes the theme and preserves the selected preference', async ({
   page,
 }) => {
@@ -73,14 +147,121 @@ test('public theme toggle changes the theme and preserves the selected preferenc
 
   const toggle = page.getByRole('button', { name: /theme|tema/i });
   await expect(toggle).toBeVisible();
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   const initialTheme = await page.locator('html').getAttribute('data-theme');
   const nextTheme = initialTheme === 'light' ? 'dark' : 'light';
   await toggle.click();
 
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('html')).toHaveAttribute('data-theme', nextTheme);
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', nextTheme);
+});
+
+test('public product status separates available workspace from planned private media', async ({
+  page,
+}) => {
+  const statusByLocale = {
+    en: 'Private asset storage, generation, and export are still planned.',
+    'pt-BR':
+      'O espaço de trabalho de projetos está disponível. O armazenamento privado de recursos, a geração e a exportação ainda estão planejados.',
+    es: 'El almacenamiento privado de recursos, la generación y la exportación siguen planificados.',
+  } as const;
+
+  for (const locale of locales) {
+    await page.goto(`/${locale}`);
+    await expect(page.locator('.public-footer__status')).toContainText(statusByLocale[locale]);
+  }
+});
+
+test('public pages reflow across target widths, locales, and themes', async ({ page }) => {
+  const widths = [320, 375, 390, 768, 1024, 1440, 1920] as const;
+  const themes = ['dark', 'light'] as const;
+
+  for (const locale of locales) {
+    await page.goto(`/${locale}`);
+
+    for (const theme of themes) {
+      await page.evaluate((selectedTheme) => {
+        window.localStorage.setItem('spryxel.theme', selectedTheme);
+        document.documentElement.dataset.theme = selectedTheme;
+      }, theme);
+
+      for (const width of widths) {
+        await page.setViewportSize({ width, height: 900 });
+        await expect(page.locator('html')).toHaveAttribute('lang', locale);
+        await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+        await expectPublicContentWithinViewport(page, `${locale}/${theme} at ${width}px`);
+      }
+    }
+
+    await appendFortyPercentMoreCopy(page);
+
+    for (const width of widths) {
+      await page.setViewportSize({ width, height: 900 });
+      await expectPublicContentWithinViewport(page, `${locale} with 40% longer copy at ${width}px`);
+    }
+  }
+});
+
+test('all localized public routes reflow with longer copy in mobile, tablet, and desktop views', async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  const widths = [320, 768, 1440] as const;
+  const themes = ['dark', 'light'] as const;
+
+  for (const locale of locales) {
+    for (const slug of pages) {
+      await page.goto(`/${locale}${slug}`);
+
+      for (const theme of themes) {
+        await page.evaluate((selectedTheme) => {
+          window.localStorage.setItem('spryxel.theme', selectedTheme);
+          document.documentElement.dataset.theme = selectedTheme;
+        }, theme);
+
+        for (const width of widths) {
+          await page.setViewportSize({ width, height: 900 });
+          await expectPublicContentWithinViewport(page, `${locale}${slug}/${theme} at ${width}px`);
+        }
+      }
+
+      await appendFortyPercentMoreCopy(page);
+      for (const theme of themes) {
+        await page.evaluate((selectedTheme) => {
+          window.localStorage.setItem('spryxel.theme', selectedTheme);
+          document.documentElement.dataset.theme = selectedTheme;
+        }, theme);
+
+        for (const width of widths) {
+          await page.setViewportSize({ width, height: 900 });
+          await expectPublicContentWithinViewport(
+            page,
+            `${locale}${slug}/${theme} with 40% longer copy at ${width}px`,
+          );
+        }
+      }
+    }
+  }
+});
+
+test('public sticky header follows page scrolling', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/en');
+  await page.evaluate(() => {
+    document.documentElement.style.scrollBehavior = 'auto';
+    window.scrollTo(0, 800);
+  });
+
+  await expect
+    .poll(() =>
+      page
+        .locator('.public-header')
+        .evaluate((header) => Math.round(header.getBoundingClientRect().top)),
+    )
+    .toBe(0);
 });
 
 test('theme preference survives document navigation between public and workspace roots', async ({

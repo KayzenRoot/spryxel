@@ -1,0 +1,68 @@
+{
+  "repository": "KayzenRoot/spryxel",
+  "issue": 81,
+  "sourceParent": "9e34e76ce8e451a47999cdd354921b5fed0c08c9",
+  "capturedAt": "2026-10-29T15:37:14.3266912Z",
+  "browser": "Playwright Chromium, local disposable app/API fixtures",
+  "screenSample": "Before and after, 320px dark/light and 1440px dark/light for en, pt-BR and es",
+  "fullMatrix": {
+    "locales": [
+      "en",
+      "pt-BR",
+      "es"
+    ],
+    "themes": [
+      "dark",
+      "light"
+    ],
+    "widths": [
+      320,
+      375,
+      390,
+      768,
+      1024,
+      1440,
+      1920
+    ],
+    "beforeSamples": 42,
+    "afterSamples": 42,
+    "beforeViewportOverflow": 0,
+    "afterViewportOverflow": 0,
+    "beforeContentOutOfBounds": 0,
+    "afterContentOutOfBounds": 0
+  },
+  "browserCommandExecuted": "npm exec -- playwright test apps/web/public-site.spec.ts --config=test-results/batch02-local.config.ts --workers=1",
+  "browserRunConfiguration": "Temporary ignored local configuration: Next.js Webpack mode with disposable local API and test-only fixtures. Config intentionally omitted from committed evidence.",
+  "visualCaptureSourcePatchSha256": "13ec25b1d55490a6e51c8e84900dc2a966bd11c23561d5570a9ca1f87d807489",
+  "finalSourcePatchSha256": "5b1cdd74c1f320de4dd99adf556f777689368ef3fb694a7c908a559c304df1b6",
+  "visualCaptureSourceCommit": "bd48739e99e47430daed99177ffe3a3aabf04577",
+  "visualCaptureRuntimeUnchanged": true,
+  "browserCommandExitCode": 0,
+  "expandedRouteCoverage": {
+    "localizedRoutes": 24,
+    "routesPerLocale": 8,
+    "locales": [
+      "en",
+      "pt-BR",
+      "es"
+    ],
+    "themes": [
+      "dark",
+      "light"
+    ],
+    "widths": [
+      320,
+      768,
+      1440
+    ],
+    "standardCopyStatesPerRoute": 6,
+    "extendedCopyStatesPerRoute": 6,
+    "extendedCopyPercent": 40,
+    "finalSuiteTests": 13,
+    "finalSuiteWorkers": 1,
+    "initialExpandedRunExitCode": 1,
+    "initialExpandedRunFailure": "Playwright default 30 second test timeout; no layout assertion failed",
+    "finalExpandedRunExitCode": 0,
+    "finalSuiteTimeoutSeconds": 180
+  }
+}
