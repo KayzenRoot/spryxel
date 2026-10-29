@@ -229,12 +229,19 @@ test('all localized public routes reflow with longer copy in mobile, tablet, and
       }
 
       await appendFortyPercentMoreCopy(page);
-      for (const width of widths) {
-        await page.setViewportSize({ width, height: 900 });
-        await expectPublicContentWithinViewport(
-          page,
-          `${locale}${slug} with 40% longer copy at ${width}px`,
-        );
+      for (const theme of themes) {
+        await page.evaluate((selectedTheme) => {
+          window.localStorage.setItem('spryxel.theme', selectedTheme);
+          document.documentElement.dataset.theme = selectedTheme;
+        }, theme);
+
+        for (const width of widths) {
+          await page.setViewportSize({ width, height: 900 });
+          await expectPublicContentWithinViewport(
+            page,
+            `${locale}${slug}/${theme} with 40% longer copy at ${width}px`,
+          );
+        }
       }
     }
   }
