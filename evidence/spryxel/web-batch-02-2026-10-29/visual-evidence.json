@@ -1,0 +1,36 @@
+{
+  "repository": "KayzenRoot/spryxel",
+  "issue": 81,
+  "sourceParent": "9e34e76ce8e451a47999cdd354921b5fed0c08c9",
+  "sourceWorktreePatchSha256": "13ec25b1d55490a6e51c8e84900dc2a966bd11c23561d5570a9ca1f87d807489",
+  "capturedAt": "2026-10-29T15:37:14.3266912Z",
+  "browser": "Playwright Chromium, local disposable app/API fixtures",
+  "browserCommand": "npm exec -- playwright test apps/web/public-site.spec.ts --config=evidence/spryxel/web-batch-02-2026-10-29/playwright.local.config.ts --workers=1",
+  "screenSample": "Before and after, 320px dark/light and 1440px dark/light for en, pt-BR and es",
+  "fullMatrix": {
+    "locales": [
+      "en",
+      "pt-BR",
+      "es"
+    ],
+    "themes": [
+      "dark",
+      "light"
+    ],
+    "widths": [
+      320,
+      375,
+      390,
+      768,
+      1024,
+      1440,
+      1920
+    ],
+    "beforeSamples": 42,
+    "afterSamples": 42,
+    "beforeViewportOverflow": 0,
+    "afterViewportOverflow": 0,
+    "beforeContentOutOfBounds": 0,
+    "afterContentOutOfBounds": 0
+  }
+}
