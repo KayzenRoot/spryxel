@@ -31,15 +31,31 @@ const good: PrivateAssetPolicyInput = {
   },
 };
 describe('private asset fail-closed tenant/project/version scope policy', () => {
-  it('allows current privileged membership for begin/finalize/revoke', () => {
-    for (const operation of ['begin', 'finalize', 'revoke'] as const)
+  it('allows OWNER and ADMIN for privileged operations with valid scope', () => {
+    const scope = good.resolved!;
+    for (const role of ['OWNER', 'ADMIN'] as const) {
+      const resolved = {
+        ...scope,
+        membership: { ...scope.membership!, role },
+      };
+      for (const operation of ['begin', 'finalize', 'revoke'] as const)
+        expect(
+          canAccessPrivateAsset({
+            ...good,
+            operation,
+            requestedUploadAttemptId: operation === 'finalize' ? attemptId : null,
+            resolved,
+          }),
+        ).toBe(true);
+      expect(canAccessPrivateAsset({ ...good, operation: 'read', resolved })).toBe(true);
       expect(
         canAccessPrivateAsset({
           ...good,
-          operation,
-          requestedUploadAttemptId: operation === 'finalize' ? attemptId : null,
+          operation: 'read',
+          resolved: { ...resolved, assetReadAllowed: false },
         }),
-      ).toBe(true);
+      ).toBe(false);
+    }
   });
   it('rejects mismatched tenant, project, version, subject and membership', () => {
     const r = good.resolved!;
