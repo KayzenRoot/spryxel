@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
-import { PublicFooter, PublicHeader } from '../../src/public-site/shell';
 import { getPublicContent, isPublicLocale, locales } from '../../src/public-site/content';
+import { PublicFooter, PublicHeader } from '../../src/public-site/shell';
+import '../globals.css';
 
 export const dynamicParams = false;
 
@@ -21,13 +22,20 @@ export default async function PublicLocaleLayout({
   const dictionary = getPublicContent(localeParam);
 
   return (
-    <div className="public-site" lang={localeParam}>
-      <a className="skip-link public-skip-link" href="#public-main">
-        {dictionary.shell.nav.skipToContent}
-      </a>
-      <PublicHeader locale={localeParam} page="home" dictionary={dictionary} />
-      {children}
-      <PublicFooter locale={localeParam} page="home" dictionary={dictionary} />
-    </div>
+    <html lang={localeParam} data-theme="dark" suppressHydrationWarning>
+      <head>
+        <script id="spryxel-theme-bootstrap" src="/theme-bootstrap.js" />
+      </head>
+      <body>
+        <div className="public-site" lang={localeParam}>
+          <a className="skip-link public-skip-link" href="#public-main">
+            {dictionary.shell.nav.skipToContent}
+          </a>
+          <PublicHeader locale={localeParam} page="home" dictionary={dictionary} />
+          {children}
+          <PublicFooter locale={localeParam} page="home" dictionary={dictionary} />
+        </div>
+      </body>
+    </html>
   );
 }
