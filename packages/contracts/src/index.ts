@@ -458,3 +458,5 @@ export const projectJobListQuerySchema = z
 export type Project = z.infer<typeof projectSchema>;
 export type ProjectRole = z.infer<typeof projectRoleSchema>;
 export type SafeJob = z.infer<typeof safeJobSchema>;
+
+export * from './private-asset-storage.js';
