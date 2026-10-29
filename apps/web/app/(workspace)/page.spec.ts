@@ -19,7 +19,7 @@ async function clickAndWaitForPost(page: Page, button: Locator): Promise<void> {
   const actionRequest = await actionRequestPromise;
   const actionResponse = await actionRequest.response();
   if (!actionResponse) throw new Error('Server Action returned no HTTP response');
-  expect(await actionResponse.finished()).toBeNull();
+  expect(actionResponse.status()).toBe(200);
 }
 
 async function openJobDetails(page: Page, jobLink: Locator): Promise<void> {
