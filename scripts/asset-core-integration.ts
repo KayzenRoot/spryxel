@@ -16,6 +16,9 @@ import {
   listProjectDnaVersions,
   restoreAssetVersion,
   restoreProjectDnaVersion,
+  type PrivateAssetScopeRepositoryPort,
+  type PrivateAssetScopeRequest,
+  type PrivateAssetScopeResolution,
 } from '@spryxel/db';
 import {
   createUuidV7,
@@ -504,7 +507,7 @@ export async function runAssetCoreIntegration(input: {
     await assertPrivilegedImmutability(ownerPool, scopeA, dna, baseAsset);
 
     process.stdout.write(
-      'Asset Core integration: PASS (A01-A04; B01-B06; tenant/project guessed-ID isolation; cross-scope lineage and FK denial; transaction rollback; forced RLS; immutable history; Phase C OWNER/ADMIN/MEMBER read scope, revoked/suspended/non-member denial, unresolved upload denial, and pool context reset after allow/deny/abort).\n',
+      'Asset Core integration: PASS (A01-A04; B01-B06; tenant/project guessed-ID isolation; cross-scope lineage and FK denial; transaction rollback; forced RLS; immutable history; Phase C FORCE RLS for every resolver table, OWNER/ADMIN/MEMBER read scope, revoked/suspended/non-member denial, unresolved upload denial, and pool context reset after allow/deny/abort).\n',
     );
   } finally {
     await Promise.all([
@@ -527,6 +530,7 @@ async function assertPrivateAssetScopeResolver(input: {
   otherTenantAssetVersionId: string;
 }): Promise<void> {
   const repository = createPrivateAssetScopeRepository(input.database);
+  await assertPrivateAssetResolverRls(input.database);
   await assertPrivateAssetPoolContextReset(input.database);
 
   const ownerDraftResolution = await repository.resolve({
@@ -695,7 +699,7 @@ async function assertPrivateAssetScopeResolver(input: {
 }
 
 function assertResolvedPrivateAssetScope(
-  result: Awaited<ReturnType<ReturnType<typeof createPrivateAssetScopeRepository>['resolve']>>,
+  result: PrivateAssetScopeResolution,
   role: 'OWNER' | 'ADMIN' | 'MEMBER',
   versionStatus: 'draft' | 'published' | 'archived',
 ): PrivateAssetResolvedScope {
@@ -729,9 +733,9 @@ function privateAssetPolicyInput(
 }
 
 async function assertPrivateAssetResolutionDenied(
-  repository: ReturnType<typeof createPrivateAssetScopeRepository>,
+  repository: PrivateAssetScopeRepositoryPort,
   database: ReturnType<typeof createDatabase>,
-  request: Parameters<typeof repository.resolve>[0],
+  request: PrivateAssetScopeRequest,
 ): Promise<void> {
   const result = await repository.resolve(request);
   if (result.allowed || result.reason !== 'not_authorized') {
@@ -747,11 +751,19 @@ async function assertPrivateAssetPoolContextReset(
     subject_id: string | null;
     tenant_id: string | null;
     project_id: string | null;
+    identity_subject_count: string;
+    tenant_count: string;
+    membership_count: string;
+    project_count: string;
     asset_version_count: string;
   }>(
     `SELECT current_setting('spryxel.subject_id', true) AS subject_id,
             current_setting('spryxel.tenant_id', true) AS tenant_id,
             current_setting('spryxel.project_id', true) AS project_id,
+            (SELECT count(*)::text FROM platform.identity_subject) AS identity_subject_count,
+            (SELECT count(*)::text FROM platform.tenant) AS tenant_count,
+            (SELECT count(*)::text FROM platform.tenant_membership) AS membership_count,
+            (SELECT count(*)::text FROM platform.project) AS project_count,
             (SELECT count(*)::text FROM platform.asset_version) AS asset_version_count`,
   );
   const row = result.rows[0];
@@ -760,9 +772,60 @@ async function assertPrivateAssetPoolContextReset(
     [row.subject_id, row.tenant_id, row.project_id].some(
       (value) => value !== null && value !== '',
     ) ||
-    row.asset_version_count !== '0'
+    [
+      row.identity_subject_count,
+      row.tenant_count,
+      row.membership_count,
+      row.project_count,
+      row.asset_version_count,
+    ].some((count) => count !== '0')
   ) {
     throw new Error('Private asset scope or transaction-local RLS context leaked through the pool');
+  }
+}
+
+async function assertPrivateAssetResolverRls(
+  database: ReturnType<typeof createDatabase>,
+): Promise<void> {
+  const tableNames = [
+    'identity_subject',
+    'tenant',
+    'tenant_membership',
+    'project',
+    'asset_version',
+  ];
+  const result = await database.pool.query<{
+    relname: string;
+    row_security: boolean;
+    force_row_security: boolean;
+    is_app_role: boolean;
+    runtime_bypasses_rls: boolean;
+  }>(
+    `SELECT relation.relname,
+            relation.relrowsecurity AS row_security,
+            relation.relforcerowsecurity AS force_row_security,
+            current_user = 'spryxel_app' AS is_app_role,
+            (role.rolsuper OR role.rolbypassrls) AS runtime_bypasses_rls
+       FROM pg_catalog.pg_class AS relation
+       JOIN pg_catalog.pg_namespace AS namespace ON namespace.oid = relation.relnamespace
+       JOIN pg_catalog.pg_roles AS role ON role.rolname = current_user
+      WHERE namespace.nspname = 'platform'
+        AND relation.relname = ANY($1::text[])
+        AND relation.relkind IN ('r', 'p')
+      ORDER BY relation.relname`,
+    [tableNames],
+  );
+  if (
+    result.rows.length !== tableNames.length ||
+    result.rows.some(
+      (row) =>
+        !row.row_security ||
+        !row.force_row_security ||
+        !row.is_app_role ||
+        row.runtime_bypasses_rls,
+    )
+  ) {
+    throw new Error('Private asset resolver tables did not enforce FORCE RLS for spryxel_app');
   }
 }
 
