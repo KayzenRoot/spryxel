@@ -161,19 +161,25 @@ test('public theme toggle changes the theme and preserves the selected preferenc
   await expect(page.locator('html')).toHaveAttribute('data-theme', nextTheme);
 });
 
-test('public product status separates available workspace from planned private media', async ({
+test('public product status separates available workspace and jobs from planned asset tools', async ({
   page,
 }) => {
   const statusByLocale = {
-    en: 'Private asset storage, generation, and export are still planned.',
+    en: 'Project workspaces and supported job tracking are available. Asset authoring, private storage, generation, and export are still planned.',
     'pt-BR':
-      'O espaço de trabalho de projetos está disponível. O armazenamento privado de recursos, a geração e a exportação ainda estão planejados.',
-    es: 'El almacenamiento privado de recursos, la generación y la exportación siguen planificados.',
+      'O espaço de trabalho de projetos e o acompanhamento de tarefas compatíveis estão disponíveis. A criação e o armazenamento privado de recursos, a geração e a exportação ainda estão planejados.',
+    es: 'El espacio de trabajo de proyectos y el seguimiento de tareas compatibles están disponibles. La creación y el almacenamiento privado de recursos, la generación y la exportación siguen planificados.',
+  } as const;
+  const currentCapabilitiesByLocale = {
+    en: 'You can create projects and track supported jobs today.',
+    'pt-BR': 'Hoje, você pode criar projetos e acompanhar tarefas compatíveis.',
+    es: 'Hoy puedes crear proyectos y seguir las tareas compatibles.',
   } as const;
 
   for (const locale of locales) {
     await page.goto(`/${locale}`);
     await expect(page.locator('.public-footer__status')).toContainText(statusByLocale[locale]);
+    await expect(page.locator('#faq-list')).toContainText(currentCapabilitiesByLocale[locale]);
   }
 });
 
