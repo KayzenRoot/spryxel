@@ -36,7 +36,7 @@
   --public-max: 1180px;
   --public-gutter: clamp(1.25rem, 5vw, 4.5rem);
   min-height: 100vh;
-  overflow: hidden;
+  overflow-x: clip;
   color: var(--text-primary);
   background:
     radial-gradient(

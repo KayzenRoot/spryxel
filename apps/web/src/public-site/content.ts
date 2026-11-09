@@ -301,10 +301,10 @@ const publicCopy = {
     es: 'Estado del producto',
   }),
   shellFooterStatusBody: localizedText({
-    en: 'The project workspace foundation is available. Asset contracts, durable jobs, generation, and export are planned.',
+    en: 'The project workspace is available. Private asset storage, generation, and export are still planned.',
     'pt-BR':
-      'A base do espaço de trabalho de projetos está disponível. Contratos de recursos, tarefas duráveis, geração e exportação estão planejados.',
-    es: 'La base del espacio de trabajo de proyectos está disponible. Los contratos de recursos, las tareas duraderas, la generación y la exportación están planificados.',
+      'O espaço de trabalho de projetos está disponível. O armazenamento privado de recursos, a geração e a exportação ainda estão planejados.',
+    es: 'El espacio de trabajo de proyectos está disponible. El almacenamiento privado de recursos, la generación y la exportación siguen planificados.',
   }),
   metadataHomeTitle: localizedText({
     en: 'Spryxel — Plan game asset projects',
