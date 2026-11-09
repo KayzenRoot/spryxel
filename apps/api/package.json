@@ -18,7 +18,7 @@
     "@spryxel/identity": "0.0.0",
     "@spryxel/observability": "0.0.0",
     "@workos-inc/node": "10.14.0",
-    "fastify": "5.12.5",
+    "fastify": "5.12.7",
     "jose": "6.2.12"
   }
 }
