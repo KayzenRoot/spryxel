@@ -163,7 +163,6 @@ export function ThemeToggle({ labels }: Readonly<ThemeToggleProps>) {
   return (
     <button
       aria-label={targetLabel}
-      aria-pressed={theme === 'light'}
       className="public-theme-toggle inline-flex min-h-11 items-center justify-center rounded-control border border-border bg-surface px-3 py-2 text-sm font-medium text-text-primary"
       onClick={toggleTheme}
       type="button"

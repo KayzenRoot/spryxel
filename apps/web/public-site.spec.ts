@@ -149,13 +149,14 @@ test('public theme toggle changes the theme and preserves the selected preferenc
 
   const toggle = page.getByRole('button', { name: /theme|tema/i });
   await expect(toggle).toBeVisible();
-  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+  await expect(toggle).toHaveAccessibleName('Switch to light theme');
+  await expect(toggle).not.toHaveAttribute('aria-pressed');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   const initialTheme = await page.locator('html').getAttribute('data-theme');
   const nextTheme = initialTheme === 'light' ? 'dark' : 'light';
   await toggle.click();
 
-  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  await expect(toggle).toHaveAccessibleName('Switch to dark theme');
   await expect(page.locator('html')).toHaveAttribute('data-theme', nextTheme);
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', nextTheme);

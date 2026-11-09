@@ -8,11 +8,7 @@ async function clickAndWaitForUrl(
   await Promise.all([page.waitForURL(url, { waitUntil: 'commit' }), link.click()]);
 }
 
-async function clickAndWaitForPost(
-  page: Page,
-  button: Locator,
-  expectedStatuses: readonly number[] = [200],
-): Promise<void> {
+async function clickAndWaitForPost(page: Page, button: Locator): Promise<void> {
   const pathname = new URL(page.url()).pathname;
   const actionRequestPromise = page.waitForRequest((request) => {
     const url = new URL(request.url());
@@ -23,7 +19,7 @@ async function clickAndWaitForPost(
   const actionRequest = await actionRequestPromise;
   const actionResponse = await actionRequest.response();
   if (!actionResponse) throw new Error('Server Action returned no HTTP response');
-  expect(expectedStatuses).toContain(actionResponse.status());
+  expect(actionResponse.status()).toBe(200);
 }
 
 async function openJobDetails(page: Page, jobLink: Locator): Promise<void> {
@@ -186,7 +182,7 @@ test('Jobs Center lists durable state and reload preserves details and cancellat
   ).toBeVisible();
   await expect(page.getByText('Specification SHA-256')).toBeVisible();
   await expect(page.getByText(/raw contract|specification JSON/i)).toHaveCount(0);
-  await clickAndWaitForPost(page, page.getByRole('button', { name: 'Cancel job' }), [200, 303]);
+  await clickAndWaitForPost(page, page.getByRole('button', { name: 'Cancel job' }));
   await expect(page.getByText('Status: cancelled.')).toBeVisible();
   await page.reload();
   await expect(page.getByText('Status: cancelled.')).toBeVisible();
@@ -230,11 +226,7 @@ test('concurrent Jobs sessions isolate cancellation from independent overview st
       openJobDetails(cancelPage, cancelLink),
       openJobDetails(overviewPage, overviewLink),
     ]);
-    await clickAndWaitForPost(
-      cancelPage,
-      cancelPage.getByRole('button', { name: 'Cancel job' }),
-      [200, 303],
-    );
+    await clickAndWaitForPost(cancelPage, cancelPage.getByRole('button', { name: 'Cancel job' }));
     await expect(cancelPage.getByText('Status: cancelled.')).toBeVisible();
     await cancelContext.close();
     cancelContextOpen = false;
@@ -258,7 +250,7 @@ test('a terminal cancellation race redirects to the refreshed durable Job', asyn
 
   await expect(page.getByRole('button', { name: 'Cancel job' })).toBeVisible();
 
-  await clickAndWaitForPost(page, page.getByRole('button', { name: 'Cancel job' }), [200, 303]);
+  await clickAndWaitForPost(page, page.getByRole('button', { name: 'Cancel job' }));
 
   await expect(page.getByText('cancelled', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Cancel job' })).toHaveCount(0);
@@ -275,7 +267,7 @@ test('a transient cancellation API failure returns to the current durable Job st
 
   await expect(page.getByRole('button', { name: 'Cancel job' })).toBeVisible();
 
-  await clickAndWaitForPost(page, page.getByRole('button', { name: 'Cancel job' }), [200, 303]);
+  await clickAndWaitForPost(page, page.getByRole('button', { name: 'Cancel job' }));
 
   await expect(page.getByText('queued', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Cancel job' })).toBeVisible();
