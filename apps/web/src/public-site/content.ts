@@ -301,10 +301,10 @@ const publicCopy = {
     es: 'Estado del producto',
   }),
   shellFooterStatusBody: localizedText({
-    en: 'The project workspace foundation is available. Asset contracts, durable jobs, generation, and export are planned.',
+    en: 'Project workspaces and supported job tracking are available. Asset authoring, private storage, generation, and export are still planned.',
     'pt-BR':
-      'A base do espaço de trabalho de projetos está disponível. Contratos de recursos, tarefas duráveis, geração e exportação estão planejados.',
-    es: 'La base del espacio de trabajo de proyectos está disponible. Los contratos de recursos, las tareas duraderas, la generación y la exportación están planificados.',
+      'O espaço de trabalho de projetos e o acompanhamento de tarefas compatíveis estão disponíveis. A criação e o armazenamento privado de recursos, a geração e a exportação ainda estão planejados.',
+    es: 'El espacio de trabajo de proyectos y el seguimiento de tareas compatibles están disponibles. La creación y el almacenamiento privado de recursos, la generación y la exportación siguen planificados.',
   }),
   metadataHomeTitle: localizedText({
     en: 'Spryxel — Plan game asset projects',
@@ -312,10 +312,10 @@ const publicCopy = {
     es: 'Spryxel — Planifica proyectos de recursos para videojuegos',
   }),
   metadataHomeDescription: localizedText({
-    en: 'Explore Spryxel, a focused workspace foundation for organizing game asset projects and a clearly planned path for future tools.',
+    en: 'Explore Spryxel project workspaces and supported job tracking for game asset projects. Asset authoring, private storage, generation, and export are planned.',
     'pt-BR':
-      'Conheça o Spryxel, uma base de espaço de trabalho focada em organizar projetos de recursos para jogos, com ferramentas futuras claramente planejadas.',
-    es: 'Descubre Spryxel, una base de espacio de trabajo dedicada a organizar proyectos de recursos para videojuegos, con herramientas futuras claramente planificadas.',
+      'Conheça os espaços de projeto e o acompanhamento de tarefas compatíveis do Spryxel. A criação e o armazenamento privado de recursos, a geração e a exportação estão planejados.',
+    es: 'Conoce los espacios de proyecto y el seguimiento de tareas compatibles de Spryxel. La creación y el almacenamiento privado de recursos, la generación y la exportación están planificados.',
   }),
   metadataFeaturesTitle: localizedText({
     en: 'Features — Spryxel',
@@ -405,10 +405,10 @@ const publicCopy = {
     es: 'Un espacio claro para proyectos de recursos de videojuegos.',
   }),
   homeHeroDescription: localizedText({
-    en: 'Spryxel is building a focused workspace for organizing game asset projects. The project workspace foundation is available; asset definitions, durable processing, generation, and export are still planned.',
+    en: 'Spryxel is a focused workspace for organizing game asset projects. Create projects and track supported jobs today; asset authoring, private storage, generation, and export are still planned.',
     'pt-BR':
-      'O Spryxel está criando um espaço de trabalho focado em organizar projetos de recursos para jogos. A base do espaço de trabalho de projetos está disponível; definições de recursos, processamento durável, geração e exportação ainda estão planejados.',
-    es: 'Spryxel está creando un espacio de trabajo dedicado a organizar proyectos de recursos para videojuegos. La base del espacio de trabajo de proyectos está disponible; las definiciones de recursos, el procesamiento duradero, la generación y la exportación siguen planificados.',
+      'O Spryxel é um espaço de trabalho focado em organizar projetos de recursos para jogos. Hoje, você pode criar projetos e acompanhar tarefas compatíveis; a criação e o armazenamento privado de recursos, a geração e a exportação ainda estão planejados.',
+    es: 'Spryxel es un espacio de trabajo dedicado a organizar proyectos de recursos para videojuegos. Hoy puedes crear proyectos y seguir tareas compatibles; la creación y el almacenamiento privado de recursos, la generación y la exportación siguen planificados.',
   }),
   homeHeroPrimaryCta: localizedText({
     en: 'Explore the features',
@@ -416,9 +416,9 @@ const publicCopy = {
     es: 'Explorar las funciones',
   }),
   homeHeroSecondaryCta: localizedText({
-    en: 'See the planned workflow',
-    'pt-BR': 'Veja o fluxo planejado',
-    es: 'Ver el flujo planificado',
+    en: 'See the workflow roadmap',
+    'pt-BR': 'Veja o roteiro do fluxo',
+    es: 'Ver la hoja de ruta del flujo',
   }),
   homeHeroImageAlt: localizedText({
     en: 'Fantasy game art with a fox spirit on a forest island and a hooded traveler against a plum backdrop.',
@@ -443,9 +443,9 @@ const publicCopy = {
     es: 'Primero, el espacio de trabajo',
   }),
   homeTrustPrinciplesItem1Body: localizedText({
-    en: 'The current foundation is a workspace for creating and organizing projects.',
-    'pt-BR': 'A base atual é um espaço de trabalho para criar e organizar projetos.',
-    es: 'La base actual es un espacio de trabajo para crear y organizar proyectos.',
+    en: 'Create and organize projects, then track supported jobs in the workspace.',
+    'pt-BR': 'Crie e organize projetos e acompanhe tarefas compatíveis no espaço de trabalho.',
+    es: 'Crea y organiza proyectos, y sigue las tareas compatibles en el espacio de trabajo.',
   }),
   homeTrustPrinciplesItem2Title: localizedText({
     en: 'Clear product status',
@@ -453,10 +453,10 @@ const publicCopy = {
     es: 'Estado claro del producto',
   }),
   homeTrustPrinciplesItem2Body: localizedText({
-    en: 'Planned tools are identified as planned, including asset contracts, durable jobs, generation, and export.',
+    en: 'Asset authoring, private storage, generation, and export are clearly marked as planned.',
     'pt-BR':
-      'As ferramentas planejadas são identificadas como planejadas, incluindo contratos de recursos, tarefas duráveis, geração e exportação.',
-    es: 'Las herramientas planificadas se identifican como tales, incluidos los contratos de recursos, las tareas duraderas, la generación y la exportación.',
+      'A criação e o armazenamento privado de recursos, a geração e a exportação são claramente identificados como planejados.',
+    es: 'La creación y el almacenamiento privado de recursos, la generación y la exportación se identifican claramente como planificados.',
   }),
   homeTrustPrinciplesItem3Title: localizedText({
     en: 'Game asset focus',
@@ -603,15 +603,15 @@ const publicCopy = {
     es: 'Un flujo en desarrollo',
   }),
   homeWorkflowDescription: localizedText({
-    en: 'The following steps describe the planned direction. Only the project workspace foundation is available today.',
+    en: 'These steps show the planned asset workflow. Project workspaces and tracking for supported jobs are available today.',
     'pt-BR':
-      'As etapas a seguir descrevem a direção planejada. Hoje, apenas a base do espaço de trabalho de projetos está disponível.',
-    es: 'Los siguientes pasos describen la dirección planificada. Hoy solo está disponible la base del espacio de trabajo de proyectos.',
+      'Estas etapas mostram o fluxo planejado para recursos. Hoje, o espaço de trabalho de projetos e o acompanhamento de tarefas compatíveis estão disponíveis.',
+    es: 'Estos pasos muestran el flujo planificado para recursos. Hoy están disponibles los espacios de trabajo de proyectos y el seguimiento de tareas compatibles.',
   }),
   homeWorkflowPlannedLabel: localizedText({
-    en: 'Planned workflow',
-    'pt-BR': 'Fluxo planejado',
-    es: 'Flujo planificado',
+    en: 'Workflow roadmap',
+    'pt-BR': 'Roteiro do fluxo',
+    es: 'Hoja de ruta del flujo',
   }),
   homeWorkflowStepsItem1Title: localizedText({
     en: 'Organize a project',
@@ -630,21 +630,21 @@ const publicCopy = {
     es: 'Definir los recursos',
   }),
   homeWorkflowStepsItem2Body: localizedText({
-    en: 'Planned asset contracts will make each asset brief and its requirements explicit.',
+    en: 'A user-facing asset editor is planned to define each brief and its requirements.',
     'pt-BR':
-      'Contratos de recursos planejados tornarão explícitos o briefing e os requisitos de cada recurso.',
-    es: 'Los contratos de recursos planificados harán explícitos el resumen y los requisitos de cada recurso.',
+      'Um editor de recursos para usuários está planejado para definir o briefing e os requisitos de cada recurso.',
+    es: 'Está previsto un editor de recursos para definir cada resumen y sus requisitos.',
   }),
   homeWorkflowStepsItem3Title: localizedText({
-    en: 'Run durable jobs',
-    'pt-BR': 'Execute tarefas duráveis',
-    es: 'Ejecutar tareas duraderas',
+    en: 'Track supported jobs',
+    'pt-BR': 'Acompanhe tarefas compatíveis',
+    es: 'Sigue las tareas compatibles',
   }),
   homeWorkflowStepsItem3Body: localizedText({
-    en: 'Durable processing jobs are planned to track work as it moves through a workflow.',
+    en: 'The workspace tracks supported jobs; generation jobs remain planned.',
     'pt-BR':
-      'Tarefas de processamento duráveis estão planejadas para acompanhar o trabalho ao longo do fluxo.',
-    es: 'Se planifican tareas de procesamiento duraderas para seguir el trabajo a lo largo del flujo.',
+      'O espaço de trabalho acompanha tarefas compatíveis; tarefas de geração continuam planejadas.',
+    es: 'El espacio de trabajo sigue las tareas compatibles; las tareas de generación siguen planificadas.',
   }),
   homeWorkflowStepsItem4Title: localizedText({
     en: 'Generate and export',
@@ -662,15 +662,16 @@ const publicCopy = {
     es: 'Estado actual',
   }),
   homeStatusTitle: localizedText({
-    en: 'The project workspace foundation is available.',
-    'pt-BR': 'A base do espaço de trabalho de projetos está disponível.',
-    es: 'La base del espacio de trabajo de proyectos está disponible.',
+    en: 'Project workspaces and supported job tracking are available.',
+    'pt-BR':
+      'O espaço de trabalho de projetos e o acompanhamento de tarefas compatíveis estão disponíveis.',
+    es: 'Los espacios de trabajo de proyectos y el seguimiento de tareas compatibles están disponibles.',
   }),
   homeStatusCurrentBody: localizedText({
-    en: 'Spryxel currently provides a foundation for project workspaces. This does not include asset generation or export.',
+    en: 'Create and organize projects and monitor supported jobs. Asset authoring, private storage, generation, and export are not available yet.',
     'pt-BR':
-      'Atualmente, o Spryxel oferece uma base para espaços de trabalho de projetos. Isso não inclui geração ou exportação de recursos.',
-    es: 'Actualmente, Spryxel ofrece una base para espacios de trabajo de proyectos. Esto no incluye la generación ni la exportación de recursos.',
+      'Crie e organize projetos e acompanhe tarefas compatíveis. A criação e o armazenamento privado de recursos, a geração e a exportação ainda não estão disponíveis.',
+    es: 'Crea y organiza proyectos, y supervisa las tareas compatibles. La creación y el almacenamiento privado de recursos, la generación y la exportación aún no están disponibles.',
   }),
   homeStatusPlannedTitle: localizedText({
     en: 'More asset tools are planned',
@@ -678,30 +679,30 @@ const publicCopy = {
     es: 'Hay más herramientas para recursos planificadas',
   }),
   homeStatusPlannedBody: localizedText({
-    en: 'The roadmap includes asset contracts and durable jobs, followed by generation and export. These capabilities are not available yet.',
+    en: 'Asset authoring and private storage are planned, followed by production generation and export. Supported job tracking is already available.',
     'pt-BR':
-      'O roteiro inclui contratos de recursos e tarefas duráveis, seguidos por geração e exportação. Esses recursos ainda não estão disponíveis.',
-    es: 'La hoja de ruta incluye contratos de recursos y tareas duraderas, seguidos de generación y exportación. Estas funciones aún no están disponibles.',
+      'A criação e o armazenamento privado de recursos estão planejados, seguidos pela geração de produção e pela exportação. O acompanhamento de tarefas compatíveis já está disponível.',
+    es: 'La creación y el almacenamiento privado de recursos están planificados, seguidos de la generación de producción y la exportación. El seguimiento de tareas compatibles ya está disponible.',
   }),
   homeStatusPlannedItemsItem1Title: localizedText({
-    en: 'Asset contracts',
-    'pt-BR': 'Contratos de recursos',
-    es: 'Contratos de recursos',
+    en: 'Asset authoring',
+    'pt-BR': 'Criação de recursos',
+    es: 'Creación de recursos',
   }),
   homeStatusPlannedItemsItem1Body: localizedText({
-    en: 'Planned structured definitions for asset briefs and requirements.',
-    'pt-BR': 'Definições estruturadas planejadas para briefings e requisitos de recursos.',
-    es: 'Definiciones estructuradas planificadas para resúmenes y requisitos de recursos.',
+    en: 'A user-facing editor for asset briefs and requirements is still planned.',
+    'pt-BR': 'Um editor para briefings e requisitos de recursos ainda está planejado.',
+    es: 'Está previsto un editor para los resúmenes y requisitos de recursos.',
   }),
   homeStatusPlannedItemsItem2Title: localizedText({
-    en: 'Durable jobs',
-    'pt-BR': 'Tarefas duráveis',
-    es: 'Tareas duraderas',
+    en: 'Private asset storage',
+    'pt-BR': 'Armazenamento privado de recursos',
+    es: 'Almacenamiento privado de recursos',
   }),
   homeStatusPlannedItemsItem2Body: localizedText({
-    en: 'Planned processing that can track asset work across steps.',
-    'pt-BR': 'Processamento planejado para acompanhar o trabalho de recursos em várias etapas.',
-    es: 'Procesamiento planificado para seguir el trabajo de recursos a través de varios pasos.',
+    en: 'Private media storage and access controls are still planned.',
+    'pt-BR': 'O armazenamento privado de mídia e seus controles de acesso ainda estão planejados.',
+    es: 'El almacenamiento privado de medios y sus controles de acceso siguen planificados.',
   }),
   homeStatusPlannedItemsItem3Title: localizedText({
     en: 'Generation and export',
@@ -729,10 +730,10 @@ const publicCopy = {
     es: '¿Qué es Spryxel?',
   }),
   homeFaqItemsItem1Answer: localizedText({
-    en: 'Spryxel is a focused workspace foundation for organizing game asset projects. Asset tooling is still being planned.',
+    en: 'Spryxel provides project workspaces and tracking for supported jobs. Asset authoring, private storage, generation, and export remain planned.',
     'pt-BR':
-      'O Spryxel é uma base de espaço de trabalho focada em organizar projetos de recursos para jogos. As ferramentas para recursos ainda estão sendo planejadas.',
-    es: 'Spryxel es una base de espacio de trabajo dedicada a organizar proyectos de recursos para videojuegos. Las herramientas para recursos siguen planificándose.',
+      'O Spryxel oferece espaços de trabalho de projetos e acompanhamento de tarefas compatíveis. A criação e o armazenamento privado de recursos, a geração e a exportação continuam planejados.',
+    es: 'Spryxel ofrece espacios de trabajo de proyectos y seguimiento de tareas compatibles. La creación y el almacenamiento privado de recursos, la generación y la exportación siguen planificados.',
   }),
   homeFaqItemsItem2Question: localizedText({
     en: 'Can I generate or export assets now?',
@@ -751,10 +752,10 @@ const publicCopy = {
     es: '¿Qué puedo usar hoy?',
   }),
   homeFaqItemsItem3Answer: localizedText({
-    en: 'The current capability is the project workspace foundation. Asset contracts and durable jobs are planned.',
+    en: 'You can create projects and track supported jobs today. Asset authoring, private storage, generation, and export are still planned.',
     'pt-BR':
-      'A capacidade atual é a base do espaço de trabalho de projetos. Contratos de recursos e tarefas duráveis estão planejados.',
-    es: 'La función actual es la base del espacio de trabajo de proyectos. Los contratos de recursos y las tareas duraderas están planificados.',
+      'Hoje, você pode criar projetos e acompanhar tarefas compatíveis. A criação e o armazenamento privado de recursos, a geração e a exportação continuam planejados.',
+    es: 'Hoy puedes crear proyectos y seguir las tareas compatibles. La creación y el almacenamiento privado de recursos, la generación y la exportación siguen planificados.',
   }),
   homeFaqItemsItem4Question: localizedText({
     en: 'Where can I find support?',
@@ -794,16 +795,15 @@ const publicCopy = {
     es: 'Estado del producto',
   }),
   pagesFeaturesTitle: localizedText({
-    en: 'A project workspace foundation, with asset tools on the roadmap.',
-    'pt-BR':
-      'Uma base de espaço de trabalho de projetos, com ferramentas para recursos no roteiro.',
-    es: 'Una base de espacio de trabajo de proyectos, con herramientas para recursos en la hoja de ruta.',
+    en: 'Project workspaces and supported jobs, with asset tools on the roadmap.',
+    'pt-BR': 'Espaços de projeto e tarefas compatíveis, com ferramentas para recursos no roteiro.',
+    es: 'Espacios de proyecto y tareas compatibles, con herramientas para recursos en la hoja de ruta.',
   }),
   pagesFeaturesIntro: localizedText({
-    en: 'Spryxel is being developed for game asset projects. The current capability is the project workspace foundation; generation and export are not available.',
+    en: 'Create projects and track supported jobs in the workspace. Asset authoring, private storage, generation, and export are not available yet.',
     'pt-BR':
-      'O Spryxel está sendo desenvolvido para projetos de recursos de jogos. A capacidade atual é a base do espaço de trabalho de projetos; geração e exportação não estão disponíveis.',
-    es: 'Spryxel se está desarrollando para proyectos de recursos de videojuegos. La función actual es la base del espacio de trabajo de proyectos; la generación y la exportación no están disponibles.',
+      'Crie projetos e acompanhe tarefas compatíveis no espaço de trabalho. A criação e o armazenamento privado de recursos, a geração e a exportação ainda não estão disponíveis.',
+    es: 'Crea proyectos y sigue las tareas compatibles en el espacio de trabajo. La creación y el almacenamiento privado de recursos, la generación y la exportación aún no están disponibles.',
   }),
   pagesFeaturesCurrentTitle: localizedText({
     en: 'Available today',
@@ -811,9 +811,9 @@ const publicCopy = {
     es: 'Disponible hoy',
   }),
   pagesFeaturesCurrentBody: localizedText({
-    en: 'The project workspace foundation for creating and organizing projects.',
-    'pt-BR': 'A base do espaço de trabalho de projetos para criar e organizar projetos.',
-    es: 'La base del espacio de trabajo de proyectos para crear y organizar proyectos.',
+    en: 'Create and organize projects and monitor supported jobs in the workspace.',
+    'pt-BR': 'Crie e organize projetos e acompanhe tarefas compatíveis no espaço de trabalho.',
+    es: 'Crea y organiza proyectos y supervisa las tareas compatibles en el espacio de trabajo.',
   }),
   pagesFeaturesPlannedLabel: localizedText({
     en: 'Planned',
@@ -821,25 +821,24 @@ const publicCopy = {
     es: 'Planificado',
   }),
   pagesFeaturesSectionsItem1Title: localizedText({
-    en: 'Asset contracts',
-    'pt-BR': 'Contratos de recursos',
-    es: 'Contratos de recursos',
+    en: 'Asset authoring',
+    'pt-BR': 'Criação de recursos',
+    es: 'Creación de recursos',
   }),
   pagesFeaturesSectionsItem1Body: localizedText({
-    en: 'Planned structured asset briefs that describe requirements and intended outputs.',
-    'pt-BR':
-      'Briefings estruturados planejados para descrever requisitos e resultados esperados de recursos.',
-    es: 'Resúmenes estructurados planificados para describir requisitos y resultados previstos de los recursos.',
+    en: 'A user-facing editor for structured asset briefs and requirements is planned.',
+    'pt-BR': 'Um editor para briefings estruturados e requisitos de recursos está planejado.',
+    es: 'Está previsto un editor para resúmenes estructurados y requisitos de recursos.',
   }),
   pagesFeaturesSectionsItem2Title: localizedText({
-    en: 'Durable jobs',
-    'pt-BR': 'Tarefas duráveis',
-    es: 'Tareas duraderas',
+    en: 'Private asset storage',
+    'pt-BR': 'Armazenamento privado de recursos',
+    es: 'Almacenamiento privado de recursos',
   }),
   pagesFeaturesSectionsItem2Body: localizedText({
-    en: 'Planned processing jobs designed to track work through its steps.',
-    'pt-BR': 'Tarefas de processamento planejadas para acompanhar o trabalho em cada etapa.',
-    es: 'Tareas de procesamiento planificadas para seguir el trabajo a lo largo de sus pasos.',
+    en: 'Private media storage and its access controls are still planned.',
+    'pt-BR': 'O armazenamento privado de mídia e seus controles de acesso ainda estão planejados.',
+    es: 'El almacenamiento privado de medios y sus controles de acceso siguen planificados.',
   }),
   pagesFeaturesSectionsItem3Title: localizedText({
     en: 'Generation and export',
@@ -853,9 +852,9 @@ const publicCopy = {
     es: 'Funciones planificadas. La generación y la exportación de recursos no están disponibles hoy.',
   }),
   pagesHowItWorksEyebrow: localizedText({
-    en: 'Planned workflow',
-    'pt-BR': 'Fluxo planejado',
-    es: 'Flujo planificado',
+    en: 'Workflow roadmap',
+    'pt-BR': 'Roteiro do fluxo',
+    es: 'Hoja de ruta del flujo',
   }),
   pagesHowItWorksTitle: localizedText({
     en: 'A project-first path for game assets.',
@@ -863,10 +862,10 @@ const publicCopy = {
     es: 'Un camino para recursos de videojuegos que empieza por el proyecto.',
   }),
   pagesHowItWorksIntro: localizedText({
-    en: 'This is the intended workflow direction for Spryxel. Its later asset processing steps are planned and are not available yet.',
+    en: 'Create project workspaces and track supported jobs today. Asset authoring, private storage, generation, and export remain planned.',
     'pt-BR':
-      'Esta é a direção pretendida para o fluxo do Spryxel. As etapas posteriores de processamento de recursos estão planejadas e ainda não estão disponíveis.',
-    es: 'Esta es la dirección prevista para el flujo de Spryxel. Sus etapas posteriores de procesamiento de recursos están planificadas y aún no están disponibles.',
+      'Crie espaços de trabalho de projetos e acompanhe tarefas compatíveis hoje. A criação e o armazenamento privado de recursos, a geração e a exportação continuam planejados.',
+    es: 'Crea espacios de trabajo de proyectos y sigue las tareas compatibles hoy. La creación y el almacenamiento privado de recursos, la generación y la exportación siguen planificados.',
   }),
   pagesHowItWorksPlannedLabel: localizedText({
     en: 'Planned',
@@ -885,25 +884,26 @@ const publicCopy = {
     es: 'Usa la base disponible del espacio de trabajo de proyectos para dar un lugar a un proyecto de videojuego.',
   }),
   pagesHowItWorksStepsItem2Title: localizedText({
-    en: 'Write an asset contract',
-    'pt-BR': 'Escreva um contrato de recurso',
-    es: 'Escribir un contrato de recurso',
+    en: 'Define an asset brief',
+    'pt-BR': 'Defina um briefing de recurso',
+    es: 'Definir un resumen de recurso',
   }),
   pagesHowItWorksStepsItem2Body: localizedText({
-    en: 'A planned contract will capture the brief and requirements for an asset.',
-    'pt-BR': 'Um contrato planejado registrará o briefing e os requisitos de um recurso.',
-    es: 'Un contrato planificado recogerá el resumen y los requisitos de un recurso.',
+    en: 'A user-facing asset-authoring flow will capture each brief and its requirements.',
+    'pt-BR':
+      'Um fluxo de criação de recursos para usuários registrará cada briefing e seus requisitos.',
+    es: 'Un flujo de creación de recursos para usuarios recogerá cada resumen y sus requisitos.',
   }),
   pagesHowItWorksStepsItem3Title: localizedText({
-    en: 'Track durable jobs',
-    'pt-BR': 'Acompanhe tarefas duráveis',
-    es: 'Seguir tareas duraderas',
+    en: 'Track supported jobs',
+    'pt-BR': 'Acompanhe tarefas compatíveis',
+    es: 'Sigue las tareas compatibles',
   }),
   pagesHowItWorksStepsItem3Body: localizedText({
-    en: 'Planned durable jobs will make processing status trackable across steps.',
+    en: 'The workspace tracks supported jobs, including integrity checks; generation jobs remain planned.',
     'pt-BR':
-      'Tarefas duráveis planejadas permitirão acompanhar o status do processamento entre etapas.',
-    es: 'Las tareas duraderas planificadas permitirán seguir el estado del procesamiento entre pasos.',
+      'O espaço de trabalho acompanha tarefas compatíveis, incluindo verificações de integridade; tarefas de geração continuam planejadas.',
+    es: 'El espacio de trabajo sigue las tareas compatibles, incluidas las comprobaciones de integridad; las tareas de generación siguen planificadas.',
   }),
   pagesHowItWorksStepsItem4Title: localizedText({
     en: 'Generate and export',
@@ -916,10 +916,10 @@ const publicCopy = {
     es: 'La generación y la exportación son resultados planificados, no funciones disponibles.',
   }),
   pagesHowItWorksStatusNote: localizedText({
-    en: 'Today, only the project workspace foundation is available. Asset contracts, durable jobs, generation, and export remain planned.',
+    en: 'Project workspaces and supported job tracking are available today. Asset authoring, private storage, generation, and export remain planned.',
     'pt-BR':
-      'Hoje, apenas a base do espaço de trabalho de projetos está disponível. Contratos de recursos, tarefas duráveis, geração e exportação continuam planejados.',
-    es: 'Hoy solo está disponible la base del espacio de trabajo de proyectos. Los contratos de recursos, las tareas duraderas, la generación y la exportación siguen planificados.',
+      'O espaço de trabalho de projetos e o acompanhamento de tarefas compatíveis estão disponíveis hoje. A criação e o armazenamento privado de recursos, a geração e a exportação continuam planejados.',
+    es: 'Los espacios de trabajo de proyectos y el seguimiento de tareas compatibles están disponibles hoy. La creación y el almacenamiento privado de recursos, la generación y la exportación siguen planificados.',
   }),
   pagesFaqEyebrow: localizedText({
     en: 'Answers',
@@ -942,10 +942,10 @@ const publicCopy = {
     es: '¿Qué es Spryxel?',
   }),
   pagesFaqItemsItem1Answer: localizedText({
-    en: 'Spryxel is a focused workspace foundation for organizing game asset projects. Asset tooling is still being planned.',
+    en: 'Spryxel provides project workspaces and tracking for supported jobs. Asset authoring, private storage, generation, and export remain planned.',
     'pt-BR':
-      'O Spryxel é uma base de espaço de trabalho focada em organizar projetos de recursos para jogos. As ferramentas para recursos ainda estão sendo planejadas.',
-    es: 'Spryxel es una base de espacio de trabajo dedicada a organizar proyectos de recursos para videojuegos. Las herramientas para recursos siguen planificándose.',
+      'O Spryxel oferece espaços de trabalho de projetos e acompanhamento de tarefas compatíveis. A criação e o armazenamento privado de recursos, a geração e a exportação continuam planejados.',
+    es: 'Spryxel ofrece espacios de trabajo de proyectos y seguimiento de tareas compatibles. La creación y el almacenamiento privado de recursos, la generación y la exportación siguen planificados.',
   }),
   pagesFaqItemsItem2Question: localizedText({
     en: 'Can I generate or export assets now?',
@@ -964,10 +964,10 @@ const publicCopy = {
     es: '¿Qué puedo usar hoy?',
   }),
   pagesFaqItemsItem3Answer: localizedText({
-    en: 'The current capability is the project workspace foundation. Asset contracts and durable jobs are planned.',
+    en: 'You can create projects and track supported jobs today. Asset authoring, private storage, generation, and export are still planned.',
     'pt-BR':
-      'A capacidade atual é a base do espaço de trabalho de projetos. Contratos de recursos e tarefas duráveis estão planejados.',
-    es: 'La función actual es la base del espacio de trabajo de proyectos. Los contratos de recursos y las tareas duraderas están planificados.',
+      'Hoje, você pode criar projetos e acompanhar tarefas compatíveis. A criação e o armazenamento privado de recursos, a geração e a exportação continuam planejados.',
+    es: 'Hoy puedes crear proyectos y seguir las tareas compatibles. La creación y el almacenamiento privado de recursos, la generación y la exportación siguen planificados.',
   }),
   pagesFaqItemsItem4Question: localizedText({
     en: 'Where can I find support?',

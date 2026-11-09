@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import type { PublicDictionary, PublicLocale, PublicPageSlug } from './content';
 
 type PublicRoute = 'home' | PublicPageSlug;
@@ -202,10 +202,24 @@ export type PublicShellProps = {
 
 export function PublicHeader({ locale, page, dictionary }: Readonly<PublicShellProps>) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mobileMenuToggleRef = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
   const currentPage = pageFromPathname(pathname, locale, page);
   const { nav } = dictionary.shell;
   const navigationLabel = dictionary.shell.footer.navigationTitle;
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+
+    function closeMenuOnEscape(event: KeyboardEvent) {
+      if (event.key !== 'Escape') return;
+      setMobileMenuOpen(false);
+      mobileMenuToggleRef.current?.focus();
+    }
+
+    window.addEventListener('keydown', closeMenuOnEscape);
+    return () => window.removeEventListener('keydown', closeMenuOnEscape);
+  }, [mobileMenuOpen]);
 
   return (
     <header className="public-header border-b border-border bg-canvas text-text-primary">
@@ -227,14 +241,22 @@ export function PublicHeader({ locale, page, dictionary }: Readonly<PublicShellP
           page={currentPage}
         />
 
-        <details
-          className="public-header__mobile-menu relative ml-auto lg:hidden"
-          onToggle={(event) => setMobileMenuOpen(event.currentTarget.open)}
-        >
-          <summary className="public-header__menu-toggle inline-flex min-h-11 cursor-pointer list-none items-center rounded-control border border-border bg-surface px-3 text-sm font-medium text-text-primary">
+        <div className="public-header__mobile-menu relative ml-auto lg:hidden">
+          <button
+            aria-controls="public-mobile-navigation"
+            className="public-header__menu-toggle inline-flex min-h-11 cursor-pointer list-none items-center rounded-control border border-border bg-surface px-3 text-sm font-medium text-text-primary"
+            aria-expanded={mobileMenuOpen}
+            onClick={() => setMobileMenuOpen((isOpen) => !isOpen)}
+            ref={mobileMenuToggleRef}
+            type="button"
+          >
             {mobileMenuOpen ? nav.closeMenu : nav.menu}
-          </summary>
-          <div className="public-header__mobile-panel absolute right-0 top-full z-10 mt-2 min-w-56 rounded-panel border border-border bg-surface p-2">
+          </button>
+          <div
+            className="public-header__mobile-panel absolute right-0 top-full z-10 mt-2 min-w-56 rounded-panel border border-border bg-surface p-2"
+            hidden={!mobileMenuOpen}
+            id="public-mobile-navigation"
+          >
             <PublicNavigation
               ariaLabel={navigationLabel}
               className="public-header__mobile-nav"
@@ -243,7 +265,7 @@ export function PublicHeader({ locale, page, dictionary }: Readonly<PublicShellP
               page={currentPage}
             />
           </div>
-        </details>
+        </div>
 
         <div className="public-header__actions ml-auto flex w-full flex-wrap items-center justify-between gap-2 lg:w-auto lg:justify-end">
           <LocaleSwitcher
