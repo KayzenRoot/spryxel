@@ -1,0 +1,181 @@
+{
+  "evidenceType": "local-production-build-public-site-screenshots",
+  "capturedOn": "2026-11-09",
+  "sourceHead": "d20fcded7f8f3f445d03e9bfe5de9f95be4d21b2",
+  "mainBase": "126e3a17265e38c94c5057d5d423eb14a12bb9c9",
+  "server": "Next.js 16.4.1 production server on 127.0.0.1:3310; stopped after capture",
+  "runtime": {
+    "node": "22.23.3",
+    "playwright": "1.63.0",
+    "chromium": "153.0.8010.12"
+  },
+  "validation": [
+    "HTTP 200",
+    "SSR html lang equals requested locale",
+    "data-theme equals selected theme",
+    "document scrollWidth <= viewport width + 1 CSS px"
+  ],
+  "matrix": {
+    "locales": [
+      "en",
+      "pt-BR",
+      "es"
+    ],
+    "themes": [
+      "dark",
+      "light"
+    ],
+    "widths": [
+      320,
+      1440
+    ],
+    "viewportHeight": 900
+  },
+  "comparison": "Post-change screenshots only; no before screenshots are claimed.",
+  "screenshots": [
+    {
+      "file": "en-dark-1440.jpg",
+      "path": "/en",
+      "locale": "en",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "bytes": 613039,
+      "sha256": "0271aa0837c268a0e2417028e805fbbe8bd74d3ca8c455d9c36a10760aa48fd5"
+    },
+    {
+      "file": "en-dark-320.jpg",
+      "path": "/en",
+      "locale": "en",
+      "theme": "dark",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "bytes": 416178,
+      "sha256": "b08767e744fdf93c5bdbf39a9b2acd7e77f419a2f55458414033fc735548a0d2"
+    },
+    {
+      "file": "en-light-1440.jpg",
+      "path": "/en",
+      "locale": "en",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "bytes": 613360,
+      "sha256": "b574bad25046f28729f463876683bcbe4db0d6a2f3f8eeda6df70ccb9168cf16"
+    },
+    {
+      "file": "en-light-320.jpg",
+      "path": "/en",
+      "locale": "en",
+      "theme": "light",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "bytes": 418852,
+      "sha256": "fd94ef5e3ff83cbcd31903642cba743e707e5d198dd67eb29f30406f05852e9f"
+    },
+    {
+      "file": "es-dark-1440.jpg",
+      "path": "/es",
+      "locale": "es",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "bytes": 677048,
+      "sha256": "7f231e5e5f91ba1e9829d3eebaa59e87844ba11f3ac7b2be05483f7b963ac66b"
+    },
+    {
+      "file": "es-dark-320.jpg",
+      "path": "/es",
+      "locale": "es",
+      "theme": "dark",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "bytes": 451834,
+      "sha256": "a14772963d8cd7dc8387d895ca1eaae30ebc9aaa66bc0ec9977ac82494b1db25"
+    },
+    {
+      "file": "es-light-1440.jpg",
+      "path": "/es",
+      "locale": "es",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "bytes": 678492,
+      "sha256": "beb7a81f53436d923f53909b29abe53b7c111e2b9ec7cb1c8f4f2af1aac11c43"
+    },
+    {
+      "file": "es-light-320.jpg",
+      "path": "/es",
+      "locale": "es",
+      "theme": "light",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "bytes": 451626,
+      "sha256": "fb5a250f7b503c8fd6db144b79299c0a68978e55884cd95db586593f9c74c7d2"
+    },
+    {
+      "file": "pt-BR-dark-1440.jpg",
+      "path": "/pt-BR",
+      "locale": "pt-BR",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "bytes": 671201,
+      "sha256": "77f2cb4dda9685d67116ba593daab7f31d6f30543911711bcf7322c452a4a40f"
+    },
+    {
+      "file": "pt-BR-dark-320.jpg",
+      "path": "/pt-BR",
+      "locale": "pt-BR",
+      "theme": "dark",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "bytes": 441942,
+      "sha256": "49f2c16a662b29d95e430c30bdb2ed861675ada9dbb378b1f3f8d25c32dcdafd"
+    },
+    {
+      "file": "pt-BR-light-1440.jpg",
+      "path": "/pt-BR",
+      "locale": "pt-BR",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "bytes": 671665,
+      "sha256": "ba41796253b297bf1643ecf0e65f096d9ac5db47b4c6001053124ab15a52f411"
+    },
+    {
+      "file": "pt-BR-light-320.jpg",
+      "path": "/pt-BR",
+      "locale": "pt-BR",
+      "theme": "light",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "bytes": 444489,
+      "sha256": "9d3bb818260684961f6502978dd93e0bd0fe56d87277cff982b4cb4345afb28d"
+    }
+  ]
+}
