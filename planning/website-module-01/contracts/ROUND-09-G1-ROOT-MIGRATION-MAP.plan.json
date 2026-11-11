@@ -1,0 +1,182 @@
+{
+  "schemaVersion": "SPRYXEL_WEB_R09_G1_ROOT_MIGRATION_MAP_1",
+  "authority": "NONCANONICAL_ARCHITECTURE_PROPOSAL_NOT_ADMITTED",
+  "source": {
+    "repo": "KayzenRoot/spryxel",
+    "mainSha": "08bd429bb924e26f7d5266ee9b556cc8da2c8b8c",
+    "date": "2026-10-14",
+    "readback": "Current main GitHub repository / 263 tree items; 9 app page/route special files plus proxy checked",
+    "mustRefreshAtAdmission": true
+  },
+  "framework": {
+    "name": "Next.js 16 App Router",
+    "reference": "https://nextjs.org/docs/app/api-reference/file-conventions/route-groups",
+    "model": "multiple root layouts with no top-level app/layout.tsx; route groups do not affect URLs",
+    "behavior": "navigation across separate roots triggers full page load",
+    "requiresNativeBuildProof": true
+  },
+  "admission": {
+    "G0": "PENDING",
+    "G1": "PENDING",
+    "G2": "PENDING",
+    "contextLock": "MISSING",
+    "highAssuranceApproval": "MISSING",
+    "executionAuthorized": false
+  },
+  "stage": "ADD_PUBLIC_MARKETING_WITHOUT_PUBLIC_ROOT_FLIP",
+  "risk": "HIGH_ASSURANCE_AUTH_AND_ROOT_LAYOUT_MIGRATION",
+  "filesToMove": [
+    {
+      "from": "apps/web/app/layout.tsx",
+      "to": "apps/web/app/(workspace)/layout.tsx",
+      "oldGitBlobSha": "03843489c92487fc089091a635d29aefe25c9e6e",
+      "why": "workspace root, preserve html lang=en + current theme bootstrap/css",
+      "requiresImportsAndRuntimeTests": true
+    },
+    {
+      "from": "apps/web/app/page.tsx",
+      "to": "apps/web/app/(workspace)/page.tsx",
+      "oldGitBlobSha": "d1e92cb4f863176ae487029e56380f02cd68c20d",
+      "why": "authenticated root remains /; requireWebSession remains",
+      "requiresImportsAndRuntimeTests": true
+    },
+    {
+      "from": "apps/web/app/account/page.tsx",
+      "to": "apps/web/app/(workspace)/account/page.tsx",
+      "oldGitBlobSha": "c20b4e793e6281c5cb5d20ddb93ab07fef855032",
+      "why": "/account remains protected",
+      "requiresImportsAndRuntimeTests": true
+    },
+    {
+      "from": "apps/web/app/projects/page.tsx",
+      "to": "apps/web/app/(workspace)/projects/page.tsx",
+      "oldGitBlobSha": "4a5f514133ff54cf014b4653532eb77e52f8f768",
+      "why": "/projects remains protected",
+      "requiresImportsAndRuntimeTests": true
+    },
+    {
+      "from": "apps/web/app/projects/[projectId]/page.tsx",
+      "to": "apps/web/app/(workspace)/projects/[projectId]/page.tsx",
+      "oldGitBlobSha": "a04e12cc842b76a0bc2064b53dc644f00c88345d",
+      "why": "/projects/[projectId] remains protected and RLS enforced",
+      "requiresImportsAndRuntimeTests": true
+    },
+    {
+      "from": "apps/web/app/projects/[projectId]/not-found.tsx",
+      "to": "apps/web/app/(workspace)/projects/[projectId]/not-found.tsx",
+      "oldGitBlobSha": "c95800ba34fd482dd1b8927ab6da5cf46284161e",
+      "why": "retain project not-found UX",
+      "requiresImportsAndRuntimeTests": true
+    }
+  ],
+  "unmovedSecurityFiles": [
+    {
+      "path": "apps/web/app/auth/callback/route.ts",
+      "oldGitBlobSha": "545404a8175e7af3289c9f8ecd18124ad162bc22",
+      "policy": "NO_EDIT_IN_INITIAL_REFACTOR_UNLESS_SEPARATELY_REVIEWED"
+    },
+    {
+      "path": "apps/web/app/sign-in/route.ts",
+      "oldGitBlobSha": "efe541f2d5cf14d6798e66e97e1c0cf70dcfe3df",
+      "policy": "NO_EDIT_IN_INITIAL_REFACTOR_UNLESS_SEPARATELY_REVIEWED"
+    },
+    {
+      "path": "apps/web/app/sign-out/route.ts",
+      "oldGitBlobSha": "f77bd02f74f7e3c6f1c26f136707d61466d35d6d",
+      "policy": "NO_EDIT_IN_INITIAL_REFACTOR_UNLESS_SEPARATELY_REVIEWED"
+    },
+    {
+      "path": "apps/web/proxy.ts",
+      "oldGitBlobSha": "9b35ec25c0e6a732c4b022ad4a23f89b8b75578e",
+      "policy": "NO_EDIT_IN_INITIAL_REFACTOR_UNLESS_SEPARATELY_REVIEWED"
+    }
+  ],
+  "publicFilesToAdd": [
+    {
+      "path": "apps/web/app/(marketing)/[locale]/layout.tsx",
+      "publicUrl": "/{locale}/*",
+      "constraint": "MUST be root layout, validate locale params Promise and emit html lang for en/pt-BR/es, preserve theme/site CSS"
+    },
+    {
+      "path": "apps/web/app/(marketing)/[locale]/page.tsx",
+      "publicUrl": "/en, /pt-BR, /es",
+      "constraint": "truthful asset-creator homepage; no fake auth/credits"
+    },
+    {
+      "path": "apps/web/app/(marketing)/[locale]/features/page.tsx",
+      "publicUrl": "/{locale}/features",
+      "constraint": "approved asset categories only"
+    },
+    {
+      "path": "apps/web/app/(marketing)/[locale]/how-it-works/page.tsx",
+      "publicUrl": "/{locale}/how-it-works",
+      "constraint": "roadmap status visible"
+    },
+    {
+      "path": "apps/web/app/(marketing)/[locale]/faq/page.tsx",
+      "publicUrl": "/{locale}/faq",
+      "constraint": "typed EN/pt-BR/es"
+    },
+    {
+      "path": "apps/web/app/(marketing)/[locale]/contact/page.tsx",
+      "publicUrl": "/{locale}/contact",
+      "constraint": "NO-GO until real contact verified"
+    },
+    {
+      "path": "apps/web/app/(marketing)/[locale]/legal/terms/page.tsx",
+      "publicUrl": "/{locale}/legal/terms",
+      "constraint": "NO-GO until counsel review"
+    },
+    {
+      "path": "apps/web/app/(marketing)/[locale]/legal/privacy/page.tsx",
+      "publicUrl": "/{locale}/legal/privacy",
+      "constraint": "NO-GO until reviewed controller/processors"
+    },
+    {
+      "path": "apps/web/app/(marketing)/[locale]/legal/cookies/page.tsx",
+      "publicUrl": "/{locale}/legal/cookies",
+      "constraint": "NO-GO until real consent inventory"
+    }
+  ],
+  "rootFilePolicy": "After relocation, apps/web/app/layout.tsx absent; app/(workspace)/layout.tsx and app/(marketing)/[locale]/layout.tsx become distinct root layouts. No duplicate '/' pages.",
+  "guards": {
+    "protectedUrls": [
+      "/",
+      "/projects",
+      "/projects/[projectId]",
+      "/account"
+    ],
+    "publicPrefixes": [
+      "/en",
+      "/pt-BR",
+      "/es"
+    ],
+    "runtimeChecks": [
+      "GET unauthenticated public pages 200 with correct SSR html lang and no tenant data",
+      "GET / without auth routes to WorkOS or denies as before",
+      "Authenticated / and projects remain functional with correct project tenancy/RLS",
+      "Existing /sign-in, /sign-out, /auth/callback operate unchanged",
+      "Cross-root navigation full page reload preserves login and theme/locale/consent safely",
+      "No dynamic [locale] matched for unsupported values / unknown locale 404",
+      "No second pages resolving same route URL from distinct groups",
+      "No CORS/session/cookie/cache private response leak",
+      "All existing page.spec.ts default Playwright parallel tests do not regress",
+      "No fake legal/contact routes publicly indexed before qualified approval"
+    ],
+    "requiredCommands": [
+      "npm run build",
+      "npm test (canonical, unless formal separately admitted equivalent pipeline)",
+      "required exact-HEAD GitHub checks",
+      "targeted Playwright anonymous/authenticated/locale/cookie and cross-tenant scenarios"
+    ],
+    "notes": [
+      "The native CSS/layout import path changes when moving root; audit imports and image paths exactly",
+      "Explicit GitHub diff and file checksums required; references from 2026-10-14 are NOT timeless Context Locks",
+      "Root migration is conditional serial B1, not part of file-disjoint A1..A7 prompt",
+      null
+    ]
+  },
+  "changedFilesAuthorizedNow": [],
+  "mergeAuthorized": false,
+  "ownerSignoffNeeded": true
+}

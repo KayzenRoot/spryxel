@@ -1,0 +1,337 @@
+{
+  "schemaVersion": "SPRYXEL_WEB_G2_ROUND04_DESIGN_TOKENS_CANDIDATE_1",
+  "status": "PROPOSED_NOT_CANONICAL_NOT_ADMITTED",
+  "sources": {
+    "canonical": [
+      ".engineering/UX-DESIGN-SYSTEM.md",
+      ".engineering/UI-UX.md"
+    ],
+    "visual": "spryxel-master-round03/master-home.css (conversation ZIP, not GitHub binary)",
+    "brand": "IMG_9281.jpeg original Digital Leaf Option05",
+    "homepage": "painel_de_marca_e_interfaces_spryxel.png Option07 3D FOCADO EM WORLDS",
+    "images": "Round03 four screenshots; still owner-review candidates"
+  },
+  "priority": "Canonical UI semantic tokens override prototype hex colors. The mapping below is a PUBLIC-MARKETING-SITE proposal and does not replace the PRODUCT/STUDIO design-system primary spectral-violet and secondary electric-teal roles.",
+  "paletteSource": {
+    "brandBoardReference": {
+      "lime": "#A3FF00",
+      "cyan": "#00E5FF",
+      "orange": "#FF8A00",
+      "pink": "#FF2D55",
+      "violet": "#7B2DFF",
+      "mint": "#00FFC8",
+      "yellow": "#FFD400"
+    },
+    "round03Prototype": {
+      "dark": {
+        "bg": "#071015",
+        "page": "#09151a",
+        "surface": "#0e1e25",
+        "surfaceRaised": "#11242b",
+        "panel": "#112128",
+        "text": "#f3faf7",
+        "textSecondary": "#a7bac0",
+        "textTertiary": "#6d8990",
+        "accentArtwork": "#b3ff42",
+        "accentSecondaryArtwork": "#22e5e0",
+        "accentGoldArtwork": "#ffc45b"
+      },
+      "light": {
+        "bg": "#eff7f6",
+        "page": "#f5f9f6",
+        "surface": "#ffffff",
+        "surfaceRaised": "#f1f8f7",
+        "panel": "#edf5f3",
+        "text": "#11252c",
+        "textSecondary": "#4b656d",
+        "textTertiary": "#6b8389",
+        "accentArtwork": "#1da76a",
+        "accentSecondaryArtwork": "#078c9b",
+        "accentGoldArtwork": "#c9852c"
+      }
+    }
+  },
+  "semanticTokens": [
+    {
+      "id": "site.canvas",
+      "css": "--site-canvas",
+      "category": "surface",
+      "dark": "#071015",
+      "light": "#eff7f6",
+      "contract": "Opaque base viewport; extends approved canonical canvas family"
+    },
+    {
+      "id": "site.background",
+      "css": "--site-background",
+      "category": "surface",
+      "dark": "#09151a",
+      "light": "#f5f9f6",
+      "contract": "Raised page layer"
+    },
+    {
+      "id": "site.surface",
+      "css": "--site-surface",
+      "category": "surface",
+      "dark": "#0e1e25",
+      "light": "#ffffff",
+      "contract": "Legible opaque card and form surface"
+    },
+    {
+      "id": "site.surface-raised",
+      "css": "--site-surface-raised",
+      "category": "surface",
+      "dark": "#11242b",
+      "light": "#f1f8f7",
+      "contract": "Raised card chrome"
+    },
+    {
+      "id": "site.panel",
+      "css": "--site-panel",
+      "category": "surface",
+      "dark": "#112128",
+      "light": "#edf5f3",
+      "contract": "Opaque FAQ and footer panels"
+    },
+    {
+      "id": "site.text-primary",
+      "css": "--site-text-primary",
+      "category": "text",
+      "dark": "#f3faf7",
+      "light": "#11252c",
+      "contract": "Main readable copy"
+    },
+    {
+      "id": "site.text-secondary",
+      "css": "--site-text-secondary",
+      "category": "text",
+      "dark": "#a7bac0",
+      "light": "#4b656d",
+      "contract": "Readable secondary copy, verify WCAG AA"
+    },
+    {
+      "id": "site.text-muted",
+      "css": "--site-text-muted",
+      "category": "text",
+      "dark": "#6d8990",
+      "light": "#6b8389",
+      "contract": "Decorative only until contrast verified; NEVER tiny functional copy"
+    },
+    {
+      "id": "site.border",
+      "css": "--site-border",
+      "category": "border",
+      "dark": "rgba(129,192,195,.17)",
+      "light": "rgba(32,80,91,.15)",
+      "contract": "Cannot be only focus/state signal"
+    },
+    {
+      "id": "site.artwork-lime",
+      "css": "--site-artwork-lime",
+      "category": "artwork",
+      "dark": "#b3ff42",
+      "light": "#1da76a",
+      "contract": "Decorative hero accents only; production brand source #A3FF00 is separate"
+    },
+    {
+      "id": "site.artwork-cyan",
+      "css": "--site-artwork-cyan",
+      "category": "artwork",
+      "dark": "#22e5e0",
+      "light": "#078c9b",
+      "contract": "Decorative media and highlights, not status"
+    },
+    {
+      "id": "site.artwork-gold",
+      "css": "--site-artwork-gold",
+      "category": "artwork",
+      "dark": "#ffc45b",
+      "light": "#c9852c",
+      "contract": "Decorative accent only, no accessibility-critical meaning"
+    },
+    {
+      "id": "site.focus",
+      "css": "--site-focus",
+      "category": "interaction",
+      "dark": "UNFROZEN_CONTRAST_REQUIRED",
+      "light": "UNFROZEN_CONTRAST_REQUIRED",
+      "contract": "Visible >=3px indicator in both themes, target WCAG 2.2 AA; avoid relying solely on artwork cyan"
+    },
+    {
+      "id": "site.accent-action",
+      "css": "--site-accent-action",
+      "category": "interaction",
+      "dark": "UNFROZEN_CANONICAL_ROLE",
+      "light": "UNFROZEN_CANONICAL_ROLE",
+      "contract": "Resolve to accessible primary CTA role after G1 audited theme reconciliation, not arbitrary lime raw value"
+    },
+    {
+      "id": "site.status-success",
+      "css": "--site-status-success",
+      "category": "semantic",
+      "dark": "INHERIT_CANONICAL_ROLE",
+      "light": "INHERIT_CANONICAL_ROLE",
+      "contract": "Never conflate brand green with success or released feature status"
+    }
+  ],
+  "typography": {
+    "family": {
+      "ui": "Inter Variable or metric-compatible licensed open fallback",
+      "mono": "JetBrains Mono or metric-compatible fallback",
+      "display": "Inter Variable (same as ui for consistency); Exo 2 only after rights/CLS evidence"
+    },
+    "rolesPx": {
+      "display": {
+        "desktop": 72,
+        "tablet": 56,
+        "mobile": 40,
+        "minimum": 36
+      },
+      "sectionTitle": {
+        "desktop": 48,
+        "tablet": 40,
+        "mobile": 30,
+        "minimum": 28
+      },
+      "cardTitle": {
+        "desktop": 20,
+        "mobile": 18
+      },
+      "body": {
+        "desktop": 18,
+        "mobile": 16
+      },
+      "bodySmall": {
+        "desktop": 16,
+        "mobile": 14
+      },
+      "label": {
+        "desktop": 14,
+        "mobile": 14
+      },
+      "caption": {
+        "desktop": 14,
+        "mobile": 14
+      }
+    },
+    "lineHeight": {
+      "display": 1.08,
+      "sectionTitle": 1.15,
+      "body": 1.6,
+      "label": 1.45
+    },
+    "guard": "Round03 contains ~10-12px informative labels and a 7px mobile banner, NOT approved. Redesign or enlarge all non-decorative labels for usability; no fixed-height truncation in pt-BR/es (target 40% growth)."
+  },
+  "space": {
+    "baseGridPx": 4,
+    "scalePx": [
+      0,
+      4,
+      8,
+      12,
+      16,
+      20,
+      24,
+      32,
+      40,
+      48,
+      64,
+      80,
+      96,
+      128,
+      144
+    ],
+    "roles": {
+      "iconTextGap": 8,
+      "buttonInlinePadding": 20,
+      "cardContentPadding": 24,
+      "gridGapDesktop": 20,
+      "gridGapMobile": 16,
+      "sectionStackDesktop": 112,
+      "sectionStackMobile": 64,
+      "heroTopDesktop": 96,
+      "heroTopMobile": 40
+    },
+    "container": {
+      "maxWidthDesktopPx": 1320,
+      "marginDesktopAt1440Px": 52,
+      "tabletHorizontalPx": 20,
+      "mobileHorizontalPx": 12,
+      "warning": "use fluid clamp() and breakpoints; no hardcoded 1320 overflow"
+    },
+    "touch": {
+      "targetRecommendedMinPx": 44,
+      "documentedException": "WCAG 2.2 AA Target Size Minimum allows specific exceptions; do not broadly rely on them in public navigation"
+    }
+  },
+  "geometry": {
+    "radiusPx": {
+      "control": 12,
+      "smallCard": 16,
+      "card": 20,
+      "hero": 26,
+      "dialog": 22,
+      "tag": 999
+    },
+    "elevation": [
+      "base",
+      "raised",
+      "popover",
+      "modal"
+    ],
+    "navigationGlass": "only for chrome; opaque fallback required",
+    "zIndexOwnership": "G1 shared layout defines overlay/focus order, not individual agents"
+  },
+  "motion": {
+    "durationsMs": {
+      "feedback": 120,
+      "control": 180,
+      "surface": 240
+    },
+    "reducedMotion": "turn off ambient/parallax/decorative transitions and provide static hero fallback",
+    "prohibitions": [
+      "blocking animations",
+      "moving critical CTAs",
+      "autoplay without off switch"
+    ]
+  },
+  "breakpointsCssPx": {
+    "mobileMax": 479,
+    "compactMax": 799,
+    "tabletMax": 1179,
+    "desktopMin": 1180,
+    "qa": [
+      320,
+      375,
+      390,
+      768,
+      800,
+      1024,
+      1180,
+      1440,
+      1920
+    ],
+    "warning": "Breakpoints are proposal extracted from Round03 CSS. Layout must also support canonical app 1024px studio boundary; public site may responsive independently."
+  },
+  "themes": [
+    "dark",
+    "light"
+  ],
+  "locales": {
+    "canonical": "en",
+    "supported": [
+      "en",
+      "pt-BR",
+      "es"
+    ],
+    "expansionFactor": 1.4
+  },
+  "decisionGates": [
+    "G0 public-site-first sequencing Decision Delta",
+    "G1 token-role and locale/route contract freeze",
+    "G2 final owner visual approval / correct two-leaf Digital Leaf original",
+    "contrast QA for all functional text and focus",
+    "no production use of provisional raw artwork variables to replace canonical product design tokens"
+  ],
+  "deployment": false,
+  "executionAuthorized": false
+}

@@ -1,0 +1,237 @@
+{
+  "schemaVersion": "SPRYXEL_WEB_G1_PUBLIC_ROUTE_PLAN_V1",
+  "status": "PROPOSED_NOT_ADMITTED",
+  "localeStrategy": {
+    "canonical": "en",
+    "supported": [
+      "en",
+      "pt-BR",
+      "es"
+    ],
+    "localePathSegment": true,
+    "caseSensitivePath": true,
+    "unknownLocalePolicy": "404 or explicit safe redirect after G1 decision, no hidden auth fallback",
+    "translationKeyOwner": "A6",
+    "localeCookie": "optional presentation preference, consent/retention gate applies",
+    "seo": {
+      "defaultLocaleHref": "/en",
+      "hreflang": [
+        "en",
+        "pt-BR",
+        "es",
+        "x-default"
+      ],
+      "preRelease": "noindex unless public publish criteria passed",
+      "metadataOwner": "A4"
+    }
+  },
+  "stages": [
+    {
+      "name": "A-additive",
+      "root": {
+        "path": "/",
+        "type": "EXISTING_PROTECTED_COMMAND_CENTER",
+        "keepUntouched": true
+      },
+      "publicRoot": {
+        "path": "/en",
+        "type": "NEW_PUBLIC_MARKETING_ROUTE"
+      },
+      "workspaceHome": {
+        "path": "/",
+        "type": "EXISTING",
+        "keepUntouched": true
+      },
+      "authentication": {
+        "signInPath": "/sign-in",
+        "workosExisting": true,
+        "signInReturnTo": "/account"
+      },
+      "proxyRule": "Protect original / and original account/projects; new explicit public /<locale> should not inherit protected matcher"
+    },
+    {
+      "name": "B-root-cutover",
+      "status": "SEPARATE_HIGH_ASSURANCE_DECISION",
+      "root": {
+        "path": "/",
+        "type": "PUBLIC_DEFAULT_LOCALE_REDIRECT_OR_LANDING",
+        "pendingDecision": true
+      },
+      "workspaceHome": {
+        "path": "/app",
+        "type": "CANDIDATE_PROTECTED_DESTINATION",
+        "pendingDecision": true
+      },
+      "requiredMigration": [
+        "apps/web/app/page.tsx",
+        "apps/web/app/components/global-shell.tsx",
+        "apps/web/proxy.ts",
+        "apps/web/app/sign-in/route.ts only if actual returnTo changes",
+        "apps/web/app/page.spec.ts",
+        "shared metadata/canonical and all hrefs"
+      ],
+      "rollback": "keep additive /en public if protected root cannot be safely migrated"
+    }
+  ],
+  "additivePublicRoutes": [
+    {
+      "key": "home",
+      "slug": "",
+      "view": "PublicLanding",
+      "owner": "A1+B1",
+      "publishGate": "G2_VISUAL_OWNER_APPROVAL",
+      "indexableWhenApproved": true,
+      "urls": [
+        "/en",
+        "/pt-BR",
+        "/es"
+      ]
+    },
+    {
+      "key": "features",
+      "slug": "features",
+      "view": "AssetTypes",
+      "owner": "A1+B1",
+      "publishGate": "CONTENT_TRUTH",
+      "indexableWhenApproved": true,
+      "urls": [
+        "/en/features",
+        "/pt-BR/features",
+        "/es/features"
+      ]
+    },
+    {
+      "key": "how-it-works",
+      "slug": "how-it-works",
+      "view": "RoadmapWorkflow",
+      "owner": "A1+B1",
+      "publishGate": "CONTENT_TRUTH",
+      "indexableWhenApproved": true,
+      "urls": [
+        "/en/how-it-works",
+        "/pt-BR/how-it-works",
+        "/es/how-it-works"
+      ]
+    },
+    {
+      "key": "faq",
+      "slug": "faq",
+      "view": "LocalizedFAQ",
+      "owner": "A4+B1",
+      "publishGate": "CONTENT_TRUTH",
+      "indexableWhenApproved": true,
+      "urls": [
+        "/en/faq",
+        "/pt-BR/faq",
+        "/es/faq"
+      ]
+    },
+    {
+      "key": "contact",
+      "slug": "contact",
+      "view": "ContactInfo",
+      "owner": "A4+B1",
+      "publishGate": "VERIFIED_REAL_CONTACT",
+      "indexableWhenApproved": false,
+      "urls": [
+        "/en/contact",
+        "/pt-BR/contact",
+        "/es/contact"
+      ]
+    },
+    {
+      "key": "terms",
+      "slug": "legal/terms",
+      "view": "Terms",
+      "owner": "A2+B1",
+      "publishGate": "QUALIFIED_LEGAL_SIGNOFF",
+      "indexableWhenApproved": false,
+      "urls": [
+        "/en/legal/terms",
+        "/pt-BR/legal/terms",
+        "/es/legal/terms"
+      ]
+    },
+    {
+      "key": "privacy",
+      "slug": "legal/privacy",
+      "view": "Privacy",
+      "owner": "A2+B1",
+      "publishGate": "QUALIFIED_LEGAL_SIGNOFF",
+      "indexableWhenApproved": false,
+      "urls": [
+        "/en/legal/privacy",
+        "/pt-BR/legal/privacy",
+        "/es/legal/privacy"
+      ]
+    },
+    {
+      "key": "cookies",
+      "slug": "legal/cookies",
+      "view": "CookiePolicy",
+      "owner": "A2+B1",
+      "publishGate": "QUALIFIED_LEGAL_SIGNOFF",
+      "indexableWhenApproved": false,
+      "urls": [
+        "/en/legal/cookies",
+        "/pt-BR/legal/cookies",
+        "/es/legal/cookies"
+      ]
+    }
+  ],
+  "existingProtectedRoutes": [
+    "/",
+    "/projects",
+    "/projects/[projectId]",
+    "/account"
+  ],
+  "existingAuthRoutes": [
+    "/sign-in",
+    "/sign-out",
+    "/auth/callback"
+  ],
+  "localeSwitch": {
+    "routeKeyBased": true,
+    "unknownTranslation": "choose known published base locale route only",
+    "anchorPreservation": "preserve hash if supported and target anchor exists",
+    "hrefAudit": "no fabricated profile/terms/contact hrefs"
+  },
+  "sharedComponents": {
+    "headerOwner": "A5",
+    "footerOwner": "A5",
+    "masterLayoutOwner": "B1",
+    "i18nOwner": "A6",
+    "seoOwner": "A4",
+    "contentOwner": "A6",
+    "consentOwner": "A2",
+    "authEntryOwner": "A7",
+    "heroOwner": "A1",
+    "heroArtOwner": "A3"
+  },
+  "authSecurity": {
+    "WorkOS": "retain current authkit",
+    "existingRootRequiresSession": true,
+    "forbidSensitivePublicData": true,
+    "crossTenantTestsNeededAtCutover": true,
+    "proxyChangeRisk": "HIGH_ASSURANCE",
+    "noRealCustomAuthForm": true
+  },
+  "blockedUntilApproved": [
+    "G0 decision #63",
+    "G1 contract #64",
+    "G2 master #70/#53",
+    "public legal identity and counsel review",
+    "B1 root cutover separate review and exact-head tests"
+  ],
+  "sourceRefs": [
+    ".engineering/CHECKPOINT.json",
+    ".engineering/DECISIONS-LEDGER.md",
+    ".engineering/UX-DESIGN-SYSTEM.md",
+    "apps/web/app/page.tsx",
+    "apps/web/proxy.ts",
+    "apps/web/app/sign-in/route.ts",
+    "apps/web/app/components/global-shell.tsx"
+  ],
+  "executionAuthorized": false,
+  "protectedMergeAuthorized": false
+}

@@ -1,0 +1,310 @@
+{
+  "schemaVersion": "SPRYXEL_WEB_PLANNING_V1",
+  "repository": "KayzenRoot/spryxel",
+  "planningOnly": true,
+  "admissionStatus": "NONE_ADMITTED",
+  "sourceOfTruth": ".engineering/CHECKPOINT.json",
+  "activeBlockingWorkOrder": "SPRYXEL-WO-008",
+  "requiresSequencingDecisionIssue": 63,
+  "requiresSharedContractIssue": 64,
+  "requiresMasterDesignIssue": 70,
+  "ownerSelectedDesign": {
+    "homepage": "Option 07 - 3D Worlds",
+    "branding": "Option 05 - Digital Leaf two-leaf reference",
+    "approval": "DIRECTION_ONLY, exact final brand and homepage master pending"
+  },
+  "scheduler": "event-driven refill, no more than 4 safe workers (candidate)",
+  "batchTokenBudget": "not estimated, require approved per-prompt budget",
+  "rootPromptIssue": 55,
+  "reviewRoutingIssue": 62,
+  "fastFeedbackIssue": 61,
+  "workOrders": [
+    {
+      "id": "SPRYXEL-WEB-WO-G0",
+      "code": "G0",
+      "issue": 63,
+      "issueUrl": "https://github.com/KayzenRoot/spryxel/issues/63",
+      "draftPath": "planning/website-module-01/work-order-drafts/SPRYXEL-WEB-WO-G0-DRAFT.md",
+      "phase": "contract-gate",
+      "dependsOn": [],
+      "proposedExclusivePaths": [
+        "planning/website-module-01/governance"
+      ],
+      "risk": "ELEVATED",
+      "ownerPriority": 1,
+      "mode": "serial",
+      "status": "PLANNING_NOT_ADMITTED",
+      "contextLock": "MISSING",
+      "actualBaseSha": "UNFROZEN",
+      "agent": "UNASSIGNED",
+      "pr": "NONE",
+      "executionAuthorized": false
+    },
+    {
+      "id": "SPRYXEL-WEB-WO-G1",
+      "code": "G1",
+      "issue": 64,
+      "issueUrl": "https://github.com/KayzenRoot/spryxel/issues/64",
+      "draftPath": "planning/website-module-01/work-order-drafts/SPRYXEL-WEB-WO-G1-DRAFT.md",
+      "phase": "contract-gate",
+      "dependsOn": [
+        "SPRYXEL-WEB-WO-G0"
+      ],
+      "proposedExclusivePaths": [
+        "planning/website-module-01/contracts"
+      ],
+      "risk": "STANDARD",
+      "ownerPriority": 1,
+      "mode": "serial",
+      "status": "PLANNING_NOT_ADMITTED",
+      "contextLock": "MISSING",
+      "actualBaseSha": "UNFROZEN",
+      "agent": "UNASSIGNED",
+      "pr": "NONE",
+      "executionAuthorized": false
+    },
+    {
+      "id": "SPRYXEL-WEB-WO-G2",
+      "code": "G2",
+      "issue": 70,
+      "issueUrl": "https://github.com/KayzenRoot/spryxel/issues/70",
+      "draftPath": "planning/website-module-01/work-order-drafts/SPRYXEL-WEB-WO-G2-DRAFT.md",
+      "phase": "contract-gate",
+      "dependsOn": [
+        "SPRYXEL-WEB-WO-G1"
+      ],
+      "proposedExclusivePaths": [
+        "planning/website-module-01/master-design"
+      ],
+      "risk": "STANDARD",
+      "ownerPriority": 1,
+      "mode": "serial",
+      "status": "PLANNING_NOT_ADMITTED",
+      "contextLock": "MISSING",
+      "actualBaseSha": "UNFROZEN",
+      "agent": "UNASSIGNED",
+      "pr": "NONE",
+      "executionAuthorized": false
+    },
+    {
+      "id": "SPRYXEL-WEB-WO-A1",
+      "code": "A1",
+      "issue": 65,
+      "issueUrl": "https://github.com/KayzenRoot/spryxel/issues/65",
+      "draftPath": "planning/website-module-01/work-order-drafts/SPRYXEL-WEB-WO-A1-DRAFT.md",
+      "phase": "independent-build",
+      "dependsOn": [
+        "SPRYXEL-WEB-WO-G2"
+      ],
+      "proposedExclusivePaths": [
+        "apps/web/components/public-landing"
+      ],
+      "risk": "STANDARD",
+      "ownerPriority": 2,
+      "mode": "parallel-eligible-after-gates",
+      "status": "PLANNING_NOT_ADMITTED",
+      "contextLock": "MISSING",
+      "actualBaseSha": "UNFROZEN",
+      "agent": "UNASSIGNED",
+      "pr": "NONE",
+      "executionAuthorized": false
+    },
+    {
+      "id": "SPRYXEL-WEB-WO-A2",
+      "code": "A2",
+      "issue": 66,
+      "issueUrl": "https://github.com/KayzenRoot/spryxel/issues/66",
+      "draftPath": "planning/website-module-01/work-order-drafts/SPRYXEL-WEB-WO-A2-DRAFT.md",
+      "phase": "independent-build",
+      "dependsOn": [
+        "SPRYXEL-WEB-WO-G2"
+      ],
+      "proposedExclusivePaths": [
+        "apps/web/components/public-consent",
+        "apps/web/content/legal"
+      ],
+      "risk": "ELEVATED",
+      "ownerPriority": 1,
+      "mode": "parallel-eligible-after-gates",
+      "status": "PLANNING_NOT_ADMITTED",
+      "contextLock": "MISSING",
+      "actualBaseSha": "UNFROZEN",
+      "agent": "UNASSIGNED",
+      "pr": "NONE",
+      "executionAuthorized": false
+    },
+    {
+      "id": "SPRYXEL-WEB-WO-A3",
+      "code": "A3",
+      "issue": 67,
+      "issueUrl": "https://github.com/KayzenRoot/spryxel/issues/67",
+      "draftPath": "planning/website-module-01/work-order-drafts/SPRYXEL-WEB-WO-A3-DRAFT.md",
+      "phase": "independent-build",
+      "dependsOn": [
+        "SPRYXEL-WEB-WO-G2"
+      ],
+      "proposedExclusivePaths": [
+        "apps/web/components/public-hero-art",
+        "design/website/3d-worlds"
+      ],
+      "risk": "STANDARD",
+      "ownerPriority": 2,
+      "mode": "parallel-eligible-after-gates",
+      "status": "PLANNING_NOT_ADMITTED",
+      "contextLock": "MISSING",
+      "actualBaseSha": "UNFROZEN",
+      "agent": "UNASSIGNED",
+      "pr": "NONE",
+      "executionAuthorized": false
+    },
+    {
+      "id": "SPRYXEL-WEB-WO-A4",
+      "code": "A4",
+      "issue": 68,
+      "issueUrl": "https://github.com/KayzenRoot/spryxel/issues/68",
+      "draftPath": "planning/website-module-01/work-order-drafts/SPRYXEL-WEB-WO-A4-DRAFT.md",
+      "phase": "independent-build",
+      "dependsOn": [
+        "SPRYXEL-WEB-WO-G2"
+      ],
+      "proposedExclusivePaths": [
+        "apps/web/components/public-seo",
+        "apps/web/content/public-support"
+      ],
+      "risk": "STANDARD",
+      "ownerPriority": 3,
+      "mode": "parallel-eligible-after-gates",
+      "status": "PLANNING_NOT_ADMITTED",
+      "contextLock": "MISSING",
+      "actualBaseSha": "UNFROZEN",
+      "agent": "UNASSIGNED",
+      "pr": "NONE",
+      "executionAuthorized": false
+    },
+    {
+      "id": "SPRYXEL-WEB-WO-A5",
+      "code": "A5",
+      "issue": 71,
+      "issueUrl": "https://github.com/KayzenRoot/spryxel/issues/71",
+      "draftPath": "planning/website-module-01/work-order-drafts/SPRYXEL-WEB-WO-A5-DRAFT.md",
+      "phase": "independent-build",
+      "dependsOn": [
+        "SPRYXEL-WEB-WO-G2"
+      ],
+      "proposedExclusivePaths": [
+        "apps/web/components/public-chrome"
+      ],
+      "risk": "STANDARD",
+      "ownerPriority": 2,
+      "mode": "parallel-eligible-after-gates",
+      "status": "PLANNING_NOT_ADMITTED",
+      "contextLock": "MISSING",
+      "actualBaseSha": "UNFROZEN",
+      "agent": "UNASSIGNED",
+      "pr": "NONE",
+      "executionAuthorized": false
+    },
+    {
+      "id": "SPRYXEL-WEB-WO-A6",
+      "code": "A6",
+      "issue": 72,
+      "issueUrl": "https://github.com/KayzenRoot/spryxel/issues/72",
+      "draftPath": "planning/website-module-01/work-order-drafts/SPRYXEL-WEB-WO-A6-DRAFT.md",
+      "phase": "independent-build",
+      "dependsOn": [
+        "SPRYXEL-WEB-WO-G2"
+      ],
+      "proposedExclusivePaths": [
+        "apps/web/content/public-locales"
+      ],
+      "risk": "STANDARD",
+      "ownerPriority": 1,
+      "mode": "parallel-eligible-after-gates",
+      "status": "PLANNING_NOT_ADMITTED",
+      "contextLock": "MISSING",
+      "actualBaseSha": "UNFROZEN",
+      "agent": "UNASSIGNED",
+      "pr": "NONE",
+      "executionAuthorized": false
+    },
+    {
+      "id": "SPRYXEL-WEB-WO-A7",
+      "code": "A7",
+      "issue": 73,
+      "issueUrl": "https://github.com/KayzenRoot/spryxel/issues/73",
+      "draftPath": "planning/website-module-01/work-order-drafts/SPRYXEL-WEB-WO-A7-DRAFT.md",
+      "phase": "independent-build",
+      "dependsOn": [
+        "SPRYXEL-WEB-WO-G2"
+      ],
+      "proposedExclusivePaths": [
+        "apps/web/components/public-auth-entry"
+      ],
+      "risk": "ELEVATED",
+      "ownerPriority": 2,
+      "mode": "parallel-eligible-after-gates",
+      "status": "PLANNING_NOT_ADMITTED",
+      "contextLock": "MISSING",
+      "actualBaseSha": "UNFROZEN",
+      "agent": "UNASSIGNED",
+      "pr": "NONE",
+      "executionAuthorized": false
+    },
+    {
+      "id": "SPRYXEL-WEB-WO-B1",
+      "code": "B1",
+      "issue": 69,
+      "issueUrl": "https://github.com/KayzenRoot/spryxel/issues/69",
+      "draftPath": "planning/website-module-01/work-order-drafts/SPRYXEL-WEB-WO-B1-DRAFT.md",
+      "phase": "integration-release",
+      "dependsOn": [
+        "SPRYXEL-WEB-WO-A1",
+        "SPRYXEL-WEB-WO-A2",
+        "SPRYXEL-WEB-WO-A3",
+        "SPRYXEL-WEB-WO-A4",
+        "SPRYXEL-WEB-WO-A5",
+        "SPRYXEL-WEB-WO-A6",
+        "SPRYXEL-WEB-WO-A7"
+      ],
+      "proposedExclusivePaths": [
+        "apps/web/app"
+      ],
+      "risk": "ELEVATED",
+      "ownerPriority": 1,
+      "mode": "serial",
+      "status": "PLANNING_NOT_ADMITTED",
+      "contextLock": "MISSING",
+      "actualBaseSha": "UNFROZEN",
+      "agent": "UNASSIGNED",
+      "pr": "NONE",
+      "executionAuthorized": false
+    },
+    {
+      "id": "SPRYXEL-WEB-WO-B2",
+      "code": "B2",
+      "issue": 74,
+      "issueUrl": "https://github.com/KayzenRoot/spryxel/issues/74",
+      "draftPath": "planning/website-module-01/work-order-drafts/SPRYXEL-WEB-WO-B2-DRAFT.md",
+      "phase": "integration-release",
+      "dependsOn": [
+        "SPRYXEL-WEB-WO-B1"
+      ],
+      "proposedExclusivePaths": [
+        "planning/website-module-01/release-evidence"
+      ],
+      "risk": "ELEVATED",
+      "ownerPriority": 1,
+      "mode": "serial",
+      "status": "PLANNING_NOT_ADMITTED",
+      "contextLock": "MISSING",
+      "actualBaseSha": "UNFROZEN",
+      "agent": "UNASSIGNED",
+      "pr": "NONE",
+      "executionAuthorized": false
+    }
+  ],
+  "nonOverlappingPathPreflightRequired": true,
+  "review": "independent, exact-head, ChatGPT first correction routing",
+  "mergeAuthorized": false,
+  "checkpointPromotionAuthorized": false
+}

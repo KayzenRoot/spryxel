@@ -1,0 +1,211 @@
+{
+  "schemaVersion": "SPRYXEL_WEB_ROUND07_ASSET_INTAKE_V1",
+  "status": "MANIFEST_ONLY_BINARY_IMPORT_PENDING_OWNER_DESIGN_APPROVAL",
+  "purpose": "Canonical inventory for later authorized import. No rendered master is certified as owner-approved. SHA-256 are historical exact reference/preview values recorded in Round05; verify actual bytes on import.",
+  "repository": "KayzenRoot/spryxel",
+  "userApprovedDirections": {
+    "brand": "Option 05 Digital Leaf (source design direction)",
+    "homepage": "Option 07 3D FOCADO EM WORLDS bottom-row second tile (source design direction)",
+    "master": "NONE_FROZEN"
+  },
+  "pendingPack": {
+    "name": "spryxel-master-design-round05-review-pack.zip",
+    "sha256": "91782ba281fb852d9fc2bcf69c0eebe61509b41f146cc3b759931b80bf59ce41",
+    "sizeBytes": 16805951,
+    "location": "Conversation download only; not current GitHub tree",
+    "availabilityForCodex": "NOT_VERIFIED"
+  },
+  "intakeRoots": [
+    "design/brand/digital-leaf/references/",
+    "design/website/reference/",
+    "design/website/master-design/round05/"
+  ],
+  "assets": [
+    {
+      "id": "BRAND-ORIGINAL-05",
+      "role": "OWNER_REFERENCE_UNMODIFIED",
+      "sourcePathInPack": "assets/OFFICIAL-VISUAL-REFERENCE-IMG_9281.jpeg",
+      "targetPath": "design/brand/digital-leaf/references/IMG_9281.jpeg",
+      "format": "image/jpeg",
+      "sizePixels": [
+        1179,
+        775
+      ],
+      "sha256": "ccea6a42e1787b8a2162019ba07a800ca28274bfa6f2f4d74faf4dec870652aa",
+      "approval": "DIRECTION_APPROVED_NOT_VECTORIZED",
+      "visualStatus": "INTERNAL_REFERENCE_ONLY",
+      "owner": "BRAND-002 #53",
+      "shipInWebBundle": false
+    },
+    {
+      "id": "WEB-ORIGINAL-07",
+      "role": "OWNER_SELECTED_HOMEPAGE_BOARD",
+      "sourcePathInPack": "assets/OFFICIAL-VISUAL-DIRECTION-OPTION07.png",
+      "targetPath": "design/website/reference/painel_de_marca_e_interfaces_spryxel.png",
+      "format": "image/png",
+      "sizePixels": [
+        1312,
+        1199
+      ],
+      "sha256": "8e86b97c86b30dd9f155fe9165abefef28cbd8a32b52512b6c9c5decb29a1a70",
+      "approval": "DIRECTION_APPROVED_NOT_FINAL_MASTER",
+      "visualStatus": "INTERNAL_REFERENCE_ONLY",
+      "owner": "G2 #70",
+      "shipInWebBundle": false
+    },
+    {
+      "id": "WEB-R05-DESKTOP-DARK",
+      "role": "MASTER_REVIEW_CANDIDATE",
+      "sourcePathInPack": "master-home-desktop-dark.png",
+      "targetPath": "design/website/master-design/round05/master-home-desktop-dark.png",
+      "format": "image/png",
+      "sizePixels": [
+        1440,
+        6817
+      ],
+      "sha256": "d51b776b14f58bc0b8dbc66f4e558c7a5fd6dc0b94bdce4c134c75632daf3dec",
+      "approval": "OWNER_VISUAL_REVIEW_PENDING",
+      "owner": "G2 #70",
+      "shipInWebBundle": false
+    },
+    {
+      "id": "WEB-R05-DESKTOP-LIGHT",
+      "role": "MASTER_REVIEW_CANDIDATE",
+      "sourcePathInPack": "master-home-desktop-light.png",
+      "targetPath": "design/website/master-design/round05/master-home-desktop-light.png",
+      "format": "image/png",
+      "sizePixels": [
+        1440,
+        6817
+      ],
+      "sha256": "410cbe3cf5d734d56d7eea466a718e1440916089b6d35e22df4999e5fd34e1d2",
+      "approval": "OWNER_VISUAL_REVIEW_PENDING",
+      "owner": "G2 #70",
+      "shipInWebBundle": false
+    },
+    {
+      "id": "WEB-R05-MOBILE-DARK",
+      "role": "MASTER_REVIEW_CANDIDATE",
+      "sourcePathInPack": "master-home-mobile-dark.png",
+      "targetPath": "design/website/master-design/round05/master-home-mobile-dark.png",
+      "format": "image/png",
+      "sizePixels": [
+        391,
+        9533
+      ],
+      "sha256": "31d6837eb560602935c2a1806b15b8a570ae64f40bfa0232ebdc96b6f836bc57",
+      "approval": "OWNER_VISUAL_REVIEW_PENDING",
+      "owner": "G2 #70",
+      "shipInWebBundle": false
+    },
+    {
+      "id": "WEB-R05-MOBILE-LIGHT",
+      "role": "MASTER_REVIEW_CANDIDATE",
+      "sourcePathInPack": "master-home-mobile-light.png",
+      "targetPath": "design/website/master-design/round05/master-home-mobile-light.png",
+      "format": "image/png",
+      "sizePixels": [
+        391,
+        9533
+      ],
+      "sha256": "582f62cdbf1a2e74b55cf8b5cb8910d6099073d46aeee95e800d7e72fda1bc41",
+      "approval": "OWNER_VISUAL_REVIEW_PENDING",
+      "owner": "G2 #70",
+      "shipInWebBundle": false
+    },
+    {
+      "id": "WEB-R05-SOURCE-HTML",
+      "role": "EDITABLE_REFERENCE_SOURCE",
+      "sourcePathInPack": "master-home.html",
+      "targetPath": "design/website/master-design/round05/master-home.html",
+      "format": "text/html",
+      "sha256": "0f5ab5185d54ba8245c96c6f75ebef413bded24e3ec61e46d0ed5077ad44d8a5",
+      "approval": "REFERENCE_NOT_APP_CODE",
+      "owner": "G2 #70",
+      "shipInWebBundle": false
+    },
+    {
+      "id": "WEB-R05-SOURCE-CSS",
+      "role": "EDITABLE_REFERENCE_SOURCE",
+      "sourcePathInPack": "master-home.css",
+      "targetPath": "design/website/master-design/round05/master-home.css",
+      "format": "text/css",
+      "sha256": "6566be98a17cc29ccc4812cc955f4908102cfd61759ea933e2127f387eafaabe",
+      "approval": "REFERENCE_NOT_APP_CSS",
+      "owner": "G2 #70",
+      "shipInWebBundle": false
+    }
+  ],
+  "unresolvedAssets": [
+    {
+      "id": "BRAND-LOGO-OFFICIAL",
+      "targetRoot": "design/brand/digital-leaf/masters/",
+      "owner": "#53",
+      "requiredExports": [
+        "editable-authoring-source",
+        "validated-scalable-svg",
+        "transparent-png",
+        "monochrome-white-and-dark",
+        "favicon-transparent",
+        "social-avatar"
+      ],
+      "status": "NOT_GENERATED_OR_NOT_VERIFIED",
+      "disallow": "Do not repurpose lower-fidelity PR #52 draft SVG or screenshot crop as approved official logo"
+    },
+    {
+      "id": "WEB-HERO-PRODUCTION-ART",
+      "targetRoot": "design/website/3d-worlds/",
+      "owner": "#67",
+      "requiredExports": [
+        "source-with-provenance",
+        "responsive-static-avif-webp-and-png-fallback",
+        "optional-model-only-if-justified"
+      ],
+      "status": "NOT_VERIFIED_LICENSE_OR_RELEASE"
+    },
+    {
+      "id": "WEB-ASSET-CATEGORY-SAMPLES",
+      "targetRoot": "design/website/asset-cards/",
+      "owner": "#65/#67",
+      "requiredExports": [
+        "six-licensed-or-self-created-asset-family-thumbnails",
+        "descriptive-alt-metadata"
+      ],
+      "status": "CONCEPT_REFERENCE_ONLY_NOT_SHIPPED"
+    }
+  ],
+  "importProcess": {
+    "preliminary": "User/owner or authorized agent makes actual ZIP bytes accessible to computer/repository, not just filename. Re-evaluate source safety and available GitHub binary capability at execution.",
+    "strictSteps": [
+      "Fetch exact source bytes from authorized owner-provided location",
+      "Validate ZIP SHA256 and entry list, maximum size, no traversal/symlinks, executable payload quarantine",
+      "Validate each imported file SHA-256 AND image MIME/dimensions before git stage",
+      "Ensure reference binaries are not installed into Next.js production public/ unnecessarily",
+      "Commit binary assets to dedicated protected design paths via authorized Git worktree/PR, then verify Git blob readback and hashes",
+      "Do not change owner approval flags until explicit visual signoff with exact SHA of all four masters",
+      "Include license/provenance metadata and clean export rules; optimize delivery assets separately rather than serving 6817px screenshots"
+    ],
+    "successEvidence": [
+      "Git commit SHA and branch",
+      "same sha256 on imported bytes",
+      "path/blob GitHub readback",
+      "license/provenance and status",
+      "explicit owner approval / visual freeze hash"
+    ],
+    "failClosed": [
+      "unknown ZIP bytes",
+      "mismatched SHA",
+      "unverified imagery license",
+      "missing exact logo",
+      "attempt to declare approved brand from concept",
+      "user cancels owner approval"
+    ]
+  },
+  "trustBoundary": {
+    "branch": "PR #75 draft",
+    "notApprovedForSite": true,
+    "notAutomaticallyImported": true,
+    "noGitHubBinaryUrlsAsserted": true,
+    "masterApprovalRequiresUserAction": true
+  }
+}
