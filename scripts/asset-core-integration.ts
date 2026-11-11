@@ -5,6 +5,7 @@ import {
   AssetCoreRepositoryError,
   appendAssetVersion,
   appendProjectDnaVersion,
+  createPrivateAssetScopeRepository,
   createAssetVersion,
   createProjectDnaVersion,
   createDatabase,
@@ -15,12 +16,17 @@ import {
   listProjectDnaVersions,
   restoreAssetVersion,
   restoreProjectDnaVersion,
+  type PrivateAssetScopeRepositoryPort,
+  type PrivateAssetScopeRequest,
+  type PrivateAssetScopeResolution,
 } from '@spryxel/db';
 import {
   createUuidV7,
   prepareAssetVersion,
   prepareProjectDnaVersion,
   type AssetMetadataPayload,
+  type PrivateAssetResolvedScope,
+  canAccessPrivateAsset,
 } from '@spryxel/domain';
 
 type Identity = { subjectId: string; tenantId: string };
@@ -263,6 +269,19 @@ export async function runAssetCoreIntegration(input: {
       payload: assetPayload('WO-010 base asset'),
       provenance: provenance(scopeA.subjectId),
     });
+    const publishAssetDraft = await createAssetVersion(database, {
+      ...scopeA,
+      idempotencyKey: 'phase-c-scope-publish-draft',
+      payload: assetPayload('Phase C resolver publish fixture'),
+      provenance: provenance(scopeA.subjectId),
+    });
+    const publishedAsset = await appendAssetVersion(database, {
+      ...scopeA,
+      assetId: publishAssetDraft.assetId,
+      idempotencyKey: 'phase-c-scope-publish-v2',
+      payload: assetPayload('Phase C resolver published fixture', { status: 'published' }),
+      provenance: provenance(scopeA.subjectId),
+    });
     await assertDirectRpcRejectsMalformedPayloadAndProvenance(
       database,
       scopeA,
@@ -475,10 +494,20 @@ export async function runAssetCoreIntegration(input: {
     await assertAssetCoreRolePrivileges(ownerPool);
     await assertWorkerAssetCoreDenied(workerDatabase);
     await assertRlsIsolationAndContextReset(scopeDatabase, scopeA, scopeA2, scopeB, dna, dnaB);
+    await assertPrivateAssetScopeResolver({
+      database: scopeDatabase,
+      ownerPool,
+      scopeA,
+      scopeA2,
+      scopeB,
+      draftAssetVersionId: baseAsset.versionId,
+      publishedAssetVersionId: publishedAsset.versionId,
+      otherTenantAssetVersionId: assetB.versionId,
+    });
     await assertPrivilegedImmutability(ownerPool, scopeA, dna, baseAsset);
 
     process.stdout.write(
-      'Asset Core integration: PASS (A01-A04; B01-B06; tenant/project guessed-ID isolation; cross-scope lineage and FK denial; transaction rollback; forced RLS; immutable history; no stale pooled context).\n',
+      'Asset Core integration: PASS (A01-A04; B01-B06; tenant/project guessed-ID isolation; cross-scope lineage and FK denial; transaction rollback; forced RLS; immutable history; Phase C FORCE RLS for every resolver table, OWNER/ADMIN/MEMBER read scope, revoked/suspended/non-member denial, unresolved upload denial, and pool context reset after allow/deny/abort).\n',
     );
   } finally {
     await Promise.all([
@@ -488,6 +517,378 @@ export async function runAssetCoreIntegration(input: {
       ownerPool.end(),
     ]);
   }
+}
+
+async function assertPrivateAssetScopeResolver(input: {
+  database: ReturnType<typeof createDatabase>;
+  ownerPool: Pool;
+  scopeA: Scope;
+  scopeA2: Scope;
+  scopeB: Scope;
+  draftAssetVersionId: string;
+  publishedAssetVersionId: string;
+  otherTenantAssetVersionId: string;
+}): Promise<void> {
+  const repository = createPrivateAssetScopeRepository(input.database);
+  await assertPrivateAssetResolverRls(input.database);
+  await assertPrivateAssetPoolContextReset(input.database);
+
+  const ownerDraftResolution = await repository.resolve({
+    ...input.scopeA,
+    assetVersionId: input.draftAssetVersionId,
+  });
+  const ownerDraft = assertResolvedPrivateAssetScope(ownerDraftResolution, 'OWNER', 'draft');
+  if (
+    !canAccessPrivateAsset(
+      privateAssetPolicyInput(input.scopeA, input.draftAssetVersionId, 'read', ownerDraft),
+    )
+  ) {
+    throw new Error('OWNER could not read its RLS-resolved draft asset');
+  }
+  if (
+    !canAccessPrivateAsset(
+      privateAssetPolicyInput(input.scopeA, input.draftAssetVersionId, 'begin', ownerDraft),
+    )
+  ) {
+    throw new Error('OWNER draft begin policy unexpectedly denied the pure decision');
+  }
+  await assertPrivateAssetPoolContextReset(input.database);
+
+  const ownerPublishedResolution = await repository.resolve({
+    ...input.scopeA,
+    assetVersionId: input.publishedAssetVersionId,
+  });
+  assertResolvedPrivateAssetScope(ownerPublishedResolution, 'OWNER', 'published');
+
+  const admin = await createResolverPrincipal(input.ownerPool, input.scopeA.tenantId, {
+    role: 'ADMIN',
+  });
+  const adminScope: Scope = { ...input.scopeA, subjectId: admin.subjectId };
+  const adminResolution = await repository.resolve({
+    ...adminScope,
+    assetVersionId: input.publishedAssetVersionId,
+  });
+  const adminPublished = assertResolvedPrivateAssetScope(adminResolution, 'ADMIN', 'published');
+
+  const member = await createResolverPrincipal(input.ownerPool, input.scopeA.tenantId, {
+    role: 'MEMBER',
+  });
+  const memberScope: Scope = { ...input.scopeA, subjectId: member.subjectId };
+  const memberResolution = await repository.resolve({
+    ...memberScope,
+    assetVersionId: input.draftAssetVersionId,
+  });
+  const memberDraft = assertResolvedPrivateAssetScope(memberResolution, 'MEMBER', 'draft');
+  if (
+    !canAccessPrivateAsset(
+      privateAssetPolicyInput(memberScope, input.draftAssetVersionId, 'read', memberDraft),
+    ) ||
+    canAccessPrivateAsset(
+      privateAssetPolicyInput(memberScope, input.draftAssetVersionId, 'begin', memberDraft),
+    )
+  ) {
+    throw new Error('MEMBER read-only policy did not preserve the project-scoped boundary');
+  }
+  if (
+    !canAccessPrivateAsset(
+      privateAssetPolicyInput(adminScope, input.publishedAssetVersionId, 'read', adminPublished),
+    )
+  ) {
+    throw new Error('ADMIN could not read its RLS-resolved published asset');
+  }
+
+  for (const operation of ['finalize', 'abort'] as const) {
+    const attemptId = createUuidV7();
+    if (
+      canAccessPrivateAsset({
+        ...privateAssetPolicyInput(input.scopeA, input.draftAssetVersionId, operation, ownerDraft),
+        requestedUploadAttemptId: attemptId,
+      })
+    ) {
+      throw new Error(`Unresolved upload attempt unexpectedly allowed ${operation}`);
+    }
+  }
+
+  const noMembership = await createResolverPrincipal(input.ownerPool, input.scopeA.tenantId);
+  await assertPrivateAssetResolutionDenied(repository, input.database, {
+    ...input.scopeA,
+    subjectId: noMembership.subjectId,
+    assetVersionId: input.draftAssetVersionId,
+  });
+  await assertPrivateAssetResolutionDenied(repository, input.database, {
+    ...input.scopeA,
+    assetVersionId: input.otherTenantAssetVersionId,
+  });
+  await assertPrivateAssetResolutionDenied(repository, input.database, {
+    ...input.scopeA2,
+    assetVersionId: input.draftAssetVersionId,
+  });
+  await assertPrivateAssetResolutionDenied(repository, input.database, {
+    ...input.scopeA,
+    tenantId: input.scopeB.tenantId,
+    projectId: input.scopeB.projectId,
+    assetVersionId: input.otherTenantAssetVersionId,
+  });
+  await assertPrivateAssetResolutionDenied(repository, input.database, {
+    ...input.scopeA,
+    assetVersionId: createUuidV7(),
+  });
+  const invalidUuid = await repository.resolve({
+    ...input.scopeA,
+    assetVersionId: '018f47b2-3b1e-4cc3-8f4b-0c5940b7a337',
+  });
+  if (invalidUuid.allowed || invalidUuid.reason !== 'invalid_request') {
+    throw new Error('Private asset resolver did not reject a non-v7 identifier before PostgreSQL');
+  }
+  await assertPrivateAssetPoolContextReset(input.database);
+
+  const revokedMember = await createResolverPrincipal(input.ownerPool, input.scopeA.tenantId, {
+    role: 'MEMBER',
+    membershipStatus: 'revoked',
+  });
+  await assertPrivateAssetResolutionDenied(repository, input.database, {
+    ...input.scopeA,
+    subjectId: revokedMember.subjectId,
+    assetVersionId: input.draftAssetVersionId,
+  });
+
+  const suspendedSubject = await createResolverPrincipal(input.ownerPool, input.scopeA.tenantId, {
+    role: 'MEMBER',
+    subjectStatus: 'suspended',
+  });
+  await assertPrivateAssetResolutionDenied(repository, input.database, {
+    ...input.scopeA,
+    subjectId: suspendedSubject.subjectId,
+    assetVersionId: input.draftAssetVersionId,
+  });
+
+  await input.ownerPool.query(
+    `UPDATE platform.tenant_membership SET status = 'revoked'
+      WHERE tenant_id = $1 AND subject_id = $2`,
+    [input.scopeA.tenantId, member.subjectId],
+  );
+  try {
+    await assertPrivateAssetResolutionDenied(repository, input.database, {
+      ...memberScope,
+      assetVersionId: input.draftAssetVersionId,
+    });
+  } finally {
+    await input.ownerPool.query(
+      `UPDATE platform.tenant_membership SET status = 'active'
+        WHERE tenant_id = $1 AND subject_id = $2`,
+      [input.scopeA.tenantId, member.subjectId],
+    );
+  }
+
+  await input.ownerPool.query(`UPDATE platform.tenant SET status = 'suspended' WHERE id = $1`, [
+    input.scopeA.tenantId,
+  ]);
+  try {
+    await assertPrivateAssetResolutionDenied(repository, input.database, {
+      ...input.scopeA,
+      assetVersionId: input.draftAssetVersionId,
+    });
+  } finally {
+    await input.ownerPool.query(`UPDATE platform.tenant SET status = 'active' WHERE id = $1`, [
+      input.scopeA.tenantId,
+    ]);
+  }
+
+  await assertAbortedPrivateAssetTransactionDoesNotLeakContext(input.database, input.scopeA);
+  await assertPrivateAssetPoolContextReset(input.database);
+}
+
+function assertResolvedPrivateAssetScope(
+  result: PrivateAssetScopeResolution,
+  role: 'OWNER' | 'ADMIN' | 'MEMBER',
+  versionStatus: 'draft' | 'published' | 'archived',
+): PrivateAssetResolvedScope {
+  if (
+    !result.allowed ||
+    result.scope.versionStatus !== versionStatus ||
+    !result.scope.assetReadAllowed ||
+    result.scope.uploadAttempt !== null ||
+    result.scope.membership?.active !== true ||
+    result.scope.membership.role !== role
+  ) {
+    throw new Error(`Expected an active RLS-resolved ${role} ${versionStatus} snapshot`);
+  }
+  return result.scope;
+}
+
+function privateAssetPolicyInput(
+  scope: Scope,
+  assetVersionId: string,
+  operation: 'read' | 'begin' | 'finalize' | 'abort',
+  resolved: PrivateAssetResolvedScope,
+) {
+  return {
+    operation,
+    principal: { subjectId: scope.subjectId, tenantId: scope.tenantId },
+    requestedProjectId: scope.projectId,
+    requestedAssetVersionId: assetVersionId,
+    requestedUploadAttemptId: null,
+    resolved,
+  } as const;
+}
+
+async function assertPrivateAssetResolutionDenied(
+  repository: PrivateAssetScopeRepositoryPort,
+  database: ReturnType<typeof createDatabase>,
+  request: PrivateAssetScopeRequest,
+): Promise<void> {
+  const result = await repository.resolve(request);
+  if (result.allowed || result.reason !== 'not_authorized') {
+    throw new Error('Private asset resolver allowed or misclassified an unauthorized scope');
+  }
+  await assertPrivateAssetPoolContextReset(database);
+}
+
+async function assertPrivateAssetPoolContextReset(
+  database: ReturnType<typeof createDatabase>,
+): Promise<void> {
+  const result = await database.pool.query<{
+    subject_id: string | null;
+    tenant_id: string | null;
+    project_id: string | null;
+    identity_subject_count: string;
+    tenant_count: string;
+    membership_count: string;
+    project_count: string;
+    asset_version_count: string;
+  }>(
+    `SELECT current_setting('spryxel.subject_id', true) AS subject_id,
+            current_setting('spryxel.tenant_id', true) AS tenant_id,
+            current_setting('spryxel.project_id', true) AS project_id,
+            (SELECT count(*)::text FROM platform.identity_subject) AS identity_subject_count,
+            (SELECT count(*)::text FROM platform.tenant) AS tenant_count,
+            (SELECT count(*)::text FROM platform.tenant_membership) AS membership_count,
+            (SELECT count(*)::text FROM platform.project) AS project_count,
+            (SELECT count(*)::text FROM platform.asset_version) AS asset_version_count`,
+  );
+  const row = result.rows[0];
+  if (
+    !row ||
+    [row.subject_id, row.tenant_id, row.project_id].some(
+      (value) => value !== null && value !== '',
+    ) ||
+    [
+      row.identity_subject_count,
+      row.tenant_count,
+      row.membership_count,
+      row.project_count,
+      row.asset_version_count,
+    ].some((count) => count !== '0')
+  ) {
+    throw new Error('Private asset scope or transaction-local RLS context leaked through the pool');
+  }
+}
+
+async function assertPrivateAssetResolverRls(
+  database: ReturnType<typeof createDatabase>,
+): Promise<void> {
+  const tableNames = [
+    'identity_subject',
+    'tenant',
+    'tenant_membership',
+    'project',
+    'asset_version',
+  ];
+  const result = await database.pool.query<{
+    relname: string;
+    row_security: boolean;
+    force_row_security: boolean;
+    is_app_role: boolean;
+    runtime_bypasses_rls: boolean;
+  }>(
+    `SELECT relation.relname,
+            relation.relrowsecurity AS row_security,
+            relation.relforcerowsecurity AS force_row_security,
+            current_user = 'spryxel_app' AS is_app_role,
+            (role.rolsuper OR role.rolbypassrls) AS runtime_bypasses_rls
+       FROM pg_catalog.pg_class AS relation
+       JOIN pg_catalog.pg_namespace AS namespace ON namespace.oid = relation.relnamespace
+       JOIN pg_catalog.pg_roles AS role ON role.rolname = current_user
+      WHERE namespace.nspname = 'platform'
+        AND relation.relname = ANY($1::text[])
+        AND relation.relkind IN ('r', 'p')
+      ORDER BY relation.relname`,
+    [tableNames],
+  );
+  if (
+    result.rows.length !== tableNames.length ||
+    result.rows.some(
+      (row) =>
+        !row.row_security ||
+        !row.force_row_security ||
+        !row.is_app_role ||
+        row.runtime_bypasses_rls,
+    )
+  ) {
+    throw new Error('Private asset resolver tables did not enforce FORCE RLS for spryxel_app');
+  }
+}
+
+async function assertAbortedPrivateAssetTransactionDoesNotLeakContext(
+  database: ReturnType<typeof createDatabase>,
+  scope: Scope,
+): Promise<void> {
+  const client = await database.pool.connect();
+  let transactionOpen = false;
+  let discardClient = false;
+  try {
+    await client.query('BEGIN');
+    transactionOpen = true;
+    await client.query("SELECT set_config('spryxel.subject_id', $1, true)", [scope.subjectId]);
+    await client.query("SELECT set_config('spryxel.tenant_id', $1, true)", [scope.tenantId]);
+    await client.query("SELECT set_config('spryxel.project_id', $1, true)", [scope.projectId]);
+    let aborted = false;
+    try {
+      await client.query('SELECT 1 / 0');
+    } catch {
+      aborted = true;
+    }
+    if (!aborted)
+      throw new Error('PostgreSQL did not abort the deliberate integration transaction');
+    await client.query('ROLLBACK');
+    transactionOpen = false;
+  } catch (error) {
+    if (transactionOpen) {
+      try {
+        await client.query('ROLLBACK');
+        transactionOpen = false;
+      } catch {
+        discardClient = true;
+      }
+    }
+    throw error;
+  } finally {
+    client.release(discardClient || transactionOpen);
+  }
+}
+
+async function createResolverPrincipal(
+  pool: Pool,
+  tenantId: string,
+  options: {
+    role?: 'ADMIN' | 'MEMBER';
+    subjectStatus?: 'active' | 'suspended';
+    membershipStatus?: 'active' | 'revoked';
+  } = {},
+): Promise<Identity> {
+  const subjectId = createUuidV7();
+  await pool.query('INSERT INTO platform.identity_subject (id, status) VALUES ($1, $2)', [
+    subjectId,
+    options.subjectStatus ?? 'active',
+  ]);
+  if (options.role) {
+    await pool.query(
+      `INSERT INTO platform.tenant_membership (tenant_id, subject_id, role, status)
+       VALUES ($1, $2, $3, $4)`,
+      [tenantId, subjectId, options.role, options.membershipStatus ?? 'active'],
+    );
+  }
+  return { subjectId, tenantId };
 }
 
 async function assertAssetCoreRolePrivileges(pool: Pool): Promise<void> {

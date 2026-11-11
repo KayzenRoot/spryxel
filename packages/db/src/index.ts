@@ -1725,3 +1725,14 @@ export type {
   AssetVersionRecord,
   ProjectDnaVersionRecord,
 } from './asset-core.js';
+export {
+  createPrivateAssetScopeRepository,
+  PrivateAssetScopeRepositoryError,
+  resolvePrivateAssetScope,
+} from './private-asset-scope.js';
+export type {
+  PrivateAssetScopeDatabase,
+  PrivateAssetScopeRepositoryPort,
+  PrivateAssetScopeRequest,
+  PrivateAssetScopeResolution,
+} from './private-asset-scope.js';
