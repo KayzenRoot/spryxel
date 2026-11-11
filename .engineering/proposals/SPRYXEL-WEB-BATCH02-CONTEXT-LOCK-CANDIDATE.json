@@ -1,0 +1,242 @@
+{
+  "schemaVersion": 1,
+  "kind": "spryxel.context-lock.candidate",
+  "workOrderId": "SPRYXEL-WEB-BATCH02",
+  "implementationIncrement": "WEB-PUBLIC-STATIC-BATCH02-POLISH",
+  "status": "PRE_ADMISSION_CANDIDATE_NOT_FRESH",
+  "risk": "ELEVATED_GOVERNANCE_INHERITS_HIGH_ASSURANCE_ROOT_PARENT",
+  "repository": "KayzenRoot/spryxel",
+  "authorizedBranchProposed": "feat/web-static-batch-02-polish",
+  "executionBaseCandidate": {
+    "branch": "feat/web-b1-ssr-locale-01",
+    "sha": "9e34e76ce8e451a47999cdd354921b5fed0c08c9",
+    "parentDraftPR": 80,
+    "grandparentDraftPR": 76
+  },
+  "canonicalMainForSourceCheck": {
+    "sha": "08bd429bb924e26f7d5266ee9b556cc8da2c8b8c",
+    "nextLegalStage": "ASSET_CONTRACT_DURABLE_JOB_WORK_ORDER_REQUIRED",
+    "implementationNextStatus": "NOT_ADMITTED"
+  },
+  "trackingIssue": 81,
+  "gef": {
+    "package": "@gef-bootstrap/cli",
+    "version": "1.1.1",
+    "releaseSourceSha": "1dc030f1358eab0347043a3d54c7fc311c7c2123"
+  },
+  "workOrderSource": {
+    "path": ".engineering/proposals/SPRYXEL-WEB-BATCH02-WORK-ORDER-CANDIDATE.md",
+    "gitBlobSha": "a84f76a09d24dafbe6ccd165c8930ec6be245e18",
+    "authority": "PROPOSED_ONLY"
+  },
+  "proposedDecisions": [
+    {
+      "path": ".engineering/proposals/D-162-WEB-BATCH02-OFFMAIN-CANDIDATE.md",
+      "gitBlobSha": "ef5c5ef50a56d1dd8a3576689fb0b5f9fa6b53fa"
+    },
+    {
+      "path": ".engineering/proposals/WEB-BATCH02-G1-CONTRACT-CANDIDATE.md",
+      "gitBlobSha": "c091a960a4c49b9f8d5c51b54037ecb17f496db6"
+    }
+  ],
+  "decisionBaseline": {
+    "ledgerBlobSha": "856894e9936780f36c5e9982d1c3fe6e96aed90f",
+    "protectedDecisionRange": "D-001..D-161",
+    "proposedExtension": "D-162_NOT_CANONICAL"
+  },
+  "criticalBaseSources": [
+    {
+      "path": ".engineering/CHECKPOINT.json",
+      "gitBlobSha": "cd1a8729e068d3bc72e57c5c2a6ea9a8f686cbe7"
+    },
+    {
+      "path": ".engineering/DECISIONS-LEDGER.md",
+      "gitBlobSha": "856894e9936780f36c5e9982d1c3fe6e96aed90f"
+    },
+    {
+      "path": ".engineering/SOURCE-HIERARCHY.md",
+      "gitBlobSha": "682405cf940db156779f345b0d924747245e2d79"
+    },
+    {
+      "path": "AGENTS.md",
+      "gitBlobSha": "4dec6b3e5a88536c507ae810e50e01ecd560f753"
+    },
+    {
+      "path": "package-lock.json",
+      "gitBlobSha": "5585c5b1eb10deaac1f6f513f38f8bb3ff874e97"
+    }
+  ],
+  "sourceFiles": [
+    {
+      "lane": "C1",
+      "path": "apps/web/src/public-site/shell.tsx",
+      "gitBlobSha": "1595ece93227b28d6d246c89c8936a9807fac8d5",
+      "writeMode": "EXCLUSIVE"
+    },
+    {
+      "lane": "C2",
+      "path": "apps/web/src/public-site/content.ts",
+      "gitBlobSha": "83acf3702e3b78f87c88ad4d8de57229905aa1a6",
+      "writeMode": "EXCLUSIVE"
+    },
+    {
+      "lane": "C3",
+      "path": "apps/web/app/globals.css",
+      "gitBlobSha": "fa74f66d3e466080588a3d5fbf18d9595e8ada17",
+      "writeMode": "EXCLUSIVE"
+    },
+    {
+      "lane": "INTEGRATOR",
+      "path": "apps/web/public-site.spec.ts",
+      "gitBlobSha": "8913322b377bbc303cae0d949be7644bcf10cb4a",
+      "writeMode": "EXCLUSIVE_AFTER_C1_C2_C3"
+    },
+    {
+      "lane": "REFERENCE_ONLY",
+      "path": "apps/web/app/[locale]/layout.tsx",
+      "gitBlobSha": "c500658fcb4bb6bba008c6017edcc5c0e6fcfda2",
+      "writeMode": "READ_ONLY"
+    }
+  ],
+  "riskReview": {
+    "wo008PullRequest": 30,
+    "wo008Head": "5947f86439996c42e70486f18e527e2f1a93927d",
+    "wo008ChangedFileCount": 54,
+    "directWritablePathOverlapCount": 0,
+    "indirectFutureIntegrationRisk": "Exact merge-tree of WO-008 #30 at 5947f86439996c42e70486f18e527e2f1a93927d with SSR PR #80 at 9e34e76ce8e451a47999cdd354921b5fed0c08c9 reports content conflicts in apps/web/app/(workspace)/page.tsx and apps/web/app/(workspace)/projects/[projectId]/page.tsx after protected route relocation; independent HIGH_ASSURANCE semantic resolution and regressions remain required.",
+    "notAnAuthorizationToMerge": true,
+    "historicalPreC04BReadback": {
+      "wo008Head": "4a7d696b72ffab6f1569510d1059f42964864626",
+      "changedFileCount": 52,
+      "status": "HISTORICAL_SUPERSEDED"
+    },
+    "wo008CodeTestedHead": "2e6b394c991a7a96eb8749ec9870d6dc5dd8188d",
+    "wo008FinalEvidenceOnlyCommitPath": ".engineering/evidence/SPRYXEL-WO-008-EVIDENCE.md",
+    "wo008LocalEvidence": {
+      "source": "https://github.com/KayzenRoot/spryxel/pull/30#issuecomment-6178472121",
+      "status": "REPORTED_ON_RECORD_NOT_INDEPENDENTLY_RERUN",
+      "summary": "R4 reports 94/94 unit tests, real PostgreSQL 18.6 FORCE RLS plus Redis/BullMQ and SeaweedFS integration, two standard Playwright runs 20/20, npm test and related checks on the code-tested SHA."
+    },
+    "wo008HostedChecks": {
+      "head": "5947f86439996c42e70486f18e527e2f1a93927d",
+      "status": "7_OF_7_SUCCESS",
+      "reviewThreads": "13_OF_13_RESOLVED",
+      "formalApprovedReview": false
+    },
+    "wo008Sonar": {
+      "status": "SONAR_TRIAGE_NOT_AVAILABLE",
+      "qualityGate": "PASS",
+      "newIssues": 74,
+      "accepted": 0,
+      "hotspots": 0,
+      "newCodeCoveragePercent": 0.0,
+      "duplicatedLinesPercent": 1.7,
+      "issueMetadataRequest": "HTTP 403 CloudFront",
+      "url": "https://sonarcloud.io/dashboard?id=KayzenRoot_spryxel&pullRequest=30"
+    },
+    "wo008ConcurrencyEvidence": {
+      "standardSuiteRuns": "2 x 20/20, one auto-selected worker each",
+      "twoConcurrentBrowserContexts": true,
+      "multiWorkerSuiteRun": "NOT_RUN"
+    },
+    "wo008DistinctStaticReview": {
+      "reviewedHead": "5947f86439996c42e70486f18e527e2f1a93927d",
+      "process": "distinct read-only agent /root/wo008_independent_review",
+      "githubFormalReview": false,
+      "testsRun": false,
+      "initialMediumFinding": "ordinary reconciliation terminalizing a live-lease cancel_requested Job; withdrawn after source-flow recheck",
+      "additionalGucCheck": "worker can set finish_job_safe_point, but reconciliation leaves valid lease set; durable_job_active_lease_check rejects Job update and statement rollback includes Attempt update",
+      "finalStaticDisposition": "no reproducible cancellation terminalization defect remains from this path; no confirmed HIGH/CRITICAL finding"
+    }
+  },
+  "authorizedMutationClasses": {
+    "publicShellPresentation": true,
+    "publicLocaleCopy": true,
+    "marketingScopedCss": true,
+    "serialPlaywrightTests": true,
+    "backend": false,
+    "authAndProxy": false,
+    "projectRls": false,
+    "productRootRoutes": false,
+    "decisionLedger": false,
+    "checkpointPromotion": false,
+    "gef": false,
+    "workflow": false,
+    "dependenciesAndLockfiles": false,
+    "modelGpuProvider": false,
+    "creditsPayments": false,
+    "blenderAnimation": false
+  },
+  "concurrency": {
+    "maxWorkerAgents": 3,
+    "oneExclusiveFilePerAgent": true,
+    "serialIntegrator": true,
+    "providerNativeMultiagentCapabilityNotVerified": true
+  },
+  "ownerScopedApproval": {
+    "date": "2026-10-14",
+    "source": "Owner explicit 'Autorizo pode continuar' to prepare isolated branch work while PR30 remains open with no merges and no auth/backend/Blender/payment",
+    "offMainPreparation": true,
+    "workOrderExecutable": false,
+    "merge": false,
+    "governanceOnlyMergeConditionalApproval": {
+      "granted": true,
+      "date": "2026-10-14",
+      "scope": "User explicitly authorized governance-only merge AFTER independent audit, while forbidding merges of #30 #76 #80 or product Batch02",
+      "effectiveNow": false,
+      "blockedBy": "WO-008 FRESH lock uses main executionBase sha 08bd429...; any main merge would mutate SHA and invalidate source preflight. PR82 has no independent GitHub reviewer submission yet and currently only proposals.",
+      "requires": [
+        "independent reviewer verdict on normative change",
+        "WO008 closed/promoted or separately authorized recompiled HIGH_ASSURANCE work order on new base",
+        "separate canonical D162/G1/AGENTS/Checkpoint approved delta as necessary",
+        "all exact-head required checks and ruleset compliance"
+      ]
+    }
+  },
+  "formalAdmission": {
+    "d162ApprovedAndPromoted": false,
+    "g1ContractFrozenByAuditor": false,
+    "independentReviewerApproved": false,
+    "approvedWorkOrderPublished": false,
+    "canonicalFreshContextLockPublished": false,
+    "branchCreationAuthorizedByCanonicalSource": false,
+    "executeNow": false,
+    "mergeAuthorized": false,
+    "governanceMergeOwnerAuthorizedConditionally": true,
+    "governanceMergeSafeNow": false,
+    "blockingActiveWo008Lock": true
+  },
+  "hardOutOfScope": [
+    "main and existing #30 #76 #80 branches",
+    "apps/web/app/(workspace)/**",
+    "apps/web/app/[locale]/**",
+    "apps/web/proxy.ts",
+    "apps/api/** and back-end",
+    "WorkOS and tenant DB/RLS",
+    "billing credits blockchain",
+    "all AI generation GPU and Blender/motion",
+    "seven current WebP and owner-unapproved official logo",
+    "canonical GEF/source/checkpoint/CI"
+  ],
+  "staleIf": [
+    "executionBaseCandidate.sha or parent PR heads change",
+    "criticalBaseSources SHA changes",
+    "candidate WO or D-162/G1 SHA changes without audited refresh",
+    "WO008 critical Context Lock conflict emerges",
+    "file ownership or user approval scope changes",
+    "new dependency/permissions/CI/policy drift"
+  ],
+  "stopOnStale": true,
+  "stopReason": "STOP: conditional owner authorization for governance-only merge recorded, but immediate merge is NO-GO because WO008 active FRESH context lock has executionBase.sha main@08bd429 and critical source hashes. Even proposals-only merge changes main SHA. No independent PR82 review, and proposal files do not promote D162/Checkpoint/AGENTS.",
+  "currentStopCondition": "SPRYXEL_WEB_BATCH02_OWNER_SCOPED_APPROVAL_PACK_READY_FOR_INDEPENDENT_ADMISSION",
+  "futureExecutableStopCondition": "SPRYXEL_WEB_STATIC_BATCH_02_DRAFT_STACKED_PR_READY_FOR_CHATGPT_FIRST_REVIEW",
+  "preparedExecutionBranch": {
+    "name": "feat/web-static-batch-02-polish",
+    "headShaAtCreation": "9e34e76ce8e451a47999cdd354921b5fed0c08c9",
+    "emptyBranch": true,
+    "createdBy": "ChatGPT via GitHub, using owner's scoped preparation authorization",
+    "sourceMutations": 0,
+    "prCreated": false,
+    "executionAllowed": false
+  }
+}
